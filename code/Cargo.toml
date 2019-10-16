@@ -1,0 +1,24 @@
+[package]
+name = "code"
+version = "0.1.0"
+authors = ["Ben Hansen <bhbenjaminhansen@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[[bin]]
+name = "tutorial1-window"
+path = "src/beginner/tutorial1-window.rs"
+
+[[bin]]
+name = "tutorial2-device"
+path = "src/beginner/tutorial2-device.rs"
+
+[dependencies]
+image = "0.22"
+raw-window-handle = "0.3"
+winit = "0.20.0-alpha3"
+
+[dependencies.wgpu]
+version = "0.3"
+features = ["vulkan"]
