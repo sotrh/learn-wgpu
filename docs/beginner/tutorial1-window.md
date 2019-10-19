@@ -1,7 +1,7 @@
 # Dependencies and the window
 
 ## Boring, I know
-Some of you reading this are very experienced with opening up windows in Rust and probably have your favorite windowing library, but we this guide is designed for everybody, so it's something that we need to cover. Luckily, if you don't need to read this if you know what you're doing. One thing that you do need to know is that whatever windowing solution you use needs to support the [raw-window-handle](https://github.com/rust-windowing/raw-window-handle) crate.
+Some of you reading this are very experienced with opening up windows in Rust and probably have your favorite windowing library, but this guide is designed for everybody, so it's something that we need to cover. Luckily, if you don't need to read this if you know what you're doing. One thing that you do need to know is that whatever windowing solution you use needs to support the [raw-window-handle](https://github.com/rust-windowing/raw-window-handle) crate.
 
 ## What crates are we using?
 For the beginner stuff, we're going to keep things very simple, we'll add things as we go, but I've listed the relevant `Cargo.toml` bits below.
@@ -18,7 +18,7 @@ features = ["vulkan"]
 ```
 
 ## Why vulkan?
-You need to specify what rendering backend you're using through [Cargo features](https://doc.rust-lang.org/cargo/reference/manifest.html#the-features-section) in order to run a program with wgpu. You can manu I'm specifying [vulkan](https://www.khronos.org/vulkan/), because I'm on [linux](https://www.linuxmint.com/). You're welcome to use [metal](https://developer.apple.com/metal/), or `DirectX 11/12` using `"metal"`, `"dx11"`, or `"dx12"` respectively. 
+You need to specify what rendering backend you're using through [Cargo features](https://doc.rust-lang.org/cargo/reference/manifest.html#the-features-section) in order to run a program with wgpu. I'm specifying [vulkan](https://www.khronos.org/vulkan/), because I'm on [linux](https://www.linuxmint.com/). You're welcome to use [metal](https://developer.apple.com/metal/), or `DirectX 11/12` using `"metal"`, `"dx11"`, or `"dx12"` respectively. 
 
 ## What's with the "alpha" stuff?
 The wgpu examples use this version of [winit](https://github.com/rust-windowing/winit), so I elected to do the same. *Note: I'll update this once the changes to winit become fully released.*

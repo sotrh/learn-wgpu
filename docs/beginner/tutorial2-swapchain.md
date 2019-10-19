@@ -124,7 +124,7 @@ We'll want to call this in our main method before we enter the event loop.
 let mut state = State::new(&window);
 ```
 
-## resize() and update_hidpi_factor_and_resize(...)
+## resize() and update_hidpi_factor_and_resize()
 If we want to support resizing in our application, we're going to need to recreate the `swap_chain` everytime the window's size changes. That's the reason we stored the `hidpi_factor`, the logical `size`, and the `sc_desc` used to create the swapchain. With all of these, the resize method is very simple.
 
 ```rust
@@ -165,7 +165,7 @@ match event {
 }
 ```
 
-## input(...)
+## input()
 
 `input()` returns a `bool` to indicate whether an event has been fully processed. If the method returns `true`, the main loop won't process the event any further.
 
