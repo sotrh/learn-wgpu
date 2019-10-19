@@ -10,6 +10,7 @@ module.exports = {
                 children: [
                     '/beginner/',
                     '/beginner/tutorial1-window',
+                    '/beginner/tutorial2-swapchain',
                 ],
             },
             {

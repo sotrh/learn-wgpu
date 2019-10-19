@@ -11,12 +11,12 @@ name = "tutorial1-window"
 path = "src/beginner/tutorial1-window.rs"
 
 [[bin]]
-name = "tutorial2-device"
-path = "src/beginner/tutorial2-device.rs"
+name = "tutorial2-swapchain"
+path = "src/beginner/tutorial2-swapchain.rs"
 
 [dependencies]
 image = "0.22"
-raw-window-handle = "0.3"
+raw-window-handle = "0.1"
 winit = "0.20.0-alpha3"
 
 [dependencies.wgpu]
