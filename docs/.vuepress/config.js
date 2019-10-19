@@ -1,6 +1,8 @@
 module.exports = {
+    base: '/learn-wgpu/',
     themeConfig: {
-        displayAllHeaders: true,
+        displayAllHeaders: false,
+        lastUpdated: 'Last Updated',
         sidebar: [
             '/',
             {
