@@ -14,10 +14,15 @@ path = "src/beginner/tutorial1-window.rs"
 name = "tutorial2-swapchain"
 path = "src/beginner/tutorial2-swapchain.rs"
 
+[[bin]]
+name = "tutorial3-pipeline"
+path = "src/beginner/tutorial3-pipeline/main.rs"
+
 [dependencies]
 image = "0.22"
 raw-window-handle = "0.1"
 winit = "0.20.0-alpha3"
+glsl-to-spirv = "0.1"
 
 [dependencies.wgpu]
 version = "0.3"

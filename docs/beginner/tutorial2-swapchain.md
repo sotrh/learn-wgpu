@@ -342,7 +342,7 @@ The `RenderPassColorAttachmentDescriptor` has the `attachment` field which infor
 
 There's not much documentation for `resolve_target` at the moment, but it does expect an `Option<&'a TextureView>`. Fortunately, we can use `None`.
 
-`load_op` and `store_op` define what operation to perform when gpu looks to load and store the colors for this color attachment for this render pass. We'll get more into this when we cover alpha blending, but for now we just `LoadOp::Clear` the texture when the render pass starts, and `StoreOp::Store` the colors when it ends.
+`load_op` and `store_op` define what operation to perform when gpu looks to load and store the colors for this color attachment for this render pass. We'll get more into this when we cover render passes in depth, but for now we just `LoadOp::Clear` the texture when the render pass starts, and `StoreOp::Store` the colors when it ends.
 
 The last field `clear_color` is just the color to use when `LoadOp::Clear` and/or `StoreOp::Clear` are used. This is where the blue color comes from.
 

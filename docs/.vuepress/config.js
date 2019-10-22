@@ -1,5 +1,6 @@
 module.exports = {
     base: '/learn-wgpu/',
+    title: 'Learn Wgpu',
     themeConfig: {
         displayAllHeaders: false,
         lastUpdated: 'Last Updated',
@@ -13,6 +14,7 @@ module.exports = {
                     '/beginner/',
                     '/beginner/tutorial1-window',
                     '/beginner/tutorial2-swapchain',
+                    '/beginner/tutorial3-pipeline',
                 ],
             },
             {
