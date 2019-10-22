@@ -1,6 +1,8 @@
 module.exports = {
     base: '/learn-wgpu/',
     title: 'Learn Wgpu',
+    theme: 'thindark',
+    plugins: [['vuepress-plugin-code-copy', true]],
     themeConfig: {
         displayAllHeaders: false,
         lastUpdated: 'Last Updated',

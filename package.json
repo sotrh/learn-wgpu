@@ -15,5 +15,9 @@
   "license": "ISC",
   "devDependencies": {
     "vuepress": "^1.2.0"
+  },
+  "dependencies": {
+    "vuepress-plugin-code-copy": "^1.0.4-alpha",
+    "vuepress-theme-thindark": "^1.0.1"
   }
 }
