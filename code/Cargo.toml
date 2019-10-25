@@ -18,11 +18,16 @@ path = "src/beginner/tutorial2-swapchain.rs"
 name = "tutorial3-pipeline"
 path = "src/beginner/tutorial3-pipeline/main.rs"
 
+[[bin]]
+name = "tutorial4-buffer"
+path = "src/beginner/tutorial4-buffer/main.rs"
+
 [dependencies]
 image = "0.22"
 raw-window-handle = "0.1"
 winit = "0.20.0-alpha3"
 glsl-to-spirv = "0.1"
+cgmath = "0.17"
 
 [dependencies.wgpu]
 version = "0.3"
