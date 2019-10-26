@@ -22,6 +22,10 @@ path = "src/beginner/tutorial3-pipeline/main.rs"
 name = "tutorial4-buffer"
 path = "src/beginner/tutorial4-buffer/main.rs"
 
+[[bin]]
+name = "windowless"
+path = "src/intermediate/windowless/main.rs"
+
 [dependencies]
 image = "0.22"
 raw-window-handle = "0.1"
