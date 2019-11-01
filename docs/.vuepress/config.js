@@ -10,7 +10,6 @@ module.exports = {
             '/',
             {
                 title: 'Beginner',
-                path: '/beginner/',
                 collapsable: false,
                 children: [
                     '/beginner/',
@@ -22,10 +21,9 @@ module.exports = {
             },
             {
                 title: 'Intermediate',
-                path: '/intermediate/',
                 collapsable: false,
                 children: [
-                    '/intermediate/',
+                    '/intermediate/windowless',
                 ],
             },
         ]

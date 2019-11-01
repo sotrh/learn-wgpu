@@ -82,17 +82,23 @@
            d="m 130.53462,202.59351 -53.750611,1.23481 -17.784224,-50.73829 42.759355,-32.5928 44.21096,30.59484 z"
            inkscape:transform-center-x="3.5866666"
            inkscape:transform-center-y="0.8132114"
-           transform="rotate(52.017384,121.36046,121.68252)" />
+           transform="rotate(52.017384,121.36046,121.68252)"
+           inkscape:export-xdpi="96"
+           inkscape:export-ydpi="96" />
         <path
            style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:0.17805102px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
            d="M 63.232605,178.708 110.23162,105.50336 29.180003,137.10184"
            id="path822"
-           inkscape:connector-curvature="0" />
+           inkscape:connector-curvature="0"
+           inkscape:export-xdpi="96"
+           inkscape:export-ydpi="96" />
         <flowRoot
            xml:space="preserve"
            id="flowRoot856"
            style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:40px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none"
-           transform="matrix(0.26458333,0,0,0.26458333,21.544643,-22.678571)"><flowRegion
+           transform="matrix(0.26458333,0,0,0.26458333,21.544643,-22.678571)"
+           inkscape:export-xdpi="96"
+           inkscape:export-ydpi="96"><flowRegion
              id="flowRegion858"><rect
                id="rect860"
                width="32.857143"
@@ -103,7 +109,9 @@
            xml:space="preserve"
            id="flowRoot868"
            style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:40px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none"
-           transform="matrix(0.26458333,0,0,0.26458333,96.383932,-13.229167)"><flowRegion
+           transform="matrix(0.26458333,0,0,0.26458333,3.4017891,22.678571)"
+           inkscape:export-xdpi="96"
+           inkscape:export-ydpi="96"><flowRegion
              id="flowRegion870"><rect
                id="rect872"
                width="55.714287"
@@ -114,7 +122,9 @@
            xml:space="preserve"
            id="flowRoot880"
            style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:40px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none"
-           transform="matrix(0.26458333,0,0,0.26458333,0.37797589,-25.702381)"><flowRegion
+           transform="matrix(0.26458333,0,0,0.26458333,38.553571,23.434524)"
+           inkscape:export-xdpi="96"
+           inkscape:export-ydpi="96"><flowRegion
              id="flowRegion882"><rect
                id="rect884"
                width="35.714287"
@@ -125,7 +135,9 @@
            xml:space="preserve"
            id="flowRoot892"
            style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:40px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none"
-           transform="matrix(0.26458333,0,0,0.26458333,41.955357,-8.315476)"><flowRegion
+           transform="matrix(0.26458333,0,0,0.26458333,99.407738,-31.75)"
+           inkscape:export-xdpi="96"
+           inkscape:export-ydpi="96"><flowRegion
              id="flowRegion894"><rect
                id="rect896"
                width="44.285713"
@@ -136,7 +148,9 @@
            xml:space="preserve"
            id="flowRoot900"
            style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:40px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none"
-           transform="matrix(0.26458333,0,0,0.26458333,94.116072,-58.58631)"><flowRegion
+           transform="matrix(0.26458333,0,0,0.26458333,94.116072,-119.0625)"
+           inkscape:export-xdpi="96"
+           inkscape:export-ydpi="96"><flowRegion
              id="flowRegion902"><rect
                id="rect904"
                width="40"
