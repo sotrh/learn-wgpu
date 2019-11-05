@@ -17,6 +17,7 @@ module.exports = {
                     '/beginner/tutorial2-swapchain',
                     '/beginner/tutorial3-pipeline/',
                     '/beginner/tutorial4-buffer/',
+                    '/beginner/tutorial5-textures/',
                 ],
             },
             {
