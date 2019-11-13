@@ -4,13 +4,78 @@ use winit::{
     window::{Window, WindowBuilder},
 };
 
+#[repr(C)]
+#[derive(Copy, Clone, Debug)]
+struct Vertex {
+    position: [f32; 3],
+    tex_coords: [f32; 2],
+}
+
+impl Vertex {
+    fn desc<'a>() -> wgpu::VertexBufferDescriptor<'a> {
+        use std::mem;
+        wgpu::VertexBufferDescriptor {
+            stride: mem::size_of::<Vertex>() as wgpu::BufferAddress,
+            step_mode: wgpu::InputStepMode::Vertex,
+            attributes: &[
+                wgpu::VertexAttributeDescriptor {
+                    offset: 0,
+                    shader_location: 0,
+                    format: wgpu::VertexFormat::Float3,
+                },
+                wgpu::VertexAttributeDescriptor {
+                    offset: mem::size_of::<[f32; 3]>() as wgpu::BufferAddress,
+                    shader_location: 1,
+                    format: wgpu::VertexFormat::Float2,
+                },
+            ]
+        }
+    }
+}
+
+const VERTICES: &[Vertex] = &[
+    Vertex { position: [-0.0868241, -0.49240386, 0.0], tex_coords: [0.4131759, 0.00759614], }, // A
+    Vertex { position: [-0.49513406, -0.06958647, 0.0], tex_coords: [0.0048659444, 0.43041354], }, // B
+    Vertex { position: [-0.21918549, 0.44939706, 0.0], tex_coords: [0.28081453, 0.949397057], }, // C
+    Vertex { position: [0.35966998, 0.3473291, 0.0], tex_coords: [0.85967, 0.84732911], }, // D
+    Vertex { position: [0.44147372, -0.2347359, 0.0], tex_coords: [0.9414737, 0.2652641], }, // E
+];
+
+const INDICES: &[u16] = &[
+    0, 1, 4,
+    1, 2, 4,
+    2, 3, 4,
+];
+
+// const VERTICES: &[Vertex] = &[
+//     Vertex { position: [-0.5, -0.5, 0.0], tex_coords: [0.0, 0.0]},
+//     Vertex { position: [0.5, -0.5, 0.0], tex_coords: [2.0, 0.0]},
+//     Vertex { position: [0.5, 0.5, 0.0], tex_coords: [2.0, 2.0]},
+//     Vertex { position: [-0.5, 0.5, 0.0], tex_coords: [0.0, 2.0]},
+// ];
+
+// const INDICES: &[u16] = &[
+//     2, 1, 0,
+//     3, 2, 0,
+// ];
+
 struct State {
     surface: wgpu::Surface,
     device: wgpu::Device,
+    queue: wgpu::Queue,
     sc_desc: wgpu::SwapChainDescriptor,
     swap_chain: wgpu::SwapChain,
 
     render_pipeline: wgpu::RenderPipeline,
+
+    vertex_buffer: wgpu::Buffer,
+    index_buffer: wgpu::Buffer,
+    num_indices: u32,
+
+    diffuse_texture: wgpu::Texture,
+    diffuse_texture_view: wgpu::TextureView,
+    diffuse_sampler: wgpu::Sampler,
+    diffuse_bind_group: wgpu::BindGroup,
 
     hidpi_factor: f64,
     size: winit::dpi::LogicalSize,
@@ -22,16 +87,13 @@ impl State {
         let size = window.inner_size();
         let physical_size = size.to_physical(hidpi_factor);
 
-        let instance = wgpu::Instance::new();
+        let surface = wgpu::Surface::create(window);
 
-        use raw_window_handle::HasRawWindowHandle as _;
-        let surface = instance.create_surface(window.raw_window_handle());
+        let adapter = wgpu::Adapter::request(&wgpu::RequestAdapterOptions {
+            ..Default::default()
+        }).unwrap();
 
-        let adapter = instance.request_adapter(&wgpu::RequestAdapterOptions {
-            power_preference: Default::default(),
-        });
-
-        let device = adapter.request_device(&wgpu::DeviceDescriptor {
+        let (device, mut queue) = adapter.request_device(&wgpu::DeviceDescriptor {
             extensions: wgpu::Extensions {
                 anisotropic_filtering: false,
             },
@@ -47,6 +109,99 @@ impl State {
         };
         let swap_chain = device.create_swap_chain(&surface, &sc_desc);
 
+        let diffuse_bytes = include_bytes!("happy-tree.png");
+        let diffuse_image = image::load_from_memory(diffuse_bytes).unwrap();
+        let diffuse_rgba = diffuse_image.as_rgba8().unwrap();
+
+        use image::GenericImageView;
+        let dimensions = diffuse_image.dimensions();
+
+        let size3d = wgpu::Extent3d {
+            width: dimensions.0,
+            height: dimensions.1,
+            depth: 1,
+        };
+        let diffuse_texture = device.create_texture(&wgpu::TextureDescriptor {
+            size: size3d,
+            array_layer_count: 1,
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: wgpu::TextureDimension::D2,
+            format: wgpu::TextureFormat::Rgba8UnormSrgb,
+            usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::COPY_DST,
+        });
+
+        let diffuse_buffer = device
+            .create_buffer_mapped(diffuse_rgba.len(), wgpu::BufferUsage::COPY_SRC)
+            .fill_from_slice(&diffuse_rgba);
+
+        let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
+            todo: 0,
+        });
+
+        encoder.copy_buffer_to_texture(
+            wgpu::BufferCopyView {
+                buffer: &diffuse_buffer,
+                offset: 0,
+                row_pitch: 4 * dimensions.0,
+                image_height: dimensions.1,
+            }, 
+            wgpu::TextureCopyView {
+                texture: &diffuse_texture,
+                mip_level: 0,
+                array_layer: 0,
+                origin: wgpu::Origin3d::ZERO,
+            }, 
+            size3d,
+        );
+
+        queue.submit(&[encoder.finish()]);
+
+        let diffuse_texture_view = diffuse_texture.create_default_view();
+        let diffuse_sampler = device.create_sampler(&wgpu::SamplerDescriptor {
+            address_mode_u: wgpu::AddressMode::ClampToEdge,
+            address_mode_v: wgpu::AddressMode::ClampToEdge,
+            address_mode_w: wgpu::AddressMode::ClampToEdge,
+            mag_filter: wgpu::FilterMode::Linear,
+            min_filter: wgpu::FilterMode::Nearest,
+            mipmap_filter: wgpu::FilterMode::Nearest,
+            lod_min_clamp: -100.0,
+            lod_max_clamp: 100.0,
+            compare_function: wgpu::CompareFunction::Always,
+        });
+
+        let texture_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+            bindings: &[
+                wgpu::BindGroupLayoutBinding {
+                    binding: 0,
+                    visibility: wgpu::ShaderStage::FRAGMENT,
+                    ty: wgpu::BindingType::SampledTexture {
+                        multisampled: false,
+                        dimension: wgpu::TextureViewDimension::D2,
+                    },
+                },
+                wgpu::BindGroupLayoutBinding {
+                    binding: 1,
+                    visibility: wgpu::ShaderStage::FRAGMENT,
+                    ty: wgpu::BindingType::Sampler,
+                },
+            ],
+        });
+
+        let diffuse_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            layout: &texture_bind_group_layout,
+            bindings: &[
+                wgpu::Binding {
+                    binding: 0,
+                    resource: wgpu::BindingResource::TextureView(&diffuse_texture_view),
+                },
+                wgpu::Binding {
+                    binding: 1,
+                    resource: wgpu::BindingResource::Sampler(&diffuse_sampler),
+                }
+            ],
+        });
+
         let vs_src = include_str!("shader.vert");
         let fs_src = include_str!("shader.frag");
         let vs_spirv = glsl_to_spirv::compile(vs_src, glsl_to_spirv::ShaderType::Vertex).unwrap();
@@ -57,7 +212,7 @@ impl State {
         let fs_module = device.create_shader_module(&fs_data);
 
         let render_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-            bind_group_layouts: &[],
+            bind_group_layouts: &[&texture_bind_group_layout],
         });
 
         let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
@@ -88,18 +243,36 @@ impl State {
             ],
             depth_stencil_state: None,
             index_format: wgpu::IndexFormat::Uint16,
-            vertex_buffers: &[],
+            vertex_buffers: &[
+                Vertex::desc(),
+            ],
             sample_count: 1,
             sample_mask: !0,
             alpha_to_coverage_enabled: false,
         });
 
+        let vertex_buffer = device
+            .create_buffer_mapped(VERTICES.len(), wgpu::BufferUsage::VERTEX)
+            .fill_from_slice(VERTICES);
+        let index_buffer = device
+            .create_buffer_mapped(INDICES.len(), wgpu::BufferUsage::INDEX)
+            .fill_from_slice(INDICES);
+        let num_indices = INDICES.len() as u32;
+
         Self {
             surface,
             device,
+            queue,
             sc_desc,
             swap_chain,
             render_pipeline,
+            vertex_buffer,
+            index_buffer,
+            num_indices,
+            diffuse_texture,
+            diffuse_texture_view,
+            diffuse_sampler,
+            diffuse_bind_group,
             hidpi_factor,
             size,
         }
@@ -153,10 +326,13 @@ impl State {
             });
 
             render_pass.set_pipeline(&self.render_pipeline);
-            render_pass.draw(0..3, 0..1);
+            render_pass.set_bind_group(0, &self.diffuse_bind_group, &[]);
+            render_pass.set_vertex_buffers(0, &[(&self.vertex_buffer, 0)]);
+            render_pass.set_index_buffer(&self.index_buffer, 0);
+            render_pass.draw_indexed(0..self.num_indices, 0, 0..1);
         }
 
-        self.device.get_queue().submit(&[
+        self.queue.submit(&[
             encoder.finish()
         ]);
     }

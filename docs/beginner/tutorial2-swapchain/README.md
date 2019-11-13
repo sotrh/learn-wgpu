@@ -9,6 +9,7 @@ struct State {
     surface: wgpu::Surface,
     adapter: wgpu::Adapter,
     device: wgpu::Device,
+    queue: wgpu::Queue,
     sc_desc: wgpu::SwapChainDescriptor,
     swap_chain: wgpu::SwapChain,
 
@@ -59,30 +60,26 @@ impl State {
 The `hidpi_factor` is used to map "logical pixels" to actual pixels. We need this in tandem with `size` to get our `swap_chain` (more on that later) to be as accurate as possible.
 
 ```rust
-        let instance = wgpu::Instance::new();
+        let surface = wgpu::Surface::create(window);
 
-        use raw_window_handle::HasRawWindowHandle as _;
-        let surface = instance.create_surface(window.raw_window_handle());
-
-        let adapter = instance.request_adapter(&wgpu::RequestAdapterOptions {
-            power_preference: Default::default(),
-        });
+        let adapter = wgpu::Adapter::request(&wgpu::RequestAdapterOptions {
+            ..Default::default()
+        }).unwrap();
 ```
-The `instance`'s only use is to create a surface and request an `adapter`. We don't even need to save it. 
 
-The `surface` is used to create the `swap_chain`. We need the `window`'s `raw_window_handle` to access the native window implementation for `wgpu` to properly create the graphics backend. This is why we needed a window crate that supported [raw-window-handle](https://crates.io/crates/raw-window-handle). 
+The `surface` is used to create the `swap_chain`. Our `window` needs to implement [raw-window-handle](https://crates.io/crates/raw-window-handle)'s `HasRawWindowHandle` trait to access the native window implementation for `wgpu` to properly create the graphics backend. Fortunately, winit's `Window` fits the bill.
 
-We need the `adapter` to create the device.
+We need the `adapter` to create the device and queue.
 
 ```rust
-        let device = adapter.request_device(&wgpu::DeviceDescriptor {
+        let (device, queue) = adapter.request_device(&wgpu::DeviceDescriptor {
             extensions: wgpu::Extensions {
                 anisotropic_filtering: false,
             },
             limits: Default::default(),
         });
 ```
-As of writing, the wgpu implementation doesn't allow you to customize much of requesting a device. Eventually the descriptor structs will be filled out more to allow you to find the optimal `device`. Even so, we still need the `device`, so we'll store it in the struct.
+As of writing, the wgpu implementation doesn't allow you to customize much of requesting a device and queue. Eventually the descriptor structs will be filled out more to allow you to find the optimal device and queue. Even so, we still need them, so we'll store them in the struct.
 
 ```rust
         let sc_desc = wgpu::SwapChainDescriptor {
@@ -108,6 +105,7 @@ At the end of the method, we simply return the resulting struct.
         Self {
             surface,
             device,
+            queue,
             sc_desc,
             swap_chain,
             hidpi_factor,
@@ -273,7 +271,6 @@ Now we can actually get to clearing the screen (long time coming). We need to us
         });
     }
     
-    self.device.get_queue().submit(&[
         encoder.finish()
     ]);
 }
@@ -304,7 +301,7 @@ event_loop.run(move |event, _, control_flow| {
 
 With all that, you should be getting something that looks like this.
 
-![Window with a blue background](./tutorial2-swapchain-cleared-window.png)
+![Window with a blue background](./cleared-window.png)
 
 ## Wait, what's going on with RenderPassDescriptor?
 

@@ -58,10 +58,10 @@ let diffuse_buffer = device
     .fill_from_slice(&diffuse_rgba);
 ```
 
-We specified our `diffuse_buffer` to be `COPY_SRC` so that we can copy it to our `diffuse_texture`. We preform the copy using a `CommandEncoder`. We'll need to change `device`'s mutablility so we can submit the resulting `CommandBuffer`.
+We specified our `diffuse_buffer` to be `COPY_SRC` so that we can copy it to our `diffuse_texture`. We preform the copy using a `CommandEncoder`. We'll need to change `queue`'s mutablility so we can submit the resulting `CommandBuffer`.
 
 ```rust
-let mut device = // ...
+let (device, mut queue) = // ...
 
 // ...
 
@@ -116,6 +116,8 @@ The `address_mode_*` parameter's determine what to do if the sampler get's a tex
 * `ClampToEdge`: Any texture coordinates outside the texture will return the color of the nearest pixel on the edges of the texture.
 * `Repeat`: The texture will repeat as texture coordinates exceed the textures dimensions.
 * `MirrorRepeat`: Similar to `Repeat`, but the image will flip when going over boundaries.
+
+![address_mode.png](./address_mode.png)
 
 The `mag_filter` and `min_filter` options describe what to do when a fragment covers multiple pixels, or there are multiple fragments for one pixel respectively. This often comes into play when viewing a surface from up close, or far away. There are 2 options:
 * `Linear`: This option will attempt to blend the in-between fragments so that they seem to flow together.
@@ -196,6 +198,7 @@ impl State {
         Self {
             surface,
             device,
+            queue,
             sc_desc,
             swap_chain,
             render_pipeline,
@@ -334,7 +337,11 @@ If we run our program now we should get the following result.
 
 ![an upside down tree on a hexagon](./upside-down.png)
 
-That's weird, our tree is upside down! This is because wgpu's coordinate system has positive y values going down while texture coords have y as up. We can get our triangle right-side up by inverting the y coord of each texture coord.
+That's weird, our tree is upside down! This is because wgpu's coordinate system has positive y values going down while texture coords have y as up. 
+
+![happy-tree-uv-coords.png](./happy-tree-uv-coords.png)
+
+We can get our triangle right-side up by inverting the y coord of each texture coord.
 
 ```rust
 const VERTICES: &[Vertex] = &[
@@ -346,9 +353,25 @@ const VERTICES: &[Vertex] = &[
 ];
 ```
 
+Simplifying that gives us.
+
+```rust
+const VERTICES: &[Vertex] = &[
+    Vertex { position: [-0.0868241, -0.49240386, 0.0], tex_coords: [0.4131759, 0.00759614], }, // A
+    Vertex { position: [-0.49513406, -0.06958647, 0.0], tex_coords: [0.0048659444, 0.43041354], }, // B
+    Vertex { position: [-0.21918549, 0.44939706, 0.0], tex_coords: [0.28081453, 0.949397057], }, // C
+    Vertex { position: [0.35966998, 0.3473291, 0.0], tex_coords: [0.85967, 0.84732911], }, // D
+    Vertex { position: [0.44147372, -0.2347359, 0.0], tex_coords: [0.9414737, 0.2652641], }, // E
+];
+```
+
 With that in place we now have our tree subscribed right-side up on our hexagon.
 
 ![our happy tree as it should be](./rightside-up.png)
+
+## Challenge
+
+Create another texture and swap it out when you press the space key.
 
 <!-- Things changed to accomodate textures: vertex struct and desc, the shader, -->
 <!-- -1..1 -> 0..1

@@ -1,0 +1,22 @@
+[package]
+name = "tutorial4-buffer"
+version = "0.1.0"
+authors = ["Ben Hansen <bhbenjaminhansen@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+image = "0.22"
+winit = "0.20.0-alpha4"
+glsl-to-spirv = "0.1"
+cgmath = "0.17"
+wgpu = "0.4"
+
+[[bin]]
+name = "tutorial4-buffer"
+path = "main.rs"
+
+[[bin]]
+name = "tutorial4-challenge"
+path = "challenge.rs"

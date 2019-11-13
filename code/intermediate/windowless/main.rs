@@ -1,7 +1,8 @@
 fn main() {
-    let instance = wgpu::Instance::new();
-    let adapter = instance.request_adapter(&Default::default());
-    let mut device = adapter.request_device(&Default::default());
+    let adapter = wgpu::Adapter::request(&wgpu::RequestAdapterOptions {
+        ..Default::default()
+    }).unwrap();
+    let (device, mut queue) = adapter.request_device(&Default::default());
 
     let texture_size = 256u32;
     let texture_desc = wgpu::TextureDescriptor {
@@ -121,7 +122,7 @@ fn main() {
         texture_desc.size,
     );
 
-    device.get_queue().submit(&[encoder.finish()]);
+    queue.submit(&[encoder.finish()]);
 
     output_buffer.map_read_async(0, output_buffer_size, move |result: wgpu::BufferMapAsyncResult<&[u8]>| {
         let mapping = result.unwrap();

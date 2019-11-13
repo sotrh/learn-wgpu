@@ -9,16 +9,20 @@ For the beginner stuff, we're going to keep things very simple, we'll add things
 ```toml
 [dependencies]
 image = "0.22"
-raw-window-handle = "0.1" # needed to match wgpu's dependencies
-winit = "0.20.0-alpha3"
+winit = "0.20.0-alpha4"
+wgpu = "0.4"
+```
 
+If you're on Windows, you can specify Vulkan as you desired backend by removing the `wgpu = "0.4"` and adding the following.
+
+``` toml
 [dependencies.wgpu]
-version = "0.3"
+version = "0.4"
 features = ["vulkan"]
 ```
 
-## Why vulkan?
-You need to specify what rendering backend you're using through [Cargo features](https://doc.rust-lang.org/cargo/reference/manifest.html#the-features-section) in order to run a program with wgpu. I'm specifying [vulkan](https://www.khronos.org/vulkan/), because I'm on [linux](https://www.linuxmint.com/). You're welcome to use [metal](https://developer.apple.com/metal/), or `DirectX 11/12` using `"metal"`, `"dx11"`, or `"dx12"` respectively. 
+<!-- ## Why vulkan?
+You need to specify what rendering backend you're using through [Cargo features](https://doc.rust-lang.org/cargo/reference/manifest.html#the-features-section) in order to run a program with wgpu. I'm specifying [vulkan](https://www.khronos.org/vulkan/), because I'm on [linux](https://www.linuxmint.com/). You're welcome to use [metal](https://developer.apple.com/metal/), or `DirectX 11/12` using `"metal"`, `"dx11"`, or `"dx12"` respectively.  -->
 
 ## What's with the "alpha" stuff?
 The wgpu examples use this version of [winit](https://github.com/rust-windowing/winit), so I elected to do the same. *Note: I'll update this once the changes to winit become fully released.*

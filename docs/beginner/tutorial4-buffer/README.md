@@ -68,6 +68,7 @@ Finally we add it to the returning struct.
 Self {
     surface,
     device,
+    queue,
     sc_desc,
     swap_chain,
     render_pipeline,
@@ -182,6 +183,7 @@ impl State {
         Self {
             surface,
             device,
+            queue,
             sc_desc,
             swap_chain,
             render_pipeline,
@@ -299,6 +301,7 @@ let num_indices = INDICES.len() as u32;
 Self {
     surface,
     device,
+    queue,
     sc_desc,
     swap_chain,
     render_pipeline,
@@ -328,4 +331,4 @@ With all that you should have a garishly magenta pentagon in your window.
 ![Magenta pentagon in window](./indexed-pentagon.png)
 
 ## Challenge
-Create a more complex shape than the one we made (aka. more than three triangles) using a vertex buffer and an index buffer.
+Create a more complex shape than the one we made (aka. more than three triangles) using a vertex buffer and an index buffer. Toggle between the two with the space key.

@@ -7,6 +7,7 @@ use winit::{
 struct State {
     surface: wgpu::Surface,
     device: wgpu::Device,
+    queue: wgpu::Queue,
     sc_desc: wgpu::SwapChainDescriptor,
     swap_chain: wgpu::SwapChain,
 
@@ -20,16 +21,13 @@ impl State {
         let size = window.inner_size();
         let physical_size = size.to_physical(hidpi_factor);
 
-        let instance = wgpu::Instance::new();
+        let surface = wgpu::Surface::create(window);
 
-        use raw_window_handle::HasRawWindowHandle as _;
-        let surface = instance.create_surface(window.raw_window_handle());
+        let adapter = wgpu::Adapter::request(&wgpu::RequestAdapterOptions {
+            ..Default::default()
+        }).unwrap();
 
-        let adapter = instance.request_adapter(&wgpu::RequestAdapterOptions {
-            power_preference: Default::default(),
-        });
-
-        let device = adapter.request_device(&wgpu::DeviceDescriptor {
+        let (device, queue) = adapter.request_device(&wgpu::DeviceDescriptor {
             extensions: wgpu::Extensions {
                 anisotropic_filtering: false,
             },
@@ -48,6 +46,7 @@ impl State {
         Self {
             surface,
             device,
+            queue,
             sc_desc,
             swap_chain,
             hidpi_factor,
@@ -103,7 +102,7 @@ impl State {
             });
         }
 
-        self.device.get_queue().submit(&[
+        self.queue.submit(&[
             encoder.finish()
         ]);
     }

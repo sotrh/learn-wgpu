@@ -12,9 +12,8 @@ module.exports = {
                 title: 'Beginner',
                 collapsable: false,
                 children: [
-                    '/beginner/',
                     '/beginner/tutorial1-window',
-                    '/beginner/tutorial2-swapchain',
+                    '/beginner/tutorial2-swapchain/',
                     '/beginner/tutorial3-pipeline/',
                     '/beginner/tutorial4-buffer/',
                     '/beginner/tutorial5-textures/',
@@ -24,9 +23,10 @@ module.exports = {
                 title: 'Intermediate',
                 collapsable: false,
                 children: [
-                    '/intermediate/windowless',
+                    '/intermediate/windowless/',
                 ],
             },
+            '/news/'
         ]
     }
 }
