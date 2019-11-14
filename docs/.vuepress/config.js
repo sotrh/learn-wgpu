@@ -2,8 +2,17 @@ module.exports = {
     base: '/learn-wgpu/',
     title: 'Learn Wgpu',
     theme: 'thindark',
-    plugins: [['vuepress-plugin-code-copy', true]],
+    plugins: {
+        'vuepress-plugin-code-copy': true,
+        '@vuepress/back-to-top': true,
+        'seo': {
+        },
+    },
     themeConfig: {
+        author: {
+            name: 'Benjamin R Hansen',
+            twitter: 'https://twitter.com/sotrh760',
+        },
         displayAllHeaders: false,
         lastUpdated: 'Last Updated',
         sidebar: [

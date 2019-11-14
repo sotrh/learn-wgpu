@@ -15,7 +15,9 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "vuepress": "^1.2.0"
+    "@vuepress/plugin-back-to-top": "^1.2.0",
+    "vuepress": "^1.2.0",
+    "vuepress-plugin-seo": "^0.1.2"
   },
   "dependencies": {
     "vuepress-plugin-code-copy": "^1.0.4-alpha",
