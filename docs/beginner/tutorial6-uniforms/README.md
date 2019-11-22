@@ -47,7 +47,7 @@ pub const OPENGL_TO_WGPU_MATRIX: cgmath::Matrix4<f32> = cgmath::Matrix4::new(
 );
 ```
 
-I am honestly not equipped to explain how this works, but you can read https://matthewwellings.com/blog/the-new-vulkan-coordinate-system/ if you want to know more. All we need to know is that we need to use `OPENGL_TO_WGPU_MATRIX` only one time, when we create our projection matrix.
+I am honestly not equipped to explain how this works, but you can read [https://matthewwellings.com/blog/the-new-vulkan-coordinate-system/](https://matthewwellings.com/blog/the-new-vulkan-coordinate-system/) if you want to know more. All we need to know is that we need to use `OPENGL_TO_WGPU_MATRIX` only one time, when we create our projection matrix.
 
 Using this conversion matrix means we're going to have to change 
 
