@@ -3,3 +3,4 @@ target/
 .vscode/
 
 image.png
+docs/.vuepress/dist/
