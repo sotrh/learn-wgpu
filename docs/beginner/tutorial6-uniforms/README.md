@@ -1,0 +1,433 @@
+# Uniform buffers and a 3d camera
+
+While all of our previous work has seemed to be in 2d, we've actually been working in 3d the entire time! That's part of the reason why our `Vertex` structure has `position` be an array of 3 floats instead of just 2. We can't really see the 3d-ness of our scene, because we're viewing things head on. We're going to change our point of view by creating a `Camera`.
+
+## A perspective camera
+
+This tutorial is more about learning to use wgpu and less about linear algebra, so I'm going to gloss over a lot of the math involved. There's plenty of reading material online if you're interested in what's going on under the hood. The first thing to know is that we need `cgmath = "0.17"` in our `Cargo.toml`.
+
+Now that we have a math library, let's put it to use! Create a `Camera` struct above the `State` struct.
+
+```rust
+struct Camera {
+    eye: cgmath::Point3<f32>,
+    target: cgmath::Point3<f32>,
+    up: cgmath::Vector3<f32>,
+    aspect: f32,
+    fovy: f32,
+    znear: f32,
+    zfar: f32,
+}
+
+impl Camera {
+    fn build_view_projection_matrix(&self) -> cgmath::Matrix4<f32> {
+        // 1.
+        let view = cgmath::Matrix4::look_at(self.eye, self.target, self.up);
+        // 2.
+        let proj = cgmath::perspective(cgmath::Deg(self.fovy), self.aspect, self.znear, self.zfar);
+
+        // 3.
+        return OPENGL_TO_WGPU_MATRIX * proj * view;
+    }
+}
+```
+
+The `build_view_projection_matrix` is where the magic happens. 
+1. The `view` matrix moves the world to be at the position and rotation of the camera. It's essentialy an the inverse of whatever the transform matrix of the camera would be. 
+2. The `proj` matrix warps the scene to give the effect of depth. Without this, objects up close would be the same size as objects far away.
+3. Cgmath is built with OpenGL in mind. If we try to use it as is, all our transformations will be out of wack. We'll define this matrix as follows.
+
+```rust
+#[cfg_attr(rustfmt, rustfmt_skip)]
+pub const OPENGL_TO_WGPU_MATRIX: cgmath::Matrix4<f32> = cgmath::Matrix4::new(
+    1.0, 0.0, 0.0, 0.0,
+    0.0, -1.0, 0.0, 0.0,
+    0.0, 0.0, 0.5, 0.0,
+    0.0, 0.0, 0.5, 1.0,
+);
+```
+
+I am honestly not equipped to explain how this works, but you can read https://matthewwellings.com/blog/the-new-vulkan-coordinate-system/ if you want to know more. All we need to know is that we need to use `OPENGL_TO_WGPU_MATRIX` only one time, when we create our projection matrix.
+
+Using this conversion matrix means we're going to have to change 
+
+Now that that's done, let's add a `camera` field to `State`.
+
+```rust
+struct State {
+    // ...
+    camera: Camera,
+    // ...
+}
+
+fn new(window: &Window) -> Self {
+    // let diffuse_bind_group ...
+
+    let camera = Camera {
+        // position the camera one unit up and 2 units back
+        eye: (0.0, 1.0, -2.0).into(),
+        // have it look at the origin
+        target: (0.0, 0.0, 0.0).into(),
+        // which way is "up"
+        up: cgmath::Vector3::unit_y(),
+        aspect: sc_desc.width as f32 / sc_desc.height as f32,
+        fovy: 45.0,
+        znear: 0.1,
+        zfar: 100.0,
+    };
+
+    Self {
+        // ...
+        camera,
+        // ...
+    }
+}
+```
+
+Now that we have our camera, and it can make us a view projection matrix, we need somewhere to put it. We also need some way of getting it into our shaders.
+
+## The uniform buffer
+
+Up to this point we've used `Buffer`s to store our vertex and index data, and even to load our textures. We going to use them again to create what's known as a uniform buffer. A uniform is a blob of data that is available to every invocation of a set of shaders. We've technically already used uniforms for our texture and sampler. We're going to use them again to store our view projection matrix. To start let's create a struct to hold our `Uniforms`.
+
+```rust
+#[repr(C)] // We need this for Rust to store our data correctly for the shaders
+#[derive(Debug, Copy, Clone)] // This is so we can store this in a buffer
+struct Uniforms {
+    view_proj: cgmath::Matrix4<f32>,
+}
+
+impl Uniforms {
+    fn new() -> Self {
+        use cgmath::SquareMatrix;
+        Self {
+            view_proj: cgmath::Matrix4::identity(),
+        }
+    }
+
+    fn update_view_proj(&mut self, camera: &Camera) {
+        self.view_proj = camera.build_view_projection_matrix();
+    }
+}
+```
+
+Now that we have our data structured, let's make our `uniform_buffer`.
+
+```rust
+// in new() after creating `camera`
+
+let mut uniforms = Uniforms::new();
+uniforms.update_view_proj(&camera);
+
+let uniform_buffer = device
+    // The COPY_DST part will be important later
+    .create_buffer_mapped(1, wgpu::BufferUsage::UNIFORM | wgpu::BufferUsage::COPY_DST)
+    .fill_from_slice(&[uniforms]);
+```
+
+## Uniform buffers and bind groups
+
+Cool, now that we have a uniform buffer, what do we do with it? The answer is we create a bind group for it. First we have to create the bind group layout.
+
+```rust
+let uniform_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+    bindings: &[
+        wgpu::BindGroupLayoutBinding {
+            binding: 0,
+            visibility: wgpu::ShaderStage::VERTEX, // 1.
+            ty: wgpu::BindingType::UniformBuffer {
+                dynamic: false, // 2.
+            },
+        }
+    ]
+});
+```
+
+1. We only really need camera information in the vertex shader, as that's what we'll use to manipulate our vertices.
+2. The `dynamic` field indicates whether this buffer will change size or not. This is useful if we want to store an array of things in our uniforms.
+
+Now we can create the actual bind group.
+
+```rust
+let uniform_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+    layout: &uniform_bind_group_layout,
+    bindings: &[
+        wgpu::Binding {
+            binding: 0,
+            resource: wgpu::BindingResource::Buffer {
+                buffer: &uniform_buffer,
+                // FYI: you can share a single buffer between bindings.
+                range: 0..std::mem::size_of_val(&uniforms) as wgpu::BufferAddress,
+            }
+        }
+    ],
+});
+```
+
+Like with our texture, we need to register our `uniform_bind_group_layout` with the render pipeline.
+
+```rust
+let render_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+    bind_group_layouts: &[&texture_bind_group_layout, &uniform_bind_group_layout],
+});
+```
+
+Now we need to add `uniform_buffer` and `uniform_bind_group` to `State`
+
+```rust
+struct State {
+    camera: Camera,
+    uniforms: Uniforms,
+    uniform_buffer: wgpu::Buffer,
+    uniform_bind_group: wgpu::BindGroup,
+}
+
+fn new(window: &Window) -> Self {
+    // ...
+    Self {
+        // ...
+        camera,
+        uniforms,
+        uniform_buffer,
+        uniform_bind_group,
+        // ...
+    }
+}
+```
+
+The final thing we need to do before we get into shaders is use the bind group in `render()`.
+
+```rust
+render_pass.set_pipeline(&self.render_pipeline);
+render_pass.set_bind_group(0, &self.diffuse_bind_group, &[]);
+// NEW!
+render_pass.set_bind_group(1, &self.uniform_bind_group, &[]);
+render_pass.set_vertex_buffers(0, &[(&self.vertex_buffer, 0)]);
+render_pass.set_index_buffer(&self.index_buffer, 0);
+render_pass.draw_indexed(0..self.num_indices, 0, 0..1);
+```
+
+## Using the uniforms in the vertex shader
+
+Modify `shader.vert` to include the following.
+
+```glsl
+#version 450
+
+layout(location=0) in vec3 a_position;
+layout(location=1) in vec2 a_tex_coords;
+
+layout(location=0) out vec2 v_tex_coords;
+
+// NEW!
+layout(set=1, binding=0) // 1.
+uniform Uniforms {
+    mat4 u_view_proj; // 2.
+};
+
+void main() {
+    v_tex_coords = a_tex_coords;
+    // UPDATED!
+    gl_Position = u_view_proj * vec4(a_position, 1.0); // 3.
+}
+```
+
+1. Because we've created a new bind group, we need to specify which one we're using in the shader. The number is determined by our `render_pipeline_layout`. The `texture_bind_group_layout` is listed first, thus it's `set=0`, and `uniform_bind_group` is second, so it's `set=1`.
+2. The `uniform` block requires us to specify global identifiers for all the fields we intend to use. It's important to only specify fields that are actually in our uniform buffer, as trying to access data that isn't there may lead to undefined behavior.
+3. Multiplication order is important when it comes to matrices. The vector always goes on the right, and the matrices gone on the left in order of importance.
+
+## Changing our vertices again
+
+Because our correction matrix makes positive y up. Our model is not only upside down, it's also facing the wrong way. This might make you think that adding our correction matrix was a mistake, and you'd have a point. The thing is, most models you find online, and most modeling software expects y to be up. If we try to render any models without the correction matrix, they will likely be upside-down and inside-out. Since our model is still very simple we can easily change it to work with our new setup.
+
+```rust
+const VERTICES: &[Vertex] = &[
+    Vertex { position: [-0.0868241, -0.49240386, 0.0], tex_coords: [1.0 - 0.4131759, 1.0 - 0.00759614], }, // A
+    Vertex { position: [-0.49513406, -0.06958647, 0.0], tex_coords: [1.0 - 0.0048659444, 1.0 - 0.43041354], }, // B
+    Vertex { position: [-0.21918549, 0.44939706, 0.0], tex_coords: [1.0 - 0.28081453, 1.0 - 0.949397057], }, // C
+    Vertex { position: [0.35966998, 0.3473291, 0.0], tex_coords: [1.0 - 0.85967, 1.0 - 0.84732911], }, // D
+    Vertex { position: [0.44147372, -0.2347359, 0.0], tex_coords: [1.0 - 0.9414737, 1.0 - 0.2652641], }, // E
+];
+
+const INDICES: &[u16] = &[
+    0, 1, 4,
+    1, 2, 4,
+    2, 3, 4,
+];
+```
+
+## A controller for our camera
+
+If you run the code right now, you should get something that looks like this.
+
+![static_tree.png](static_tree.png)
+
+The shape's less stretched now, but it's still pretty static. You can experiment with moving the camera position around, but most cameras in games move around. Since this tutorial is about using wgpu and not how to process user input, I'm just going to post the `CameraController` code below.
+
+```rust
+struct CameraController {
+    speed: f32,
+    is_up_pressed: bool,
+    is_down_pressed: bool,
+    is_forward_pressed: bool,
+    is_backward_pressed: bool,
+    is_left_pressed: bool,
+    is_right_pressed: bool,
+}
+
+impl CameraController {
+    fn new(speed: f32) -> Self {
+        Self {
+            speed,
+            is_up_pressed: false,
+            is_down_pressed: false,
+            is_forward_pressed: false,
+            is_backward_pressed: false,
+            is_left_pressed: false,
+            is_right_pressed: false,
+        }
+    }
+
+    fn process_events(&mut self, event: &WindowEvent) -> bool {
+        match event {
+            WindowEvent::KeyboardInput {
+                input: KeyboardInput {
+                    state,
+                    virtual_keycode: Some(keycode),
+                    ..
+                },
+                ..
+            } => {
+                let is_pressed = *state == ElementState::Pressed;
+                match keycode {
+                    VirtualKeyCode::Space => {
+                        self.is_up_pressed = is_pressed;
+                        true
+                    }
+                    VirtualKeyCode::LShift => {
+                        self.is_down_pressed = is_pressed;
+                        true
+                    }
+                    VirtualKeyCode::W | VirtualKeyCode::Up => {
+                        self.is_forward_pressed = is_pressed;
+                        true
+                    }
+                    VirtualKeyCode::A | VirtualKeyCode::Left => {
+                        self.is_left_pressed = is_pressed;
+                        true
+                    }
+                    VirtualKeyCode::S | VirtualKeyCode::Down => {
+                        self.is_backward_pressed = is_pressed;
+                        true
+                    }
+                    VirtualKeyCode::D | VirtualKeyCode::Right => {
+                        self.is_right_pressed = is_pressed;
+                        true
+                    }
+                    _ => false,
+                }
+            }
+            _ => false,
+        }
+    }
+
+    fn update_camera(&self, camera: &mut Camera) {
+        use cgmath::InnerSpace;
+        let forward = (camera.target - camera.eye).normalize();
+
+        if self.is_forward_pressed {
+            camera.eye += forward * self.speed;
+        }
+        if self.is_backward_pressed {
+            camera.eye -= forward * self.speed;
+        }
+
+        let right = forward.cross(camera.up);
+
+        if self.is_right_pressed {
+            camera.eye += right * self.speed;
+        }
+        if self.is_left_pressed {
+            camera.eye -= right * self.speed;
+        }
+    }
+}
+```
+
+This code is not perfect. The camera slowly moves back when you rotate it. It works for our purposes though. Feel free to improve it!
+
+We still need to plug this into our existing code to make it do anything. Add the controller to `State` and create it in `new()`.
+
+```rust
+struct State {
+    // ...
+    camera: Camera,
+    // NEW!
+    camera_controller: CameraController,
+    // ...
+}
+// ...
+impl State {
+    fn new(window: &Window) -> Self {
+        // ...
+        let camera_controller = CameraController::new(0.2);
+        // ...
+
+        Self {
+            // ...
+            camera_controller,
+            // ...
+        }
+    }
+}
+```
+
+We're finally going to add some code to `input()` (assuming you haven't already)!
+
+```rust
+fn input(&mut self, event: &WindowEvent) -> bool {
+    self.camera_controller.process_events(event)
+}
+```
+
+Up to this point, the camera controller isn't actually doing anything. The values in our uniform buffer need to be updated. There are 2 main methods to do that.
+1. We can create a separate buffer and copy it's contents to our `uniform_buffer`. The new buffer is known as a staging buffer. This method is usually how it's done as it allows the contents of the main buffer (in this case `uniform_buffer`) to only be accessible by the gpu. The gpu can do some speed optimizations which it couldn't if we could access the buffer via the cpu.
+2. We can call on of the mapping method's `map_read_async`, and `map_write_async` on the buffer itself. These allow us to access a buffer's contents directly, but requires us to deal with the `async` aspect of these methods this also requires our buffer to use the `BufferUsage::MAP_READ` and/or `BufferUsage::MAP_WRITE`. We won't talk about it here, but you check out [Wgpu without a window](/intermediate/windowless) tutorial if you want to know more.
+
+Enough about that though, let's get into actually implementing the code.
+
+```rust
+fn update(&mut self) {
+    self.camera_controller.update_camera(&mut self.camera);
+    self.uniforms.update_view_proj(&self.camera);
+
+    // Copy operation's are performed on the gpu, so we'll need
+    // a CommandEncoder for that
+    let mut encoder = self.device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
+        todo: 0,
+    });
+
+    let staging_buffer = self.device
+        .create_buffer_mapped(1, wgpu::BufferUsage::COPY_SRC)
+        .fill_from_slice(&[self.uniforms]);
+
+    encoder.copy_buffer_to_buffer(&staging_buffer, 0, &self.uniform_buffer, 0, std::mem::size_of::<Uniforms>() as wgpu::BufferAddress);
+
+    // We need to remember to submit our CommandEncoder's output
+    // otherwise we won't see any change.
+    self.queue.submit(&[encoder.finish()]);
+}
+```
+
+That's all we need to do. If you run the code now you should see a pentagon with our tree texture that you can rotate around and zoom into with the wasd/arrow keys.
+
+## Challenge
+
+Have our model rotate on it's own independently of the the camera. *Hint: you'll need another matrix for this.*
+
+<!-- TODO: add a gif/video for this -->
+
+<!-- 
+[ThinMatrix](https://www.youtube.com/watch?v=DLKN0jExRIM)
+http://antongerdelan.net/opengl/raycasting.html 
+-->

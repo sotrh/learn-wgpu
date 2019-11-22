@@ -1,12 +1,8 @@
 [workspace]
 members = [
     # beginner tutorials
-    "code/beginner/tutorial1-window",
-    "code/beginner/tutorial2-swapchain",
-    "code/beginner/tutorial3-pipeline",
-    "code/beginner/tutorial4-buffer",
-    "code/beginner/tutorial5-textures",
+    "code/beginner/*",
 
     # intermediate tutorials
-    "code/intermediate/windowless",
+    "code/intermediate/*",
 ]

@@ -26,6 +26,7 @@ module.exports = {
                     '/beginner/tutorial3-pipeline/',
                     '/beginner/tutorial4-buffer/',
                     '/beginner/tutorial5-textures/',
+                    '/beginner/tutorial6-uniforms/',
                 ],
             },
             {
