@@ -72,3 +72,5 @@ fn main() {
 ```
 
 All this does is create a window, and keep it open until until user closes it, or presses escape. Next tutorial we'll actually start using wgpu!
+
+<AutoGithubLink/>

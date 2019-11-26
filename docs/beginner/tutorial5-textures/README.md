@@ -373,6 +373,8 @@ With that in place we now have our tree subscribed right-side up on our hexagon.
 
 Create another texture and swap it out when you press the space key.
 
+<AutoGithubLink/>
+
 <!-- Things changed to accomodate textures: vertex struct and desc, the shader, -->
 <!-- -1..1 -> 0..1
 (x + 1) / 2

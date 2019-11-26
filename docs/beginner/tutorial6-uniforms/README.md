@@ -425,6 +425,8 @@ That's all we need to do. If you run the code now you should see a pentagon with
 
 Have our model rotate on it's own independently of the the camera. *Hint: you'll need another matrix for this.*
 
+<AutoGithubLink/>
+
 <!-- TODO: add a gif/video for this -->
 
 <!-- 

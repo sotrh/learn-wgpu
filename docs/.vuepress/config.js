@@ -21,7 +21,7 @@ module.exports = {
                 title: 'Beginner',
                 collapsable: false,
                 children: [
-                    '/beginner/tutorial1-window',
+                    '/beginner/tutorial1-window/',
                     '/beginner/tutorial2-swapchain/',
                     '/beginner/tutorial3-pipeline/',
                     '/beginner/tutorial4-buffer/',

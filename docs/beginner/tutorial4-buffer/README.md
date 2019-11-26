@@ -332,3 +332,5 @@ With all that you should have a garishly magenta pentagon in your window.
 
 ## Challenge
 Create a more complex shape than the one we made (aka. more than three triangles) using a vertex buffer and an index buffer. Toggle between the two with the space key.
+
+<AutoGithubLink/>

@@ -552,6 +552,9 @@ fn main() {
         .unwrap();
 
     let mut state = State::new(&window);
+
+    let mut old_time = std::time::Instant::now();
+    const MSPT: std::time::Duration = std::time::Duration::from_millis(20);
     
     event_loop.run(move |event, _, control_flow| {
         match event {
@@ -559,7 +562,7 @@ fn main() {
                 ref event,
                 window_id,
             } if window_id == window.id() => if state.input(event) {
-                *control_flow = ControlFlow::Wait;
+                ()
             } else { 
                 match event {
                     WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
@@ -573,26 +576,34 @@ fn main() {
                                 virtual_keycode: Some(VirtualKeyCode::Escape),
                                 ..
                             } => *control_flow = ControlFlow::Exit,
-                            _ => *control_flow = ControlFlow::Wait,
+                            _ => (),
                         }
                     }
                     WindowEvent::Resized(logical_size) => {
                         state.resize(*logical_size);
-                        *control_flow = ControlFlow::Wait;
+                        ()
                     }
                     WindowEvent::HiDpiFactorChanged(new_hidpi_factor) => {
                         state.update_hidpi_and_resize(*new_hidpi_factor);
-                        *control_flow = ControlFlow::Wait;
+                        ()
                     }
-                    _ => *control_flow = ControlFlow::Wait,
+                    _ => (),
                 }
             }
             Event::EventsCleared => {
                 state.update();
                 state.render();
-                *control_flow = ControlFlow::Wait;
+
+                let new_time = std::time::Instant::now();
+                let delta_time = new_time - old_time;
+                *control_flow = if delta_time > MSPT {
+                    ControlFlow::Poll
+                } else {
+                    ControlFlow::WaitUntil(old_time + MSPT)
+                };
+                old_time = new_time;
             }
-            _ => *control_flow = ControlFlow::Wait,
+            _ => (),
         }
     });
 }

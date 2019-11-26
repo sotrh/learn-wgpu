@@ -223,3 +223,5 @@ output_buffer.map_read_async(0, output_buffer_size, move |result: wgpu::BufferMa
 With all that you should have an image like this. 
 
 ![a brown triangle](./image-output.png)
+
+<AutoGithubLink/>

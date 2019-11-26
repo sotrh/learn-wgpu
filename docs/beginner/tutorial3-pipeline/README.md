@@ -261,3 +261,5 @@ With all that you should be seeing a lovely brown triangle.
 
 ## Challenge
 Create a second pipeline that uses the triangles position data to create a color that it then sends to the fragment shader to use for `f_color`. Have the app swap between these when you press the spacebar. *Hint: use*`in`*and*`out`*variables in a separate shader.*
+
+<AutoGithubLink/>
