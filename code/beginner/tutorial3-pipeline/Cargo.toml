@@ -15,8 +15,8 @@ wgpu = "0.4"
 
 [[bin]]
 name = "tutorial3-pipeline"
-path = "main.rs"
+path = "src/main.rs"
 
 [[bin]]
 name = "tutorial3-challenge"
-path = "challenge.rs"
+path = "src/challenge.rs"

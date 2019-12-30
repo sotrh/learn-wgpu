@@ -15,9 +15,9 @@ cgmath = "0.17"
 
 [[bin]]
 name = "tutorial6-uniforms"
-path = "main.rs"
+path = "src/main.rs"
 
 
 [[bin]]
 name = "tutorial6-challenge"
-path = "challenge.rs"
+path = "src/challenge.rs"

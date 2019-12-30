@@ -9,7 +9,7 @@ edition = "2018"
 
 [[bin]]
 name = "tutorial1-window"
-path = "main.rs"
+path = "src/main.rs"
 
 [dependencies]
 image = "0.22"

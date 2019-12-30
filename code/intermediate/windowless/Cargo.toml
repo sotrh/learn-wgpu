@@ -16,4 +16,4 @@ wgpu = "0.4"
 
 [[bin]]
 name = "windowless"
-path = "main.rs"
+path = "src/main.rs"

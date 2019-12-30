@@ -15,8 +15,8 @@ wgpu = "0.4"
 
 [[bin]]
 name = "tutorial2-swapchain"
-path = "main.rs"
+path = "src/main.rs"
 
 [[bin]]
 name = "tutorial2-challenge"
-path = "challenge.rs"
+path = "src/challenge.rs"

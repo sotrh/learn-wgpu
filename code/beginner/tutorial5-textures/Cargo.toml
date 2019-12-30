@@ -15,9 +15,9 @@ wgpu = "0.4"
 
 [[bin]]
 name = "tutorial5-textures"
-path = "main.rs"
+path = "src/main.rs"
 
 
 [[bin]]
 name = "tutorial5-challenge"
-path = "challenge.rs"
+path = "src/challenge.rs"
