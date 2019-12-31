@@ -27,6 +27,7 @@ module.exports = {
                     '/beginner/tutorial4-buffer/',
                     '/beginner/tutorial5-textures/',
                     '/beginner/tutorial6-uniforms/',
+                    '/beginner/tutorial7-instancing/',
                 ],
             },
             {
