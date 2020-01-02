@@ -456,7 +456,7 @@ impl State {
             ],
         });
 
-        let vs_src = include_str!("shader.vert");
+        let vs_src = include_str!("vertex.vert");
         let fs_src = include_str!("shader.frag");
         let vs_spirv = glsl_to_spirv::compile(vs_src, glsl_to_spirv::ShaderType::Vertex).unwrap();
         let fs_spirv = glsl_to_spirv::compile(fs_src, glsl_to_spirv::ShaderType::Fragment).unwrap();

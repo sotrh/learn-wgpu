@@ -5,10 +5,6 @@ use winit::{
 };
 use cgmath::prelude::*;
 
-trait VBDesc {
-    fn desc<'a>() -> wgpu::VertexBufferDescriptor<'a>;
-}
-
 #[repr(C)]
 #[derive(Copy, Clone, Debug)]
 struct Vertex {
@@ -16,7 +12,7 @@ struct Vertex {
     tex_coords: [f32; 2],
 }
 
-impl VBDesc for Vertex {
+impl Vertex {
     fn desc<'a>() -> wgpu::VertexBufferDescriptor<'a> {
         use std::mem;
         wgpu::VertexBufferDescriptor {
@@ -61,6 +57,7 @@ pub const OPENGL_TO_WGPU_MATRIX: cgmath::Matrix4<f32> = cgmath::Matrix4::new(
 );
 
 const NUM_INSTANCES_PER_ROW: u32 = 10;
+const NUM_INSTANCES: u32 = NUM_INSTANCES_PER_ROW * NUM_INSTANCES_PER_ROW;
 const INSTANCE_DISPLACEMENT: cgmath::Vector3<f32> = cgmath::Vector3::new(NUM_INSTANCES_PER_ROW as f32 * 0.5, 0.0, NUM_INSTANCES_PER_ROW as f32 * 0.5);
 
 
@@ -187,54 +184,14 @@ impl CameraController {
     }
 }
 
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-struct InstanceRaw {
-    model: cgmath::Matrix4<f32>,
-}
-
-const FLOAT_SIZE: wgpu::BufferAddress = std::mem::size_of::<f32>() as wgpu::BufferAddress;
-impl VBDesc for InstanceRaw {
-    fn desc<'a>() -> wgpu::VertexBufferDescriptor<'a> {
-        wgpu::VertexBufferDescriptor {
-            stride: std::mem::size_of::<InstanceRaw>() as wgpu::BufferAddress,
-            step_mode: wgpu::InputStepMode::Instance,
-            attributes: &[
-                wgpu::VertexAttributeDescriptor {
-                    offset: 0,
-                    format: wgpu::VertexFormat::Float4,
-                    shader_location: 2,
-                },
-                wgpu::VertexAttributeDescriptor {
-                    offset: FLOAT_SIZE * 4,
-                    format: wgpu::VertexFormat::Float4,
-                    shader_location: 3,
-                },
-                wgpu::VertexAttributeDescriptor {
-                    offset: FLOAT_SIZE * 4 * 2,
-                    format: wgpu::VertexFormat::Float4,
-                    shader_location: 4,
-                },
-                wgpu::VertexAttributeDescriptor {
-                    offset: FLOAT_SIZE * 4 * 3,
-                    format: wgpu::VertexFormat::Float4,
-                    shader_location: 5,
-                },
-            ]
-        }
-    }
-}
-
 struct Instance {
     position: cgmath::Vector3<f32>,
     rotation: cgmath::Quaternion<f32>,
 }
 
 impl Instance {
-    fn to_raw(&self) -> InstanceRaw {
-        let model = cgmath::Matrix4::from_translation(self.position) 
-            * cgmath::Matrix4::from(self.rotation);
-        InstanceRaw { model }
+    fn to_matrix(&self) -> cgmath::Matrix4<f32> {
+        cgmath::Matrix4::from_translation(self.position) * cgmath::Matrix4::from(self.rotation)
     }
 }
 
@@ -426,9 +383,10 @@ impl State {
             })
         }).collect::<Vec<_>>();
 
-        let instance_data = instances.iter().map(Instance::to_raw).collect::<Vec<_>>();
+        let instance_data = instances.iter().map(Instance::to_matrix).collect::<Vec<_>>();
+        let instance_buffer_size = instance_data.len() * std::mem::size_of::<cgmath::Matrix4<f32>>();
         let instance_buffer = device
-            .create_buffer_mapped(instance_data.len(), wgpu::BufferUsage::VERTEX)
+            .create_buffer_mapped(instance_data.len(), wgpu::BufferUsage::STORAGE_READ)
             .fill_from_slice(&instance_data);
 
         let uniform_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
@@ -440,6 +398,14 @@ impl State {
                         dynamic: false,
                     },
                 },
+                wgpu::BindGroupLayoutBinding {
+                    binding: 1,
+                    visibility: wgpu::ShaderStage::VERTEX,
+                    ty: wgpu::BindingType::StorageBuffer {
+                        dynamic: false,
+                        readonly: true,
+                    }
+                }
             ]
         });
 
@@ -453,10 +419,17 @@ impl State {
                         range: 0..std::mem::size_of_val(&uniforms) as wgpu::BufferAddress,
                     }
                 },
+                wgpu::Binding {
+                    binding: 1,
+                    resource: wgpu::BindingResource::Buffer {
+                        buffer: &instance_buffer,
+                        range: 0..instance_buffer_size as wgpu::BufferAddress,
+                    }
+                }
             ],
         });
 
-        let vs_src = include_str!("shader.vert");
+        let vs_src = include_str!("storage.vert");
         let fs_src = include_str!("shader.frag");
         let vs_spirv = glsl_to_spirv::compile(vs_src, glsl_to_spirv::ShaderType::Vertex).unwrap();
         let fs_spirv = glsl_to_spirv::compile(fs_src, glsl_to_spirv::ShaderType::Fragment).unwrap();
@@ -498,7 +471,7 @@ impl State {
             depth_stencil_state: None,
             index_format: wgpu::IndexFormat::Uint16,
             vertex_buffers: &[
-                Vertex::desc(), InstanceRaw::desc(),
+                Vertex::desc(),
             ],
             sample_count: 1,
             sample_mask: !0,
@@ -604,7 +577,7 @@ impl State {
             render_pass.set_pipeline(&self.render_pipeline);
             render_pass.set_bind_group(0, &self.diffuse_bind_group, &[]);
             render_pass.set_bind_group(1, &self.uniform_bind_group, &[]);
-            render_pass.set_vertex_buffers(0, &[(&self.vertex_buffer, 0), (&self.instance_buffer, 0)]);
+            render_pass.set_vertex_buffers(0, &[(&self.vertex_buffer, 0)]);
             render_pass.set_index_buffer(&self.index_buffer, 0);
             render_pass.draw_indexed(0..self.num_indices, 0, 0..self.instances.len() as u32);
         }
