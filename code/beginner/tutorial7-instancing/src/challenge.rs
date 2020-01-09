@@ -3,6 +3,7 @@ use winit::{
     event_loop::{EventLoop, ControlFlow},
     window::{Window, WindowBuilder},
 };
+use cgmath::prelude::*;
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug)]
@@ -55,6 +56,10 @@ pub const OPENGL_TO_WGPU_MATRIX: cgmath::Matrix4<f32> = cgmath::Matrix4::new(
     0.0, 0.0, 0.5, 1.0,
 );
 
+const NUM_INSTANCES_PER_ROW: u32 = 10;
+const INSTANCE_DISPLACEMENT: cgmath::Vector3<f32> = cgmath::Vector3::new(NUM_INSTANCES_PER_ROW as f32 * 0.5, 0.0, NUM_INSTANCES_PER_ROW as f32 * 0.5);
+
+
 struct Camera {
     eye: cgmath::Point3<f32>,
     target: cgmath::Point3<f32>,
@@ -73,36 +78,21 @@ impl Camera {
     }
 }
 
-struct UniformStaging {
-    camera: Camera,
-    model_rotation: cgmath::Deg<f32>,
-}
-
-impl UniformStaging {
-    fn new(camera: Camera) -> Self {
-        Self { camera, model_rotation: cgmath::Deg(0.0) }
-    }
-    fn update_uniforms(&self, uniforms: &mut Uniforms) {
-        uniforms.model_view_proj =
-            OPENGL_TO_WGPU_MATRIX
-            * self.camera.build_view_projection_matrix()
-            * cgmath::Matrix4::from_angle_z(self.model_rotation);
-    }
-}
-
-
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Copy, Clone)]
 struct Uniforms {
-    model_view_proj: cgmath::Matrix4<f32>,
+    view_proj: cgmath::Matrix4<f32>,
 }
 
 impl Uniforms {
     fn new() -> Self {
-        use cgmath::SquareMatrix;
         Self {
-            model_view_proj: cgmath::Matrix4::identity(),
+            view_proj: cgmath::Matrix4::identity(),
         }
+    }
+
+    fn update_view_proj(&mut self, camera: &Camera) {
+        self.view_proj = OPENGL_TO_WGPU_MATRIX * camera.build_view_projection_matrix();
     }
 }
 
@@ -173,7 +163,6 @@ impl CameraController {
     }
 
     fn update_camera(&self, camera: &mut Camera) {
-        use cgmath::InnerSpace;
         let forward = (camera.target - camera.eye).normalize();
 
         if self.is_forward_pressed {
@@ -191,6 +180,19 @@ impl CameraController {
         if self.is_left_pressed {
             camera.eye -= right * self.speed;
         }
+    }
+}
+
+const ROTATION_SPEED: f32 = 2.0 * std::f32::consts::PI / 60.0;
+
+struct Instance {
+    position: cgmath::Vector3<f32>,
+    rotation: cgmath::Quaternion<f32>,
+}
+
+impl Instance {
+    fn to_matrix(&self) -> cgmath::Matrix4<f32> {
+        cgmath::Matrix4::from_translation(self.position) * cgmath::Matrix4::from(self.rotation)
     }
 }
 
@@ -212,14 +214,47 @@ struct State {
     diffuse_sampler: wgpu::Sampler,
     diffuse_bind_group: wgpu::BindGroup,
 
+    camera: Camera,
     camera_controller: CameraController,
     uniforms: Uniforms,
-    uniform_staging: UniformStaging,
     uniform_buffer: wgpu::Buffer,
     uniform_bind_group: wgpu::BindGroup,
 
     hidpi_factor: f64,
     size: winit::dpi::LogicalSize,
+
+    instances: Vec<Instance>,
+    instance_buffer: wgpu::Buffer,
+}
+
+fn quat_mul(q: cgmath::Quaternion<f32>, r: cgmath::Quaternion<f32>) -> cgmath::Quaternion<f32> {
+
+            // This block uses quaternions of the form of
+
+            // q=q0+iq1+jq2+kq3
+
+            // and
+
+            // r=r0+ir1+jr2+kr3.
+
+            // The quaternion product has the form of
+
+            // t=q×r=t0+it1+jt2+kt3,
+
+            // where
+
+            // t0=(r0 q0 − r1 q1 − r2 q2 − r3 q3)
+            // t1=(r0 q1 + r1 q0 − r2 q3 + r3 q2)
+            // t2=(r0 q2 + r1 q3 + r2 q0 − r3 q1)
+            // t3=(r0 q3 − r1 q2 + r2 q1 + r3 q0
+            
+
+            let w = r.s * q.s - r.v.x * q.v.x - r.v.y * q.v.y - r.v.z * q.v.z;
+            let xi = r.s * q.v.x + r.v.x * q.s - r.v.y * q.v.z + r.v.z * q.v.y;
+            let yj = r.s * q.v.y + r.v.x * q.v.z + r.v.y * q.s - r.v.z * q.v.x;
+            let zk = r.s * q.v.z - r.v.x * q.v.y + r.v.y * q.v.x + r.v.z * q.s;
+
+            cgmath::Quaternion::new(w, xi, yj, zk)
 }
 
 impl State {
@@ -344,7 +379,7 @@ impl State {
         });
 
         let camera = Camera {
-            eye: (0.0, 1.0, -2.0).into(),
+            eye: (0.0, 5.0, -10.0).into(),
             target: (0.0, 0.0, 0.0).into(),
             up: cgmath::Vector3::unit_y(),
             aspect: sc_desc.width as f32 / sc_desc.height as f32,
@@ -355,12 +390,35 @@ impl State {
         let camera_controller = CameraController::new(0.2);
 
         let mut uniforms = Uniforms::new();
-        let uniform_staging = UniformStaging::new(camera);
-        uniform_staging.update_uniforms(&mut uniforms);
+        uniforms.update_view_proj(&camera);
 
         let uniform_buffer = device
             .create_buffer_mapped(1, wgpu::BufferUsage::UNIFORM | wgpu::BufferUsage::COPY_DST)
             .fill_from_slice(&[uniforms]);
+
+        let instances = (0..NUM_INSTANCES_PER_ROW).flat_map(|z| {
+            (0..NUM_INSTANCES_PER_ROW).map(move |x| {
+                let position = cgmath::Vector3 { x: x as f32, y: 0.0, z: z as f32 } - INSTANCE_DISPLACEMENT;
+
+                let rotation = if position.is_zero() {
+                    // this is needed so an object at (0, 0, 0) won't get scaled to zero
+                    // as Quaternions can effect scale if they're not create correctly
+                    cgmath::Quaternion::from_axis_angle(cgmath::Vector3::unit_y(), cgmath::Deg(0.0))
+                } else {
+                    cgmath::Quaternion::from_axis_angle(position.clone().normalize(), cgmath::Deg(45.0))
+                };
+    
+                Instance {
+                    position, rotation,
+                }
+            })
+        }).collect::<Vec<_>>();
+
+        let instance_data = instances.iter().map(Instance::to_matrix).collect::<Vec<_>>();
+        let instance_buffer_size = instance_data.len() * std::mem::size_of::<cgmath::Matrix4<f32>>();
+        let instance_buffer = device
+            .create_buffer_mapped(instance_data.len(), wgpu::BufferUsage::STORAGE_READ | wgpu::BufferUsage::COPY_DST)
+            .fill_from_slice(&instance_data);
 
         let uniform_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
             bindings: &[
@@ -370,6 +428,14 @@ impl State {
                     ty: wgpu::BindingType::UniformBuffer {
                         dynamic: false,
                     },
+                },
+                wgpu::BindGroupLayoutBinding {
+                    binding: 1,
+                    visibility: wgpu::ShaderStage::VERTEX,
+                    ty: wgpu::BindingType::StorageBuffer {
+                        dynamic: false,
+                        readonly: true,
+                    }
                 }
             ]
         });
@@ -383,11 +449,18 @@ impl State {
                         buffer: &uniform_buffer,
                         range: 0..std::mem::size_of_val(&uniforms) as wgpu::BufferAddress,
                     }
+                },
+                wgpu::Binding {
+                    binding: 1,
+                    resource: wgpu::BindingResource::Buffer {
+                        buffer: &instance_buffer,
+                        range: 0..instance_buffer_size as wgpu::BufferAddress,
+                    }
                 }
             ],
         });
 
-        let vs_src = include_str!("shader.vert");
+        let vs_src = include_str!("challenge.vert");
         let fs_src = include_str!("shader.frag");
         let vs_spirv = glsl_to_spirv::compile(vs_src, glsl_to_spirv::ShaderType::Vertex).unwrap();
         let fs_spirv = glsl_to_spirv::compile(fs_src, glsl_to_spirv::ShaderType::Fragment).unwrap();
@@ -412,7 +485,7 @@ impl State {
             }),
             rasterization_state: Some(wgpu::RasterizationStateDescriptor {
                 front_face: wgpu::FrontFace::Ccw,
-                cull_mode: wgpu::CullMode::Back,
+                cull_mode: wgpu::CullMode::None,
                 depth_bias: 0,
                 depth_bias_slope_scale: 0.0,
                 depth_bias_clamp: 0.0,
@@ -458,13 +531,15 @@ impl State {
             diffuse_texture_view,
             diffuse_sampler,
             diffuse_bind_group,
+            camera,
             camera_controller,
-            uniform_staging,
             uniform_buffer,
             uniform_bind_group,
             uniforms,
             hidpi_factor,
             size,
+            instances,
+            instance_buffer,
         }
     }
 
@@ -480,7 +555,7 @@ impl State {
         self.sc_desc.height = physical_size.height.round() as u32;
         self.swap_chain = self.device.create_swap_chain(&self.surface, &self.sc_desc);
 
-        self.uniform_staging.camera.aspect = self.sc_desc.width as f32 / self.sc_desc.height as f32;
+        self.camera.aspect = self.sc_desc.width as f32 / self.sc_desc.height as f32;
     }
 
     fn input(&mut self, event: &WindowEvent) -> bool {
@@ -488,9 +563,8 @@ impl State {
     }
 
     fn update(&mut self) {
-        self.camera_controller.update_camera(&mut self.uniform_staging.camera);
-        self.uniform_staging.model_rotation += cgmath::Deg(2.0);
-        self.uniform_staging.update_uniforms(&mut self.uniforms);
+        self.camera_controller.update_camera(&mut self.camera);
+        self.uniforms.update_view_proj(&self.camera);
 
         let mut encoder = self.device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
             todo: 0,
@@ -501,6 +575,18 @@ impl State {
             .fill_from_slice(&[self.uniforms]);
 
         encoder.copy_buffer_to_buffer(&staging_buffer, 0, &self.uniform_buffer, 0, std::mem::size_of::<Uniforms>() as wgpu::BufferAddress);
+
+        for instance in &mut self.instances {
+            let amount = cgmath::Quaternion::from_angle_y(cgmath::Rad(ROTATION_SPEED));
+            let current = instance.rotation;
+            instance.rotation = quat_mul(amount, current);
+        }
+        let instance_data = self.instances.iter().map(Instance::to_matrix).collect::<Vec<_>>();
+        let instance_buffer_size = instance_data.len() * std::mem::size_of::<cgmath::Matrix4<f32>>();
+        let instance_buffer = self.device
+            .create_buffer_mapped(instance_data.len(), wgpu::BufferUsage::COPY_SRC)
+            .fill_from_slice(&instance_data);
+        encoder.copy_buffer_to_buffer(&instance_buffer, 0, &self.instance_buffer, 0, instance_buffer_size as wgpu::BufferAddress);
 
         self.queue.submit(&[encoder.finish()]);
     }
@@ -536,7 +622,7 @@ impl State {
             render_pass.set_bind_group(1, &self.uniform_bind_group, &[]);
             render_pass.set_vertex_buffers(0, &[(&self.vertex_buffer, 0)]);
             render_pass.set_index_buffer(&self.index_buffer, 0);
-            render_pass.draw_indexed(0..self.num_indices, 0, 0..1);
+            render_pass.draw_indexed(0..self.num_indices, 0, 0..self.instances.len() as u32);
         }
 
         self.queue.submit(&[

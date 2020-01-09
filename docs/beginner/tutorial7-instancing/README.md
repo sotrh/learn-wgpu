@@ -667,3 +667,9 @@ For fun, here's what our matrix data looks like when converted into a texture (s
 ## About the depth issues...
 
 You may have noticed that some of the back pentagons are rendering in front of the ones in the front. This is a draw order issue. We could solve this by sorting the instances from back to front, that would only work from certain camera angles. A more flexible approach would be to use a *depth buffer*. We'll talk about those [next time](/todo).
+
+## Challenge
+
+Modify the position and/or rotation of the instances every frame.
+
+<AutoGithubLink/>
