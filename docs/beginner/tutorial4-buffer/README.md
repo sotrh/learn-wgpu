@@ -189,7 +189,6 @@ impl State {
             render_pipeline,
             vertex_buffer,
             num_vertices,
-            hidpi_factor,
             size,
         }
     }

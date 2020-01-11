@@ -16,7 +16,9 @@ fn main() {
         sample_count: 1,
         dimension: wgpu::TextureDimension::D2,
         format: wgpu::TextureFormat::Rgba8UnormSrgb,
-        usage: wgpu::TextureUsage::COPY_SRC,
+        usage: wgpu::TextureUsage::COPY_SRC 
+            | wgpu::TextureUsage::OUTPUT_ATTACHMENT
+            ,
     };
     let texture = device.create_texture(&texture_desc);
     let texture_view = texture.create_default_view();

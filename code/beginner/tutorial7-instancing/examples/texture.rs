@@ -219,8 +219,7 @@ struct State {
     uniform_buffer: wgpu::Buffer,
     uniform_bind_group: wgpu::BindGroup,
 
-    hidpi_factor: f64,
-    size: winit::dpi::LogicalSize,
+    size: winit::dpi::PhysicalSize<u32>,
 
     instances: Vec<Instance>,
     instance_texture: wgpu::Texture,
@@ -229,9 +228,7 @@ struct State {
 
 impl State {
     fn new(window: &Window) -> Self {
-        let hidpi_factor = window.hidpi_factor();
         let size = window.inner_size();
-        let physical_size = size.to_physical(hidpi_factor);
 
         let surface = wgpu::Surface::create(window);
 
@@ -249,8 +246,8 @@ impl State {
         let sc_desc = wgpu::SwapChainDescriptor {
             usage: wgpu::TextureUsage::OUTPUT_ATTACHMENT,
             format: wgpu::TextureFormat::Bgra8UnormSrgb,
-            width: physical_size.width.round() as u32,
-            height: physical_size.height.round() as u32,
+            width: size.width,
+            height: size.height,
             present_mode: wgpu::PresentMode::Vsync,
         };
         let swap_chain = device.create_swap_chain(&surface, &sc_desc);
@@ -557,7 +554,6 @@ impl State {
             uniform_buffer,
             uniform_bind_group,
             uniforms,
-            hidpi_factor,
             size,
             instances,
             instance_texture,
@@ -565,16 +561,11 @@ impl State {
         }
     }
 
-    fn update_hidpi_and_resize(&mut self, new_hidpi_factor: f64) {
-        self.hidpi_factor = new_hidpi_factor;
-        self.resize(self.size);
-    }
 
-    fn resize(&mut self, new_size: winit::dpi::LogicalSize) {
-        let physical_size = new_size.to_physical(self.hidpi_factor);
+    fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
         self.size = new_size;
-        self.sc_desc.width = physical_size.width.round() as u32;
-        self.sc_desc.height = physical_size.height.round() as u32;
+        self.sc_desc.width = new_size.width;
+        self.sc_desc.height = new_size.height;
         self.swap_chain = self.device.create_swap_chain(&self.surface, &self.sc_desc);
 
         self.camera.aspect = self.sc_desc.width as f32 / self.sc_desc.height as f32;
@@ -672,18 +663,18 @@ fn main() {
                             _ => *control_flow = ControlFlow::Wait,
                         }
                     }
-                    WindowEvent::Resized(logical_size) => {
-                        state.resize(*logical_size);
+                    WindowEvent::Resized(physical_size) => {
+                        state.resize(*physical_size);
                         *control_flow = ControlFlow::Wait;
                     }
-                    WindowEvent::HiDpiFactorChanged(new_hidpi_factor) => {
-                        state.update_hidpi_and_resize(*new_hidpi_factor);
+                    WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
+                        state.resize(**new_inner_size);
                         *control_flow = ControlFlow::Wait;
                     }
                     _ => *control_flow = ControlFlow::Wait,
                 }
             }
-            Event::EventsCleared => {
+            Event::MainEventsCleared => {
                 state.update();
                 state.render();
                 *control_flow = ControlFlow::Wait;

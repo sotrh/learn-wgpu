@@ -209,7 +209,6 @@ impl State {
             diffuse_texture_view,
             diffuse_sampler,
             diffuse_bind_group,
-            hidpi_factor,
             size,
         }
     }
@@ -329,7 +328,7 @@ void main() {
 }
 ```
 
-You'll notice that `t_diffuse` and `s_diffuse` are defined with the `uniform` keyword, they don't have `in` nor `out`, and the layout definition uses `set` and `binding` instead of `location`. This is because `t_diffuse` and `s_diffuse` are what we call uniforms. We won't go too deep into what a uniform is, until we talk about uniform buffers in the [cameras section](/todo). What we need to know, for now, is that `set = 0` corresponds to the 1st parameter in `set_bind_group`, `binding = 0` relates the the `binding` specified when we create the `BindGroupLayout` and `BindGroup`.
+You'll notice that `t_diffuse` and `s_diffuse` are defined with the `uniform` keyword, they don't have `in` nor `out`, and the layout definition uses `set` and `binding` instead of `location`. This is because `t_diffuse` and `s_diffuse` are what we call uniforms. We won't go too deep into what a uniform is, until we talk about uniform buffers in the [cameras section](/beginner/tutorial6-uniforms/). What we need to know, for now, is that `set = 0` corresponds to the 1st parameter in `set_bind_group`, `binding = 0` relates the the `binding` specified when we create the `BindGroupLayout` and `BindGroup`.
 
 ## The results
 

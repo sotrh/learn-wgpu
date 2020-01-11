@@ -13,7 +13,7 @@ path = "src/main.rs"
 
 [dependencies]
 image = "0.22"
-winit = "0.20.0-alpha4"
+winit = "0.20"
 glsl-to-spirv = "0.1"
 cgmath = "0.17"
 wgpu = "0.4"

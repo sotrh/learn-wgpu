@@ -83,14 +83,12 @@ impl Camera {
 #[derive(Copy, Clone)]
 struct Uniforms {
     view_proj: cgmath::Matrix4<f32>,
-    model: [cgmath::Matrix4<f32>; NUM_INSTANCES as usize],
 }
 
 impl Uniforms {
     fn new() -> Self {
         Self {
             view_proj: cgmath::Matrix4::identity(),
-            model: [cgmath::Matrix4::identity(); NUM_INSTANCES as usize],
         }
     }
 
@@ -224,6 +222,7 @@ struct State {
     size: winit::dpi::PhysicalSize<u32>,
 
     instances: Vec<Instance>,
+    instance_buffer: wgpu::Buffer,
 }
 
 impl State {
@@ -232,9 +231,16 @@ impl State {
 
         let surface = wgpu::Surface::create(window);
 
-        let adapter = wgpu::Adapter::request(&Default::default()).unwrap();
+        let adapter = wgpu::Adapter::request(&wgpu::RequestAdapterOptions {
+            ..Default::default()
+        }).unwrap();
 
-        let (device, mut queue) = adapter.request_device(&Default::default());
+        let (device, mut queue) = adapter.request_device(&wgpu::DeviceDescriptor {
+            extensions: wgpu::Extensions {
+                anisotropic_filtering: false,
+            },
+            limits: Default::default(),
+        });
 
         let sc_desc = wgpu::SwapChainDescriptor {
             usage: wgpu::TextureUsage::OUTPUT_ATTACHMENT,
@@ -356,6 +362,30 @@ impl State {
             .create_buffer_mapped(1, wgpu::BufferUsage::UNIFORM | wgpu::BufferUsage::COPY_DST)
             .fill_from_slice(&[uniforms]);
 
+        let instances = (0..NUM_INSTANCES_PER_ROW).flat_map(|z| {
+            (0..NUM_INSTANCES_PER_ROW).map(move |x| {
+                let position = cgmath::Vector3 { x: x as f32, y: 0.0, z: z as f32 } - INSTANCE_DISPLACEMENT;
+
+                let rotation = if position.is_zero() {
+                    // this is needed so an object at (0, 0, 0) won't get scaled to zero
+                    // as Quaternions can effect scale if they're not create correctly
+                    cgmath::Quaternion::from_axis_angle(cgmath::Vector3::unit_z(), cgmath::Deg(0.0))
+                } else {
+                    cgmath::Quaternion::from_axis_angle(position.clone().normalize(), cgmath::Deg(45.0))
+                };
+    
+                Instance {
+                    position, rotation,
+                }
+            })
+        }).collect::<Vec<_>>();
+
+        let instance_data = instances.iter().map(Instance::to_matrix).collect::<Vec<_>>();
+        let instance_buffer_size = instance_data.len() * std::mem::size_of::<cgmath::Matrix4<f32>>();
+        let instance_buffer = device
+            .create_buffer_mapped(instance_data.len(), wgpu::BufferUsage::STORAGE_READ)
+            .fill_from_slice(&instance_data);
+
         let uniform_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
             bindings: &[
                 wgpu::BindGroupLayoutBinding {
@@ -364,6 +394,14 @@ impl State {
                     ty: wgpu::BindingType::UniformBuffer {
                         dynamic: false,
                     },
+                },
+                wgpu::BindGroupLayoutBinding {
+                    binding: 1,
+                    visibility: wgpu::ShaderStage::VERTEX,
+                    ty: wgpu::BindingType::StorageBuffer {
+                        dynamic: false,
+                        readonly: true,
+                    }
                 }
             ]
         });
@@ -377,11 +415,18 @@ impl State {
                         buffer: &uniform_buffer,
                         range: 0..std::mem::size_of_val(&uniforms) as wgpu::BufferAddress,
                     }
+                },
+                wgpu::Binding {
+                    binding: 1,
+                    resource: wgpu::BindingResource::Buffer {
+                        buffer: &instance_buffer,
+                        range: 0..instance_buffer_size as wgpu::BufferAddress,
+                    }
                 }
             ],
         });
 
-        let vs_src = include_str!("arrays.vert");
+        let vs_src = include_str!("shader.vert");
         let fs_src = include_str!("shader.frag");
         let vs_spirv = glsl_to_spirv::compile(vs_src, glsl_to_spirv::ShaderType::Vertex).unwrap();
         let fs_spirv = glsl_to_spirv::compile(fs_src, glsl_to_spirv::ShaderType::Fragment).unwrap();
@@ -438,24 +483,6 @@ impl State {
             .fill_from_slice(INDICES);
         let num_indices = INDICES.len() as u32;
 
-        let instances = (0..NUM_INSTANCES_PER_ROW).flat_map(|z| {
-            (0..NUM_INSTANCES_PER_ROW).map(move |x| {
-                let position = cgmath::Vector3 { x: x as f32, y: 0.0, z: z as f32 } - INSTANCE_DISPLACEMENT;
-
-                let rotation = if position.is_zero() {
-                    // this is needed so an object at (0, 0, 0) won't get scaled to zero
-                    // as Quaternions can effect scale if they're not create correctly
-                    cgmath::Quaternion::from_axis_angle(cgmath::Vector3::unit_z(), cgmath::Deg(0.0))
-                } else {
-                    cgmath::Quaternion::from_axis_angle(position.clone().normalize(), cgmath::Deg(45.0))
-                };
-    
-                Instance {
-                    position, rotation,
-                }
-            })
-        }).collect();
-
         Self {
             surface,
             device,
@@ -477,6 +504,7 @@ impl State {
             uniforms,
             size,
             instances,
+            instance_buffer,
         }
     }
 
@@ -497,10 +525,6 @@ impl State {
     fn update(&mut self) {
         self.camera_controller.update_camera(&mut self.camera);
         self.uniforms.update_view_proj(&self.camera);
-
-        for (i, instance) in self.instances.iter().enumerate() {
-            self.uniforms.model[i] = instance.to_matrix();
-        }
 
         let mut encoder = self.device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
             todo: 0,
@@ -546,7 +570,7 @@ impl State {
             render_pass.set_bind_group(1, &self.uniform_bind_group, &[]);
             render_pass.set_vertex_buffers(0, &[(&self.vertex_buffer, 0)]);
             render_pass.set_index_buffer(&self.index_buffer, 0);
-            render_pass.draw_indexed(0..self.num_indices, 0, 0..NUM_INSTANCES);
+            render_pass.draw_indexed(0..self.num_indices, 0, 0..self.instances.len() as u32);
         }
 
         self.queue.submit(&[

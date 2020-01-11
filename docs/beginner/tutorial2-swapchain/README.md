@@ -1,4 +1,5 @@
 # The Swapchain
+# The Swapchain
 
 ## First, some house keeping
 For convenience we're going to pack all the fields into a struct, and create some methods on that.
@@ -13,8 +14,7 @@ struct State {
     sc_desc: wgpu::SwapChainDescriptor,
     swap_chain: wgpu::SwapChain,
 
-    hidpi_factor: f64,
-    size: winit::dpi::LogicalSize,
+    size: winit::dpi::PhysicalSize<u32>,
 }
 
 impl State {
@@ -22,11 +22,7 @@ impl State {
         unimplemented!()
     }
 
-    fn update_hidpi_factor_and_resize(&mut self, new_hidpi_factor: f64) {
-        unimplemented!()
-    }
-
-    fn resize(&mut self, new_size: winit::dpi::LogicalSize) {
+    fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
         unimplemented!()
     }
 
@@ -53,13 +49,8 @@ The code for this is pretty straight forward, but let's break this down a bit.
 impl State {
     // ...
     fn new(window: &Window) -> Self {
-        let hidpi_factor = window.hidpi_factor();
         let size = window.inner_size();
-        let physical_size = size.to_physical(hidpi_factor);
-```
-The `hidpi_factor` is used to map "logical pixels" to actual pixels. We need this in tandem with `size` to get our `swap_chain` (more on that later) to be as accurate as possible.
 
-```rust
         let surface = wgpu::Surface::create(window);
 
         let adapter = wgpu::Adapter::request(&wgpu::RequestAdapterOptions {
@@ -85,8 +76,8 @@ As of writing, the wgpu implementation doesn't allow you to customize much of re
         let sc_desc = wgpu::SwapChainDescriptor {
             usage: wgpu::TextureUsage::OUTPUT_ATTACHMENT,
             format: wgpu::TextureFormat::Bgra8UnormSrgb,
-            width: physical_size.width.round() as u32,
-            height: physical_size.height.round() as u32,
+            width: size.width,
+            height: size.height,
             present_mode: wgpu::PresentMode::Vsync,
         };
         let swap_chain = device.create_swap_chain(&surface, &sc_desc);
@@ -108,7 +99,6 @@ At the end of the method, we simply return the resulting struct.
             queue,
             sc_desc,
             swap_chain,
-            hidpi_factor,
             size,
         }
     }
@@ -122,42 +112,33 @@ We'll want to call this in our main method before we enter the event loop.
 let mut state = State::new(&window);
 ```
 
-## resize() and update_hidpi_factor_and_resize()
+## resize()
 If we want to support resizing in our application, we're going to need to recreate the `swap_chain` everytime the window's size changes. That's the reason we stored the `hidpi_factor`, the logical `size`, and the `sc_desc` used to create the swapchain. With all of these, the resize method is very simple.
 
 ```rust
 // impl State
-fn resize(&mut self, new_size: winit::dpi::LogicalSize) {
+fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
     let physical_size = new_size.to_physical(self.hidpi_factor);
     self.size = new_size;
-    self.sc_desc.width = physical_size.width.round() as u32;
-    self.sc_desc.height = physical_size.height.round() as u32;
+    self.sc_desc.width = new_size.width;
+    self.sc_desc.height = new_size.height;
     self.swap_chain = self.device.create_swap_chain(&self.surface, &self.sc_desc);
 }
 ```
 
 There's nothing really different here from creating the `swap_chain` initially, so I won't get into it. 
 
-`update_hidpi_and_resize` is also very simple.
-
-```rust
-// impl State
-fn update_hidpi_and_resize(&mut self, new_hidpi_factor: f64) {
-    self.hidpi_factor = new_hidpi_factor;
-    self.resize(self.size);
-}
-```
-
-We call both of these methods in `main()` in the event loop when there corresponding events trigger.
+We call this method in `main()` in the event loop for the following events.
 
 ```rust
 match event {
     // ...
-    WindowEvent::Resized(logical_size) => {
-        state.resize(*logical_size);
+    WindowEvent::Resized(physical_size) => {
+        state.resize(*physical_size);
     }
-    WindowEvent::HiDpiFactorChanged(new_hidpi_factor) => {
-        state.update_hidpi_and_resize(*new_hidpi_factor);
+    WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
+        // new_inner_size is &mut so w have to dereference it twice
+        state.resize(**new_inner_size);
     }
     // ...
 }
@@ -181,42 +162,47 @@ We need to do a little more work in the event loop. We want `State` to have prio
 ```rust
 // main()
 event_loop.run(move |event, _, control_flow| {
-        match event {
-            Event::WindowEvent {
-                ref event,
-                window_id,
-            } if window_id == window.id() => if state.input(event) {
-                *control_flow = ControlFlow::Wait;
-            } else { 
-                match event {
-                    WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
-                    WindowEvent::KeyboardInput {
-                        input,
-                        ..
-                    } => {
-                        match input {
-                            KeyboardInput {
-                                state: ElementState::Pressed,
-                                virtual_keycode: Some(VirtualKeyCode::Escape),
-                                ..
-                            } => *control_flow = ControlFlow::Exit,
-                            _ => *control_flow = ControlFlow::Wait,
-                        }
+    match event {
+        Event::WindowEvent {
+            ref event,
+            window_id,
+        } if window_id == window.id() => if state.input(event) {
+            *control_flow = ControlFlow::Wait;
+        } else { 
+            match event {
+                WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
+                WindowEvent::KeyboardInput {
+                    input,
+                    ..
+                } => {
+                    match input {
+                        KeyboardInput {
+                            state: ElementState::Pressed,
+                            virtual_keycode: Some(VirtualKeyCode::Escape),
+                            ..
+                        } => *control_flow = ControlFlow::Exit,
+                        _ => *control_flow = ControlFlow::Wait,
                     }
-                    WindowEvent::Resized(logical_size) => {
-                        state.resize(*logical_size);
-                        *control_flow = ControlFlow::Wait;
-                    }
-                    WindowEvent::HiDpiFactorChanged(new_hidpi_factor) => {
-                        state.update_hidpi_and_resize(*new_hidpi_factor);
-                        *control_flow = ControlFlow::Wait;
-                    }
-                    _ => *control_flow = ControlFlow::Wait,
                 }
+                WindowEvent::Resized(physical_size) => {
+                    state.resize(*physical_size);
+                    *control_flow = ControlFlow::Wait;
+                }
+                WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
+                    state.resize(**new_inner_size);
+                    *control_flow = ControlFlow::Wait;
+                }
+                _ => *control_flow = ControlFlow::Wait,
             }
-            _ => *control_flow = ControlFlow::Wait,
         }
-    });
+        Event::MainEventsCleared => {
+            state.update();
+            state.render();
+            *control_flow = ControlFlow::Wait;
+        }
+        _ => *control_flow = ControlFlow::Wait,
+    }
+});
 ```
 
 ## update()
@@ -289,7 +275,7 @@ We need to update the event loop again to call this method. We'll also call upda
 event_loop.run(move |event, _, control_flow| {
     match event {
         // ...
-        Event::EventsCleared => {
+        Event::MainEventsCleared => {
             state.update();
             state.render();
             *control_flow = ControlFlow::Wait;

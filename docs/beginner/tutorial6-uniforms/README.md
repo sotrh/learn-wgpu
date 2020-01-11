@@ -392,7 +392,7 @@ fn input(&mut self, event: &WindowEvent) -> bool {
 
 Up to this point, the camera controller isn't actually doing anything. The values in our uniform buffer need to be updated. There are 2 main methods to do that.
 1. We can create a separate buffer and copy it's contents to our `uniform_buffer`. The new buffer is known as a staging buffer. This method is usually how it's done as it allows the contents of the main buffer (in this case `uniform_buffer`) to only be accessible by the gpu. The gpu can do some speed optimizations which it couldn't if we could access the buffer via the cpu.
-2. We can call on of the mapping method's `map_read_async`, and `map_write_async` on the buffer itself. These allow us to access a buffer's contents directly, but requires us to deal with the `async` aspect of these methods this also requires our buffer to use the `BufferUsage::MAP_READ` and/or `BufferUsage::MAP_WRITE`. We won't talk about it here, but you check out [Wgpu without a window](/intermediate/windowless) tutorial if you want to know more.
+2. We can call on of the mapping method's `map_read_async`, and `map_write_async` on the buffer itself. These allow us to access a buffer's contents directly, but requires us to deal with the `async` aspect of these methods this also requires our buffer to use the `BufferUsage::MAP_READ` and/or `BufferUsage::MAP_WRITE`. We won't talk about it here, but you check out [Wgpu without a window](../../intermediate/windowless) tutorial if you want to know more.
 
 Enough about that though, let's get into actually implementing the code.
 

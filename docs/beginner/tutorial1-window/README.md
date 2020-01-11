@@ -9,7 +9,7 @@ For the beginner stuff, we're going to keep things very simple, we'll add things
 ```toml
 [dependencies]
 image = "0.22"
-winit = "0.20.0-alpha4"
+winit = "0.20"
 wgpu = "0.4"
 ```
 

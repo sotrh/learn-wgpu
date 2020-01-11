@@ -100,8 +100,7 @@ struct State {
     // NEW!
     render_pipeline: wgpu::RenderPipeline,
 
-    hidpi_factor: f64,
-    size: winit::dpi::LogicalSize,
+    size: winit::dpi::PhysicalSize<u32>,
 }
 ```
 
@@ -211,7 +210,6 @@ Self {
     swap_chain,
     // NEW!
     render_pipeline,
-    hidpi_factor,
     size,
 }
 ```

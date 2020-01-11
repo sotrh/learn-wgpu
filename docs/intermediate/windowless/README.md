@@ -31,12 +31,16 @@ let texture_desc = wgpu::TextureDescriptor {
     sample_count: 1,
     dimension: wgpu::TextureDimension::D2,
     format: wgpu::TextureFormat::Rgba8UnormSrgb,
-    usage: wgpu::TextureUsage::COPY_SRC,
+    usage: wgpu::TextureUsage::COPY_SRC 
+        | wgpu::TextureUsage::OUTPUT_ATTACHMENT
+        ,
 };
 
 let texture = device.create_texture(&texture_desc);
 let texture_view = texture.create_default_view();
 ```
+
+We're using both `TextureUsage::OUTPUT_ATTACHMENT` so wgpu can render to our texture.
 
 While we can use this texture to draw our triangle, we need some way to get at the pixels inside it. Back in the [texture tutorial](/beginner/tutorial5-textures/) we used a buffer load color data from a file that we then copied into our buffer. Now we are going to do the reverse: copy data into a buffer from our texture to save into a file. We'll need a buffer big enough for our data.
 
