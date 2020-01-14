@@ -28,6 +28,7 @@ module.exports = {
                     '/beginner/tutorial5-textures/',
                     '/beginner/tutorial6-uniforms/',
                     '/beginner/tutorial7-instancing/',
+                    '/beginner/tutorial8-depth/',
                 ],
             },
             {

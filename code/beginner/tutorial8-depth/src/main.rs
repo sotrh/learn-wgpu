@@ -223,6 +223,19 @@ struct State {
 
     instances: Vec<Instance>,
     instance_buffer: wgpu::Buffer,
+
+    depth_texture: wgpu::Texture,
+    depth_texture_view: wgpu::TextureView,
+}
+
+const DEPTH_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Depth32Float;
+fn create_depth_texture(device: &wgpu::Device, sc_desc: &wgpu::SwapChainDescriptor) -> wgpu::Texture {
+    let desc = wgpu::TextureDescriptor {
+        format: DEPTH_FORMAT,
+        usage: wgpu::TextureUsage::OUTPUT_ATTACHMENT,
+        ..sc_desc.to_texture_desc()
+    };
+    device.create_texture(&desc)
 }
 
 impl State {
@@ -435,6 +448,9 @@ impl State {
         let vs_module = device.create_shader_module(&vs_data);
         let fs_module = device.create_shader_module(&fs_data);
 
+        let depth_texture = create_depth_texture(&device, &sc_desc);
+        let depth_texture_view = depth_texture.create_default_view();
+
         let render_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             bind_group_layouts: &[&texture_bind_group_layout, &uniform_bind_group_layout],
         });
@@ -465,7 +481,15 @@ impl State {
                     write_mask: wgpu::ColorWrite::ALL,
                 },
             ],
-            depth_stencil_state: None,
+            depth_stencil_state: Some(wgpu::DepthStencilStateDescriptor {
+                format: DEPTH_FORMAT,
+                depth_write_enabled: true,
+                depth_compare: wgpu::CompareFunction::Less,
+                stencil_front: wgpu::StencilStateFaceDescriptor::IGNORE,
+                stencil_back: wgpu::StencilStateFaceDescriptor::IGNORE,
+                stencil_read_mask: 0,
+                stencil_write_mask: 0,
+            }),
             index_format: wgpu::IndexFormat::Uint16,
             vertex_buffers: &[
                 Vertex::desc(),
@@ -505,6 +529,8 @@ impl State {
             size,
             instances,
             instance_buffer,
+            depth_texture,
+            depth_texture_view,
         }
     }
 
@@ -514,6 +540,9 @@ impl State {
         self.sc_desc.width = new_size.width;
         self.sc_desc.height = new_size.height;
         self.swap_chain = self.device.create_swap_chain(&self.surface, &self.sc_desc);
+
+        self.depth_texture = create_depth_texture(&self.device, &self.sc_desc);
+        self.depth_texture_view = self.depth_texture.create_default_view();
 
         self.camera.aspect = self.sc_desc.width as f32 / self.sc_desc.height as f32;
     }
@@ -562,7 +591,15 @@ impl State {
                         },
                     }
                 ],
-                depth_stencil_attachment: None,
+                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachmentDescriptor {
+                    attachment: &self.depth_texture_view,
+                    depth_load_op: wgpu::LoadOp::Clear,
+                    depth_store_op: wgpu::StoreOp::Store,
+                    clear_depth: 1.0,
+                    stencil_load_op: wgpu::LoadOp::Clear,
+                    stencil_store_op: wgpu::StoreOp::Store,
+                    clear_stencil: 0,
+                }),
             });
 
             render_pass.set_pipeline(&self.render_pipeline);
