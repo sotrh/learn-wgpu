@@ -1,6 +1,6 @@
 use winit::{
     event::*,
-    event_loop::{EventLoop, ControlFlow},
+    event_loop::{ControlFlow, EventLoop},
     window::{Window, WindowBuilder},
 };
 
@@ -28,24 +28,35 @@ impl Vertex {
                     shader_location: 1,
                     format: wgpu::VertexFormat::Float2,
                 },
-            ]
+            ],
         }
     }
 }
 
 const VERTICES: &[Vertex] = &[
-    Vertex { position: [-0.0868241, -0.49240386, 0.0], tex_coords: [1.0 - 0.4131759, 1.0 - 0.00759614], }, // A
-    Vertex { position: [-0.49513406, -0.06958647, 0.0], tex_coords: [1.0 - 0.0048659444, 1.0 - 0.43041354], }, // B
-    Vertex { position: [-0.21918549, 0.44939706, 0.0], tex_coords: [1.0 - 0.28081453, 1.0 - 0.949397057], }, // C
-    Vertex { position: [0.35966998, 0.3473291, 0.0], tex_coords: [1.0 - 0.85967, 1.0 - 0.84732911], }, // D
-    Vertex { position: [0.44147372, -0.2347359, 0.0], tex_coords: [1.0 - 0.9414737, 1.0 - 0.2652641], }, // E
+    Vertex {
+        position: [-0.0868241, -0.49240386, 0.0],
+        tex_coords: [1.0 - 0.4131759, 1.0 - 0.00759614],
+    }, // A
+    Vertex {
+        position: [-0.49513406, -0.06958647, 0.0],
+        tex_coords: [1.0 - 0.0048659444, 1.0 - 0.43041354],
+    }, // B
+    Vertex {
+        position: [-0.21918549, 0.44939706, 0.0],
+        tex_coords: [1.0 - 0.28081453, 1.0 - 0.949397057],
+    }, // C
+    Vertex {
+        position: [0.35966998, 0.3473291, 0.0],
+        tex_coords: [1.0 - 0.85967, 1.0 - 0.84732911],
+    }, // D
+    Vertex {
+        position: [0.44147372, -0.2347359, 0.0],
+        tex_coords: [1.0 - 0.9414737, 1.0 - 0.2652641],
+    }, // E
 ];
 
-const INDICES: &[u16] = &[
-    0, 1, 4,
-    1, 2, 4,
-    2, 3, 4,
-];
+const INDICES: &[u16] = &[0, 1, 4, 1, 2, 4, 2, 3, 4];
 
 #[cfg_attr(rustfmt, rustfmt_skip)]
 pub const OPENGL_TO_WGPU_MATRIX: cgmath::Matrix4<f32> = cgmath::Matrix4::new(
@@ -118,11 +129,12 @@ impl CameraController {
     fn process_events(&mut self, event: &WindowEvent) -> bool {
         match event {
             WindowEvent::KeyboardInput {
-                input: KeyboardInput {
-                    state,
-                    virtual_keycode: Some(keycode),
-                    ..
-                },
+                input:
+                    KeyboardInput {
+                        state,
+                        virtual_keycode: Some(keycode),
+                        ..
+                    },
                 ..
             } => {
                 let is_pressed = *state == ElementState::Pressed;
@@ -203,22 +215,18 @@ struct State {
     uniforms: Uniforms,
     uniform_buffer: wgpu::Buffer,
     uniform_bind_group: wgpu::BindGroup,
-
-    hidpi_factor: f64,
-    size: winit::dpi::LogicalSize,
 }
 
 impl State {
     fn new(window: &Window) -> Self {
-        let hidpi_factor = window.hidpi_factor();
         let size = window.inner_size();
-        let physical_size = size.to_physical(hidpi_factor);
 
         let surface = wgpu::Surface::create(window);
 
         let adapter = wgpu::Adapter::request(&wgpu::RequestAdapterOptions {
             ..Default::default()
-        }).unwrap();
+        })
+        .unwrap();
 
         let (device, mut queue) = adapter.request_device(&wgpu::DeviceDescriptor {
             extensions: wgpu::Extensions {
@@ -230,8 +238,8 @@ impl State {
         let sc_desc = wgpu::SwapChainDescriptor {
             usage: wgpu::TextureUsage::OUTPUT_ATTACHMENT,
             format: wgpu::TextureFormat::Bgra8UnormSrgb,
-            width: physical_size.width.round() as u32,
-            height: physical_size.height.round() as u32,
+            width: size.width,
+            height: size.height,
             present_mode: wgpu::PresentMode::Vsync,
         };
         let swap_chain = device.create_swap_chain(&surface, &sc_desc);
@@ -262,9 +270,8 @@ impl State {
             .create_buffer_mapped(diffuse_rgba.len(), wgpu::BufferUsage::COPY_SRC)
             .fill_from_slice(&diffuse_rgba);
 
-        let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
-            todo: 0,
-        });
+        let mut encoder =
+            device.create_command_encoder(&wgpu::CommandEncoderDescriptor { todo: 0 });
 
         encoder.copy_buffer_to_texture(
             wgpu::BufferCopyView {
@@ -272,13 +279,13 @@ impl State {
                 offset: 0,
                 row_pitch: 4 * dimensions.0,
                 image_height: dimensions.1,
-            }, 
+            },
             wgpu::TextureCopyView {
                 texture: &diffuse_texture,
                 mip_level: 0,
                 array_layer: 0,
                 origin: wgpu::Origin3d::ZERO,
-            }, 
+            },
             size3d,
         );
 
@@ -297,23 +304,24 @@ impl State {
             compare_function: wgpu::CompareFunction::Always,
         });
 
-        let texture_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-            bindings: &[
-                wgpu::BindGroupLayoutBinding {
-                    binding: 0,
-                    visibility: wgpu::ShaderStage::FRAGMENT,
-                    ty: wgpu::BindingType::SampledTexture {
-                        multisampled: false,
-                        dimension: wgpu::TextureViewDimension::D2,
+        let texture_bind_group_layout =
+            device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+                bindings: &[
+                    wgpu::BindGroupLayoutBinding {
+                        binding: 0,
+                        visibility: wgpu::ShaderStage::FRAGMENT,
+                        ty: wgpu::BindingType::SampledTexture {
+                            multisampled: false,
+                            dimension: wgpu::TextureViewDimension::D2,
+                        },
                     },
-                },
-                wgpu::BindGroupLayoutBinding {
-                    binding: 1,
-                    visibility: wgpu::ShaderStage::FRAGMENT,
-                    ty: wgpu::BindingType::Sampler,
-                },
-            ],
-        });
+                    wgpu::BindGroupLayoutBinding {
+                        binding: 1,
+                        visibility: wgpu::ShaderStage::FRAGMENT,
+                        ty: wgpu::BindingType::Sampler,
+                    },
+                ],
+            });
 
         let diffuse_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
             layout: &texture_bind_group_layout,
@@ -325,7 +333,7 @@ impl State {
                 wgpu::Binding {
                     binding: 1,
                     resource: wgpu::BindingResource::Sampler(&diffuse_sampler),
-                }
+                },
             ],
         });
 
@@ -347,29 +355,24 @@ impl State {
             .create_buffer_mapped(1, wgpu::BufferUsage::UNIFORM | wgpu::BufferUsage::COPY_DST)
             .fill_from_slice(&[uniforms]);
 
-        let uniform_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-            bindings: &[
-                wgpu::BindGroupLayoutBinding {
+        let uniform_bind_group_layout =
+            device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+                bindings: &[wgpu::BindGroupLayoutBinding {
                     binding: 0,
                     visibility: wgpu::ShaderStage::VERTEX,
-                    ty: wgpu::BindingType::UniformBuffer {
-                        dynamic: false,
-                    },
-                }
-            ]
-        });
+                    ty: wgpu::BindingType::UniformBuffer { dynamic: false },
+                }],
+            });
 
         let uniform_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
             layout: &uniform_bind_group_layout,
-            bindings: &[
-                wgpu::Binding {
-                    binding: 0,
-                    resource: wgpu::BindingResource::Buffer {
-                        buffer: &uniform_buffer,
-                        range: 0..std::mem::size_of_val(&uniforms) as wgpu::BufferAddress,
-                    }
-                }
-            ],
+            bindings: &[wgpu::Binding {
+                binding: 0,
+                resource: wgpu::BindingResource::Buffer {
+                    buffer: &uniform_buffer,
+                    range: 0..std::mem::size_of_val(&uniforms) as wgpu::BufferAddress,
+                },
+            }],
         });
 
         let vs_src = include_str!("shader.vert");
@@ -381,9 +384,10 @@ impl State {
         let vs_module = device.create_shader_module(&vs_data);
         let fs_module = device.create_shader_module(&fs_data);
 
-        let render_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-            bind_group_layouts: &[&texture_bind_group_layout, &uniform_bind_group_layout],
-        });
+        let render_pipeline_layout =
+            device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+                bind_group_layouts: &[&texture_bind_group_layout, &uniform_bind_group_layout],
+            });
 
         let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
             layout: &render_pipeline_layout,
@@ -403,19 +407,15 @@ impl State {
                 depth_bias_clamp: 0.0,
             }),
             primitive_topology: wgpu::PrimitiveTopology::TriangleList,
-            color_states: &[
-                wgpu::ColorStateDescriptor {
-                    format: sc_desc.format,
-                    color_blend: wgpu::BlendDescriptor::REPLACE,
-                    alpha_blend: wgpu::BlendDescriptor::REPLACE,
-                    write_mask: wgpu::ColorWrite::ALL,
-                },
-            ],
+            color_states: &[wgpu::ColorStateDescriptor {
+                format: sc_desc.format,
+                color_blend: wgpu::BlendDescriptor::REPLACE,
+                alpha_blend: wgpu::BlendDescriptor::REPLACE,
+                write_mask: wgpu::ColorWrite::ALL,
+            }],
             depth_stencil_state: None,
             index_format: wgpu::IndexFormat::Uint16,
-            vertex_buffers: &[
-                Vertex::desc(),
-            ],
+            vertex_buffers: &[Vertex::desc()],
             sample_count: 1,
             sample_mask: !0,
             alpha_to_coverage_enabled: false,
@@ -448,21 +448,12 @@ impl State {
             uniform_buffer,
             uniform_bind_group,
             uniforms,
-            hidpi_factor,
-            size,
         }
     }
 
-    fn update_hidpi_and_resize(&mut self, new_hidpi_factor: f64) {
-        self.hidpi_factor = new_hidpi_factor;
-        self.resize(self.size);
-    }
-
-    fn resize(&mut self, new_size: winit::dpi::LogicalSize) {
-        let physical_size = new_size.to_physical(self.hidpi_factor);
-        self.size = new_size;
-        self.sc_desc.width = physical_size.width.round() as u32;
-        self.sc_desc.height = physical_size.height.round() as u32;
+    fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
+        self.sc_desc.width = new_size.width;
+        self.sc_desc.height = new_size.height;
         self.swap_chain = self.device.create_swap_chain(&self.surface, &self.sc_desc);
 
         self.camera.aspect = self.sc_desc.width as f32 / self.sc_desc.height as f32;
@@ -476,15 +467,22 @@ impl State {
         self.camera_controller.update_camera(&mut self.camera);
         self.uniforms.update_view_proj(&self.camera);
 
-        let mut encoder = self.device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
-            todo: 0,
-        });
+        let mut encoder = self
+            .device
+            .create_command_encoder(&wgpu::CommandEncoderDescriptor { todo: 0 });
 
-        let staging_buffer = self.device
+        let staging_buffer = self
+            .device
             .create_buffer_mapped(1, wgpu::BufferUsage::COPY_SRC)
             .fill_from_slice(&[self.uniforms]);
 
-        encoder.copy_buffer_to_buffer(&staging_buffer, 0, &self.uniform_buffer, 0, std::mem::size_of::<Uniforms>() as wgpu::BufferAddress);
+        encoder.copy_buffer_to_buffer(
+            &staging_buffer,
+            0,
+            &self.uniform_buffer,
+            0,
+            std::mem::size_of::<Uniforms>() as wgpu::BufferAddress,
+        );
 
         self.queue.submit(&[encoder.finish()]);
     }
@@ -492,26 +490,24 @@ impl State {
     fn render(&mut self) {
         let frame = self.swap_chain.get_next_texture();
 
-        let mut encoder = self.device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
-            todo: 0,
-        });
+        let mut encoder = self
+            .device
+            .create_command_encoder(&wgpu::CommandEncoderDescriptor { todo: 0 });
 
         {
             let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-                color_attachments: &[
-                    wgpu::RenderPassColorAttachmentDescriptor {
-                        attachment: &frame.view,
-                        resolve_target: None,
-                        load_op: wgpu::LoadOp::Clear,
-                        store_op: wgpu::StoreOp::Store,
-                        clear_color: wgpu::Color {
-                            r: 0.1,
-                            g: 0.2,
-                            b: 0.3,
-                            a: 1.0,
-                        },
-                    }
-                ],
+                color_attachments: &[wgpu::RenderPassColorAttachmentDescriptor {
+                    attachment: &frame.view,
+                    resolve_target: None,
+                    load_op: wgpu::LoadOp::Clear,
+                    store_op: wgpu::StoreOp::Store,
+                    clear_color: wgpu::Color {
+                        r: 0.1,
+                        g: 0.2,
+                        b: 0.3,
+                        a: 1.0,
+                    },
+                }],
                 depth_stencil_attachment: None,
             });
 
@@ -523,60 +519,51 @@ impl State {
             render_pass.draw_indexed(0..self.num_indices, 0, 0..1);
         }
 
-        self.queue.submit(&[
-            encoder.finish()
-        ]);
+        self.queue.submit(&[encoder.finish()]);
     }
 }
 
 fn main() {
     let event_loop = EventLoop::new();
-    let window = WindowBuilder::new()
-        .build(&event_loop)
-        .unwrap();
+    let window = WindowBuilder::new().build(&event_loop).unwrap();
 
     let mut state = State::new(&window);
-    
-    event_loop.run(move |event, _, control_flow| {
-        match event {
-            Event::WindowEvent {
-                ref event,
-                window_id,
-            } if window_id == window.id() => if state.input(event) {
+
+    event_loop.run(move |event, _, control_flow| match event {
+        Event::WindowEvent {
+            ref event,
+            window_id,
+        } if window_id == window.id() => {
+            if state.input(event) {
                 *control_flow = ControlFlow::Wait;
-            } else { 
+            } else {
                 match event {
                     WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
-                    WindowEvent::KeyboardInput {
-                        input,
-                        ..
-                    } => {
-                        match input {
-                            KeyboardInput {
-                                state: ElementState::Pressed,
-                                virtual_keycode: Some(VirtualKeyCode::Escape),
-                                ..
-                            } => *control_flow = ControlFlow::Exit,
-                            _ => *control_flow = ControlFlow::Wait,
-                        }
-                    }
+                    WindowEvent::KeyboardInput { input, .. } => match input {
+                        KeyboardInput {
+                            state: ElementState::Pressed,
+                            virtual_keycode: Some(VirtualKeyCode::Escape),
+                            ..
+                        } => *control_flow = ControlFlow::Exit,
+                        _ => *control_flow = ControlFlow::Wait,
+                    },
                     WindowEvent::Resized(logical_size) => {
                         state.resize(*logical_size);
                         *control_flow = ControlFlow::Wait;
                     }
-                    WindowEvent::HiDpiFactorChanged(new_hidpi_factor) => {
-                        state.update_hidpi_and_resize(*new_hidpi_factor);
+                    WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
+                        state.resize(**new_inner_size);
                         *control_flow = ControlFlow::Wait;
                     }
                     _ => *control_flow = ControlFlow::Wait,
                 }
             }
-            Event::EventsCleared => {
-                state.update();
-                state.render();
-                *control_flow = ControlFlow::Wait;
-            }
-            _ => *control_flow = ControlFlow::Wait,
         }
+        Event::RedrawRequested(_) => {
+            state.update();
+            state.render();
+            *control_flow = ControlFlow::Wait;
+        }
+        _ => *control_flow = ControlFlow::Wait,
     });
 }
