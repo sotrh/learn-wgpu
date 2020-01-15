@@ -146,7 +146,7 @@ let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescrip
 
 Two things to note here: 
 1. You can specify an `entry_point` for your shaders. I normally use `"main"` as that's what it would be in OpenGL, but feel free to use whatever name you like.
-2. The `fragment_stage` is technically optional, so you have to wrap it in `Some()`. I've never used a fragment shader with a vertex shader, but the option is available if you need it.
+2. The `fragment_stage` is technically optional, so you have to wrap it in `Some()`. I've never used a vertex shader without a fragment shader, but the option is available if you need it.
 
 ```rust
     // continued ...
