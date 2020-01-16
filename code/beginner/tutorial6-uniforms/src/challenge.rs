@@ -283,13 +283,13 @@ impl State {
                 offset: 0,
                 row_pitch: 4 * dimensions.0,
                 image_height: dimensions.1,
-            }, 
+            },
             wgpu::TextureCopyView {
                 texture: &diffuse_texture,
                 mip_level: 0,
                 array_layer: 0,
                 origin: wgpu::Origin3d::ZERO,
-            }, 
+            },
             size3d,
         );
 
@@ -546,7 +546,7 @@ fn main() {
 
     let mut old_time = std::time::Instant::now();
     const MSPT: std::time::Duration = std::time::Duration::from_millis(20);
-    
+
     event_loop.run(move |event, _, control_flow| {
         match event {
             Event::WindowEvent {
@@ -554,7 +554,7 @@ fn main() {
                 window_id,
             } if window_id == window.id() => if state.input(event) {
                 ()
-            } else { 
+            } else {
                 match event {
                     WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
                     WindowEvent::KeyboardInput {

@@ -168,7 +168,7 @@ impl State {
                 ]
             }
         }).collect::<Vec<_>>();
-        
+
         let num_triangles = num_vertices - 2;
         let challenge_indices = (1u16..num_triangles+1).into_iter().flat_map(|i| {
             vec![i + 1, i, 0]
@@ -261,8 +261,8 @@ impl State {
 
             let data = if self.use_complex {
                 (
-                    &self.challenge_vertex_buffer, 
-                    &self.challenge_index_buffer, 
+                    &self.challenge_vertex_buffer,
+                    &self.challenge_index_buffer,
                     self.num_challenge_indices
                 )
             } else {
@@ -291,7 +291,7 @@ fn main() {
         .unwrap();
 
     let mut state = State::new(&window);
-    
+
     event_loop.run(move |event, _, control_flow| {
         match event {
             Event::WindowEvent {
@@ -299,7 +299,7 @@ fn main() {
                 window_id,
             } if window_id == window.id() => if state.input(event) {
                 *control_flow = ControlFlow::Wait;
-            } else { 
+            } else {
                 match event {
                     WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
                     WindowEvent::KeyboardInput {
