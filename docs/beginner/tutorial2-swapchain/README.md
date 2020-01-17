@@ -95,6 +95,7 @@ At the end of the method, we simply return the resulting struct.
 ```rust
         Self {
             surface,
+            adapter,
             device,
             queue,
             sc_desc,
