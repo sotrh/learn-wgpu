@@ -24,8 +24,6 @@ features = ["vulkan"]
 <!-- ## Why vulkan?
 You need to specify what rendering backend you're using through [Cargo features](https://doc.rust-lang.org/cargo/reference/manifest.html#the-features-section) in order to run a program with wgpu. I'm specifying [vulkan](https://www.khronos.org/vulkan/), because I'm on [linux](https://www.linuxmint.com/). You're welcome to use [metal](https://developer.apple.com/metal/), or `DirectX 11/12` using `"metal"`, `"dx11"`, or `"dx12"` respectively.  -->
 
-## What's with the "alpha" stuff?
-The wgpu examples use this version of [winit](https://github.com/rust-windowing/winit), so I elected to do the same. *Note: I'll update this once the changes to winit become fully released.*
 
 ## The code
 There's not much going on here yet, so I'm just going to post the code in full. Just paste this into you're `main.rs` or equivalent.
