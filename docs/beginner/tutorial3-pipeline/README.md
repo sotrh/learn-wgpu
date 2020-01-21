@@ -17,7 +17,7 @@ Most modern rendering uses triangles to make simple shapes such as cube, and com
 
 We use a vertex shader to manipulate a list of vertices, in order to transform the shape to look the way we want it.
 
-You can think of fragment as beginning of a pixel in the resulting image. Each fragment has a color that will be copied to its corresponding pixel. The fragment shader decides what color the fragment will be.
+You can think of a fragment as the beginnings of a pixel in the resulting image. Each fragment has a color that will be copied to it's corresponding pixel. The fragment shader decides what color the fragment will be.
 
 ## GLSL and SPIR-V
 Shaders in `wgpu` are written with a binary language called [SPIR-V](https://www.khronos.org/registry/spir-v/). SPIR-V is designed for computers to read, not people, so we're going to use a language called GLSL to write our code, and then convert that to SPIR-V.
