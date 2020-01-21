@@ -246,7 +246,7 @@ fn quat_mul(q: cgmath::Quaternion<f32>, r: cgmath::Quaternion<f32>) -> cgmath::Q
             // t1=(r0 q1 + r1 q0 − r2 q3 + r3 q2)
             // t2=(r0 q2 + r1 q3 + r2 q0 − r3 q1)
             // t3=(r0 q3 − r1 q2 + r2 q1 + r3 q0
-            
+
 
             let w = r.s * q.s - r.v.x * q.v.x - r.v.y * q.v.y - r.v.z * q.v.z;
             let xi = r.s * q.v.x + r.v.x * q.s - r.v.y * q.v.z + r.v.z * q.v.y;
@@ -318,13 +318,13 @@ impl State {
                 offset: 0,
                 row_pitch: 4 * dimensions.0,
                 image_height: dimensions.1,
-            }, 
+            },
             wgpu::TextureCopyView {
                 texture: &diffuse_texture,
                 mip_level: 0,
                 array_layer: 0,
                 origin: wgpu::Origin3d::ZERO,
-            }, 
+            },
             size3d,
         );
 
@@ -404,7 +404,7 @@ impl State {
                 } else {
                     cgmath::Quaternion::from_axis_angle(position.clone().normalize(), cgmath::Deg(45.0))
                 };
-    
+
                 Instance {
                     position, rotation,
                 }
@@ -632,7 +632,7 @@ fn main() {
 
     let mut old_time = std::time::Instant::now();
     const MSPT: std::time::Duration = std::time::Duration::from_millis(20);
-    
+
     event_loop.run(move |event, _, control_flow| {
         match event {
             Event::WindowEvent {
@@ -640,7 +640,7 @@ fn main() {
                 window_id,
             } if window_id == window.id() => if state.input(event) {
                 ()
-            } else { 
+            } else {
                 match event {
                     WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
                     WindowEvent::KeyboardInput {

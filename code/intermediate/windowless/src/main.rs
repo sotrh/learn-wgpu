@@ -16,7 +16,7 @@ fn main() {
         sample_count: 1,
         dimension: wgpu::TextureDimension::D2,
         format: wgpu::TextureFormat::Rgba8UnormSrgb,
-        usage: wgpu::TextureUsage::COPY_SRC 
+        usage: wgpu::TextureUsage::COPY_SRC
             | wgpu::TextureUsage::OUTPUT_ATTACHMENT
             ,
     };
@@ -27,7 +27,7 @@ fn main() {
     let output_buffer_size = (u32_size * texture_size * texture_size) as wgpu::BufferAddress;
     let output_buffer_desc = wgpu::BufferDescriptor {
         size: output_buffer_size,
-        usage: wgpu::BufferUsage::COPY_DST 
+        usage: wgpu::BufferUsage::COPY_DST
             | wgpu::BufferUsage::MAP_READ
             ,
     };
@@ -114,13 +114,13 @@ fn main() {
             mip_level: 0,
             array_layer: 0,
             origin: wgpu::Origin3d::ZERO,
-        }, 
+        },
         wgpu::BufferCopyView {
             buffer: &output_buffer,
             offset: 0,
             row_pitch: u32_size * texture_size,
             image_height: texture_size,
-        }, 
+        },
         texture_desc.size,
     );
 

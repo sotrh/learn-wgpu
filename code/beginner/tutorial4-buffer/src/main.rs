@@ -221,7 +221,7 @@ fn main() {
         .unwrap();
 
     let mut state = State::new(&window);
-    
+
     event_loop.run(move |event, _, control_flow| {
         match event {
             Event::WindowEvent {
@@ -229,7 +229,7 @@ fn main() {
                 window_id,
             } if window_id == window.id() => if state.input(event) {
                 *control_flow = ControlFlow::Wait;
-            } else { 
+            } else {
                 match event {
                     WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
                     WindowEvent::KeyboardInput {

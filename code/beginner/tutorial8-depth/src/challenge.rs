@@ -248,7 +248,7 @@ impl DepthPass {
                 }
             ],
         });
-        
+
         let vertex_buffer = device
             .create_buffer_mapped(DEPTH_VERTICES.len(), wgpu::BufferUsage::VERTEX)
             .fill_from_slice(DEPTH_VERTICES);
@@ -304,7 +304,7 @@ impl DepthPass {
             sample_mask: !0,
             alpha_to_coverage_enabled: false,
         });
-        
+
         Self {
             texture, view, sampler, bind_group,
             vertex_buffer, index_buffer,
@@ -371,7 +371,7 @@ const DEPTH_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Depth32Float;
 fn create_depth_texture(device: &wgpu::Device, sc_desc: &wgpu::SwapChainDescriptor) -> wgpu::Texture {
     let desc = wgpu::TextureDescriptor {
         format: DEPTH_FORMAT,
-        usage: wgpu::TextureUsage::OUTPUT_ATTACHMENT 
+        usage: wgpu::TextureUsage::OUTPUT_ATTACHMENT
             | wgpu::TextureUsage::SAMPLED
             | wgpu::TextureUsage::COPY_SRC,
         ..sc_desc.to_texture_desc()
@@ -434,13 +434,13 @@ impl State {
                 offset: 0,
                 row_pitch: 4 * dimensions.0,
                 image_height: dimensions.1,
-            }, 
+            },
             wgpu::TextureCopyView {
                 texture: &diffuse_texture,
                 mip_level: 0,
                 array_layer: 0,
                 origin: wgpu::Origin3d::ZERO,
-            }, 
+            },
             size3d,
         );
 
@@ -520,7 +520,7 @@ impl State {
                 } else {
                     cgmath::Quaternion::from_axis_angle(position.clone().normalize(), cgmath::Deg(45.0))
                 };
-    
+
                 Instance {
                     position, rotation,
                 }
@@ -782,13 +782,13 @@ impl State {
                     mip_level: 0,
                     array_layer: 0,
                     origin: wgpu::Origin3d::ZERO,
-                }, 
+                },
                 wgpu::BufferCopyView {
                     buffer: &buffer,
                     offset: 0,
                     row_pitch: U32_SIZE * self.sc_desc.width,
                     image_height: self.sc_desc.height,
-                }, 
+                },
                 wgpu::Extent3d {
                     width: self.sc_desc.width,
                     height: self.sc_desc.height,
@@ -816,7 +816,7 @@ impl State {
             buffer.map_read_async(0, buffer_size, move |result: wgpu::BufferMapAsyncResult<&[f32]>| {
                 let mapping = result.unwrap();
                 let data = mapping.data;
-        
+
                 use image::{ImageBuffer, Rgba, Pixel};
                 let mut buffer = ImageBuffer::<Rgba<u8>, _>::new(
                     width,
@@ -829,7 +829,7 @@ impl State {
                     let z = pixel * 2.0 - 1.0;
                     let r = (2.0 * near * far) / (far + near - z * (far - near));
                     let p = (r.floor() * 255.0 / far) as u8;
-                    
+
                     buffer.put_pixel(x, y, Pixel::from_channels(
                         p, p, p, 255,
                     ));
@@ -840,7 +840,7 @@ impl State {
                         y += 1;
                     }
                 }
-        
+
                 buffer.save("image.png").unwrap();
             });
         }
@@ -854,7 +854,7 @@ fn main() {
         .unwrap();
 
     let mut state = State::new(&window);
-    
+
     event_loop.run(move |event, _, control_flow| {
         match event {
             Event::WindowEvent {
@@ -862,7 +862,7 @@ fn main() {
                 window_id,
             } if window_id == window.id() => if state.input(event) {
                 *control_flow = ControlFlow::Wait;
-            } else { 
+            } else {
                 match event {
                     WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
                     WindowEvent::KeyboardInput {

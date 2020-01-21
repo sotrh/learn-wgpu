@@ -287,13 +287,13 @@ impl State {
                 offset: 0,
                 row_pitch: 4 * dimensions.0,
                 image_height: dimensions.1,
-            }, 
+            },
             wgpu::TextureCopyView {
                 texture: &diffuse_texture,
                 mip_level: 0,
                 array_layer: 0,
                 origin: wgpu::Origin3d::ZERO,
-            }, 
+            },
             size3d,
         );
 
@@ -373,7 +373,7 @@ impl State {
                 } else {
                     cgmath::Quaternion::from_axis_angle(position.clone().normalize(), cgmath::Deg(45.0))
                 };
-    
+
                 Instance {
                     position, rotation,
                 }
@@ -586,7 +586,7 @@ fn main() {
         .unwrap();
 
     let mut state = State::new(&window);
-    
+
     event_loop.run(move |event, _, control_flow| {
         match event {
             Event::WindowEvent {
@@ -594,7 +594,7 @@ fn main() {
                 window_id,
             } if window_id == window.id() => if state.input(event) {
                 *control_flow = ControlFlow::Wait;
-            } else { 
+            } else {
                 match event {
                     WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
                     WindowEvent::KeyboardInput {
