@@ -257,6 +257,7 @@ Now we can actually get to clearing the screen (long time coming). We need to us
         });
     }
     
+    self.queue.submit([
         encoder.finish()
     ]);
 }
