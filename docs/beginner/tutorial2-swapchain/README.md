@@ -118,7 +118,6 @@ If we want to support resizing in our application, we're going to need to recrea
 ```rust
 // impl State
 fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
-    let physical_size = new_size.to_physical(self.hidpi_factor);
     self.size = new_size;
     self.sc_desc.width = new_size.width;
     self.sc_desc.height = new_size.height;
