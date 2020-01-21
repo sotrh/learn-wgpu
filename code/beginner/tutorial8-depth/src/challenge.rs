@@ -313,6 +313,25 @@ impl DepthPass {
             has_saved_to_file: false,
         }
     }
+
+    fn resize(&mut self, device: &wgpu::Device, sc_desc: &wgpu::SwapChainDescriptor, texture_bind_group_layout: &wgpu::BindGroupLayout) {
+        self.texture = create_depth_texture(device, sc_desc);
+        self.view = self.texture.create_default_view();
+
+        self.bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            layout: texture_bind_group_layout,
+            bindings: &[
+                wgpu::Binding {
+                    binding: 0,
+                    resource: wgpu::BindingResource::TextureView(&self.view),
+                },
+                wgpu::Binding {
+                    binding: 1,
+                    resource: wgpu::BindingResource::Sampler(&self.sampler),
+                }
+            ],
+        });
+    }
 }
 
 struct State {
@@ -332,6 +351,7 @@ struct State {
     diffuse_texture_view: wgpu::TextureView,
     diffuse_sampler: wgpu::Sampler,
     diffuse_bind_group: wgpu::BindGroup,
+    texture_bind_group_layout: wgpu::BindGroupLayout,
 
     camera: Camera,
     camera_controller: CameraController,
@@ -365,16 +385,9 @@ impl State {
 
         let surface = wgpu::Surface::create(window);
 
-        let adapter = wgpu::Adapter::request(&wgpu::RequestAdapterOptions {
-            ..Default::default()
-        }).unwrap();
+        let adapter = wgpu::Adapter::request(&Default::default()).unwrap();
 
-        let (device, mut queue) = adapter.request_device(&wgpu::DeviceDescriptor {
-            extensions: wgpu::Extensions {
-                anisotropic_filtering: false,
-            },
-            limits: Default::default(),
-        });
+        let (device, mut queue) = adapter.request_device(&Default::default());
 
         let sc_desc = wgpu::SwapChainDescriptor {
             usage: wgpu::TextureUsage::OUTPUT_ATTACHMENT,
@@ -641,6 +654,7 @@ impl State {
             diffuse_texture_view,
             diffuse_sampler,
             diffuse_bind_group,
+            texture_bind_group_layout,
             camera,
             camera_controller,
             uniform_buffer,
@@ -660,8 +674,10 @@ impl State {
         self.sc_desc.height = new_size.height;
         self.swap_chain = self.device.create_swap_chain(&self.surface, &self.sc_desc);
 
-        self.depth_pass.texture = create_depth_texture(&self.device, &self.sc_desc);
-        self.depth_pass.view = self.depth_pass.texture.create_default_view();
+        self.depth_pass.resize(&self.device, &self.sc_desc, &self.texture_bind_group_layout);
+
+        // self.depth_pass.texture = create_depth_texture(&self.device, &self.sc_desc);
+        // self.depth_pass.view = self.depth_pass.texture.create_default_view();
 
         self.camera.aspect = self.sc_desc.width as f32 / self.sc_desc.height as f32;
     }
@@ -743,7 +759,6 @@ impl State {
                 depth_stencil_attachment: None,
             });
             render_pass.set_pipeline(&self.depth_pass.render_pipeline);
-            // render_pass.set_bind_group(0, &self.diffuse_bind_group, &[]);
             render_pass.set_bind_group(0, &self.depth_pass.bind_group, &[]);
             render_pass.set_vertex_buffers(0, &[(&self.depth_pass.vertex_buffer, 0)]);
             render_pass.set_index_buffer(&self.depth_pass.index_buffer, 0);
