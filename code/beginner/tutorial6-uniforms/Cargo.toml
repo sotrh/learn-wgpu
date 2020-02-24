@@ -10,6 +10,7 @@ edition = "2018"
 image = "0.22"
 winit = "0.20"
 glsl-to-spirv = "0.1"
+failure = "0.1"
 wgpu = "0.4"
 cgmath = "0.17"
 

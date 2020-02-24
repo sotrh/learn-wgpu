@@ -11,6 +11,7 @@ image = "0.22.4"
 winit = "0.20.0"
 glsl-to-spirv = "0.1.7"
 cgmath = "0.17.0"
+failure = "0.1"
 
 wgpu = "0.4.0"
 # wgpu = { git = "https://github.com/gfx-rs/wgpu-rs.git" }

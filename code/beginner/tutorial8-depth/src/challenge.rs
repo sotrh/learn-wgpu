@@ -5,6 +5,8 @@ use winit::{
 };
 use cgmath::prelude::*;
 
+mod texture;
+
 #[repr(C)]
 #[derive(Copy, Clone, Debug)]
 struct Vertex {
@@ -208,9 +210,7 @@ impl Instance {
 }
 
 struct DepthPass {
-    texture: wgpu::Texture,
-    view: wgpu::TextureView,
-    sampler: wgpu::Sampler,
+    texture: texture::Texture,
     bind_group: wgpu::BindGroup,
     vertex_buffer: wgpu::Buffer,
     index_buffer: wgpu::Buffer,
@@ -221,30 +221,18 @@ struct DepthPass {
 
 impl DepthPass {
     fn new(device: &wgpu::Device, sc_desc: &wgpu::SwapChainDescriptor, texture_bind_group_layout: &wgpu::BindGroupLayout) -> Self {
-        let texture = create_depth_texture(device, sc_desc);
-        let view = texture.create_default_view();
-        let sampler = device.create_sampler(&wgpu::SamplerDescriptor {
-            address_mode_u: wgpu::AddressMode::ClampToEdge,
-            address_mode_v: wgpu::AddressMode::ClampToEdge,
-            address_mode_w: wgpu::AddressMode::ClampToEdge,
-            mag_filter: wgpu::FilterMode::Linear,
-            min_filter: wgpu::FilterMode::Linear,
-            mipmap_filter: wgpu::FilterMode::Nearest,
-            lod_min_clamp: -100.0,
-            lod_max_clamp: 100.0,
-            compare_function: wgpu::CompareFunction::LessEqual,
-        });
+        let texture = texture::Texture::create_depth_texture(device, sc_desc);
 
         let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
             layout: texture_bind_group_layout,
             bindings: &[
                 wgpu::Binding {
                     binding: 0,
-                    resource: wgpu::BindingResource::TextureView(&view),
+                    resource: wgpu::BindingResource::TextureView(&texture.view),
                 },
                 wgpu::Binding {
                     binding: 1,
-                    resource: wgpu::BindingResource::Sampler(&sampler),
+                    resource: wgpu::BindingResource::Sampler(&texture.sampler),
                 }
             ],
         });
@@ -306,7 +294,7 @@ impl DepthPass {
         });
 
         Self {
-            texture, view, sampler, bind_group,
+            texture, bind_group,
             vertex_buffer, index_buffer,
             num_depth_indices: DEPTH_INDICES.len() as u32,
             render_pipeline,
@@ -315,19 +303,18 @@ impl DepthPass {
     }
 
     fn resize(&mut self, device: &wgpu::Device, sc_desc: &wgpu::SwapChainDescriptor, texture_bind_group_layout: &wgpu::BindGroupLayout) {
-        self.texture = create_depth_texture(device, sc_desc);
-        self.view = self.texture.create_default_view();
+        self.texture = texture::Texture::create_depth_texture(device, sc_desc);
 
         self.bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
             layout: texture_bind_group_layout,
             bindings: &[
                 wgpu::Binding {
                     binding: 0,
-                    resource: wgpu::BindingResource::TextureView(&self.view),
+                    resource: wgpu::BindingResource::TextureView(&self.texture.view),
                 },
                 wgpu::Binding {
                     binding: 1,
-                    resource: wgpu::BindingResource::Sampler(&self.sampler),
+                    resource: wgpu::BindingResource::Sampler(&self.texture.sampler),
                 }
             ],
         });
@@ -727,7 +714,7 @@ impl State {
                     }
                 ],
                 depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachmentDescriptor {
-                    attachment: &self.depth_pass.view,
+                    attachment: &self.depth_pass.texture.view,
                     depth_load_op: wgpu::LoadOp::Clear,
                     depth_store_op: wgpu::StoreOp::Store,
                     clear_depth: 1.0,
@@ -778,7 +765,7 @@ impl State {
 
             encoder.copy_texture_to_buffer(
                 wgpu::TextureCopyView {
-                    texture: &self.depth_pass.texture,
+                    texture: &self.depth_pass.texture.texture,
                     mip_level: 0,
                     array_layer: 0,
                     origin: wgpu::Origin3d::ZERO,

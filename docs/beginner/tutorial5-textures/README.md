@@ -368,6 +368,136 @@ With that in place we now have our tree subscribed right-side up on our hexagon.
 
 ![our happy tree as it should be](./rightside-up.png)
 
+## Cleaning things up
+
+For convenience sake, let's pull our texture code into its own file called `texture.rs`.
+
+```rust
+use image::GenericImageView;
+
+pub struct Texture {
+    pub texture: wgpu::Texture,
+    pub view: wgpu::TextureView,
+    pub sampler: wgpu::Sampler,
+}
+
+impl Texture {
+    // 1.
+    pub fn from_bytes(device: &wgpu::Device, bytes: &[u8]) -> Result<(Self, wgpu::CommandBuffer), failure::Error> {
+        let img = image::load_from_memory(bytes)?;
+        Self::from_image(device, &img)
+    }
+
+    pub fn from_image(device: &wgpu::Device, img: &image::DynamicImage) -> Result<(Self, wgpu::CommandBuffer), failure::Error> {
+        let rgba = img.as_rgba8().unwrap();
+        let dimensions = img.dimensions();
+
+        let size = wgpu::Extent3d {
+            width: dimensions.0,
+            height: dimensions.1,
+            depth: 1,
+        };
+        let texture = device.create_texture(&wgpu::TextureDescriptor {
+            size,
+            array_layer_count: 1,
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: wgpu::TextureDimension::D2,
+            format: wgpu::TextureFormat::Rgba8UnormSrgb,
+            usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::COPY_DST,
+        });
+
+        let buffer = device
+            .create_buffer_mapped(rgba.len(), wgpu::BufferUsage::COPY_SRC)
+            .fill_from_slice(&rgba);
+
+        let mut encoder = device.create_command_encoder(&Default::default());
+
+        encoder.copy_buffer_to_texture(
+            wgpu::BufferCopyView {
+                buffer: &buffer,
+                offset: 0,
+                row_pitch: 4 * dimensions.0,
+                image_height: dimensions.1,
+            }, 
+            wgpu::TextureCopyView {
+                texture: &texture,
+                mip_level: 0,
+                array_layer: 0,
+                origin: wgpu::Origin3d::ZERO,
+            }, 
+            size,
+        );
+
+        let cmd_buffer = encoder.finish(); // 2.
+
+        let view = texture.create_default_view();
+        let sampler = device.create_sampler(&wgpu::SamplerDescriptor {
+            address_mode_u: wgpu::AddressMode::ClampToEdge,
+            address_mode_v: wgpu::AddressMode::ClampToEdge,
+            address_mode_w: wgpu::AddressMode::ClampToEdge,
+            mag_filter: wgpu::FilterMode::Linear,
+            min_filter: wgpu::FilterMode::Nearest,
+            mipmap_filter: wgpu::FilterMode::Nearest,
+            lod_min_clamp: -100.0,
+            lod_max_clamp: 100.0,
+            compare_function: wgpu::CompareFunction::Always,
+        });
+        
+        Ok((Self { texture, view, sampler }, cmd_buffer))
+    }
+}
+```
+
+1. We're using the [failure](https://docs.rs/failure/0.1.6/failure/) crate to simplify error handling.
+2. In order to prevent importing `queue` as `&mut`, we're returning a `CommandBuffer` with our texture. This means we could load multiple textures at the same time, and then submit all there command buffers at once.
+
+We need to import `texture.rs` as a module, so somewhere at the top of `main.rs` add the following.
+
+```rust
+mod texture;
+```
+
+Then we need to change `State` to use the `Texture` struct.
+
+```rust
+struct State {
+    diffuse_texture: texture::Texture,
+    diffuse_bind_group: wgpu::BindGroup,
+}
+```
+
+We're storing the bind group separately so that `Texture` doesn't need know how the `BindGroup` is layed out.
+
+The texture creation code in `new()` gets a lot simpler.
+
+```rust
+let diffuse_bytes = include_bytes!("happy-tree.png");
+let (diffuse_texture, cmd_buffer) = texture::Texture::from_bytes(&device, diffuse_bytes).unwrap();
+
+queue.submit(&[cmd_buffer]);
+```
+
+Creating the `diffuse_bind_group` changes slightly to use the `view` and `sampler` fields of our `diffuse_texture`.
+
+```rust
+let diffuse_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+    layout: &texture_bind_group_layout,
+    bindings: &[
+        wgpu::Binding {
+            binding: 0,
+            resource: wgpu::BindingResource::TextureView(&diffuse_texture.view),
+        },
+        wgpu::Binding {
+            binding: 1,
+            resource: wgpu::BindingResource::Sampler(&diffuse_texture.sampler),
+        }
+    ],
+});
+```
+
+The code should be working the same as it was before, but now have an easier way to create textures.
+
 ## Challenge
 
 Create another texture and swap it out when you press the space key.

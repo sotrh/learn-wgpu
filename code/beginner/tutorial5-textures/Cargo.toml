@@ -11,6 +11,7 @@ image = "0.22"
 winit = "0.20.0-alpha3"
 glsl-to-spirv = "0.1"
 cgmath = "0.17"
+failure = "0.1"
 wgpu = "0.4"
 
 [[bin]]
