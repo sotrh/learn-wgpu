@@ -4,6 +4,8 @@ use winit::{
     window::{Window, WindowBuilder},
 };
 
+mod texture;
+
 #[repr(C)]
 #[derive(Copy, Clone, Debug)]
 struct Vertex {
@@ -48,103 +50,6 @@ const INDICES: &[u16] = &[
 ];
 
 
-pub struct Texture {
-    pub texture: wgpu::Texture,
-    pub view: wgpu::TextureView,
-    pub sampler: wgpu::Sampler,
-    pub bind_group: wgpu::BindGroup,
-}
-
-impl Texture {
-    pub fn from_bytes(
-        device: &wgpu::Device,
-        queue: &mut wgpu::Queue,
-        layout: &wgpu::BindGroupLayout,
-        data: &[u8],
-    ) -> Self {
-        let image = image::load_from_memory(data).unwrap();
-        let rgba = image.as_rgba8().unwrap();
-
-        use image::GenericImageView;
-        let dimensions = image.dimensions();
-
-        let size3d = wgpu::Extent3d {
-            width: dimensions.0,
-            height: dimensions.1,
-            depth: 1,
-        };
-        let texture = device.create_texture(&wgpu::TextureDescriptor {
-            size: size3d,
-            array_layer_count: 1,
-            mip_level_count: 1,
-            sample_count: 1,
-            dimension: wgpu::TextureDimension::D2,
-            format: wgpu::TextureFormat::Rgba8UnormSrgb,
-            usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::COPY_DST,
-        });
-
-        let diffuse_buffer = device
-            .create_buffer_mapped(rgba.len(), wgpu::BufferUsage::COPY_SRC)
-            .fill_from_slice(&rgba);
-
-        let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
-            todo: 0,
-        });
-
-        encoder.copy_buffer_to_texture(
-            wgpu::BufferCopyView {
-                buffer: &diffuse_buffer,
-                offset: 0,
-                row_pitch: 4 * dimensions.0,
-                image_height: dimensions.1,
-            },
-            wgpu::TextureCopyView {
-                texture: &texture,
-                mip_level: 0,
-                array_layer: 0,
-                origin: wgpu::Origin3d::ZERO,
-            },
-            size3d,
-        );
-
-        queue.submit(&[encoder.finish()]);
-
-        let view = texture.create_default_view();
-        let sampler = device.create_sampler(&wgpu::SamplerDescriptor {
-            address_mode_u: wgpu::AddressMode::ClampToEdge,
-            address_mode_v: wgpu::AddressMode::ClampToEdge,
-            address_mode_w: wgpu::AddressMode::ClampToEdge,
-            mag_filter: wgpu::FilterMode::Linear,
-            min_filter: wgpu::FilterMode::Nearest,
-            mipmap_filter: wgpu::FilterMode::Nearest,
-            lod_min_clamp: -100.0,
-            lod_max_clamp: 100.0,
-            compare_function: wgpu::CompareFunction::Always,
-        });
-
-        let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
-            layout: &layout,
-            bindings: &[
-                wgpu::Binding {
-                    binding: 0,
-                    resource: wgpu::BindingResource::TextureView(&view),
-                },
-                wgpu::Binding {
-                    binding: 1,
-                    resource: wgpu::BindingResource::Sampler(&sampler),
-                }
-            ],
-        });
-
-        Self {
-            texture,
-            view,
-            sampler,
-            bind_group,
-        }
-    }
-}
-
 struct State {
     surface: wgpu::Surface,
     device: wgpu::Device,
@@ -158,8 +63,10 @@ struct State {
     index_buffer: wgpu::Buffer,
     num_indices: u32,
 
-    diffuse_texture: Texture,
-    cartoon_texture: Texture,
+    diffuse_texture: texture::Texture,
+    diffuse_bind_group: wgpu::BindGroup,
+    cartoon_texture: texture::Texture,
+    cartoon_bind_group: wgpu::BindGroup,
 
     size: winit::dpi::PhysicalSize<u32>,
 
@@ -211,20 +118,46 @@ impl State {
         });
 
         let diffuse_bytes = include_bytes!("happy-tree.png");
-        let diffuse_texture = Texture::from_bytes(
+        let (diffuse_texture, diffuse_cmds) = texture::Texture::from_bytes(
             &device,
-            &mut queue,
-            &texture_bind_group_layout,
             diffuse_bytes,
-        );
+        ).unwrap();
+
+        let diffuse_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            layout: &texture_bind_group_layout,
+            bindings: &[
+                wgpu::Binding {
+                    binding: 0,
+                    resource: wgpu::BindingResource::TextureView(&diffuse_texture.view),
+                },
+                wgpu::Binding {
+                    binding: 1,
+                    resource: wgpu::BindingResource::Sampler(&diffuse_texture.sampler),
+                }
+            ],
+        });
 
         let cartoon_bytes = include_bytes!("happy-tree-cartoon.png");
-        let cartoon_texture = Texture::from_bytes(
+        let (cartoon_texture, cartoon_cmds) = texture::Texture::from_bytes(
             &device,
-            &mut queue,
-            &texture_bind_group_layout,
             cartoon_bytes,
-        );
+        ).unwrap();
+
+        let cartoon_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            layout: &texture_bind_group_layout,
+            bindings: &[
+                wgpu::Binding {
+                    binding: 0,
+                    resource: wgpu::BindingResource::TextureView(&cartoon_texture.view),
+                },
+                wgpu::Binding {
+                    binding: 1,
+                    resource: wgpu::BindingResource::Sampler(&cartoon_texture.sampler),
+                }
+            ],
+        });
+
+        queue.submit(&[diffuse_cmds, cartoon_cmds]);
 
         let vs_src = include_str!("shader.vert");
         let fs_src = include_str!("shader.frag");
@@ -294,7 +227,9 @@ impl State {
             index_buffer,
             num_indices,
             diffuse_texture,
+            diffuse_bind_group,
             cartoon_texture,
+            cartoon_bind_group,
             size,
             is_space_pressed: false,
         }
@@ -355,14 +290,14 @@ impl State {
                 depth_stencil_attachment: None,
             });
 
-            let texture = if self.is_space_pressed {
-                &self.cartoon_texture
+            let bind_group = if self.is_space_pressed {
+                &self.cartoon_bind_group
             } else {
-                &self.diffuse_texture
+                &self.diffuse_bind_group
             };
 
             render_pass.set_pipeline(&self.render_pipeline);
-            render_pass.set_bind_group(0, &texture.bind_group, &[]);
+            render_pass.set_bind_group(0, bind_group, &[]);
             render_pass.set_vertex_buffers(0, &[(&self.vertex_buffer, 0)]);
             render_pass.set_index_buffer(&self.index_buffer, 0);
             render_pass.draw_indexed(0..self.num_indices, 0, 0..1);

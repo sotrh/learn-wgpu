@@ -1,5 +1,9 @@
 # News
 
+## Updated texture tutorials
+
+Up to this point, we created textures manually everytime. I've pulled out the texture creation code into a new `texture.rs` file and included it every tutorial from the [textures tutorial](/beginner/tutorial5-textures/#cleaning-things-up) onward.
+
 ## Fixed panics do to not specifying the correct `usage`
 
 Wgpu has become more strict about what `BufferUsage`s and `TextureUsage`s are required when performing certain operations. For example int the [Wgpu without a window example](/intermediate/windowless/), the `texture_desc` only specified the usage to by `COPY_SRC`. This caused a crash when the `texture` was used as a render target. Adding `OUTPUT_ATTACHMENT` fixed the issue.

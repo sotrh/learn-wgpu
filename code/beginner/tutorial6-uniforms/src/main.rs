@@ -4,6 +4,8 @@ use winit::{
     window::{Window, WindowBuilder},
 };
 
+mod texture;
+
 #[repr(C)]
 #[derive(Copy, Clone, Debug)]
 struct Vertex {
@@ -193,9 +195,7 @@ struct State {
     index_buffer: wgpu::Buffer,
     num_indices: u32,
 
-    diffuse_texture: wgpu::Texture,
-    diffuse_texture_view: wgpu::TextureView,
-    diffuse_sampler: wgpu::Sampler,
+    diffuse_texture: texture::Texture,
     diffuse_bind_group: wgpu::BindGroup,
 
     camera: Camera,
@@ -234,65 +234,8 @@ impl State {
         let swap_chain = device.create_swap_chain(&surface, &sc_desc);
 
         let diffuse_bytes = include_bytes!("happy-tree.png");
-        let diffuse_image = image::load_from_memory(diffuse_bytes).unwrap();
-        let diffuse_rgba = diffuse_image.as_rgba8().unwrap();
-
-        use image::GenericImageView;
-        let dimensions = diffuse_image.dimensions();
-
-        let size3d = wgpu::Extent3d {
-            width: dimensions.0,
-            height: dimensions.1,
-            depth: 1,
-        };
-        let diffuse_texture = device.create_texture(&wgpu::TextureDescriptor {
-            size: size3d,
-            array_layer_count: 1,
-            mip_level_count: 1,
-            sample_count: 1,
-            dimension: wgpu::TextureDimension::D2,
-            format: wgpu::TextureFormat::Rgba8UnormSrgb,
-            usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::COPY_DST,
-        });
-
-        let diffuse_buffer = device
-            .create_buffer_mapped(diffuse_rgba.len(), wgpu::BufferUsage::COPY_SRC)
-            .fill_from_slice(&diffuse_rgba);
-
-        let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
-            todo: 0,
-        });
-
-        encoder.copy_buffer_to_texture(
-            wgpu::BufferCopyView {
-                buffer: &diffuse_buffer,
-                offset: 0,
-                row_pitch: 4 * dimensions.0,
-                image_height: dimensions.1,
-            },
-            wgpu::TextureCopyView {
-                texture: &diffuse_texture,
-                mip_level: 0,
-                array_layer: 0,
-                origin: wgpu::Origin3d::ZERO,
-            },
-            size3d,
-        );
-
-        queue.submit(&[encoder.finish()]);
-
-        let diffuse_texture_view = diffuse_texture.create_default_view();
-        let diffuse_sampler = device.create_sampler(&wgpu::SamplerDescriptor {
-            address_mode_u: wgpu::AddressMode::ClampToEdge,
-            address_mode_v: wgpu::AddressMode::ClampToEdge,
-            address_mode_w: wgpu::AddressMode::ClampToEdge,
-            mag_filter: wgpu::FilterMode::Linear,
-            min_filter: wgpu::FilterMode::Nearest,
-            mipmap_filter: wgpu::FilterMode::Nearest,
-            lod_min_clamp: -100.0,
-            lod_max_clamp: 100.0,
-            compare_function: wgpu::CompareFunction::Always,
-        });
+        let (diffuse_texture, cmd_buffer) = texture::Texture::from_bytes(&device, diffuse_bytes).unwrap();
+        queue.submit(&[cmd_buffer]);
 
         let texture_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
             bindings: &[
@@ -317,11 +260,11 @@ impl State {
             bindings: &[
                 wgpu::Binding {
                     binding: 0,
-                    resource: wgpu::BindingResource::TextureView(&diffuse_texture_view),
+                    resource: wgpu::BindingResource::TextureView(&diffuse_texture.view),
                 },
                 wgpu::Binding {
                     binding: 1,
-                    resource: wgpu::BindingResource::Sampler(&diffuse_sampler),
+                    resource: wgpu::BindingResource::Sampler(&diffuse_texture.sampler),
                 }
             ],
         });
@@ -437,8 +380,6 @@ impl State {
             index_buffer,
             num_indices,
             diffuse_texture,
-            diffuse_texture_view,
-            diffuse_sampler,
             diffuse_bind_group,
             camera,
             camera_controller,
