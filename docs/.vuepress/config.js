@@ -29,7 +29,7 @@ module.exports = {
                     '/beginner/tutorial6-uniforms/',
                     '/beginner/tutorial7-instancing/',
                     '/beginner/tutorial8-depth/',
-                    // '/beginner/tutorial9-models/',
+                    '/beginner/tutorial9-models/',
                 ],
             },
             {
