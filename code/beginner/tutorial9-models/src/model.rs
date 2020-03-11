@@ -45,12 +45,13 @@ impl Vertex for ModelVertex {
 pub struct Material {
     pub name: String,
     pub diffuse_texture: texture::Texture,
+    pub bind_group: wgpu::BindGroup,
 }
 
 pub struct Mesh {
     pub name: String,
     pub vertex_buffer: wgpu::Buffer,
-    // pub index_buffer: wgpu::Buffer,
+    pub index_buffer: wgpu::Buffer,
     pub num_elements: u32,
     pub material: Option<usize>,
 }
@@ -62,21 +63,38 @@ pub struct Model {
 
 
 impl Model {
-    pub fn load<P: AsRef<Path>>(device: &wgpu::Device, path: P) -> Result<(Self, Vec<wgpu::CommandBuffer>), failure::Error> {
+    pub fn load<P: AsRef<Path>>(device: &wgpu::Device, layout: &wgpu::BindGroupLayout, path: P) -> Result<(Self, Vec<wgpu::CommandBuffer>), failure::Error> {
         let (obj_models, obj_materials) = tobj::load_obj(path.as_ref())?;
 
+        // We're assuming that the texture files are stored with the obj file        
         let containing_folder = path.as_ref().parent().unwrap();
 
+        // Our `Texure` struct currently returns a `CommandBuffer` when it's created so we need to collect those and return them.
         let mut command_buffers = Vec::new();
 
         let mut materials = Vec::new();
         for mat in obj_materials {
             let diffuse_path = mat.diffuse_texture;
-            println!("diffuse_path: {}", diffuse_path);
             let (diffuse_texture, cmds) = texture::Texture::load(&device, containing_folder.join(diffuse_path))?;
+            
+            let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+                layout,
+                bindings: &[
+                    wgpu::Binding {
+                        binding: 0,
+                        resource: wgpu::BindingResource::TextureView(&diffuse_texture.view),
+                    },
+                    wgpu::Binding {
+                        binding: 1,
+                        resource: wgpu::BindingResource::Sampler(&diffuse_texture.sampler),
+                    },
+                ]
+            });
+
             materials.push(Material {
                 name: mat.name,
                 diffuse_texture,
+                bind_group,
             });
             command_buffers.push(cmds);
         }
@@ -84,9 +102,7 @@ impl Model {
         let mut meshes = Vec::new();
         for m in obj_models {
             let mut vertices = Vec::new();
-            // for i in 0..m.mesh.positions.len() / 3 {
-            for i in &m.mesh.indices {
-                let i = *i as usize;
+            for i in 0..m.mesh.positions.len() / 3 {
                 vertices.push(ModelVertex {
                     position: [
                         m.mesh.positions[i * 3],
@@ -109,15 +125,15 @@ impl Model {
                 .create_buffer_mapped(vertices.len(), wgpu::BufferUsage::VERTEX)
                 .fill_from_slice(&vertices);
 
-            // let index_buffer = device
-            //     .create_buffer_mapped(m.mesh.indices.len(), wgpu::BufferUsage::INDEX)
-            //     .fill_from_slice(&m.mesh.indices);
+            let index_buffer = device
+                .create_buffer_mapped(m.mesh.indices.len(), wgpu::BufferUsage::INDEX)
+                .fill_from_slice(&m.mesh.indices);
 
             meshes.push(Mesh {
                 name: m.name,
                 vertex_buffer,
-                // index_buffer,
-                num_elements: vertices.len() as u32,
+                index_buffer,
+                num_elements: m.mesh.indices.len() as u32,
                 material: m.mesh.material_id,
             });
         }
@@ -127,19 +143,22 @@ impl Model {
 }
 
 pub trait DrawModel {
-    fn draw_mesh(&mut self, mesh: &Mesh);
-    fn draw_mesh_instanced(&mut self, mesh: &Mesh, instances: Range<u32>);
+    fn draw_mesh(&mut self, mesh: &Mesh, material: Option<&Material>);
+    fn draw_mesh_instanced(&mut self, mesh: &Mesh, material: Option<&Material>, instances: Range<u32>);
 }
 
 impl<'a> DrawModel for wgpu::RenderPass<'a> {
-    fn draw_mesh(&mut self, mesh: &Mesh) {
-        self.draw_mesh_instanced(mesh, 0..1);
+    fn draw_mesh(&mut self, mesh: &Mesh, material: Option<&Material>) {
+        self.draw_mesh_instanced(mesh, material, 0..1);
     }
 
-    fn draw_mesh_instanced(&mut self, mesh: &Mesh, instances: Range<u32>) {
+    fn draw_mesh_instanced(&mut self, mesh: &Mesh, material: Option<&Material>, instances: Range<u32>) {
         self.set_vertex_buffers(0, &[(&mesh.vertex_buffer, 0)]);
-        // self.set_index_buffer(&mesh.index_buffer, 0);
-        // self.draw_indexed(0..mesh.num_elements, 0, instances);
-        self.draw(0..mesh.num_elements, instances);
+        self.set_index_buffer(&mesh.index_buffer, 0);
+        if material.is_some() {
+            let bind_group = &material.unwrap().bind_group;
+            self.set_bind_group(0, bind_group, &[]);
+        }
+        self.draw_indexed(0..mesh.num_elements, 0, instances);
     }
 }

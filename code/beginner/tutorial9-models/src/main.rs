@@ -12,48 +12,6 @@ mod model;
 
 use model::{DrawModel, Vertex};
 
-// #[repr(C)]
-// #[derive(Copy, Clone, Debug)]
-// struct Vertex {
-//     position: [f32; 3],
-//     tex_coords: [f32; 2],
-// }
-
-// impl Vertex {
-//     fn desc<'a>() -> wgpu::VertexBufferDescriptor<'a> {
-//         use std::mem;
-//         wgpu::VertexBufferDescriptor {
-//             stride: mem::size_of::<Vertex>() as wgpu::BufferAddress,
-//             step_mode: wgpu::InputStepMode::Vertex,
-//             attributes: &[
-//                 wgpu::VertexAttributeDescriptor {
-//                     offset: 0,
-//                     shader_location: 0,
-//                     format: wgpu::VertexFormat::Float3,
-//                 },
-//                 wgpu::VertexAttributeDescriptor {
-//                     offset: mem::size_of::<[f32; 3]>() as wgpu::BufferAddress,
-//                     shader_location: 1,
-//                     format: wgpu::VertexFormat::Float2,
-//                 },
-//             ]
-//         }
-//     }
-// }
-
-// const VERTICES: &[Vertex] = &[
-//     Vertex { position: [-0.0868241, -0.49240386, 0.0], tex_coords: [1.0 - 0.4131759, 1.0 - 0.00759614], }, // A
-//     Vertex { position: [-0.49513406, -0.06958647, 0.0], tex_coords: [1.0 - 0.0048659444, 1.0 - 0.43041354], }, // B
-//     Vertex { position: [-0.21918549, 0.44939706, 0.0], tex_coords: [1.0 - 0.28081453, 1.0 - 0.949397057], }, // C
-//     Vertex { position: [0.35966998, 0.3473291, 0.0], tex_coords: [1.0 - 0.85967, 1.0 - 0.84732911], }, // D
-//     Vertex { position: [0.44147372, -0.2347359, 0.0], tex_coords: [1.0 - 0.9414737, 1.0 - 0.2652641], }, // E
-// ];
-
-// const INDICES: &[u16] = &[
-//     0, 1, 4,
-//     1, 2, 4,
-//     2, 3, 4,
-// ];
 
 #[cfg_attr(rustfmt, rustfmt_skip)]
 pub const OPENGL_TO_WGPU_MATRIX: cgmath::Matrix4<f32> = cgmath::Matrix4::new(
@@ -64,8 +22,6 @@ pub const OPENGL_TO_WGPU_MATRIX: cgmath::Matrix4<f32> = cgmath::Matrix4::new(
 );
 
 const NUM_INSTANCES_PER_ROW: u32 = 10;
-const INSTANCE_DISPLACEMENT: cgmath::Vector3<f32> = cgmath::Vector3::new(NUM_INSTANCES_PER_ROW as f32 * 2.0, 0.0, NUM_INSTANCES_PER_ROW as f32 * 2.0);
-
 
 struct Camera {
     eye: cgmath::Point3<f32>,
@@ -212,12 +168,8 @@ struct State {
 
     obj_model: model::Model,
 
-    // vertex_buffer: wgpu::Buffer,
-    // index_buffer: wgpu::Buffer,
-    // num_indices: u32,
-
-    diffuse_texture: texture::Texture,
-    diffuse_bind_group: wgpu::BindGroup,
+    // diffuse_texture: texture::Texture,
+    // diffuse_bind_group: wgpu::BindGroup,
 
     camera: Camera,
     camera_controller: CameraController,
@@ -263,9 +215,9 @@ impl State {
         };
         let swap_chain = device.create_swap_chain(&surface, &sc_desc);
 
-        let diffuse_bytes = include_bytes!("happy-tree.png");
-        let (diffuse_texture, cmd_buffer) = texture::Texture::from_bytes(&device, diffuse_bytes).unwrap();
-        queue.submit(&[cmd_buffer]);
+        // let diffuse_bytes = include_bytes!("happy-tree.png");
+        // let (diffuse_texture, cmd_buffer) = texture::Texture::from_bytes(&device, diffuse_bytes).unwrap();
+        // queue.submit(&[cmd_buffer]);
 
         let texture_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
             bindings: &[
@@ -285,19 +237,19 @@ impl State {
             ],
         });
 
-        let diffuse_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
-            layout: &texture_bind_group_layout,
-            bindings: &[
-                wgpu::Binding {
-                    binding: 0,
-                    resource: wgpu::BindingResource::TextureView(&diffuse_texture.view),
-                },
-                wgpu::Binding {
-                    binding: 1,
-                    resource: wgpu::BindingResource::Sampler(&diffuse_texture.sampler),
-                }
-            ],
-        });
+        // let diffuse_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+        //     layout: &texture_bind_group_layout,
+        //     bindings: &[
+        //         wgpu::Binding {
+        //             binding: 0,
+        //             resource: wgpu::BindingResource::TextureView(&diffuse_texture.view),
+        //         },
+        //         wgpu::Binding {
+        //             binding: 1,
+        //             resource: wgpu::BindingResource::Sampler(&diffuse_texture.sampler),
+        //         }
+        //     ],
+        // });
 
         let camera = Camera {
             eye: (0.0, 5.0, -10.0).into(),
@@ -384,9 +336,7 @@ impl State {
             ],
         });
 
-        let cwd = std::env::current_dir().unwrap();
-        println!("cwd: {}", cwd.display());
-        let (obj_model, cmds) = model::Model::load(&device, "code/beginner/tutorial9-models/src/res/cube.obj").unwrap();
+        let (obj_model, cmds) = model::Model::load(&device, &texture_bind_group_layout, "code/beginner/tutorial9-models/src/res/cube.obj").unwrap();
         queue.submit(&cmds);
 
         let vs_src = include_str!("shader.vert");
@@ -440,7 +390,7 @@ impl State {
                 stencil_read_mask: 0,
                 stencil_write_mask: 0,
             }),
-            index_format: wgpu::IndexFormat::Uint16,
+            index_format: wgpu::IndexFormat::Uint32,
             vertex_buffers: &[
                 model::ModelVertex::desc(),
             ],
@@ -457,8 +407,8 @@ impl State {
             swap_chain,
             render_pipeline,
             obj_model,
-            diffuse_texture,
-            diffuse_bind_group,
+            // diffuse_texture,
+            // diffuse_bind_group,
             camera,
             camera_controller,
             uniform_buffer,
@@ -541,9 +491,16 @@ impl State {
             });
 
             render_pass.set_pipeline(&self.render_pipeline);
-            render_pass.set_bind_group(0, &self.diffuse_bind_group, &[]);
             render_pass.set_bind_group(1, &self.uniform_bind_group, &[]);
-            render_pass.draw_mesh_instanced(&self.obj_model.meshes[0], 0..self.instances.len() as u32);
+
+            let mesh = &self.obj_model.meshes[0];
+            let opt_mat = mesh.material;
+            let material = if opt_mat.is_some() {
+                Some(&self.obj_model.materials[opt_mat.unwrap()])
+            } else {
+                None
+            };
+            render_pass.draw_mesh_instanced(mesh, material, 0..self.instances.len() as u32);
         }
 
         self.queue.submit(&[
