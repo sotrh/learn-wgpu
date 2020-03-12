@@ -53,7 +53,7 @@ pub struct Mesh {
     pub vertex_buffer: wgpu::Buffer,
     pub index_buffer: wgpu::Buffer,
     pub num_elements: u32,
-    pub material: Option<usize>,
+    pub material: usize,
 }
 
 pub struct Model {
@@ -134,7 +134,7 @@ impl Model {
                 vertex_buffer,
                 index_buffer,
                 num_elements: m.mesh.indices.len() as u32,
-                material: m.mesh.material_id,
+                material: m.mesh.material_id.unwrap_or(0),
             });
         }
         
@@ -143,22 +143,20 @@ impl Model {
 }
 
 pub trait DrawModel {
-    fn draw_mesh(&mut self, mesh: &Mesh, material: Option<&Material>);
-    fn draw_mesh_instanced(&mut self, mesh: &Mesh, material: Option<&Material>, instances: Range<u32>);
+    fn draw_mesh(&mut self, mesh: &Mesh, material: &Material, uniforms: &wgpu::BindGroup);
+    fn draw_mesh_instanced(&mut self, mesh: &Mesh, material: &Material, instances: Range<u32>, uniforms: &wgpu::BindGroup);
 }
 
 impl<'a> DrawModel for wgpu::RenderPass<'a> {
-    fn draw_mesh(&mut self, mesh: &Mesh, material: Option<&Material>) {
-        self.draw_mesh_instanced(mesh, material, 0..1);
+    fn draw_mesh(&mut self, mesh: &Mesh, material: &Material, uniforms: &wgpu::BindGroup) {
+        self.draw_mesh_instanced(mesh, material, 0..1, uniforms);
     }
 
-    fn draw_mesh_instanced(&mut self, mesh: &Mesh, material: Option<&Material>, instances: Range<u32>) {
+    fn draw_mesh_instanced(&mut self, mesh: &Mesh, material: &Material, instances: Range<u32>, uniforms: &wgpu::BindGroup) {
         self.set_vertex_buffers(0, &[(&mesh.vertex_buffer, 0)]);
         self.set_index_buffer(&mesh.index_buffer, 0);
-        if material.is_some() {
-            let bind_group = &material.unwrap().bind_group;
-            self.set_bind_group(0, bind_group, &[]);
-        }
+        self.set_bind_group(0, &material.bind_group, &[]);
+        self.set_bind_group(1, &uniforms, &[]);
         self.draw_indexed(0..mesh.num_elements, 0, instances);
     }
 }

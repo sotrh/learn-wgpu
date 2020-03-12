@@ -121,13 +121,13 @@ pub struct Mesh {
     pub vertex_buffer: wgpu::Buffer,
     pub index_buffer: wgpu::Buffer,
     pub num_elements: u32,
-    pub material: Option<usize>,
+    pub material: usize,
 }
 ```
 
 The `Material` is pretty simple, it's just the name and one texture. Our cube obj actually has 2 textures, but one is a normal map, and we'll get to those [later](./intermediate/normal-mapping). The name is more for debugging purposes.
 
-`Mesh` holds a vertex buffer, an index buffer, and the number of indices in the mesh. We're using an `Option<usize>` for the material, as not all meshes are guaranteed to have a material. This `usize` will be used to index the `materials` list when it comes time to draw.
+`Mesh` holds a vertex buffer, an index buffer, and the number of indices in the mesh. We're using an `usize` for the material. This `usize` will be used to index the `materials` list when it comes time to draw.
 
 With all that out of the way, we can get to loading our model.
 
@@ -188,7 +188,7 @@ impl Model {
                 vertex_buffer,
                 index_buffer,
                 num_elements: m.mesh.indices.len() as u32,
-                material: m.mesh.material_id,
+                material: m.mesh.material_id.unwrap_or(0),
             });
         }
         
@@ -262,4 +262,43 @@ If you look at the texture files for our obj, you'll see that they don't match u
 
 but we're still getting our happy tree texture.
 
-The reason for this is quite simple. Though we've created our textures we haven't created a bind group to give to the `RenderPass`. We're still using our old `diffuse_bind_group`.
+The reason for this is quite simple. Though we've created our textures we haven't created a bind group to give to the `RenderPass`. We're still using our old `diffuse_bind_group`. If we want to change that we need to create a bind group for our materials. Add a `bind_group` field to `Material`.
+
+```rust
+pub struct Material {
+    pub name: String,
+    pub diffuse_texture: texture::Texture,
+    pub bind_group: wgpu::BindGroup, // NEW!
+}
+```
+
+We're going to add a material parameter to `DrawModel`.
+
+```rust
+pub trait DrawModel {
+    fn draw_mesh(&mut self, mesh: &Mesh, material: &Material, uniforms: &wgpu::BindGroup);
+    fn draw_mesh_instanced(&mut self, mesh: &Mesh, material: &Material, instances: Range<u32>, uniforms: &wgpu::BindGroup);
+}
+
+impl<'a> DrawModel for wgpu::RenderPass<'a> {
+    fn draw_mesh(&mut self, mesh: &Mesh, material: &Material, uniforms: &wgpu::BindGroup) {
+        self.draw_mesh_instanced(mesh, material, 0..1, uniforms);
+    }
+
+    fn draw_mesh_instanced(&mut self, mesh: &Mesh, material: &Material, instances: Range<u32>, uniforms: &wgpu::BindGroup) {
+        self.set_vertex_buffers(0, &[(&mesh.vertex_buffer, 0)]);
+        self.set_index_buffer(&mesh.index_buffer, 0);
+        self.set_bind_group(0, &material.bind_group, &[]);
+        // Do to a bug in 0.4, we need to pass in the uniforms and bind them here.
+        // This will be fixed in 0.5
+        self.set_bind_group(1, &uniforms, &[]);
+        self.draw_indexed(0..mesh.num_elements, 0, instances);
+    }
+}
+```
+
+With all that in place we should get the following.
+
+![cubes-correct.png](./cubes-correct.png)
+
+<AutoGithubLink/>
