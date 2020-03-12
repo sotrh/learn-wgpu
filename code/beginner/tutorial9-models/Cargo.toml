@@ -23,6 +23,6 @@ name = "tutorial9-models"
 path = "src/main.rs"
 
 
-[[bin]]
-name = "tutorial9-challenge"
-path = "src/challenge.rs"
+# [[bin]]
+# name = "tutorial9-challenge"
+# path = "src/challenge.rs"
