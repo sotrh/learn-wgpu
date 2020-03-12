@@ -251,7 +251,31 @@ queue.submit(&cmds);
 
 The path to the obj will be different for you, so keep that in mind.
 
-Wit all that done, you should get something like this.
+Our new model is a bit bigger than our previous one so we're gonna need to adjust the spacing on our instances a bit.
+
+```rust
+const SPACE_BETWEEN: f32 = 3.0;
+let instances = (0..NUM_INSTANCES_PER_ROW).flat_map(|z| {
+    (0..NUM_INSTANCES_PER_ROW).map(move |x| {
+        let x = SPACE_BETWEEN * (x as f32 - NUM_INSTANCES_PER_ROW as f32 / 2.0);
+        let z = SPACE_BETWEEN * (z as f32 - NUM_INSTANCES_PER_ROW as f32 / 2.0);
+
+        let position = cgmath::Vector3 { x, y: 0.0, z };
+
+        let rotation = if position.is_zero() {
+            cgmath::Quaternion::from_axis_angle(cgmath::Vector3::unit_z(), cgmath::Deg(0.0))
+        } else {
+            cgmath::Quaternion::from_axis_angle(position.clone().normalize(), cgmath::Deg(45.0))
+        };
+
+        Instance {
+            position, rotation,
+        }
+    })
+}).collect::<Vec<_>>();
+```
+
+With all that done, you should get something like this.
 
 ![cubes.png](./cubes.png)
 
@@ -297,8 +321,53 @@ impl<'a> DrawModel for wgpu::RenderPass<'a> {
 }
 ```
 
+We need to change the render code to reflect this.
+
+```rust
+render_pass.set_pipeline(&self.render_pipeline);
+
+let mesh = &self.obj_model.meshes[0];
+let material = &self.obj_model.materials[mesh.material];
+render_pass.draw_mesh_instanced(mesh, material, 0..self.instances.len() as u32, &self.uniform_bind_group);
+```
+
 With all that in place we should get the following.
 
 ![cubes-correct.png](./cubes-correct.png)
+
+## Rendering the entire model
+
+Right now we are specifying the mesh and the material directly. This is useful if we want to draw a mesh with a different material. We're also not rendering other parts of the model (if we had some). Let's create a method for `DrawModel` that will draw all the parts of the model with their respective materials.
+
+```rust
+pub trait DrawModel {
+    // ...
+
+    fn draw_model(&mut self, model: &Model, uniforms: &wgpu::BindGroup);
+    fn draw_model_instanced(&mut self, model: &Model, instances: Range<u32>,  uniforms: &wgpu::BindGroup);
+}
+
+impl<'a> DrawModel for wgpu::RenderPass<'a> {
+    // ...
+
+    fn draw_model(&mut self, model: &Model, uniforms: &wgpu::BindGroup) {
+        self.draw_model_instanced(model, 0..1, uniforms);
+    }
+
+    fn draw_model_instanced(&mut self, model: &Model, instances: Range<u32>,  uniforms: &wgpu::BindGroup) {
+        for mesh in &model.meshes {
+            let material = &model.materials[mesh.material];
+            self.draw_mesh_instanced(mesh, material, instances.clone(), uniforms);
+        }
+    }
+}
+```
+
+The code in `main.rs` will change accordingly.
+
+```rust
+render_pass.set_pipeline(&self.render_pipeline);
+render_pass.draw_model_instanced(&self.obj_model, 0..self.instances.len() as u32, &self.uniform_bind_group); 
+```
 
 <AutoGithubLink/>

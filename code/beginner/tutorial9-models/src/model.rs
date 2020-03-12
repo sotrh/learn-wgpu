@@ -145,6 +145,9 @@ impl Model {
 pub trait DrawModel {
     fn draw_mesh(&mut self, mesh: &Mesh, material: &Material, uniforms: &wgpu::BindGroup);
     fn draw_mesh_instanced(&mut self, mesh: &Mesh, material: &Material, instances: Range<u32>, uniforms: &wgpu::BindGroup);
+
+    fn draw_model(&mut self, model: &Model, uniforms: &wgpu::BindGroup);
+    fn draw_model_instanced(&mut self, model: &Model, instances: Range<u32>,  uniforms: &wgpu::BindGroup);
 }
 
 impl<'a> DrawModel for wgpu::RenderPass<'a> {
@@ -158,5 +161,16 @@ impl<'a> DrawModel for wgpu::RenderPass<'a> {
         self.set_bind_group(0, &material.bind_group, &[]);
         self.set_bind_group(1, &uniforms, &[]);
         self.draw_indexed(0..mesh.num_elements, 0, instances);
+    }
+
+    fn draw_model(&mut self, model: &Model, uniforms: &wgpu::BindGroup) {
+        self.draw_model_instanced(model, 0..1, uniforms);
+    }
+
+    fn draw_model_instanced(&mut self, model: &Model, instances: Range<u32>,  uniforms: &wgpu::BindGroup) {
+        for mesh in &model.meshes {
+            let material = &model.materials[mesh.material];
+            self.draw_mesh_instanced(mesh, material, instances.clone(), uniforms);
+        }
     }
 }

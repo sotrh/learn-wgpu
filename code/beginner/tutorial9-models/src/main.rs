@@ -168,9 +168,6 @@ struct State {
 
     obj_model: model::Model,
 
-    // diffuse_texture: texture::Texture,
-    // diffuse_bind_group: wgpu::BindGroup,
-
     camera: Camera,
     camera_controller: CameraController,
     uniforms: Uniforms,
@@ -215,10 +212,6 @@ impl State {
         };
         let swap_chain = device.create_swap_chain(&surface, &sc_desc);
 
-        // let diffuse_bytes = include_bytes!("happy-tree.png");
-        // let (diffuse_texture, cmd_buffer) = texture::Texture::from_bytes(&device, diffuse_bytes).unwrap();
-        // queue.submit(&[cmd_buffer]);
-
         let texture_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
             bindings: &[
                 wgpu::BindGroupLayoutBinding {
@@ -236,20 +229,6 @@ impl State {
                 },
             ],
         });
-
-        // let diffuse_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
-        //     layout: &texture_bind_group_layout,
-        //     bindings: &[
-        //         wgpu::Binding {
-        //             binding: 0,
-        //             resource: wgpu::BindingResource::TextureView(&diffuse_texture.view),
-        //         },
-        //         wgpu::Binding {
-        //             binding: 1,
-        //             resource: wgpu::BindingResource::Sampler(&diffuse_texture.sampler),
-        //         }
-        //     ],
-        // });
 
         let camera = Camera {
             eye: (0.0, 5.0, -10.0).into(),
@@ -407,8 +386,6 @@ impl State {
             swap_chain,
             render_pipeline,
             obj_model,
-            // diffuse_texture,
-            // diffuse_bind_group,
             camera,
             camera_controller,
             uniform_buffer,
@@ -491,11 +468,7 @@ impl State {
             });
 
             render_pass.set_pipeline(&self.render_pipeline);
-            // render_pass.set_bind_group(1, &self.uniform_bind_group, &[]);
-
-            let mesh = &self.obj_model.meshes[0];
-            let material = &self.obj_model.materials[mesh.material];
-            render_pass.draw_mesh_instanced(mesh, material, 0..self.instances.len() as u32, &self.uniform_bind_group);
+            render_pass.draw_model_instanced(&self.obj_model, 0..self.instances.len() as u32, &self.uniform_bind_group);
         }
 
         self.queue.submit(&[
