@@ -12,6 +12,7 @@ winit = "0.20"
 glsl-to-spirv = "0.1"
 wgpu = "0.4"
 cgmath = "0.17"
+failure = "0.1"
 
 [[bin]]
 name = "tutorial7-instancing"

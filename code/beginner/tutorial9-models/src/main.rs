@@ -6,49 +6,12 @@ use winit::{
 use cgmath::prelude::*;
 
 mod texture;
+mod model;
 
-#[repr(C)]
-#[derive(Copy, Clone, Debug)]
-struct Vertex {
-    position: [f32; 3],
-    tex_coords: [f32; 2],
-}
 
-impl Vertex {
-    fn desc<'a>() -> wgpu::VertexBufferDescriptor<'a> {
-        use std::mem;
-        wgpu::VertexBufferDescriptor {
-            stride: mem::size_of::<Vertex>() as wgpu::BufferAddress,
-            step_mode: wgpu::InputStepMode::Vertex,
-            attributes: &[
-                wgpu::VertexAttributeDescriptor {
-                    offset: 0,
-                    shader_location: 0,
-                    format: wgpu::VertexFormat::Float3,
-                },
-                wgpu::VertexAttributeDescriptor {
-                    offset: mem::size_of::<[f32; 3]>() as wgpu::BufferAddress,
-                    shader_location: 1,
-                    format: wgpu::VertexFormat::Float2,
-                },
-            ]
-        }
-    }
-}
 
-const VERTICES: &[Vertex] = &[
-    Vertex { position: [-0.0868241, -0.49240386, 0.0], tex_coords: [1.0 - 0.4131759, 1.0 - 0.00759614], }, // A
-    Vertex { position: [-0.49513406, -0.06958647, 0.0], tex_coords: [1.0 - 0.0048659444, 1.0 - 0.43041354], }, // B
-    Vertex { position: [-0.21918549, 0.44939706, 0.0], tex_coords: [1.0 - 0.28081453, 1.0 - 0.949397057], }, // C
-    Vertex { position: [0.35966998, 0.3473291, 0.0], tex_coords: [1.0 - 0.85967, 1.0 - 0.84732911], }, // D
-    Vertex { position: [0.44147372, -0.2347359, 0.0], tex_coords: [1.0 - 0.9414737, 1.0 - 0.2652641], }, // E
-];
+use model::{DrawModel, Vertex};
 
-const INDICES: &[u16] = &[
-    0, 1, 4,
-    1, 2, 4,
-    2, 3, 4,
-];
 
 #[cfg_attr(rustfmt, rustfmt_skip)]
 pub const OPENGL_TO_WGPU_MATRIX: cgmath::Matrix4<f32> = cgmath::Matrix4::new(
@@ -59,8 +22,6 @@ pub const OPENGL_TO_WGPU_MATRIX: cgmath::Matrix4<f32> = cgmath::Matrix4::new(
 );
 
 const NUM_INSTANCES_PER_ROW: u32 = 10;
-const INSTANCE_DISPLACEMENT: cgmath::Vector3<f32> = cgmath::Vector3::new(NUM_INSTANCES_PER_ROW as f32 * 0.5, 0.0, NUM_INSTANCES_PER_ROW as f32 * 0.5);
-
 
 struct Camera {
     eye: cgmath::Point3<f32>,
@@ -185,8 +146,6 @@ impl CameraController {
     }
 }
 
-const ROTATION_SPEED: f32 = 2.0 * std::f32::consts::PI / 60.0;
-
 struct Instance {
     position: cgmath::Vector3<f32>,
     rotation: cgmath::Quaternion<f32>,
@@ -207,12 +166,7 @@ struct State {
 
     render_pipeline: wgpu::RenderPipeline,
 
-    vertex_buffer: wgpu::Buffer,
-    index_buffer: wgpu::Buffer,
-    num_indices: u32,
-
-    diffuse_texture: texture::Texture,
-    diffuse_bind_group: wgpu::BindGroup,
+    obj_model: model::Model,
 
     camera: Camera,
     camera_controller: CameraController,
@@ -224,36 +178,19 @@ struct State {
 
     instances: Vec<Instance>,
     instance_buffer: wgpu::Buffer,
+
+    depth_texture: wgpu::Texture,
+    depth_texture_view: wgpu::TextureView,
 }
 
-fn quat_mul(q: cgmath::Quaternion<f32>, r: cgmath::Quaternion<f32>) -> cgmath::Quaternion<f32> {
-
-            // This block uses quaternions of the form of
-
-            // q=q0+iq1+jq2+kq3
-
-            // and
-
-            // r=r0+ir1+jr2+kr3.
-
-            // The quaternion product has the form of
-
-            // t=q×r=t0+it1+jt2+kt3,
-
-            // where
-
-            // t0=(r0 q0 − r1 q1 − r2 q2 − r3 q3)
-            // t1=(r0 q1 + r1 q0 − r2 q3 + r3 q2)
-            // t2=(r0 q2 + r1 q3 + r2 q0 − r3 q1)
-            // t3=(r0 q3 − r1 q2 + r2 q1 + r3 q0
-
-
-            let w = r.s * q.s - r.v.x * q.v.x - r.v.y * q.v.y - r.v.z * q.v.z;
-            let xi = r.s * q.v.x + r.v.x * q.s - r.v.y * q.v.z + r.v.z * q.v.y;
-            let yj = r.s * q.v.y + r.v.x * q.v.z + r.v.y * q.s - r.v.z * q.v.x;
-            let zk = r.s * q.v.z - r.v.x * q.v.y + r.v.y * q.v.x + r.v.z * q.s;
-
-            cgmath::Quaternion::new(w, xi, yj, zk)
+const DEPTH_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Depth32Float;
+fn create_depth_texture(device: &wgpu::Device, sc_desc: &wgpu::SwapChainDescriptor) -> wgpu::Texture {
+    let desc = wgpu::TextureDescriptor {
+        format: DEPTH_FORMAT,
+        usage: wgpu::TextureUsage::OUTPUT_ATTACHMENT,
+        ..sc_desc.to_texture_desc()
+    };
+    device.create_texture(&desc)
 }
 
 impl State {
@@ -262,16 +199,9 @@ impl State {
 
         let surface = wgpu::Surface::create(window);
 
-        let adapter = wgpu::Adapter::request(&wgpu::RequestAdapterOptions {
-            ..Default::default()
-        }).unwrap();
+        let adapter = wgpu::Adapter::request(&Default::default()).unwrap();
 
-        let (device, mut queue) = adapter.request_device(&wgpu::DeviceDescriptor {
-            extensions: wgpu::Extensions {
-                anisotropic_filtering: false,
-            },
-            limits: Default::default(),
-        });
+        let (device, mut queue) = adapter.request_device(&Default::default());
 
         let sc_desc = wgpu::SwapChainDescriptor {
             usage: wgpu::TextureUsage::OUTPUT_ATTACHMENT,
@@ -281,10 +211,6 @@ impl State {
             present_mode: wgpu::PresentMode::Vsync,
         };
         let swap_chain = device.create_swap_chain(&surface, &sc_desc);
-
-        let diffuse_bytes = include_bytes!("happy-tree.png");
-        let (diffuse_texture, cmd_buffer) = texture::Texture::from_bytes(&device, diffuse_bytes).unwrap();
-        queue.submit(&[cmd_buffer]);
 
         let texture_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
             bindings: &[
@@ -301,20 +227,6 @@ impl State {
                     visibility: wgpu::ShaderStage::FRAGMENT,
                     ty: wgpu::BindingType::Sampler,
                 },
-            ],
-        });
-
-        let diffuse_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
-            layout: &texture_bind_group_layout,
-            bindings: &[
-                wgpu::Binding {
-                    binding: 0,
-                    resource: wgpu::BindingResource::TextureView(&diffuse_texture.view),
-                },
-                wgpu::Binding {
-                    binding: 1,
-                    resource: wgpu::BindingResource::Sampler(&diffuse_texture.sampler),
-                }
             ],
         });
 
@@ -336,14 +248,17 @@ impl State {
             .create_buffer_mapped(1, wgpu::BufferUsage::UNIFORM | wgpu::BufferUsage::COPY_DST)
             .fill_from_slice(&[uniforms]);
 
+
+        const SPACE_BETWEEN: f32 = 3.0;
         let instances = (0..NUM_INSTANCES_PER_ROW).flat_map(|z| {
             (0..NUM_INSTANCES_PER_ROW).map(move |x| {
-                let position = cgmath::Vector3 { x: x as f32, y: 0.0, z: z as f32 } - INSTANCE_DISPLACEMENT;
+                let x = SPACE_BETWEEN * (x as f32 - NUM_INSTANCES_PER_ROW as f32 / 2.0);
+                let z = SPACE_BETWEEN * (z as f32 - NUM_INSTANCES_PER_ROW as f32 / 2.0);
+
+                let position = cgmath::Vector3 { x, y: 0.0, z };
 
                 let rotation = if position.is_zero() {
-                    // this is needed so an object at (0, 0, 0) won't get scaled to zero
-                    // as Quaternions can effect scale if they're not create correctly
-                    cgmath::Quaternion::from_axis_angle(cgmath::Vector3::unit_y(), cgmath::Deg(0.0))
+                    cgmath::Quaternion::from_axis_angle(cgmath::Vector3::unit_z(), cgmath::Deg(0.0))
                 } else {
                     cgmath::Quaternion::from_axis_angle(position.clone().normalize(), cgmath::Deg(45.0))
                 };
@@ -357,7 +272,7 @@ impl State {
         let instance_data = instances.iter().map(Instance::to_matrix).collect::<Vec<_>>();
         let instance_buffer_size = instance_data.len() * std::mem::size_of::<cgmath::Matrix4<f32>>();
         let instance_buffer = device
-            .create_buffer_mapped(instance_data.len(), wgpu::BufferUsage::STORAGE_READ | wgpu::BufferUsage::COPY_DST)
+            .create_buffer_mapped(instance_data.len(), wgpu::BufferUsage::STORAGE_READ)
             .fill_from_slice(&instance_data);
 
         let uniform_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
@@ -400,7 +315,10 @@ impl State {
             ],
         });
 
-        let vs_src = include_str!("challenge.vert");
+        let (obj_model, cmds) = model::Model::load(&device, &texture_bind_group_layout, "code/beginner/tutorial9-models/src/res/cube.obj").unwrap();
+        queue.submit(&cmds);
+
+        let vs_src = include_str!("shader.vert");
         let fs_src = include_str!("shader.frag");
         let vs_spirv = glsl_to_spirv::compile(vs_src, glsl_to_spirv::ShaderType::Vertex).unwrap();
         let fs_spirv = glsl_to_spirv::compile(fs_src, glsl_to_spirv::ShaderType::Fragment).unwrap();
@@ -408,6 +326,9 @@ impl State {
         let fs_data = wgpu::read_spirv(fs_spirv).unwrap();
         let vs_module = device.create_shader_module(&vs_data);
         let fs_module = device.create_shader_module(&fs_data);
+
+        let depth_texture = create_depth_texture(&device, &sc_desc);
+        let depth_texture_view = depth_texture.create_default_view();
 
         let render_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             bind_group_layouts: &[&texture_bind_group_layout, &uniform_bind_group_layout],
@@ -425,7 +346,7 @@ impl State {
             }),
             rasterization_state: Some(wgpu::RasterizationStateDescriptor {
                 front_face: wgpu::FrontFace::Ccw,
-                cull_mode: wgpu::CullMode::None,
+                cull_mode: wgpu::CullMode::Back,
                 depth_bias: 0,
                 depth_bias_slope_scale: 0.0,
                 depth_bias_clamp: 0.0,
@@ -439,23 +360,23 @@ impl State {
                     write_mask: wgpu::ColorWrite::ALL,
                 },
             ],
-            depth_stencil_state: None,
-            index_format: wgpu::IndexFormat::Uint16,
+            depth_stencil_state: Some(wgpu::DepthStencilStateDescriptor {
+                format: DEPTH_FORMAT,
+                depth_write_enabled: true,
+                depth_compare: wgpu::CompareFunction::Less,
+                stencil_front: wgpu::StencilStateFaceDescriptor::IGNORE,
+                stencil_back: wgpu::StencilStateFaceDescriptor::IGNORE,
+                stencil_read_mask: 0,
+                stencil_write_mask: 0,
+            }),
+            index_format: wgpu::IndexFormat::Uint32,
             vertex_buffers: &[
-                Vertex::desc(),
+                model::ModelVertex::desc(),
             ],
             sample_count: 1,
             sample_mask: !0,
             alpha_to_coverage_enabled: false,
         });
-
-        let vertex_buffer = device
-            .create_buffer_mapped(VERTICES.len(), wgpu::BufferUsage::VERTEX)
-            .fill_from_slice(VERTICES);
-        let index_buffer = device
-            .create_buffer_mapped(INDICES.len(), wgpu::BufferUsage::INDEX)
-            .fill_from_slice(INDICES);
-        let num_indices = INDICES.len() as u32;
 
         Self {
             surface,
@@ -464,11 +385,7 @@ impl State {
             sc_desc,
             swap_chain,
             render_pipeline,
-            vertex_buffer,
-            index_buffer,
-            num_indices,
-            diffuse_texture,
-            diffuse_bind_group,
+            obj_model,
             camera,
             camera_controller,
             uniform_buffer,
@@ -477,6 +394,8 @@ impl State {
             size,
             instances,
             instance_buffer,
+            depth_texture,
+            depth_texture_view,
         }
     }
 
@@ -486,6 +405,9 @@ impl State {
         self.sc_desc.width = new_size.width;
         self.sc_desc.height = new_size.height;
         self.swap_chain = self.device.create_swap_chain(&self.surface, &self.sc_desc);
+
+        self.depth_texture = create_depth_texture(&self.device, &self.sc_desc);
+        self.depth_texture_view = self.depth_texture.create_default_view();
 
         self.camera.aspect = self.sc_desc.width as f32 / self.sc_desc.height as f32;
     }
@@ -507,18 +429,6 @@ impl State {
             .fill_from_slice(&[self.uniforms]);
 
         encoder.copy_buffer_to_buffer(&staging_buffer, 0, &self.uniform_buffer, 0, std::mem::size_of::<Uniforms>() as wgpu::BufferAddress);
-
-        for instance in &mut self.instances {
-            let amount = cgmath::Quaternion::from_angle_y(cgmath::Rad(ROTATION_SPEED));
-            let current = instance.rotation;
-            instance.rotation = quat_mul(amount, current);
-        }
-        let instance_data = self.instances.iter().map(Instance::to_matrix).collect::<Vec<_>>();
-        let instance_buffer_size = instance_data.len() * std::mem::size_of::<cgmath::Matrix4<f32>>();
-        let instance_buffer = self.device
-            .create_buffer_mapped(instance_data.len(), wgpu::BufferUsage::COPY_SRC)
-            .fill_from_slice(&instance_data);
-        encoder.copy_buffer_to_buffer(&instance_buffer, 0, &self.instance_buffer, 0, instance_buffer_size as wgpu::BufferAddress);
 
         self.queue.submit(&[encoder.finish()]);
     }
@@ -546,15 +456,19 @@ impl State {
                         },
                     }
                 ],
-                depth_stencil_attachment: None,
+                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachmentDescriptor {
+                    attachment: &self.depth_texture_view,
+                    depth_load_op: wgpu::LoadOp::Clear,
+                    depth_store_op: wgpu::StoreOp::Store,
+                    clear_depth: 1.0,
+                    stencil_load_op: wgpu::LoadOp::Clear,
+                    stencil_store_op: wgpu::StoreOp::Store,
+                    clear_stencil: 0,
+                }),
             });
 
             render_pass.set_pipeline(&self.render_pipeline);
-            render_pass.set_bind_group(0, &self.diffuse_bind_group, &[]);
-            render_pass.set_bind_group(1, &self.uniform_bind_group, &[]);
-            render_pass.set_vertex_buffers(0, &[(&self.vertex_buffer, 0)]);
-            render_pass.set_index_buffer(&self.index_buffer, 0);
-            render_pass.draw_indexed(0..self.num_indices, 0, 0..self.instances.len() as u32);
+            render_pass.draw_model_instanced(&self.obj_model, 0..self.instances.len() as u32, &self.uniform_bind_group);
         }
 
         self.queue.submit(&[
@@ -571,16 +485,13 @@ fn main() {
 
     let mut state = State::new(&window);
 
-    let mut old_time = std::time::Instant::now();
-    const MSPT: std::time::Duration = std::time::Duration::from_millis(20);
-
     event_loop.run(move |event, _, control_flow| {
         match event {
             Event::WindowEvent {
                 ref event,
                 window_id,
             } if window_id == window.id() => if state.input(event) {
-                ()
+                *control_flow = ControlFlow::Wait;
             } else {
                 match event {
                     WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
@@ -594,34 +505,26 @@ fn main() {
                                 virtual_keycode: Some(VirtualKeyCode::Escape),
                                 ..
                             } => *control_flow = ControlFlow::Exit,
-                            _ => (),
+                            _ => *control_flow = ControlFlow::Wait,
                         }
                     }
                     WindowEvent::Resized(physical_size) => {
                         state.resize(*physical_size);
-                        ()
+                        *control_flow = ControlFlow::Wait;
                     }
                     WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
                         state.resize(**new_inner_size);
-                        ()
+                        *control_flow = ControlFlow::Wait;
                     }
-                    _ => (),
+                    _ => *control_flow = ControlFlow::Wait,
                 }
             }
             Event::MainEventsCleared => {
                 state.update();
                 state.render();
-
-                let new_time = std::time::Instant::now();
-                let delta_time = new_time - old_time;
-                *control_flow = if delta_time > MSPT {
-                    ControlFlow::Poll
-                } else {
-                    ControlFlow::WaitUntil(old_time + MSPT)
-                };
-                old_time = new_time;
+                *control_flow = ControlFlow::Wait;
             }
-            _ => (),
+            _ => *control_flow = ControlFlow::Wait,
         }
     });
 }
