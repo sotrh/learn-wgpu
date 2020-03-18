@@ -346,7 +346,7 @@ impl State {
             ],
         });
 
-        let (obj_model, cmds) = model::Model::load(&device, &texture_bind_group_layout, "code/beginner/tutorial9-models/src/res/cube.obj").unwrap();
+        let (obj_model, cmds) = model::Model::load(&device, &texture_bind_group_layout, "code/intermediate/tutorial10-lighting/src/res/cube.obj").unwrap();
         queue.submit(&cmds);
 
         let vs_src = include_str!("shader.vert");
