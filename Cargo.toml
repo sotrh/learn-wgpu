@@ -5,4 +5,7 @@ members = [
 
     # intermediate tutorials
     "code/intermediate/*",
+
+    # showcase
+    "code/showcase/*",
 ]
