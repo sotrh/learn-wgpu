@@ -9,8 +9,7 @@ layout(location=1) out vec3 v_normal;
 
 layout(set=1, binding=0) 
 uniform Uniforms {
-    mat4 u_view;
-    mat4 u_proj;
+    mat4 u_view_proj;
 };
 
 layout(set=1, binding=1) 
@@ -23,5 +22,5 @@ void main() {
     
     mat4 model = s_models[gl_InstanceIndex];
     v_normal = transpose(inverse(mat3(model))) * a_normal;
-    gl_Position = u_proj * u_view * model * vec4(a_position, 1.0);
+    gl_Position = u_view_proj * model * vec4(a_position, 1.0);
 }

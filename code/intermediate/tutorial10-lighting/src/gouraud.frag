@@ -18,5 +18,4 @@ void main() {
     float brightness = dot(normalize(v_normal), normalize(u_light));
     vec4 ambient = vec4(0.0, 0.0, 0.0, 1.0);
     f_color = mix(ambient, diffuse, brightness);
-    // f_color = vec4((v_normal + 1) * 0.5, 1);
 }

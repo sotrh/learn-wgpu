@@ -14,66 +14,11 @@ This is an *advanced* topic, and we won't be covering it in depth here. It's the
 
 ## Gouraud Shading
 
-Named after [Henri Gourad](https://en.wikipedia.org/wiki/Gouraud_shading), Gourad shading uses a surface normal vector per vertex to determine what direction the surface is facing and then compares that normal to the light's direction to calculate how bright the surface should be. In other words, the surfaces facing the light are brighter than the ones facing way.
+Named after [Henri Gourad](https://en.wikipedia.org/wiki/Gouraud_shading), Gourad shading uses a surface normal vector per vertex to determine what direction the surface is facing and then compares that normal to the light's direction to calculate how bright the surface should be. Normals indicate what direction a surface is facing. We compare the normal to light vector to calculate how bright a given part of the model should be.
 
 ![normals.png](./normals.png)
 
-To start we first need to modify our vertex data to include normals for every vertex.
-
-```rust
-#[repr(C)]
-#[derive(Copy, Clone, Debug)]
-struct Vertex {
-    position: [f32; 3],
-    tex_coords: [f32; 2],
-    normal: [f32; 3], // NEW
-}
-
-// UPDATED
-const VERTICES: &[Vertex] = &[
-    Vertex { position: [-0.0868241, -0.49240386, 0.0], tex_coords: [1.0 - 0.4131759, 1.0 - 0.00759614], normal: [0.0, 0.0, -1.0]}, // A
-    Vertex { position: [-0.49513406, -0.06958647, 0.0], tex_coords: [1.0 - 0.0048659444, 1.0 - 0.43041354], normal: [0.0, 0.0, -1.0]}, // B
-    Vertex { position: [-0.21918549, 0.44939706, 0.0], tex_coords: [1.0 - 0.28081453, 1.0 - 0.949397057], normal: [0.0, 0.0, -1.0]}, // C
-    Vertex { position: [0.35966998, 0.3473291, 0.0], tex_coords: [1.0 - 0.85967, 1.0 - 0.84732911], normal: [0.0, 0.0, -1.0]}, // D
-    Vertex { position: [0.44147372, -0.2347359, 0.0], tex_coords: [1.0 - 0.9414737, 1.0 - 0.2652641], normal: [0.0, 0.0, -1.0]}, // E
-];
-```
-
-Each vertex has the same normal `[0.0, 0.0, -1.0]`. This normal specifies that our model is facing towards the screen.
-
-We need to reflect this change in our `VertexBufferDescriptor`, in order for our shader to get the data it needs.
-
-```rust
-impl Vertex {
-    fn desc<'a>() -> wgpu::VertexBufferDescriptor<'a> {
-        use std::mem;
-        wgpu::VertexBufferDescriptor {
-            stride: mem::size_of::<Vertex>() as wgpu::BufferAddress,
-            step_mode: wgpu::InputStepMode::Vertex,
-            attributes: &[
-                wgpu::VertexAttributeDescriptor {
-                    offset: 0,
-                    shader_location: 0,
-                    format: wgpu::VertexFormat::Float3,
-                },
-                wgpu::VertexAttributeDescriptor {
-                    offset: mem::size_of::<[f32; 3]>() as wgpu::BufferAddress,
-                    shader_location: 1,
-                    format: wgpu::VertexFormat::Float2,
-                },
-                // NEW
-                wgpu::VertexAttributeDescriptor {
-                    offset: mem::size_of::<[f32; 5]>() as wgpu::BufferAddress,
-                    shader_location: 2,
-                    format: wgpu::VertexFormat::Float3,
-                }
-            ]
-        }
-    }
-}
-```
-
-With that done, we can change our vertex shader to use our new normals.
+Fortunately for use our cube already has normals that we can use. We can get straight to changing our vertex shader to use our normals.
 
 ```glsl
 #version 450
@@ -189,7 +134,7 @@ With all that you should get something that looks like this.
 
 ![gouraud.png](./gouraud.png)
 
-You can see that the models that are pointed down are darker than the ones that are pointing up.
+You can see they cubes now have a light side and a dark side.
 
 ## Blinn-Phong Shading
 
@@ -197,5 +142,89 @@ Gouraud shading works, but it's not super accurate. It's missing specular reflec
 
 Specular reflection is the light that's reflected of surface without getting scattered as the diffuse reflection. It's the bright spots you see on s shiny surface such as an apple.
 
-Fortunately we only have to change the fragment shader code to get this new effect.
+Fortunately we only have to change the shader code to get this new effect.
 
+```glsl
+// shader.vert
+#version 450
+
+layout(location=0) in vec3 a_position;
+layout(location=1) in vec2 a_tex_coords;
+layout(location=2) in vec3 a_normal;
+
+layout(location=0) out vec2 v_tex_coords;
+layout(location=1) out vec3 v_normal;
+layout(location=2) out vec3 v_position;
+
+layout(set=1, binding=0) 
+uniform Uniforms {
+    mat4 u_view_proj;
+};
+
+layout(set=1, binding=1) 
+buffer Instances {
+    mat4 s_models[];
+};
+
+void main() {
+    v_tex_coords = a_tex_coords;
+
+    mat4 model = s_models[gl_InstanceIndex];
+
+    // Rotate the normals with respect to the model, ignoring scaling
+    mat3 normal_matrix = mat3(transpose(inverse(mat3(model))));
+    v_normal = normal_matrix * a_normal;
+
+    gl_Position = u_view_proj * model * vec4(a_position, 1.0);
+
+    // Get the position relative to the view for the lighting calc
+    v_position = gl_Position.xyz / gl_Position.w;
+}
+```
+
+```glsl
+// shader.frag
+#version 450
+
+layout(location=0) in vec2 v_tex_coords;
+layout(location=1) in vec3 v_normal;
+layout(location=2) in vec3 v_position;
+
+layout(location=0) out vec4 f_color;
+
+layout(set = 0, binding = 0) uniform texture2D t_diffuse;
+layout(set = 0, binding = 1) uniform sampler s_diffuse;
+
+layout(set=1, binding=2) 
+uniform Lights {
+    vec3 u_light;
+};
+
+const vec3 ambient_color = vec3(0.0, 0.0, 0.0);
+const vec3 specular_color = vec3(1.0, 1.0, 1.0);
+
+const float shininess = 32;
+
+void main() {
+    vec4 diffuse_color = texture(sampler2D(t_diffuse, s_diffuse), v_tex_coords);
+    float diffuse_term = max(dot(normalize(v_normal), normalize(u_light)), 0);
+
+    vec3 camera_dir = normalize(-v_position);
+
+    // This is an aproximation of the actual reflection vector, aka what
+    // angle you have to look at the object to be blinded by the light
+    vec3 half_direction = normalize(normalize(u_light) + camera_dir);
+    float specular_term = pow(max(dot(normalize(v_normal), half_direction), 0.0), shininess);
+
+    f_color = vec4(ambient_color, 1.0) + vec4(specular_term * specular_color, 1.0) + diffuse_term * diffuse_color;
+    
+}
+```
+
+With that we should get something like this.
+
+![./blinn-phong.png](./blinn-phong.png)
+
+This is a bit bright for a brick texture though. You can modify the `shininess` value if you want to reduce the brightness. I'm going to leave it as is though. The lighting calculations will change as we get into [Normal Mapping](../tutorial11-normals).
+
+<AutoGithubLink/>

@@ -9,7 +9,6 @@ mod texture;
 mod model;
 
 
-
 use model::{DrawModel, Vertex};
 
 
@@ -34,35 +33,28 @@ struct Camera {
 }
 
 impl Camera {
-    fn build_projection_matrix(&self) -> cgmath::Matrix4<f32> {
-        let proj = cgmath::perspective(cgmath::Deg(self.fovy), self.aspect, self.znear, self.zfar);
-        return proj;
-    }
-    
-    fn build_view_matrix(&self) -> cgmath::Matrix4<f32> {
+    fn build_view_projection_matrix(&self) -> cgmath::Matrix4<f32> {
         let view = cgmath::Matrix4::look_at(self.eye, self.target, self.up);
-        return view;
+        let proj = cgmath::perspective(cgmath::Deg(self.fovy), self.aspect, self.znear, self.zfar);
+        return proj * view;
     }
 }
 
 #[repr(C)]
 #[derive(Copy, Clone)]
 struct Uniforms {
-    view: cgmath::Matrix4<f32>,
-    proj: cgmath::Matrix4<f32>,
+    view_proj: cgmath::Matrix4<f32>,
 }
 
 impl Uniforms {
     fn new() -> Self {
         Self {
-            view: cgmath::Matrix4::identity(),
-            proj: cgmath::Matrix4::identity(),
+            view_proj: cgmath::Matrix4::identity(),
         }
     }
 
     fn update_view_proj(&mut self, camera: &Camera) {
-        self.proj = OPENGL_TO_WGPU_MATRIX * camera.build_projection_matrix();
-        self.view = camera.build_view_matrix();
+        self.view_proj = OPENGL_TO_WGPU_MATRIX * camera.build_view_projection_matrix();
     }
 }
 
@@ -357,8 +349,8 @@ impl State {
         let (obj_model, cmds) = model::Model::load(&device, &texture_bind_group_layout, "code/beginner/tutorial9-models/src/res/cube.obj").unwrap();
         queue.submit(&cmds);
 
-        let vs_src = include_str!("gouraud.vert");
-        let fs_src = include_str!("gouraud.frag");
+        let vs_src = include_str!("shader.vert");
+        let fs_src = include_str!("shader.frag");
         let vs_spirv = glsl_to_spirv::compile(vs_src, glsl_to_spirv::ShaderType::Vertex).unwrap();
         let fs_spirv = glsl_to_spirv::compile(fs_src, glsl_to_spirv::ShaderType::Fragment).unwrap();
         let vs_data = wgpu::read_spirv(vs_spirv).unwrap();
@@ -527,13 +519,13 @@ fn main() {
     let mut state = State::new(&window);
 
     event_loop.run(move |event, _, control_flow| {
+        *control_flow = ControlFlow::Poll;
         match event {
+            Event::MainEventsCleared => { window.request_redraw(); }
             Event::WindowEvent {
                 ref event,
                 window_id,
-            } if window_id == window.id() => if state.input(event) {
-                *control_flow = ControlFlow::Wait;
-            } else {
+            } if window_id == window.id() => if !state.input(event) {
                 match event {
                     WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
                     WindowEvent::KeyboardInput {
@@ -546,26 +538,23 @@ fn main() {
                                 virtual_keycode: Some(VirtualKeyCode::Escape),
                                 ..
                             } => *control_flow = ControlFlow::Exit,
-                            _ => *control_flow = ControlFlow::Wait,
+                            _ => {}
                         }
                     }
                     WindowEvent::Resized(physical_size) => {
                         state.resize(*physical_size);
-                        *control_flow = ControlFlow::Wait;
                     }
                     WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
                         state.resize(**new_inner_size);
-                        *control_flow = ControlFlow::Wait;
                     }
-                    _ => *control_flow = ControlFlow::Wait,
+                    _ => {}
                 }
             }
-            Event::MainEventsCleared => {
+            Event::RedrawRequested(_) => {
                 state.update();
                 state.render();
-                *control_flow = ControlFlow::Wait;
             }
-            _ => *control_flow = ControlFlow::Wait,
+            _ => {}
         }
     });
 }
