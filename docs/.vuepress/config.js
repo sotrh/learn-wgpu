@@ -36,6 +36,7 @@ module.exports = {
                 title: 'Intermediate',
                 collapsable: false,
                 children: [
+                    '/intermediate/tutorial10-lighting/',
                     '/intermediate/windowless/',
                 ],
             },

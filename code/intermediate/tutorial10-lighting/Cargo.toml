@@ -1,5 +1,5 @@
 [package]
-name = "tutorial9-models"
+name = "tutorial10-lighting"
 version = "0.1.0"
 authors = ["Ben Hansen <bhbenjaminhansen@gmail.com>"]
 edition = "2018"
@@ -19,10 +19,10 @@ wgpu = "0.4.0"
 # zerocopy = "0.2.8"
 
 [[bin]]
-name = "tutorial9-models"
+name = "tutorial10-lighting"
 path = "src/main.rs"
 
 
 # [[bin]]
-# name = "tutorial9-challenge"
+# name = "tutorial10-challenge"
 # path = "src/challenge.rs"
