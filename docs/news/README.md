@@ -1,5 +1,9 @@
 # News
 
+## Added GIF showcase
+
+[Creating GIFs](/showcase/gifs/)
+
 ## Updated texture tutorials
 
 Up to this point, we created textures manually everytime. I've pulled out the texture creation code into a new `texture.rs` file and included it every tutorial from the [textures tutorial](/beginner/tutorial5-textures/#cleaning-things-up) onward.
