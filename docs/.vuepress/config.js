@@ -37,8 +37,16 @@ module.exports = {
                 collapsable: false,
                 children: [
                     '/intermediate/tutorial10-lighting/',
-                    '/intermediate/windowless/',
                 ],
+            },
+            {
+                title: 'Showcase',
+                collapsable: true,
+                children: [
+                    '/showcase/',
+                    '/showcase/windowless/',
+                    '/showcase/gifs/',
+                ]
             },
             '/news/'
         ]
