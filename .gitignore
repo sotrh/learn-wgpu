@@ -2,4 +2,6 @@ node_modules/
 target/
 .vscode/
 
-image.png
+/image.png
+/output*.*
+output/

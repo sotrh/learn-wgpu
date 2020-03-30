@@ -1,5 +1,5 @@
 [package]
-name = "gifs"
+name = "framework"
 version = "0.1.0"
 authors = ["Ben Hansen <bhbenjaminhansen@gmail.com>"]
 edition = "2018"
@@ -14,6 +14,3 @@ cgmath = "0.17.0"
 failure = "0.1"
 tobj = "0.1"
 wgpu = "0.4.0"
-gif = "0.10.3"
-
-framework = { path = "../framework" }

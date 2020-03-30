@@ -1,11 +1,15 @@
 use image::GenericImageView;
 use std::path::Path;
+use std::mem;
+
+use crate::buffer;
 
 
 pub struct Texture {
     pub texture: wgpu::Texture,
     pub view: wgpu::TextureView,
     pub sampler: wgpu::Sampler,
+    pub desc: wgpu::TextureDescriptor,
 }
 
 impl Texture {
@@ -22,6 +26,10 @@ impl Texture {
             usage: wgpu::TextureUsage::OUTPUT_ATTACHMENT,
             ..sc_desc.to_texture_desc()
         };
+        Self::from_descriptor(device, desc)
+    }
+
+    pub fn from_descriptor(device: &wgpu::Device, desc: wgpu::TextureDescriptor) -> Self {
         let texture = device.create_texture(&desc);
 
         let view = texture.create_default_view();
@@ -37,7 +45,7 @@ impl Texture {
             compare_function: wgpu::CompareFunction::Always,
         });
 
-        Self { texture, view, sampler }
+        Self { texture, view, sampler, desc }
     }
 
     pub fn from_bytes(device: &wgpu::Device, bytes: &[u8]) -> Result<(Self, wgpu::CommandBuffer), failure::Error> {
@@ -54,7 +62,7 @@ impl Texture {
             height: dimensions.1,
             depth: 1,
         };
-        let texture = device.create_texture(&wgpu::TextureDescriptor {
+        let desc = wgpu::TextureDescriptor {
             size,
             array_layer_count: 1,
             mip_level_count: 1,
@@ -62,7 +70,8 @@ impl Texture {
             dimension: wgpu::TextureDimension::D2,
             format: wgpu::TextureFormat::Rgba8UnormSrgb,
             usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::COPY_DST,
-        });
+        };
+        let texture = device.create_texture(&desc);
 
         let buffer = device
             .create_buffer_mapped(rgba.len(), wgpu::BufferUsage::COPY_SRC)
@@ -101,6 +110,24 @@ impl Texture {
             compare_function: wgpu::CompareFunction::Always,
         });
         
-        Ok((Self { texture, view, sampler }, cmd_buffer))
+        Ok((Self { texture, view, sampler, desc }, cmd_buffer))
     }
-}
+
+    pub fn prepare_buffer_rgba(&self, device: &wgpu::Device) -> buffer::RawBuffer<[f32;4]> {
+        let num_pixels = self.desc.size.width * self.desc.size.height * self.desc.size.depth;
+
+        let buffer_size = num_pixels * mem::size_of::<[f32;4]>() as u32;
+        let buffer_usage = wgpu::BufferUsage::COPY_DST | wgpu::BufferUsage::MAP_READ;
+        let buffer_desc = wgpu::BufferDescriptor {
+            size: buffer_size as wgpu::BufferAddress,
+            usage: buffer_usage,
+        };
+        let buffer = device.create_buffer(&buffer_desc);
+
+        let data = Vec::with_capacity(num_pixels as usize);
+
+        let raw_buffer = buffer::RawBuffer::from_parts(buffer, data, buffer_usage);
+
+        raw_buffer
+    }
+} 
