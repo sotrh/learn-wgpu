@@ -1,4 +1,6 @@
-# Working with Lights
+# Working with Lights **UPDATED!**
+
+* The old lighting tutorial was not well made (and plain wrong in places), so I've redone it!
 
 While we can tell that our scene is 3d because of our camera, it still feels very flat. That's because our model stays the same color regardless of how it's oriented. If we want to change that we need to add lighting to our scene.
 
@@ -12,219 +14,584 @@ Let's discuss a few options.
 
 This is an *advanced* topic, and we won't be covering it in depth here. It's the closest model to the way light really works so I felt I had to mention it. Check out the [ray tracing tutorial](../../todo/) if you want to learn more.
 
-## Gouraud Shading
+## The Blinn-Phong Model
 
-Named after [Henri Gourad](https://en.wikipedia.org/wiki/Gouraud_shading), Gourad shading uses a surface normal vector per vertex to determine what direction the surface is facing and then compares that normal to the light's direction to calculate how bright the surface should be. Normals indicate what direction a surface is facing. We compare the normal to light vector to calculate how bright a given part of the model should be.
+Ray/path tracing is often too computationally expensive for most realtime applications (though that is starting to change), so a more efficient, if less accurate method based on the [Phong reflection model](https://en.wikipedia.org/wiki/Phong_shading) is often used. It splits up the lighting calculation into three (3) parts: ambient lighting, diffuse lighting, and specular lighting. We're going to be learning the [Blinn-Phong model](https://en.wikipedia.org/wiki/Blinn%E2%80%93Phong_reflection_model), which cheats a bit at the specular calculation to speed things up.
 
-![normals.png](./normals.png)
-
-Fortunately for use our cube already has normals that we can use. We can get straight to changing our vertex shader to use our normals.
-
-```glsl
-#version 450
-
-layout(location=0) in vec3 a_position;
-layout(location=1) in vec2 a_tex_coords;
-layout(location=2) in vec3 a_normal; // NEW
-
-layout(location=0) out vec2 v_tex_coords;
-layout(location=1) out vec3 v_normal; // NEW
-
-layout(set=1, binding=0) 
-uniform Uniforms {
-    mat4 u_view_proj;
-};
-
-layout(set=1, binding=1) 
-buffer Instances {
-    mat4 s_models[];
-};
-
-void main() {
-    v_tex_coords = a_tex_coords;
-
-    // UPDATED
-    mat4 model = s_models[gl_InstanceIndex];
-    v_normal = transpose(inverse(mat3(model))) * a_normal;
-    gl_Position = u_view_proj * model * vec4(a_position, 1.0);
-}
-```
-
-We pull out the model-view-projection matrix that we use to transform our model, because we are going to need it transform our normals. Because a normal is just a direction, not a position, we need to pull out the rotational part of the `model` matrix. That's why we convert it to `mat3`. I'm not sure why the `transpose` and `invert` bit are needed, but they are.
-
-The fragment shader will take that normal, and a new `u_light` uniform, and perform the calculation.
-
-```glsl
-#version 450
-
-layout(location=0) in vec2 v_tex_coords;
-layout(location=1) in vec3 v_normal;
-
-layout(location=0) out vec4 f_color;
-
-layout(set = 0, binding = 0) uniform texture2D t_diffuse;
-layout(set = 0, binding = 1) uniform sampler s_diffuse;
-
-layout(set=1, binding=2) 
-uniform Lights {
-    vec3 u_light;
-};
-
-void main() {
-    vec4 diffuse = texture(sampler2D(t_diffuse, s_diffuse), v_tex_coords);
-    float brightness = dot(normalize(v_normal), normalize(u_light)); // 1.
-    vec4 ambient = vec4(0.0, 0.0, 0.0, 1.0); // 2.
-    f_color = mix(ambient, diffuse, brightness); // 3.
-}
-```
-
-1. The dot product gives us the cosine of the angle between the two vectors multiplied by the magnitude of each vector. Normalizing the vectors gives them a magnitude of one, so we get just the cosine of the angle between the two. We can use this value to determine how "similar" they are. A value of 1.0 means that the vectors are the same. A value of -1.0 means that they point in opposite directions.
-2. The ambient value is the color the object would be in the dark.
-3. We get the final color by mixing the ambient and diffuse colors using our brightness value.
-
-Before we can see the results, we need to create the uniform buffer to hold the light data. We're going to create a new buffer to make it easier to store multiple lights.
+Before we can get into that though, we need to add a light to our scene.
 
 ```rust
+// main.rs
 #[repr(C)]
-#[derive(Copy, Clone)]
+#[derive(Debug, Copy, Clone)]
 struct Light {
-    direction: cgmath::Vector3<f32>,
+    position: cgmath::Vector3<f32>,
+    // Due to uniforms requiring 16 byte (4 float) spacing, we need to use a padding field here
+    _padding: u32,
+    color: cgmath::Vector3<f32>,
 }
+```
 
+Our `Light` represents a colored point in space. We're just going to use pure white light, but it's good to allow different colors of light.
+
+We're going to create another buffer to store our light in. 
+
+```rust
 let light = Light {
-    direction: (-1.0, 0.4, -0.9).into(),
+    position: (2.0, 2.0, 2.0).into(),
+    _padding: 0,
+    color: (1.0, 1.0, 1.0).into(),
 };
+
 let light_buffer = device
-    .create_buffer_mapped(1, wgpu::BufferUsage::UNIFORM)
+    // We'll want to update our lights position, so we use COPY_DST
+    .create_buffer_mapped(1, wgpu::BufferUsage::UNIFORM | wgpu::BufferUsage::COPY_DST)
     .fill_from_slice(&[light]);
 ```
 
-We need to update the uniform bind group as well.
+Don't forget to add the `light` and `light_buffer` to `State`. After that we need to create a bind group layout and bind group for our light.
 
 ```rust
-let uniform_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+let light_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
     bindings: &[
-        // ...
         wgpu::BindGroupLayoutBinding {
-            binding: 2,
-            visibility: wgpu::ShaderStage::FRAGMENT,
-            ty: wgpu::BindingType::UniformBuffer {
-                dynamic: false,
+            binding: 0,
+            visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+            ty: wgpu::BindingType::UniformBuffer { 
+                dynamic: false 
             },
-        },
-    ]
+        }
+    ],
 });
 
-let uniform_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
-    layout: &uniform_bind_group_layout,
+let light_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+    layout: &light_bind_group_layout,
     bindings: &[
-        // ...
         wgpu::Binding {
-            binding: 2,
+            binding: 0,
             resource: wgpu::BindingResource::Buffer {
                 buffer: &light_buffer,
                 range: 0..std::mem::size_of_val(&light) as wgpu::BufferAddress,
             }
-        },
+        }
     ],
 });
 ```
 
-With all that you should get something that looks like this.
+Add those to `State`, and also update the `render_pipeline_layout`.
 
-![gouraud.png](./gouraud.png)
+```rust
+let render_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+    bind_group_layouts: &[
+        &texture_bind_group_layout, 
+        &uniform_bind_group_layout,
+        &light_bind_group_layout,
+    ],
+});
+```
 
-You can see they cubes now have a light side and a dark side.
+Let's also update the lights position in the `update()` method, so we can see what our objects look like from different angles.
 
-## Blinn-Phong Shading
+```rust
+// Update the light
+let old_position = self.light.position;
+self.light.position = cgmath::Quaternion::from_axis_angle((0.0, 1.0, 0.0).into(), cgmath::Deg(1.0)) * old_position;
 
-Gouraud shading works, but it's not super accurate. It's missing specular reflection.
+let staging_buffer = self.device
+    .create_buffer_mapped(1, wgpu::BufferUsage::COPY_SRC)
+    .fill_from_slice(&[self.light]);
+encoder.copy_buffer_to_buffer(&staging_buffer, 0, &self.light_buffer, 0, std::mem::size_of::<Light>() as wgpu::BufferAddress);
+```
 
-Specular reflection is the light that's reflected of surface without getting scattered as the diffuse reflection. It's the bright spots you see on s shiny surface such as an apple.
+This will have the light rotate around the origin one degree every frame.
 
-Fortunately we only have to change the shader code to get this new effect.
+## Seeing the light
+
+For debugging purposes, it would be nice if we could see where the light is to make sure that the scene looks correct. We could adapt our existing render pipeline to draw the light, but it will likely get in the way. Instead we are going to extract our render pipeline creation code into a new function called `create_render_pipeline()`.
+
+
+```rust
+fn create_render_pipeline(
+    device: &wgpu::Device,
+    layout: &wgpu::PipelineLayout,
+    color_format: wgpu::TextureFormat,
+    depth_format: Option<wgpu::TextureFormat>,
+    vertex_descs: &[wgpu::VertexBufferDescriptor],
+    vs_src: &str,
+    fs_src: &str,
+) -> wgpu::RenderPipeline {
+    let vs_spirv = glsl_to_spirv::compile(vs_src, glsl_to_spirv::ShaderType::Vertex).unwrap();
+    let fs_spirv = glsl_to_spirv::compile(fs_src, glsl_to_spirv::ShaderType::Fragment).unwrap();
+    let vs_data = wgpu::read_spirv(vs_spirv).unwrap();
+    let fs_data = wgpu::read_spirv(fs_spirv).unwrap();
+    let vs_module = device.create_shader_module(&vs_data);
+    let fs_module = device.create_shader_module(&fs_data);
+
+    device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+        layout: &layout,
+        vertex_stage: wgpu::ProgrammableStageDescriptor {
+            module: &vs_module,
+            entry_point: "main",
+        },
+        fragment_stage: Some(wgpu::ProgrammableStageDescriptor {
+            module: &fs_module,
+            entry_point: "main",
+        }),
+        rasterization_state: Some(wgpu::RasterizationStateDescriptor {
+            front_face: wgpu::FrontFace::Ccw,
+            cull_mode: wgpu::CullMode::Back,
+            depth_bias: 0,
+            depth_bias_slope_scale: 0.0,
+            depth_bias_clamp: 0.0,
+        }),
+        primitive_topology: wgpu::PrimitiveTopology::TriangleList,
+        color_states: &[
+            wgpu::ColorStateDescriptor {
+                format: color_format,
+                color_blend: wgpu::BlendDescriptor::REPLACE,
+                alpha_blend: wgpu::BlendDescriptor::REPLACE,
+                write_mask: wgpu::ColorWrite::ALL,
+            },
+        ],
+        depth_stencil_state: depth_format.map(|format| {
+            wgpu::DepthStencilStateDescriptor {
+                format,
+                depth_write_enabled: true,
+                depth_compare: wgpu::CompareFunction::Less,
+                stencil_front: wgpu::StencilStateFaceDescriptor::IGNORE,
+                stencil_back: wgpu::StencilStateFaceDescriptor::IGNORE,
+                stencil_read_mask: 0,
+                stencil_write_mask: 0,
+            }
+        }),
+        index_format: wgpu::IndexFormat::Uint32,
+        vertex_buffers: vertex_descs,
+        sample_count: 1,
+        sample_mask: !0,
+        alpha_to_coverage_enabled: false,
+    })
+}
+```
+
+We also need to change `State::new()` to use this function.
+
+```rust
+let render_pipeline = {
+    let vs_src = include_str!("shader.vert");
+    let fs_src = include_str!("shader.frag");
+
+    create_render_pipeline(
+        &device, 
+        &render_pipeline_layout, 
+        sc_desc.format,
+        Some(DEPTH_FORMAT),
+        &[model::ModelVertex::desc()],
+        vs_src, 
+        fs_src
+    )
+};
+```
+
+We're going to need to modify `model::DrawModel` to use our `light_bind_group`.
+
+```rust
+pub trait DrawModel {
+    fn draw_mesh(&mut self, mesh: &Mesh, material: &Material, uniforms: &wgpu::BindGroup, light: &wgpu::BindGroup);
+    fn draw_mesh_instanced(&mut self, mesh: &Mesh, material: &Material, instances: Range<u32>, uniforms: &wgpu::BindGroup, light: &wgpu::BindGroup);
+
+    fn draw_model(&mut self, model: &Model, uniforms: &wgpu::BindGroup, light: &wgpu::BindGroup);
+    fn draw_model_instanced(&mut self, model: &Model, instances: Range<u32>,  uniforms: &wgpu::BindGroup, light: &wgpu::BindGroup);
+}
+
+impl<'a> DrawModel for wgpu::RenderPass<'a> {
+    fn draw_mesh(&mut self, mesh: &Mesh, material: &Material, uniforms: &wgpu::BindGroup, light: &wgpu::BindGroup) {
+        self.draw_mesh_instanced(mesh, material, 0..1, uniforms, light);
+    }
+
+    fn draw_mesh_instanced(&mut self, mesh: &Mesh, material: &Material, instances: Range<u32>, uniforms: &wgpu::BindGroup, light: &wgpu::BindGroup) {
+        self.set_vertex_buffers(0, &[(&mesh.vertex_buffer, 0)]);
+        self.set_index_buffer(&mesh.index_buffer, 0);
+        self.set_bind_group(0, &material.bind_group, &[]);
+        self.set_bind_group(1, &uniforms, &[]);
+        self.set_bind_group(2, &light, &[]);
+        self.draw_indexed(0..mesh.num_elements, 0, instances);
+    }
+
+    fn draw_model(&mut self, model: &Model, uniforms: &wgpu::BindGroup, light: &wgpu::BindGroup) {
+        self.draw_model_instanced(model, 0..1, uniforms, light);
+    }
+
+    fn draw_model_instanced(&mut self, model: &Model, instances: Range<u32>, uniforms: &wgpu::BindGroup, light: &wgpu::BindGroup) {
+        for mesh in &model.meshes {
+            let material = &model.materials[mesh.material];
+            self.draw_mesh_instanced(mesh, material, instances.clone(), uniforms, light);
+        }
+    }
+}
+```
+
+With that done we can create another render pipeline for our light.
+
+```rust
+let light_render_pipeline = {
+    let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+        bind_group_layouts: &[
+            &uniform_bind_group_layout,
+            &light_bind_group_layout,
+        ]
+    });
+
+    let vs_src = include_str!("light.vert");
+    let fs_src = include_str!("light.frag");
+
+    create_render_pipeline(
+        &device, 
+        &layout, 
+        sc_desc.format, 
+        Some(DEPTH_FORMAT), 
+        &[model::ModelVertex::desc()], 
+        vs_src, 
+        fs_src,
+    )
+};
+```
+
+I chose to create a seperate layout for the `light_render_pipeline`, as it doesn't need all the resources that the regular `render_pipeline` needs (main just the textures).
+
+With that in place we need to write the actual shaders.
 
 ```glsl
-// shader.vert
+// light.vert
 #version 450
 
 layout(location=0) in vec3 a_position;
-layout(location=1) in vec2 a_tex_coords;
-layout(location=2) in vec3 a_normal;
 
-layout(location=0) out vec2 v_tex_coords;
-layout(location=1) out vec3 v_normal;
-layout(location=2) out vec3 v_position;
+layout(location=0) out vec4 v_color;
 
-layout(set=1, binding=0) 
+layout(set=0, binding=0)
 uniform Uniforms {
     mat4 u_view_proj;
 };
 
-layout(set=1, binding=1) 
-buffer Instances {
-    mat4 s_models[];
+layout(set=1, binding=0)
+uniform Light {
+    vec3 u_position;
+    vec3 u_color;
 };
 
+// Let's keep our light smaller than our other objects
+float scale = 0.25;
+
 void main() {
-    v_tex_coords = a_tex_coords;
+    vec3 v_position = a_position * scale + u_position;
+    gl_Position = u_view_proj * vec4(v_position, 1);
 
-    mat4 model = s_models[gl_InstanceIndex];
-
-    // Rotate the normals with respect to the model, ignoring scaling
-    mat3 normal_matrix = mat3(transpose(inverse(mat3(model))));
-    v_normal = normal_matrix * a_normal;
-
-    gl_Position = u_view_proj * model * vec4(a_position, 1.0);
-
-    // Get the position relative to the view for the lighting calc
-    v_position = gl_Position.xyz / gl_Position.w;
+    v_color = u_color;
 }
 ```
 
 ```glsl
-// shader.frag
+// light.frag
 #version 450
 
-layout(location=0) in vec2 v_tex_coords;
-layout(location=1) in vec3 v_normal;
-layout(location=2) in vec3 v_position;
-
+layout(location=0) in vec3 v_color;
 layout(location=0) out vec4 f_color;
 
-layout(set = 0, binding = 0) uniform texture2D t_diffuse;
-layout(set = 0, binding = 1) uniform sampler s_diffuse;
-
-layout(set=1, binding=2) 
-uniform Lights {
-    vec3 u_light;
-};
-
-const vec3 ambient_color = vec3(0.0, 0.0, 0.0);
-const vec3 specular_color = vec3(1.0, 1.0, 1.0);
-
-const float shininess = 32;
-
 void main() {
-    vec4 diffuse_color = texture(sampler2D(t_diffuse, s_diffuse), v_tex_coords);
-    float diffuse_term = max(dot(normalize(v_normal), normalize(u_light)), 0);
-
-    vec3 camera_dir = normalize(-v_position);
-
-    // This is an aproximation of the actual reflection vector, aka what
-    // angle you have to look at the object to be blinded by the light
-    vec3 half_direction = normalize(normalize(u_light) + camera_dir);
-    float specular_term = pow(max(dot(normalize(v_normal), half_direction), 0.0), shininess);
-
-    f_color = vec4(ambient_color, 1.0) + vec4(specular_term * specular_color, 1.0) + diffuse_term * diffuse_color;
-    
+    f_color = vec4(v_color, 1.0);
 }
 ```
 
-With that we should get something like this.
+Now we could manually implement the draw code for the light in `render()`, but to keep with the pattern we developed, let's create a new trait called `DrawLight`.
 
-![./blinn-phong.png](./blinn-phong.png)
+```rust
+pub trait DrawLight {
+    fn draw_light_mesh(&mut self, mesh: &Mesh, uniforms: &wgpu::BindGroup, light: &wgpu::BindGroup);
+    fn draw_light_mesh_instanced(&mut self, mesh: &Mesh, instances: Range<u32>, uniforms: &wgpu::BindGroup, light: &wgpu::BindGroup);
 
-This is a bit bright for a brick texture though. You can modify the `shininess` value if you want to reduce the brightness. I'm going to leave it as is though. The lighting calculations will change as we get into [Normal Mapping](../tutorial11-normals).
+    fn draw_light_model(&mut self, model: &Model, uniforms: &wgpu::BindGroup, light: &wgpu::BindGroup);
+    fn draw_light_model_instanced(&mut self, model: &Model, instances: Range<u32>, uniforms: &wgpu::BindGroup, light: &wgpu::BindGroup);
+}
+
+
+impl<'a> DrawLight for wgpu::RenderPass<'a> {
+    fn draw_light_mesh(&mut self, mesh: &Mesh, uniforms: &wgpu::BindGroup, light: &wgpu::BindGroup) {
+        self.draw_light_mesh_instanced(mesh, 0..1, uniforms, light);
+    }
+
+    fn draw_light_mesh_instanced(&mut self, mesh: &Mesh, instances: Range<u32>, uniforms: &wgpu::BindGroup, light: &wgpu::BindGroup) {
+        self.set_vertex_buffers(0, &[(&mesh.vertex_buffer, 0)]);
+        self.set_index_buffer(&mesh.index_buffer, 0);
+        self.set_bind_group(0, uniforms, &[]);
+        self.set_bind_group(1, light, &[]);
+        self.draw_indexed(0..mesh.num_elements, 0, instances);
+    }
+
+    fn draw_light_model(&mut self, model: &Model, uniforms: &wgpu::BindGroup, light: &wgpu::BindGroup) {
+        self.draw_light_model_instanced(model, 0..1, uniforms, light);
+    }
+    fn draw_light_model_instanced(&mut self, model: &Model, instances: Range<u32>, uniforms: &wgpu::BindGroup, light: &wgpu::BindGroup) {
+        for mesh in &model.meshes {
+            self.draw_light_mesh_instanced(mesh, instances.clone(), uniforms, light);
+        }
+    }
+}
+```
+
+With all that we'll end up with something like this.
+
+![./light-in-scene.png](./light-in-scene.png)
+
+## Ambient Lighting
+
+Light has a tendency to bounce around before entering our eyes. That's why you can see in areas that are in shadow. Actually modeling this interaction is computationally expensive, so we cheat. We define an ambient lighting value that stands in for the light bouncing of other parts of the scene to light our objects.
+
+The ambient part is based on the light color as well as the object color. We've already added our `light_bind_group`, so we just need to use it in our shader. In `shader.frag`, add the following below the texture uniforms.
+
+```glsl
+layout(set = 2, binding = 0) uniform Light {
+    vec3 u_position;
+    vec3 u_color;
+};
+```
+
+Then we need to update our main shader code to calculate and use the ambient color value.
+
+```glsl
+void main() {
+    vec4 object_color = texture(sampler2D(t_diffuse, s_diffuse), v_tex_coords);
+
+    // We don't need (or want) much ambient light, so 0.1 is fine
+    float ambient_strength = 0.1;
+    vec3 ambient_color = light_color * ambient_strength;
+
+    vec3 result = ambient_color * object_color.xyz;
+
+    // Since lights don't typically (afaik) cast transparency, so we use
+    // the alpha here at the end.
+    f_color = vec4(result, object_color.a);
+}
+```
+
+With that we should get something like the this.
+
+![./ambient_lighting.png](./ambient_lighting.png)
+
+## Diffuse Lighting
+
+Remember the normal vectors that were included with our model? We're finally going to use them. Normals represent the direction a surface is facing. By comparing the normal of a fragment with a vector pointing to a light source, we get a value of how light/dark that fragment should be. We compare the vector be using the dot product to get the cosine of the angle between them.
+
+![./normal_diagram.png](./normal_diagram.png)
+
+If the dot product of the normal and light vector is 1.0, that means that the current fragment is directly inline with the light source and will receive the lights full intensity. A value of 0.0 or lower means that the surface is perpendicular or facing away from the light, and therefore will be dark.
+
+We're going to need to pull in the normal vector into our `shader.vert`.
+
+```glsl
+layout(location=0) in vec3 a_position;
+layout(location=1) in vec2 a_tex_coords;
+layout(location=2) in vec3 a_normal; // NEW!
+```
+
+We're also going to want to pass that value, as well as the vertex's position to the fragment shader.
+
+```glsl
+layout(location=1) out vec3 v_normal;
+layout(location=2) out vec3 v_position;
+```
+
+For now let's just pass the normal directly as is. This is wrong, but we'll fix it later.
+
+```glsl
+void main() {
+    v_tex_coords = a_tex_coords;
+    v_normal = a_normal; // NEW!
+    v_position = s_models[gl_InstanceIndex] * vec4(a_position, 1.0); // NEW!
+    gl_Position = u_view_proj * v_position; // UPDATED!
+}
+```
+
+Now in `shader.frag` we'll take in the vertex's normal and position.
+
+```glsl
+layout(location=0) in vec2 v_tex_coords;
+layout(location=1) in vec3 v_normal; // NEW!
+layout(location=2) in vec3 v_position; // NEW!
+```
+
+With that we can do the actual calculation. Below the `ambient_color` calculation, but above `result`, add the following.
+
+```glsl
+vec3 normal = normalize(v_normal);
+vec3 light_dir = normalize(light_position - v_position);
+
+float diffuse_strength = max(dot(normal, light_dir), 0.0);
+vec3 diffuse_color = light_color * diffuse_strength;
+```
+
+Now we can include the `diffuse_color` in the `result`.
+
+```glsl
+vec3 result = (ambient_color + diffuse_color) * object_color.xyz;
+```
+
+With that we get something like this.
+
+![./ambient_diffuse_wrong.png](./ambient_diffuse_wrong.png)
+
+## The normal matrix
+
+Remember when I said passing the vertex normal directly to the fragment shader was wrong? Let's explore that by removing all the cubes from the scene except one that will be rotated 180 degrees on the y-axis.
+
+```rust
+const NUM_INSTANCES_PER_ROW: u32 = 1;
+
+// In the loop we create the instances in
+let rotation = cgmath::Quaternion::from_axis_angle((0.0, 1.0, 0.0).into(), cgmath::Deg(180.0));
+```
+
+We'll also remove the `ambient_color` from our lighting `result`.
+
+```glsl
+vec3 result = (diffuse_color) * object_color.xyz;
+```
+
+That should give us something that looks like this.
+
+![./diffuse_wrong.png](./diffuse_wrong.png)
+
+This is clearly wrong as the light is illuminating the wrong side of the cube. This is because we aren't rotating our normals with our object, so no matter what direction the object faces, the normals will always face the same way.
+
+![./normal_not_rotated.png](./normal_not_rotated.png)
+
+We need to use the model matrix to transform the normals to be in the right direction. We only want the rotation data though. A normal represents a direction, and should be a unit vector throughout the calculation. We can get our normals into the right direction using what is called a normal matrix. We can calculate the normal matrix with the following.
+
+```glsl
+// shader.vert
+mat4 model_matrix = s_models[gl_InstanceIndex];
+mat3 normal_matrix = mat3(transpose(inverse(model_matrix)));
+v_normal = normal_matrix * a_normal;
+```
+
+This takes the `model_matrix` from our `instance_buffer`, inverts it, transposes it and then pulls out the top left 3x3 to just get the rotation data. This is all necessary because because normals are technically not vectors, there bivectors. The explanation is beyond me, but I do know that it means we have to treat them differently.
+
+* Note: I'm currently doing things in [world space](https://gamedev.stackexchange.com/questions/65783/what-are-world-space-and-eye-space-in-game-development). Doing things in view-space also known as eye-space, is more standard as objects can have lighting issues when they are further away from the origin. If we wanted to use view-space, we would use something along the lines of `mat3(transpose(inverse(view_matrix * model_matrix)))`. Currently we are combining the view matrix and projection matrix before we draw, so we'd have to pass those in separately. We'd also have to transform our light's position using something like `view_matrix * model_matrix * light_position` to keep the calculation from getting messed up when the camera moves.
+* Another Note: I'm calculating the `normal_matrix` in the vertex shader currently. This is rather expensive, so it is often suggested that you compute the `normal_matrix` on the CPU and pass it in with the other uniforms.
+
+With that change our lighting now looks correct.
+
+![./diffuse_right.png](./diffuse_right.png)
+
+Bringing back our other objects, and adding the ambient lighting gives us this.
+
+![./ambient_diffuse_lighting.png](./ambient_diffuse_lighting.png);
+
+## Specular Lighting
+
+Specular lighting describes the highlights that appear on objects when viewed from certain angles. If you've ever looked at a car, it's the super bright parts. Basically, some of the light can reflect of the surface like a mirror. The location of the hightlight shifts depending on what angle you view it at.
+
+![./specular_diagram.png](./specular_diagram.png)
+
+Because this is relative to the view angle, we are going to need to pass in the camera's position into the fragment shader.
+
+```glsl
+// shader.frag
+layout(set=1, binding=0) 
+uniform Uniforms {
+    vec3 u_view_position;
+    mat4 u_view_proj; // unused
+};
+```
+
+We're going to need to update the `Uniforms` struct as well.
+
+```rust
+// main.rs
+#[repr(C)]
+#[derive(Copy, Clone)]
+struct Uniforms {
+    view_position: cgmath::Vector4<f32>,
+    view_proj: cgmath::Matrix4<f32>,
+}
+
+impl Uniforms {
+    fn new() -> Self {
+        Self {
+            view_position: Zero::zero(),
+            view_proj: cgmath::Matrix4::identity(),
+        }
+    }
+
+    fn update_view_proj(&mut self, camera: &Camera) {
+        // We don't specifically need homogeneous coordinates since we're just using
+        // a vec3 in the shader. We're using Point3 for the camera.eye, and this is
+        // the easiest way to convert to Vector4. We're using Vector4 because of
+        // the uniforms 16 byte spacing requirement
+        self.view_position = camera.eye.to_homogeneous();
+        self.view_proj = OPENGL_TO_WGPU_MATRIX * camera.build_view_projection_matrix();
+    }
+}
+```
+
+Since we want to use our uniforms in the fragment shader now, we need to change it's visibility.
+
+```rust
+// main.rs
+let uniform_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+    bindings: &[
+        wgpu::BindGroupLayoutBinding {
+            binding: 0,
+            visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT, // Updated!
+            ty: wgpu::BindingType::UniformBuffer {
+                dynamic: false,
+            },
+        },
+        // ...
+    ]
+});
+```
+
+We're going to get the direction from the fragment's position to the camera, and use that with the normal to calculate the `reflect_dir`.
+
+```glsl
+vec3 view_dir = normalize(u_view_position - v_position);
+vec3 reflect_dir = reflect(-light_dir, normal);
+```
+
+Then we use the dot product to calculate the `specular_strength` and use that to compute the `specular_color`.
+
+```glsl
+float specular_strength = pow(max(dot(view_dir, reflect_dir), 0.0), 32);
+vec3 specular_color = specular_strength * light_color;
+```
+
+Finally we add that to the result.
+
+```glsl
+vec3 result = (ambient_color + diffuse_color + specular_color) * object_color.xyz;
+```
+
+With that you should have something like this.
+
+![./ambient_diffuse_specular_lighting.png](./ambient_diffuse_specular_lighting.png)
+
+If we just look at the `specular_color` on it's own we get this.
+
+![./specular_lighting.png](./specular_lighting.png)
+
+## The half direction
+
+Up to this point we've actually only implemented the Phong part of Blinn-Phong. The Phong reflection model works well, but it can break down under [certain circumstances](https://learnopengl.com/Advanced-Lighting/Advanced-Lighting). The Blinn part of Blinn-Phong comes from the realization that if you add the `view_dir`, and `light_dir` together, normalize the result and use the dot product of that and the `normal`, you get roughly the same results without the issues that using `reflect_dir` had.
+
+```glsl
+vec3 view_dir = normalize(u_view_position - v_position);
+vec3 half_dir = normalize(view_dir + light_dir);
+
+float specular_strength = pow(max(dot(normal, half_dir), 0.0), 32);
+```
+
+It's hard to tell the difference, but here's the results.
+
+![./half_dir.png](./half_dir.png)
 
 <AutoGithubLink/>

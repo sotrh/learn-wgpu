@@ -34,9 +34,9 @@ void main() {
     vec3 diffuse_color = light_color * diffuse_strength;
 
     vec3 view_dir = normalize(u_view_position - v_position);
-    vec3 half_dir = normalize(view_dir + light_dir);
+    vec3 reflect_dir = reflect(-light_dir, normal);
 
-    float specular_strength = pow(max(dot(normal, half_dir), 0.0), 32);
+    float specular_strength = pow(max(dot(view_dir, reflect_dir), 0.0), 32);
     vec3 specular_color = specular_strength * light_color;
 
     vec3 result = (ambient_color + diffuse_color + specular_color) * object_color.xyz;

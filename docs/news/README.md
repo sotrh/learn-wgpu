@@ -1,4 +1,8 @@
-# News
+# News **UPDATED!**
+
+## Reworked lighting tutorial
+
+The [lighting tutorial](/intermediate/tutorial10-lighting/) was not up to par, so I redid it.
 
 ## Added GIF showcase
 

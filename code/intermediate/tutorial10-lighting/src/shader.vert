@@ -10,6 +10,7 @@ layout(location=2) out vec3 v_position;
 
 layout(set=1, binding=0) 
 uniform Uniforms {
+    vec3 u_view_position; // unused
     mat4 u_view_proj;
 };
 
@@ -21,14 +22,12 @@ buffer Instances {
 void main() {
     v_tex_coords = a_tex_coords;
 
-    mat4 model = s_models[gl_InstanceIndex];
-
-    // Rotate the normals with respect to the model, ignoring scaling
-    mat3 normal_matrix = mat3(transpose(inverse(mat3(model))));
+    mat4 model_matrix = s_models[gl_InstanceIndex];
+    mat3 normal_matrix = mat3(transpose(inverse(model_matrix)));
     v_normal = normal_matrix * a_normal;
 
-    gl_Position = u_view_proj * model * vec4(a_position, 1.0);
+    vec4 model_space = model_matrix * vec4(a_position, 1.0);
+    v_position = model_space.xyz;
 
-    // Get the position relative to the view for the lighting calc
-    v_position = gl_Position.xyz / gl_Position.w;
+    gl_Position = u_view_proj * model_space;
 }

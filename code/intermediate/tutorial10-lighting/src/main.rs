@@ -9,7 +9,7 @@ mod texture;
 mod model;
 
 
-use model::{DrawModel, Vertex};
+use model::{DrawModel, DrawLight, Vertex};
 
 
 #[cfg_attr(rustfmt, rustfmt_skip)]
@@ -43,17 +43,24 @@ impl Camera {
 #[repr(C)]
 #[derive(Copy, Clone)]
 struct Uniforms {
+    view_position: cgmath::Vector4<f32>,
     view_proj: cgmath::Matrix4<f32>,
 }
 
 impl Uniforms {
     fn new() -> Self {
         Self {
+            view_position: Zero::zero(),
             view_proj: cgmath::Matrix4::identity(),
         }
     }
 
     fn update_view_proj(&mut self, camera: &Camera) {
+        // We don't specifically need homogeneous coordinates since we're just using
+        // a vec3 in the shader. We're using Point3 for the camera.eye, and this is
+        // the easiest way to convert to Vector4. We're using Vector4 because of
+        // the uniforms 16 byte spacing requirement
+        self.view_position = camera.eye.to_homogeneous();
         self.view_proj = OPENGL_TO_WGPU_MATRIX * camera.build_view_projection_matrix();
     }
 }
@@ -156,11 +163,13 @@ impl Instance {
     }
 }
 
-
 #[repr(C)]
-#[derive(Copy, Clone)]
+#[derive(Debug, Copy, Clone)]
 struct Light {
-    direction: cgmath::Vector3<f32>,
+    position: cgmath::Vector3<f32>,
+    // Due to uniforms requiring 16 byte (4 float) spacing, we need to use a padding field here
+    _padding: u32,
+    color: cgmath::Vector3<f32>,
 }
 
 struct State {
@@ -190,6 +199,8 @@ struct State {
 
     light: Light,
     light_buffer: wgpu::Buffer,
+    light_bind_group: wgpu::BindGroup,
+    light_render_pipeline: wgpu::RenderPipeline,
 }
 
 const DEPTH_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Depth32Float;
@@ -202,6 +213,66 @@ fn create_depth_texture(device: &wgpu::Device, sc_desc: &wgpu::SwapChainDescript
     device.create_texture(&desc)
 }
 
+fn create_render_pipeline(
+    device: &wgpu::Device,
+    layout: &wgpu::PipelineLayout,
+    color_format: wgpu::TextureFormat,
+    depth_format: Option<wgpu::TextureFormat>,
+    vertex_descs: &[wgpu::VertexBufferDescriptor],
+    vs_src: &str,
+    fs_src: &str,
+) -> wgpu::RenderPipeline {
+    let vs_spirv = glsl_to_spirv::compile(vs_src, glsl_to_spirv::ShaderType::Vertex).unwrap();
+    let fs_spirv = glsl_to_spirv::compile(fs_src, glsl_to_spirv::ShaderType::Fragment).unwrap();
+    let vs_data = wgpu::read_spirv(vs_spirv).unwrap();
+    let fs_data = wgpu::read_spirv(fs_spirv).unwrap();
+    let vs_module = device.create_shader_module(&vs_data);
+    let fs_module = device.create_shader_module(&fs_data);
+
+    device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+        layout: &layout,
+        vertex_stage: wgpu::ProgrammableStageDescriptor {
+            module: &vs_module,
+            entry_point: "main",
+        },
+        fragment_stage: Some(wgpu::ProgrammableStageDescriptor {
+            module: &fs_module,
+            entry_point: "main",
+        }),
+        rasterization_state: Some(wgpu::RasterizationStateDescriptor {
+            front_face: wgpu::FrontFace::Ccw,
+            cull_mode: wgpu::CullMode::Back,
+            depth_bias: 0,
+            depth_bias_slope_scale: 0.0,
+            depth_bias_clamp: 0.0,
+        }),
+        primitive_topology: wgpu::PrimitiveTopology::TriangleList,
+        color_states: &[
+            wgpu::ColorStateDescriptor {
+                format: color_format,
+                color_blend: wgpu::BlendDescriptor::REPLACE,
+                alpha_blend: wgpu::BlendDescriptor::REPLACE,
+                write_mask: wgpu::ColorWrite::ALL,
+            },
+        ],
+        depth_stencil_state: depth_format.map(|format| {
+            wgpu::DepthStencilStateDescriptor {
+                format,
+                depth_write_enabled: true,
+                depth_compare: wgpu::CompareFunction::Less,
+                stencil_front: wgpu::StencilStateFaceDescriptor::IGNORE,
+                stencil_back: wgpu::StencilStateFaceDescriptor::IGNORE,
+                stencil_read_mask: 0,
+                stencil_write_mask: 0,
+            }
+        }),
+        index_format: wgpu::IndexFormat::Uint32,
+        vertex_buffers: vertex_descs,
+        sample_count: 1,
+        sample_mask: !0,
+        alpha_to_coverage_enabled: false,
+    })
+}
 
 impl State {
     fn new(window: &Window) -> Self {
@@ -285,18 +356,11 @@ impl State {
             .create_buffer_mapped(instance_data.len(), wgpu::BufferUsage::STORAGE_READ)
             .fill_from_slice(&instance_data);
 
-        let light = Light {
-            direction: (-1.0, 0.4, -0.9).into(),
-        };
-        let light_buffer = device
-            .create_buffer_mapped(1, wgpu::BufferUsage::UNIFORM)
-            .fill_from_slice(&[light]);
-
         let uniform_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
             bindings: &[
                 wgpu::BindGroupLayoutBinding {
                     binding: 0,
-                    visibility: wgpu::ShaderStage::VERTEX,
+                    visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
                     ty: wgpu::BindingType::UniformBuffer {
                         dynamic: false,
                     },
@@ -308,14 +372,7 @@ impl State {
                         dynamic: false,
                         readonly: true,
                     }
-                },
-                wgpu::BindGroupLayoutBinding {
-                    binding: 2,
-                    visibility: wgpu::ShaderStage::FRAGMENT,
-                    ty: wgpu::BindingType::UniformBuffer {
-                        dynamic: false,
-                    },
-                },
+                }
             ]
         });
 
@@ -335,79 +392,97 @@ impl State {
                         buffer: &instance_buffer,
                         range: 0..instance_buffer_size as wgpu::BufferAddress,
                     }
-                },
+                }
+            ],
+        });
+
+        let (obj_model, cmds) = model::Model::load(&device, &texture_bind_group_layout, "code/beginner/tutorial9-models/src/res/cube.obj").unwrap();
+        queue.submit(&cmds);
+
+        let light = Light {
+            position: (2.0, 2.0, 2.0).into(),
+            _padding: 0,
+            color: (1.0, 1.0, 1.0).into(),
+        };
+
+        let light_buffer = device
+            // We'll want to update our lights position, so we use COPY_DST
+            .create_buffer_mapped(1, wgpu::BufferUsage::UNIFORM | wgpu::BufferUsage::COPY_DST)
+            .fill_from_slice(&[light]);
+
+        let light_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+            bindings: &[
+                wgpu::BindGroupLayoutBinding {
+                    binding: 0,
+                    visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+                    ty: wgpu::BindingType::UniformBuffer { 
+                        dynamic: false 
+                    },
+                }
+            ],
+        });
+
+        let light_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            layout: &light_bind_group_layout,
+            bindings: &[
                 wgpu::Binding {
-                    binding: 2,
+                    binding: 0,
                     resource: wgpu::BindingResource::Buffer {
                         buffer: &light_buffer,
                         range: 0..std::mem::size_of_val(&light) as wgpu::BufferAddress,
                     }
-                },
+                }
             ],
         });
-
-        let (obj_model, cmds) = model::Model::load(&device, &texture_bind_group_layout, "code/intermediate/tutorial10-lighting/src/res/cube.obj").unwrap();
-        queue.submit(&cmds);
-
-        let vs_src = include_str!("shader.vert");
-        let fs_src = include_str!("shader.frag");
-        let vs_spirv = glsl_to_spirv::compile(vs_src, glsl_to_spirv::ShaderType::Vertex).unwrap();
-        let fs_spirv = glsl_to_spirv::compile(fs_src, glsl_to_spirv::ShaderType::Fragment).unwrap();
-        let vs_data = wgpu::read_spirv(vs_spirv).unwrap();
-        let fs_data = wgpu::read_spirv(fs_spirv).unwrap();
-        let vs_module = device.create_shader_module(&vs_data);
-        let fs_module = device.create_shader_module(&fs_data);
 
         let depth_texture = create_depth_texture(&device, &sc_desc);
         let depth_texture_view = depth_texture.create_default_view();
 
         let render_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-            bind_group_layouts: &[&texture_bind_group_layout, &uniform_bind_group_layout],
+            bind_group_layouts: &[
+                &texture_bind_group_layout, 
+                &uniform_bind_group_layout,
+                &light_bind_group_layout,
+            ],
         });
 
-        let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-            layout: &render_pipeline_layout,
-            vertex_stage: wgpu::ProgrammableStageDescriptor {
-                module: &vs_module,
-                entry_point: "main",
-            },
-            fragment_stage: Some(wgpu::ProgrammableStageDescriptor {
-                module: &fs_module,
-                entry_point: "main",
-            }),
-            rasterization_state: Some(wgpu::RasterizationStateDescriptor {
-                front_face: wgpu::FrontFace::Ccw,
-                cull_mode: wgpu::CullMode::Back,
-                depth_bias: 0,
-                depth_bias_slope_scale: 0.0,
-                depth_bias_clamp: 0.0,
-            }),
-            primitive_topology: wgpu::PrimitiveTopology::TriangleList,
-            color_states: &[
-                wgpu::ColorStateDescriptor {
-                    format: sc_desc.format,
-                    color_blend: wgpu::BlendDescriptor::REPLACE,
-                    alpha_blend: wgpu::BlendDescriptor::REPLACE,
-                    write_mask: wgpu::ColorWrite::ALL,
-                },
-            ],
-            depth_stencil_state: Some(wgpu::DepthStencilStateDescriptor {
-                format: DEPTH_FORMAT,
-                depth_write_enabled: true,
-                depth_compare: wgpu::CompareFunction::Less,
-                stencil_front: wgpu::StencilStateFaceDescriptor::IGNORE,
-                stencil_back: wgpu::StencilStateFaceDescriptor::IGNORE,
-                stencil_read_mask: 0,
-                stencil_write_mask: 0,
-            }),
-            index_format: wgpu::IndexFormat::Uint32,
-            vertex_buffers: &[
-                model::ModelVertex::desc(),
-            ],
-            sample_count: 1,
-            sample_mask: !0,
-            alpha_to_coverage_enabled: false,
-        });
+        
+        let render_pipeline = {
+            let vs_src = include_str!("shader.vert");
+            let fs_src = include_str!("shader.frag");
+
+            create_render_pipeline(
+                &device, 
+                &render_pipeline_layout, 
+                sc_desc.format,
+                Some(DEPTH_FORMAT),
+                &[model::ModelVertex::desc()],
+                vs_src, 
+                fs_src
+            )
+        };
+
+        let light_render_pipeline = {
+            let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+                bind_group_layouts: &[
+                    &uniform_bind_group_layout,
+                    &light_bind_group_layout,
+                ]
+            });
+
+            let vs_src = include_str!("light.vert");
+            let fs_src = include_str!("light.frag");
+
+            create_render_pipeline(
+                &device, 
+                &layout, 
+                sc_desc.format, 
+                Some(DEPTH_FORMAT), 
+                &[model::ModelVertex::desc()], 
+                vs_src, 
+                fs_src,
+            )
+        };
 
         Self {
             surface,
@@ -429,6 +504,8 @@ impl State {
             depth_texture_view,
             light,
             light_buffer,
+            light_bind_group,
+            light_render_pipeline,
         }
     }
 
@@ -462,6 +539,15 @@ impl State {
             .fill_from_slice(&[self.uniforms]);
 
         encoder.copy_buffer_to_buffer(&staging_buffer, 0, &self.uniform_buffer, 0, std::mem::size_of::<Uniforms>() as wgpu::BufferAddress);
+
+        // Update the light
+        let old_position = self.light.position;
+        self.light.position = cgmath::Quaternion::from_axis_angle((0.0, 1.0, 0.0).into(), cgmath::Deg(1.0)) * old_position;
+
+        let staging_buffer = self.device
+            .create_buffer_mapped(1, wgpu::BufferUsage::COPY_SRC)
+            .fill_from_slice(&[self.light]);
+        encoder.copy_buffer_to_buffer(&staging_buffer, 0, &self.light_buffer, 0, std::mem::size_of::<Light>() as wgpu::BufferAddress);
 
         self.queue.submit(&[encoder.finish()]);
     }
@@ -500,8 +586,11 @@ impl State {
                 }),
             });
 
+            render_pass.set_pipeline(&self.light_render_pipeline);
+            render_pass.draw_light_model(&self.obj_model, &self.uniform_bind_group, &self.light_bind_group);
+
             render_pass.set_pipeline(&self.render_pipeline);
-            render_pass.draw_model_instanced(&self.obj_model, 0..self.instances.len() as u32, &self.uniform_bind_group);
+            render_pass.draw_model_instanced(&self.obj_model, 0..self.instances.len() as u32, &self.uniform_bind_group, &self.light_bind_group);
         }
 
         self.queue.submit(&[
@@ -521,7 +610,6 @@ fn main() {
     event_loop.run(move |event, _, control_flow| {
         *control_flow = ControlFlow::Poll;
         match event {
-            Event::MainEventsCleared => { window.request_redraw(); }
             Event::WindowEvent {
                 ref event,
                 window_id,
@@ -537,7 +625,9 @@ fn main() {
                                 state: ElementState::Pressed,
                                 virtual_keycode: Some(VirtualKeyCode::Escape),
                                 ..
-                            } => *control_flow = ControlFlow::Exit,
+                            } => {
+                                *control_flow = ControlFlow::Exit;
+                            }
                             _ => {}
                         }
                     }
@@ -547,10 +637,10 @@ fn main() {
                     WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
                         state.resize(**new_inner_size);
                     }
-                    _ => {}
+                    _ => {},
                 }
             }
-            Event::RedrawRequested(_) => {
+            Event::MainEventsCleared => {
                 state.update();
                 state.render();
             }
