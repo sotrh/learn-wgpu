@@ -11,6 +11,7 @@ For the beginner stuff, we're going to keep things very simple, we'll add things
 image = "0.22"
 winit = "0.20"
 wgpu = "0.5.0"
+futures = "0.3.4"
 ```
 
 If you're on Windows, you can specify Vulkan as you desired backend by removing the `wgpu = "0.5.0"` and adding the following.
@@ -40,8 +41,9 @@ fn main() {
     let window = WindowBuilder::new()
         .build(&event_loop)
         .unwrap();
-    
+
     event_loop.run(move |event, _, control_flow| {
+        *control_flow = ControlFlow::Poll;
         match event {
             Event::WindowEvent {
                 ref event,
@@ -58,12 +60,12 @@ fn main() {
                             virtual_keycode: Some(VirtualKeyCode::Escape),
                             ..
                         } => *control_flow = ControlFlow::Exit,
-                        _ => *control_flow = ControlFlow::Wait,
+                        _ => {}
                     }
                 }
-                _ => *control_flow = ControlFlow::Wait,
+                _ => {}
             }
-            _ => *control_flow = ControlFlow::Wait,
+            _ => {}
         }
     });
 }

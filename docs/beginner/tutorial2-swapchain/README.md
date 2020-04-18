@@ -18,23 +18,24 @@ struct State {
 }
 
 impl State {
-    fn new(window: &Window) -> Self {
+    async fn new(window: &Window) -> Self {
         unimplemented!()
     }
 
-    fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
+    async fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
         unimplemented!()
     }
 
+    // input() won't deal with GPU code, so it can be synchronous
     fn input(&mut self, event: &WindowEvent) -> bool {
         unimplemented!()
     }
 
-    fn update(&mut self) {
+    async fn update(&mut self) {
         unimplemented!()
     }
 
-    fn render(&mut self) {
+    async fn render(&mut self) {
         unimplemented!()
     }
 }
@@ -48,17 +49,21 @@ The code for this is pretty straight forward, but let's break this down a bit.
 ```rust
 impl State {
     // ...
-    fn new(window: &Window) -> Self {
+    async fn new(window: &Window) -> Self {
         let size = window.inner_size();
 
         let surface = wgpu::Surface::create(window);
 
-        let adapter = wgpu::Adapter::request(&wgpu::RequestAdapterOptions {
-            ..Default::default()
-        }).unwrap();
+        let adapter = wgpu::Adapter::request(
+            &wgpu::RequestAdapterOptions {
+                power_preference: wgpu::PowerPreference::Default,
+                compatible_surface: Some(&surface),
+            },
+            wgpu::BackendBit::PRIMARY, // Vulkan + Metal + DX12 + Browser WebGPU
+        ).await.unwrap(); // Get used to seeing this
 ```
 
-The `surface` is used to create the `swap_chain`. Our `window` needs to implement [raw-window-handle](https://crates.io/crates/raw-window-handle)'s `HasRawWindowHandle` trait to access the native window implementation for `wgpu` to properly create the graphics backend. Fortunately, winit's `Window` fits the bill.
+The `surface` is used to create the `swap_chain`. Our `window` needs to implement [raw-window-handle](https://crates.io/crates/raw-window-handle)'s `HasRawWindowHandle` trait to access the native window implementation for `wgpu` to properly create the graphics backend. Fortunately, winit's `Window` fits the bill. We also need it to request our `adapter`.
 
 We need the `adapter` to create the device and queue.
 
@@ -68,7 +73,7 @@ We need the `adapter` to create the device and queue.
                 anisotropic_filtering: false,
             },
             limits: Default::default(),
-        });
+        }).await;
 ```
 As of writing, the wgpu implementation doesn't allow you to customize much of requesting a device and queue. Eventually the descriptor structs will be filled out more to allow you to find the optimal device and queue. Even so, we still need them, so we'll store them in the struct.
 
@@ -78,7 +83,7 @@ As of writing, the wgpu implementation doesn't allow you to customize much of re
             format: wgpu::TextureFormat::Bgra8UnormSrgb,
             width: size.width,
             height: size.height,
-            present_mode: wgpu::PresentMode::Vsync,
+            present_mode: wgpu::PresentMode::Fifo,
         };
         let swap_chain = device.create_swap_chain(&surface, &sc_desc);
 ```
@@ -110,7 +115,10 @@ At the end of the method, we simply return the resulting struct.
 We'll want to call this in our main method before we enter the event loop.
 
 ```rust
-let mut state = State::new(&window);
+use futures::executor::block_on;
+
+// Since main can't be async, we're going to need to block
+let mut state = block_on(State::new(&window));
 ```
 
 ## resize()
@@ -118,7 +126,7 @@ If we want to support resizing in our application, we're going to need to recrea
 
 ```rust
 // impl State
-fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
+async fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
     self.size = new_size;
     self.sc_desc.width = new_size.width;
     self.sc_desc.height = new_size.height;
@@ -133,12 +141,13 @@ We call this method in `main()` in the event loop for the following events.
 ```rust
 match event {
     // ...
+    
     WindowEvent::Resized(physical_size) => {
-        state.resize(*physical_size);
+        block_on(state.resize(*physical_size));
     }
     WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
         // new_inner_size is &mut so w have to dereference it twice
-        state.resize(**new_inner_size);
+        block_on(state.resize(**new_inner_size));
     }
     // ...
 }
@@ -166,9 +175,7 @@ event_loop.run(move |event, _, control_flow| {
         Event::WindowEvent {
             ref event,
             window_id,
-        } if window_id == window.id() => if state.input(event) {
-            *control_flow = ControlFlow::Wait;
-        } else { 
+        } if window_id == window.id() => if !state.input(event) {
             match event {
                 WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
                 WindowEvent::KeyboardInput {
@@ -181,26 +188,20 @@ event_loop.run(move |event, _, control_flow| {
                             virtual_keycode: Some(VirtualKeyCode::Escape),
                             ..
                         } => *control_flow = ControlFlow::Exit,
-                        _ => *control_flow = ControlFlow::Wait,
+                        _ => {}
                     }
                 }
                 WindowEvent::Resized(physical_size) => {
-                    state.resize(*physical_size);
-                    *control_flow = ControlFlow::Wait;
+                    block_on(state.resize(*physical_size));
                 }
                 WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
-                    state.resize(**new_inner_size);
-                    *control_flow = ControlFlow::Wait;
+                    // new_inner_size is &mut so w have to dereference it twice
+                    block_on(state.resize(**new_inner_size));
                 }
-                _ => *control_flow = ControlFlow::Wait,
+                _ => {}
             }
         }
-        Event::MainEventsCleared => {
-            state.update();
-            state.render();
-            *control_flow = ControlFlow::Wait;
-        }
-        _ => *control_flow = ControlFlow::Wait,
+        _ => {}
     }
 });
 ```
@@ -223,14 +224,15 @@ Here's where the magic happens. First we need to get a frame to render to. This 
 // impl State
 
 fn render(&mut self) {
-    let frame = self.swap_chain.get_next_texture();
+    let frame = self.swap_chain.get_next_texture()
+        .expect("Timeout getting texture");
 ```
 
 We also need to create a `CommandEncoder` to create the actual commands to send to the gpu. Most modern graphics frameworks expect commands to be stored in a command buffer before being sent to the gpu. The `encoder` builds a command buffer that we can then send to the gpu.
 
 ```rust
     let mut encoder = self.device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
-        todo: 0,
+        label: Some("Render Encoder"),
     });
 ```
 
@@ -263,7 +265,7 @@ Now we can actually get to clearing the screen (long time coming). We need to us
 }
 ```
 
-First things first, let's talk about the `{}`. `encoder.begin_render_pass(...)` borrows `encoder` mutably (aka `&mut self`). `encoder.finish()` also requires a mutable borrow. The `{}` around `encoder.begin_render_pass(...)` tells rust to drop any variables within them when the code leaves that scope thus releasing the mutable borrow on `encoder` and allowing us to `finish()` it. If you don't like the `{}`, you can also use `drop(render_pass)` to achieve the same effect.
+First things first, let's talk about the `{}`. `encoder.begin_render_pass(...)` borrows `encoder` mutably (aka `&mut self`). We can't call `encoder.finish()` until we release that mutable borrow. The `{}` around `encoder.begin_render_pass(...)` tells rust to drop any variables within them when the code leaves that scope thus releasing the mutable borrow on `encoder` and allowing us to `finish()` it. If you don't like the `{}`, you can also use `drop(render_pass)` to achieve the same effect.
 
 We can get the same results by removing the `{}`, and the `let _render_pass =` line, but we need access to the `_render_pass` in the next tutorial, so we'll leave it as is.
 
@@ -276,10 +278,14 @@ We need to update the event loop again to call this method. We'll also call upda
 event_loop.run(move |event, _, control_flow| {
     match event {
         // ...
+        Event::RedrawRequested(_) => {
+            block_on(state.update());
+            block_on(state.render());
+        }
         Event::MainEventsCleared => {
-            state.update();
-            state.render();
-            *control_flow = ControlFlow::Wait;
+            // RedrawRequested will only trigger once, unless we manually
+            // request it.
+            window.request_redraw();
         }
         // ...
     }
@@ -329,10 +335,6 @@ There's not much documentation for `resolve_target` at the moment, but it does e
 `load_op` and `store_op` define what operation to perform when gpu looks to load and store the colors for this color attachment for this render pass. We'll get more into this when we cover render passes in depth, but for now we just `LoadOp::Clear` the texture when the render pass starts, and `StoreOp::Store` the colors when it ends.
 
 The last field `clear_color` is just the color to use when `LoadOp::Clear` and/or `StoreOp::Clear` are used. This is where the blue color comes from.
-
-## Final thoughts
-
-In the event loop we're currently using `*control_flow = ControlFlow::Wait` in multiple places. This basically means that our app will wait for new input before drawing anything. In a game, we'd want the loop to update 60 times a second or more, but since we don't need anything to move around on it's own yet we'll leave things as is for now.
 
 ## Challenge
 
