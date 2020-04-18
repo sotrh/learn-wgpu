@@ -10,14 +10,14 @@ For the beginner stuff, we're going to keep things very simple, we'll add things
 [dependencies]
 image = "0.22"
 winit = "0.20"
-wgpu = "0.4"
+wgpu = "0.5.0"
 ```
 
-If you're on Windows, you can specify Vulkan as you desired backend by removing the `wgpu = "0.4"` and adding the following.
+If you're on Windows, you can specify Vulkan as you desired backend by removing the `wgpu = "0.5.0"` and adding the following.
 
 ``` toml
 [dependencies.wgpu]
-version = "0.4"
+version = "0.5.0"
 features = ["vulkan"]
 ```
 
