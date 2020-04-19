@@ -260,7 +260,7 @@ const INDICES: &[u16] = &[
 
 If you run the code right now, you should get something that looks like this.
 
-![static_tree.png](static_tree.png)
+![static-tree.png](static-tree.png)
 
 The shape's less stretched now, but it's still pretty static. You can experiment with moving the camera position around, but most cameras in games move around. Since this tutorial is about using wgpu and not how to process user input, I'm just going to post the `CameraController` code below.
 
