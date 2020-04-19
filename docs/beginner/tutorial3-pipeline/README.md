@@ -40,9 +40,9 @@ In the same folder as `main.rs`, create two (2) files: `shader.vert`, and `shade
 #version 450
 
 const vec2 positions[3] = vec2[3](
-    vec2(0.0, -0.5),
-    vec2(-0.5, 0.5),
-    vec2(0.5, 0.5)
+    vec2(0.0, 0.5),
+    vec2(-0.5, -0.5),
+    vec2(0.5, -0.5)
 );
 
 void main() {
@@ -179,8 +179,10 @@ A `color_state` describes how colors are stored and processed throughout the pip
     // continued ...
     primitive_topology: wgpu::PrimitiveTopology::TriangleList, // 1.
     depth_stencil_state: None, // 2.
-    index_format: wgpu::IndexFormat::Uint16, // 3.
-    vertex_buffers: &[], // 4.
+    vertex_state: wgpu::VertexStateDescriptor {
+        index_format: wgpu::IndexFormat::Uint16, // 3.
+        vertex_buffers: &[], // 4.
+    },
     sample_count: 1, // 5.
     sample_mask: !0, // 6.
     alpha_to_coverage_enabled: false, // 7.

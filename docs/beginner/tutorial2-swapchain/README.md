@@ -93,7 +93,29 @@ The `format` defines how the `swap_chain`s textures will be stored on the gpu. U
 
 `width` and `height`, are self explanatory.
 
-There's no documentation on `present_mode` as of writing, but my guess is that it defines the rate at which you can acquire images from the `swap_chain`.
+The `present_mode` uses the `wgpu::PresentMode` enum which is defined as follows.
+
+```rust
+#[repr(C)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub enum PresentMode {
+    /// The presentation engine does **not** wait for a vertical blanking period and
+    /// the request is presented immediately. This is a low-latency presentation mode,
+    /// but visible tearing may be observed. Will fallback to `Fifo` if unavailable on the
+    /// selected  platform and backend. Not optimal for mobile.
+    Immediate = 0,
+    /// The presentation engine waits for the next vertical blanking period to update
+    /// the current image, but frames may be submitted without delay. This is a low-latency
+    /// presentation mode and visible tearing will **not** be observed. Will fallback to `Fifo`
+    /// if unavailable on the selected platform and backend. Not optimal for mobile.
+    Mailbox = 1,
+    /// The presentation engine waits for the next vertical blanking period to update
+    /// the current image. The framerate will be capped at the display refresh rate,
+    /// corresponding to the `VSync`. Tearing cannot be observed. Optimal for mobile.
+    Fifo = 2,
+}
+```
 
 At the end of the method, we simply return the resulting struct.
 
