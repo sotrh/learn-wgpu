@@ -11,6 +11,9 @@ struct Vertex {
     color: [f32; 3],
 }
 
+unsafe impl bytemuck::Pod for Vertex {}
+unsafe impl bytemuck::Zeroable for Vertex {}
+
 impl Vertex {
     fn desc<'a>() -> wgpu::VertexBufferDescriptor<'a> {
         use std::mem;
@@ -34,11 +37,11 @@ impl Vertex {
 }
 
 const VERTICES: &[Vertex] = &[
-    Vertex { position: [-0.0868241, -0.49240386, 0.0], color: [0.5, 0.0, 0.5] }, // A
-    Vertex { position: [-0.49513406, -0.06958647, 0.0], color: [0.5, 0.0, 0.5] }, // B
-    Vertex { position: [-0.21918549, 0.44939706, 0.0], color: [0.5, 0.0, 0.5] }, // C
-    Vertex { position: [0.35966998, 0.3473291, 0.0], color: [0.5, 0.0, 0.5] }, // D
-    Vertex { position: [0.44147372, -0.2347359, 0.0],color: [0.5, 0.0, 0.5] }, // E
+    Vertex { position: [-0.0868241, 0.49240386, 0.0], color: [0.5, 0.0, 0.5] }, // A
+    Vertex { position: [-0.49513406, 0.06958647, 0.0], color: [0.5, 0.0, 0.5] }, // B
+    Vertex { position: [-0.21918549, -0.44939706, 0.0], color: [0.5, 0.0, 0.5] }, // C
+    Vertex { position: [0.35966998, -0.3473291, 0.0], color: [0.5, 0.0, 0.5] }, // D
+    Vertex { position: [0.44147372, 0.2347359, 0.0],color: [0.5, 0.0, 0.5] }, // E
 ];
 
 const INDICES: &[u16] = &[
@@ -69,28 +72,32 @@ struct State {
 }
 
 impl State {
-    fn new(window: &Window) -> Self {
+    async fn new(window: &Window) -> Self {
         let size = window.inner_size();
 
         let surface = wgpu::Surface::create(window);
 
-        let adapter = wgpu::Adapter::request(&wgpu::RequestAdapterOptions {
-            ..Default::default()
-        }).unwrap();
+        let adapter = wgpu::Adapter::request(
+            &wgpu::RequestAdapterOptions {
+                power_preference: wgpu::PowerPreference::Default,
+                compatible_surface: Some(&surface),
+            },
+            wgpu::BackendBit::PRIMARY, // Vulkan + Metal + DX12 + Browser WebGPU
+        ).await.unwrap();
 
         let (device, queue) = adapter.request_device(&wgpu::DeviceDescriptor {
             extensions: wgpu::Extensions {
                 anisotropic_filtering: false,
             },
             limits: Default::default(),
-        });
+        }).await;
 
         let sc_desc = wgpu::SwapChainDescriptor {
             usage: wgpu::TextureUsage::OUTPUT_ATTACHMENT,
             format: wgpu::TextureFormat::Bgra8UnormSrgb,
             width: size.width,
             height: size.height,
-            present_mode: wgpu::PresentMode::Vsync,
+            present_mode: wgpu::PresentMode::Fifo,
         };
         let swap_chain = device.create_swap_chain(&surface, &sc_desc);
 
@@ -134,21 +141,25 @@ impl State {
                 },
             ],
             depth_stencil_state: None,
-            index_format: wgpu::IndexFormat::Uint16,
-            vertex_buffers: &[
-                Vertex::desc(),
-            ],
+            vertex_state: wgpu::VertexStateDescriptor {
+                index_format: wgpu::IndexFormat::Uint16,
+                vertex_buffers: &[
+                    Vertex::desc(),
+                ],
+            },
             sample_count: 1,
             sample_mask: !0,
             alpha_to_coverage_enabled: false,
         });
 
-        let vertex_buffer = device
-            .create_buffer_mapped(VERTICES.len(), wgpu::BufferUsage::VERTEX)
-            .fill_from_slice(VERTICES);
-        let index_buffer = device
-            .create_buffer_mapped(INDICES.len(), wgpu::BufferUsage::INDEX)
-            .fill_from_slice(INDICES);
+        let vertex_buffer = device.create_buffer_with_data(
+            bytemuck::cast_slice(VERTICES),
+            wgpu::BufferUsage::VERTEX,
+        );
+        let index_buffer = device.create_buffer_with_data(
+            bytemuck::cast_slice(INDICES),
+            wgpu::BufferUsage::INDEX,
+        );
         let num_indices = INDICES.len() as u32;
 
         let num_vertices = 16;
@@ -158,7 +169,7 @@ impl State {
             Vertex {
                 position: [
                     0.5 * theta.cos(),
-                    0.5 * theta.sin(),
+                    -0.5 * theta.sin(),
                     0.0,
                 ],
                 color: [
@@ -175,12 +186,14 @@ impl State {
         }).collect::<Vec<_>>();
         let num_challenge_indices = challenge_indices.len() as u32;
 
-        let challenge_vertex_buffer = device
-            .create_buffer_mapped(challenge_verts.len(), wgpu::BufferUsage::VERTEX)
-            .fill_from_slice(&challenge_verts);
-        let challenge_index_buffer = device
-            .create_buffer_mapped(challenge_indices.len(), wgpu::BufferUsage::INDEX)
-            .fill_from_slice(&challenge_indices);
+        let challenge_vertex_buffer = device.create_buffer_with_data(
+            bytemuck::cast_slice(&challenge_verts),
+            wgpu::BufferUsage::VERTEX,
+        );
+        let challenge_index_buffer = device.create_buffer_with_data(
+            bytemuck::cast_slice(&challenge_indices),
+            wgpu::BufferUsage::INDEX,
+        );
 
         let use_complex = false;
 
@@ -203,7 +216,7 @@ impl State {
     }
 
 
-    fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
+    async fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
         self.size = new_size;
         self.sc_desc.width = new_size.width;
         self.sc_desc.height = new_size.height;
@@ -227,15 +240,16 @@ impl State {
         }
     }
 
-    fn update(&mut self) {
+    async fn update(&mut self) {
 
     }
 
-    fn render(&mut self) {
-        let frame = self.swap_chain.get_next_texture();
+    async fn render(&mut self) {
+        let frame = self.swap_chain.get_next_texture()
+            .expect("Timeout getting texture");
 
         let mut encoder = self.device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
-            todo: 0,
+            label: Some("Render Encoder"),
         });
 
         {
@@ -272,8 +286,8 @@ impl State {
                     self.num_indices,
                 )
             };
-            render_pass.set_vertex_buffers(0, &[(data.0, 0)]);
-            render_pass.set_index_buffer(data.1, 0);
+            render_pass.set_vertex_buffer(0, data.0, 0, 0);
+            render_pass.set_index_buffer(data.1, 0, 0);
 
             render_pass.draw_indexed(0..data.2, 0, 0..1);
         }
@@ -290,16 +304,17 @@ fn main() {
         .build(&event_loop)
         .unwrap();
 
-    let mut state = State::new(&window);
+    use futures::executor::block_on;
+
+    // Since main can't be async, we're going to need to block
+    let mut state = block_on(State::new(&window));
 
     event_loop.run(move |event, _, control_flow| {
         match event {
             Event::WindowEvent {
                 ref event,
                 window_id,
-            } if window_id == window.id() => if state.input(event) {
-                *control_flow = ControlFlow::Wait;
-            } else {
+            } if window_id == window.id() => if !state.input(event) {
                 match event {
                     WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
                     WindowEvent::KeyboardInput {
@@ -312,26 +327,29 @@ fn main() {
                                 virtual_keycode: Some(VirtualKeyCode::Escape),
                                 ..
                             } => *control_flow = ControlFlow::Exit,
-                            _ => *control_flow = ControlFlow::Wait,
+                            _ => {}
                         }
                     }
                     WindowEvent::Resized(physical_size) => {
-                        state.resize(*physical_size);
-                        *control_flow = ControlFlow::Wait;
+                        block_on(state.resize(*physical_size));
                     }
                     WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
-                        state.resize(**new_inner_size);
-                        *control_flow = ControlFlow::Wait;
+                        // new_inner_size is &mut so w have to dereference it twice
+                        block_on(state.resize(**new_inner_size));
                     }
-                    _ => *control_flow = ControlFlow::Wait,
+                    _ => {}
                 }
             }
-            Event::MainEventsCleared => {
-                state.update();
-                state.render();
-                *control_flow = ControlFlow::Wait;
+            Event::RedrawRequested(_) => {
+                block_on(state.update());
+                block_on(state.render());
             }
-            _ => *control_flow = ControlFlow::Wait,
+            Event::MainEventsCleared => {
+                // RedrawRequested will only trigger once, unless we manually
+                // request it.
+                window.request_redraw();
+            }
+            _ => {}
         }
     });
 }

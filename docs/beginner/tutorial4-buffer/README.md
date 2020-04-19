@@ -26,9 +26,9 @@ Next we need the actual data to will make up our triangle. Below `Vertex` add th
 ```rust
 //main.rs
 const VERTICES: &[Vertex] = &[
-    Vertex { position: [0.0, -0.5, 0.0], color: [1.0, 0.0, 0.0] },
-    Vertex { position: [-0.5, 0.5, 0.0], color: [0.0, 1.0, 0.0] },
-    Vertex { position: [0.5, 0.5, 0.0], color: [0.0, 0.0, 1.0] },
+    Vertex { position: [0.0, 0.5, 0.0], color: [1.0, 0.0, 0.0] },
+    Vertex { position: [-0.5, -0.5, 0.0], color: [0.0, 1.0, 0.0] },
+    Vertex { position: [0.5, -0.5, 0.0], color: [0.0, 0.0, 1.0] },
 ];
 ```
 
@@ -55,14 +55,26 @@ Now let's create the buffer in `new()`.
 
 ```rust
 // new()
-let vertex_buffer = device
-    .create_buffer_mapped(VERTICES.len(), wgpu::BufferUsage::VERTEX)
-    .fill_from_slice(VERTICES);
+let vertex_buffer = device.create_buffer_with_data(
+    bytemuck::cast_slice(VERTICES),
+    wgpu::BufferUsage::VERTEX,
+);
 ```
 
-Here we specify the buffer to be the same length as `VERTICES`, and that the buffer should be used for vertex data, then we fill it with `VERTICES`.
+You'll note that we're using [bytemuck](https://docs.rs/bytemuck/1.2.0/bytemuck/) to cast our `VERTICES`. The `create_buffer_with_data()` method expects a `&[u8]`, and `bytemuck::cast_slice` does that for us. Add the following to your `Cargo.toml`.
 
-Finally we add it to the returning struct.
+```toml
+bytemuck = "1.2.0"
+```
+
+We're also going to need to implement two traits to get `bytemuck` to work. These are [bytemuck::Pod](https://docs.rs/bytemuck/1.2.0/bytemuck/trait.Pod.html) and [bytemuck::Zeroable](https://docs.rs/bytemuck/1.2.0/bytemuck/trait.Zeroable.html). `Pod` indicates that our `Vertex` is "Plain Old Data", and thus can be interpretted as a `&[u8]`. `Zeroable` indicates that we can use `std::mem::zeroed()`. These traits don't require us to implement any methods, so we just need to use the following to get our code to work.
+
+```rust
+unsafe impl bytemuck::Pod for Vertex {}
+unsafe impl bytemuck::Zeroable for Vertex {}
+```
+
+Finally we can add our `vertex_buffer` to our `State` struct.
 
 ```rust
 Self {
@@ -146,10 +158,12 @@ Now we can use it when we create the `render_pipeline`.
 ```rust
 let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
     // ...
-    index_format: wgpu::IndexFormat::Uint16,
-    vertex_buffers: &[
-        Vertex::desc(),
-    ],
+    vertex_state: wgpu::VertexStateDescriptor {
+        index_format: wgpu::IndexFormat::Uint16,
+        vertex_buffers: &[
+            Vertex::desc(),
+        ],
+    },
     // ...
 });
 ```
@@ -160,7 +174,7 @@ One more thing: we need to actually set the vertex buffer in the render method o
 // render()
 render_pass.set_pipeline(&self.render_pipeline);
 // NEW!
-render_pass.set_vertex_buffers(0, &[(&self.vertex_buffer, 0)]);
+render_pass.set_vertex_buffer(0, &self.vertex_buffer, 0, 0);
 render_pass.draw(0..3, 0..1);
 ```
 
@@ -246,17 +260,17 @@ It has a total of 5 vertices, and 3 triangles. Now if we wanted to display somet
 
 ```rust
 const VERTICES: &[Vertex] = &[
-    Vertex { position: [-0.0868241, -0.49240386, 0.0], color: [0.5, 0.0, 0.5] }, // A
-    Vertex { position: [-0.49513406, -0.06958647, 0.0], color: [0.5, 0.0, 0.5] }, // B
-    Vertex { position: [0.44147372, -0.2347359, 0.0],color: [0.5, 0.0, 0.5] }, // E
+    Vertex { position: [-0.0868241, 0.49240386, 0.0], color: [0.5, 0.0, 0.5] }, // A
+    Vertex { position: [-0.49513406, 0.06958647, 0.0], color: [0.5, 0.0, 0.5] }, // B
+    Vertex { position: [0.44147372, 0.2347359, 0.0],color: [0.5, 0.0, 0.5] }, // E
 
-    Vertex { position: [-0.49513406, -0.06958647, 0.0], color: [0.5, 0.0, 0.5] }, // B
-    Vertex { position: [-0.21918549, 0.44939706, 0.0], color: [0.5, 0.0, 0.5] }, // C
-    Vertex { position: [0.44147372, -0.2347359, 0.0],color: [0.5, 0.0, 0.5] }, // E
+    Vertex { position: [-0.49513406, 0.06958647, 0.0], color: [0.5, 0.0, 0.5] }, // B
+    Vertex { position: [-0.21918549, -0.44939706, 0.0], color: [0.5, 0.0, 0.5] }, // C
+    Vertex { position: [0.44147372, 0.2347359, 0.0],color: [0.5, 0.0, 0.5] }, // E
     
-    Vertex { position: [-0.21918549, 0.44939706, 0.0], color: [0.5, 0.0, 0.5] }, // C
-    Vertex { position: [0.35966998, 0.3473291, 0.0], color: [0.5, 0.0, 0.5] }, // D
-    Vertex { position: [0.44147372, -0.2347359, 0.0],color: [0.5, 0.0, 0.5] }, // E
+    Vertex { position: [-0.21918549, -0.44939706, 0.0], color: [0.5, 0.0, 0.5] }, // C
+    Vertex { position: [0.35966998, -0.3473291, 0.0], color: [0.5, 0.0, 0.5] }, // D
+    Vertex { position: [0.44147372, 0.2347359, 0.0],color: [0.5, 0.0, 0.5] }, // E
 ];
 ```
 
@@ -267,11 +281,11 @@ Basically we store all the unique vertices in `VERTICES` and we create another b
 ```rust
 // main.rs
 const VERTICES: &[Vertex] = &[
-    Vertex { position: [-0.0868241, -0.49240386, 0.0], color: [0.5, 0.0, 0.5] }, // A
-    Vertex { position: [-0.49513406, -0.06958647, 0.0], color: [0.5, 0.0, 0.5] }, // B
-    Vertex { position: [-0.21918549, 0.44939706, 0.0], color: [0.5, 0.0, 0.5] }, // C
-    Vertex { position: [0.35966998, 0.3473291, 0.0], color: [0.5, 0.0, 0.5] }, // D
-    Vertex { position: [0.44147372, -0.2347359, 0.0],color: [0.5, 0.0, 0.5] }, // E
+    Vertex { position: [-0.0868241, 0.49240386, 0.0], color: [0.5, 0.0, 0.5] }, // A
+    Vertex { position: [-0.49513406, 0.06958647, 0.0], color: [0.5, 0.0, 0.5] }, // B
+    Vertex { position: [-0.21918549, -0.44939706, 0.0], color: [0.5, 0.0, 0.5] }, // C
+    Vertex { position: [0.35966998, -0.3473291, 0.0], color: [0.5, 0.0, 0.5] }, // D
+    Vertex { position: [0.44147372, 0.2347359, 0.0],color: [0.5, 0.0, 0.5] }, // E
 ];
 
 const INDICES: &[u16] = &[
@@ -286,17 +300,21 @@ Now with this setup our `VERTICES` take up about 120 bytes and `INDICES` is just
 There's a couple of things we need to change in order to use indexing. The first is we need to create a buffer to store the indices. In `State`'s `new()` method create the `index_buffer` after you create the `vertex_buffer`. Also change `num_vertices` to `num_indices` and set it equal to `INDICES.len()`.
 
 ```rust
-// new()
-let vertex_buffer = device
-    .create_buffer_mapped(VERTICES.len(), wgpu::BufferUsage::VERTEX)
-    .fill_from_slice(VERTICES);
-
+let vertex_buffer = device.create_buffer_with_data(
+    bytemuck::cast_slice(VERTICES),
+    wgpu::BufferUsage::VERTEX,
+);
 // NEW!
-let index_buffer = device
-    .create_buffer_mapped(INDICES.len(), wgpu::BufferUsage::INDEX)
-    .fill_from_slice(INDICES);
+let index_buffer = device.create_buffer_with_data(
+    bytemuck::cast_slice(INDICES),
+    wgpu::BufferUsage::INDEX,
+);
 let num_indices = INDICES.len() as u32;
+```
 
+We don't need to implement `Pod` and `Zeroable` for our indices, because `bytemuck` has already done that for us. That means we can just add `index_buffer` and `num_indices` to `State`.
+
+```rust
 Self {
     surface,
     device,
@@ -317,13 +335,13 @@ All we have to do now is update the `render()` method to use the `index_buffer`.
 
 ```rust
 // render()
-render_pass.set_index_buffer(&self.index_buffer, 0); // 1.
+render_pass.set_index_buffer(&self.index_buffer, 0, 0); // 1.
 render_pass.draw_indexed(0..self.num_indices, 0, 0..1); // 2.
 ```
 
 A couple things to note:
 1. The method name is `set_index_buffer` not `set_index_buffers`. You can only have one index buffer set at a time.
-2. When using an index buffer, you need to use `draw_indexed`. The `draw` method ignores the index buffer. Also make sure you use the number of indices, not vertices as you model will either draw wrong, or the method will `panic`. Last thing to note about this method is that the second parameter specifies what index to start at in the buffer. This could allow you to store multiple sets of indices in one buffer.
+2. When using an index buffer, you need to use `draw_indexed`. The `draw` method ignores the index buffer. Also make sure you use the number of indices (`num_indices`), not vertices as you model will either draw wrong, or the method will `panic` because there are not enough indices. Last thing to note about this method is that the second parameter specifies what index to start at in the buffer. This could allow you to store multiple sets of indices in one buffer. The last parameter is the size of the buffer. Passing 0 tells wgpu to use the entire buffer.
 
 With all that you should have a garishly magenta pentagon in your window.
 
