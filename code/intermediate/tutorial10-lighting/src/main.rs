@@ -378,8 +378,7 @@ impl State {
         });
 
         let (obj_model, cmds) =
-            model::Model::load(&device, &texture_bind_group_layout, "src/res/cube.obj").unwrap();
-        // queue.submit(&cmds); TODO:
+            model::Model::load(&device, &texture_bind_group_layout, "code/intermediate/tutorial10-lighting/src/res/cube.obj").unwrap();
 
         let light = Light {
             position: (2.0, 2.0, 2.0).into(),

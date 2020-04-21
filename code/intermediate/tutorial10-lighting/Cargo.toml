@@ -21,9 +21,9 @@ wgpu = { git = "https://github.com/gfx-rs/wgpu-rs.git" }
 
 # zerocopy = "0.2.8"
 
-# [[bin]]
-# name = "tutorial10-lighting"
-# path = "src/main.rs"
+[[bin]]
+name = "tutorial10-lighting"
+path = "src/main.rs"
 
 
 # [[bin]]
