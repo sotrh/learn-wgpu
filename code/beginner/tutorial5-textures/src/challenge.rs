@@ -13,6 +13,9 @@ struct Vertex {
     tex_coords: [f32; 2],
 }
 
+unsafe impl bytemuck::Pod for Vertex {}
+unsafe impl bytemuck::Zeroable for Vertex {}
+
 impl Vertex {
     fn desc<'a>() -> wgpu::VertexBufferDescriptor<'a> {
         use std::mem;
@@ -36,11 +39,11 @@ impl Vertex {
 }
 
 const VERTICES: &[Vertex] = &[
-    Vertex { position: [-0.0868241, -0.49240386, 0.0], tex_coords: [0.4131759, 0.00759614], }, // A
-    Vertex { position: [-0.49513406, -0.06958647, 0.0], tex_coords: [0.0048659444, 0.43041354], }, // B
-    Vertex { position: [-0.21918549, 0.44939706, 0.0], tex_coords: [0.28081453, 0.949397057], }, // C
-    Vertex { position: [0.35966998, 0.3473291, 0.0], tex_coords: [0.85967, 0.84732911], }, // D
-    Vertex { position: [0.44147372, -0.2347359, 0.0], tex_coords: [0.9414737, 0.2652641], }, // E
+    Vertex { position: [-0.0868241, 0.49240386, 0.0], tex_coords: [0.4131759, 0.00759614], }, // A
+    Vertex { position: [-0.49513406, 0.06958647, 0.0], tex_coords: [0.0048659444, 0.43041354], }, // B
+    Vertex { position: [-0.21918549, -0.44939706, 0.0], tex_coords: [0.28081453, 0.949397057], }, // C
+    Vertex { position: [0.35966998, -0.3473291, 0.0], tex_coords: [0.85967, 0.84732911], }, // D
+    Vertex { position: [0.44147372, 0.2347359, 0.0], tex_coords: [0.9414737, 0.2652641], }, // E
 ];
 
 const INDICES: &[u16] = &[
@@ -74,53 +77,62 @@ struct State {
 }
 
 impl State {
-    fn new(window: &Window) -> Self {
+    async fn new(window: &Window) -> Self {
         let size = window.inner_size();
 
         let surface = wgpu::Surface::create(window);
 
-        let adapter = wgpu::Adapter::request(&wgpu::RequestAdapterOptions {
-            ..Default::default()
-        }).unwrap();
+        let adapter = wgpu::Adapter::request(
+            &wgpu::RequestAdapterOptions {
+                power_preference: wgpu::PowerPreference::Default,
+                compatible_surface: Some(&surface),
+            },
+            wgpu::BackendBit::PRIMARY, // Vulkan + Metal + DX12 + Browser WebGPU
+        ).await.unwrap();
 
-        let (device, mut queue) = adapter.request_device(&wgpu::DeviceDescriptor {
+        let (device, queue) = adapter.request_device(&wgpu::DeviceDescriptor {
             extensions: wgpu::Extensions {
                 anisotropic_filtering: false,
             },
             limits: Default::default(),
-        });
+        }).await;
 
         let sc_desc = wgpu::SwapChainDescriptor {
             usage: wgpu::TextureUsage::OUTPUT_ATTACHMENT,
             format: wgpu::TextureFormat::Bgra8UnormSrgb,
             width: size.width,
             height: size.height,
-            present_mode: wgpu::PresentMode::Vsync,
+            present_mode: wgpu::PresentMode::Fifo,
         };
         let swap_chain = device.create_swap_chain(&surface, &sc_desc);
 
         let texture_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
             bindings: &[
-                wgpu::BindGroupLayoutBinding {
+                wgpu::BindGroupLayoutEntry {
                     binding: 0,
                     visibility: wgpu::ShaderStage::FRAGMENT,
                     ty: wgpu::BindingType::SampledTexture {
                         multisampled: false,
                         dimension: wgpu::TextureViewDimension::D2,
+                        component_type: wgpu::TextureComponentType::Uint,
                     },
                 },
-                wgpu::BindGroupLayoutBinding {
+                wgpu::BindGroupLayoutEntry {
                     binding: 1,
                     visibility: wgpu::ShaderStage::FRAGMENT,
-                    ty: wgpu::BindingType::Sampler,
+                    ty: wgpu::BindingType::Sampler {
+                        comparison: false,
+                    },
                 },
             ],
+            label: Some("texture_bind_group_layout"),
         });
 
         let diffuse_bytes = include_bytes!("happy-tree.png");
         let (diffuse_texture, diffuse_cmds) = texture::Texture::from_bytes(
             &device,
             diffuse_bytes,
+            "happy-tree.png",
         ).unwrap();
 
         let diffuse_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
@@ -135,12 +147,14 @@ impl State {
                     resource: wgpu::BindingResource::Sampler(&diffuse_texture.sampler),
                 }
             ],
+            label: Some("diffuse_bind_group"),
         });
 
         let cartoon_bytes = include_bytes!("happy-tree-cartoon.png");
         let (cartoon_texture, cartoon_cmds) = texture::Texture::from_bytes(
             &device,
             cartoon_bytes,
+            "happy-tree-cartoon.png",
         ).unwrap();
 
         let cartoon_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
@@ -155,6 +169,7 @@ impl State {
                     resource: wgpu::BindingResource::Sampler(&cartoon_texture.sampler),
                 }
             ],
+            label: Some("cartoon_bind_group"),
         });
 
         queue.submit(&[diffuse_cmds, cartoon_cmds]);
@@ -199,21 +214,25 @@ impl State {
                 },
             ],
             depth_stencil_state: None,
-            index_format: wgpu::IndexFormat::Uint16,
-            vertex_buffers: &[
-                Vertex::desc(),
-            ],
+            vertex_state: wgpu::VertexStateDescriptor {
+                index_format: wgpu::IndexFormat::Uint16,
+                vertex_buffers: &[
+                    Vertex::desc(),
+                ],
+            },
             sample_count: 1,
             sample_mask: !0,
             alpha_to_coverage_enabled: false,
         });
 
-        let vertex_buffer = device
-            .create_buffer_mapped(VERTICES.len(), wgpu::BufferUsage::VERTEX)
-            .fill_from_slice(VERTICES);
-        let index_buffer = device
-            .create_buffer_mapped(INDICES.len(), wgpu::BufferUsage::INDEX)
-            .fill_from_slice(INDICES);
+        let vertex_buffer = device.create_buffer_with_data(
+            bytemuck::cast_slice(VERTICES),
+            wgpu::BufferUsage::VERTEX,
+        );
+        let index_buffer = device.create_buffer_with_data(
+            bytemuck::cast_slice(INDICES),
+            wgpu::BufferUsage::INDEX,
+        );
         let num_indices = INDICES.len() as u32;
 
         Self {
@@ -236,7 +255,7 @@ impl State {
     }
 
 
-    fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
+    async fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
         self.size = new_size;
         self.sc_desc.width = new_size.width;
         self.sc_desc.height = new_size.height;
@@ -260,15 +279,16 @@ impl State {
         }
     }
 
-    fn update(&mut self) {
+    async fn update(&mut self) {
 
     }
 
-    fn render(&mut self) {
-        let frame = self.swap_chain.get_next_texture();
+    async fn render(&mut self) {
+        let frame = self.swap_chain.get_next_texture()
+            .expect("Timeout getting texture");
 
         let mut encoder = self.device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
-            todo: 0,
+            label: Some("Render Encoder"),
         });
 
         {
@@ -298,8 +318,8 @@ impl State {
 
             render_pass.set_pipeline(&self.render_pipeline);
             render_pass.set_bind_group(0, bind_group, &[]);
-            render_pass.set_vertex_buffers(0, &[(&self.vertex_buffer, 0)]);
-            render_pass.set_index_buffer(&self.index_buffer, 0);
+            render_pass.set_vertex_buffer(0, &self.vertex_buffer, 0, 0);
+            render_pass.set_index_buffer(&self.index_buffer, 0, 0);
             render_pass.draw_indexed(0..self.num_indices, 0, 0..1);
         }
 
@@ -315,16 +335,17 @@ fn main() {
         .build(&event_loop)
         .unwrap();
 
-    let mut state = State::new(&window);
+    use futures::executor::block_on;
+
+    // Since main can't be async, we're going to need to block
+    let mut state = block_on(State::new(&window));
 
     event_loop.run(move |event, _, control_flow| {
         match event {
             Event::WindowEvent {
                 ref event,
                 window_id,
-            } if window_id == window.id() => if state.input(event) {
-                *control_flow = ControlFlow::Wait;
-            } else {
+            } if window_id == window.id() => if !state.input(event) {
                 match event {
                     WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
                     WindowEvent::KeyboardInput {
@@ -337,26 +358,29 @@ fn main() {
                                 virtual_keycode: Some(VirtualKeyCode::Escape),
                                 ..
                             } => *control_flow = ControlFlow::Exit,
-                            _ => *control_flow = ControlFlow::Wait,
+                            _ => {}
                         }
                     }
                     WindowEvent::Resized(physical_size) => {
-                        state.resize(*physical_size);
-                        *control_flow = ControlFlow::Wait;
+                        block_on(state.resize(*physical_size));
                     }
                     WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
-                        state.resize(**new_inner_size);
-                        *control_flow = ControlFlow::Wait;
+                        // new_inner_size is &mut so w have to dereference it twice
+                        block_on(state.resize(**new_inner_size));
                     }
-                    _ => *control_flow = ControlFlow::Wait,
+                    _ => {}
                 }
             }
-            Event::MainEventsCleared => {
-                state.update();
-                state.render();
-                *control_flow = ControlFlow::Wait;
+            Event::RedrawRequested(_) => {
+                block_on(state.update());
+                block_on(state.render());
             }
-            _ => *control_flow = ControlFlow::Wait,
+            Event::MainEventsCleared => {
+                // RedrawRequested will only trigger once, unless we manually
+                // request it.
+                window.request_redraw();
+            }
+            _ => {}
         }
     });
 }
