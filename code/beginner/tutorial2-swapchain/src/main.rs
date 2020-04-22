@@ -63,7 +63,7 @@ impl State {
     }
 
     fn input(&mut self, event: &WindowEvent) -> bool {
-        self.camera_controller.process_events(event)
+        false
     }
 
     async fn update(&mut self) {
