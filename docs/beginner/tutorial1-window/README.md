@@ -10,15 +10,14 @@ For the beginner stuff, we're going to keep things very simple, we'll add things
 [dependencies]
 image = "0.22"
 winit = "0.20"
-wgpu = "0.5.0"
-futures = "0.3.4"
+wgpu = "0.4"
 ```
 
-If you're on Windows, you can specify Vulkan as you desired backend by removing the `wgpu = "0.5.0"` and adding the following.
+If you're on Windows, you can specify Vulkan as you desired backend by removing the `wgpu = "0.4"` and adding the following.
 
 ``` toml
 [dependencies.wgpu]
-version = "0.5.0"
+version = "0.4"
 features = ["vulkan"]
 ```
 
@@ -41,9 +40,8 @@ fn main() {
     let window = WindowBuilder::new()
         .build(&event_loop)
         .unwrap();
-
+    
     event_loop.run(move |event, _, control_flow| {
-        *control_flow = ControlFlow::Poll;
         match event {
             Event::WindowEvent {
                 ref event,
@@ -60,12 +58,12 @@ fn main() {
                             virtual_keycode: Some(VirtualKeyCode::Escape),
                             ..
                         } => *control_flow = ControlFlow::Exit,
-                        _ => {}
+                        _ => *control_flow = ControlFlow::Wait,
                     }
                 }
-                _ => {}
+                _ => *control_flow = ControlFlow::Wait,
             }
-            _ => {}
+            _ => *control_flow = ControlFlow::Wait,
         }
     });
 }

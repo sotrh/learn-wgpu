@@ -11,7 +11,6 @@ fn main() {
         .unwrap();
 
     event_loop.run(move |event, _, control_flow| {
-        *control_flow = ControlFlow::Poll;
         match event {
             Event::WindowEvent {
                 ref event,
@@ -28,12 +27,12 @@ fn main() {
                             virtual_keycode: Some(VirtualKeyCode::Escape),
                             ..
                         } => *control_flow = ControlFlow::Exit,
-                        _ => {}
+                        _ => *control_flow = ControlFlow::Wait,
                     }
                 }
-                _ => {}
+                _ => *control_flow = ControlFlow::Wait,
             }
-            _ => {}
+            _ => *control_flow = ControlFlow::Wait,
         }
     });
 }

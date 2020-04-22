@@ -15,32 +15,28 @@ struct State {
 }
 
 impl State {
-    async fn new(window: &Window) -> Self {
+    fn new(window: &Window) -> Self {
         let size = window.inner_size();
 
         let surface = wgpu::Surface::create(window);
 
-        let adapter = wgpu::Adapter::request(
-            &wgpu::RequestAdapterOptions {
-                power_preference: wgpu::PowerPreference::Default,
-                compatible_surface: Some(&surface),
-            },
-            wgpu::BackendBit::PRIMARY, // Vulkan + Metal + DX12 + Browser WebGPU
-        ).await.unwrap();
+        let adapter = wgpu::Adapter::request(&wgpu::RequestAdapterOptions {
+            ..Default::default()
+        }).unwrap();
 
         let (device, queue) = adapter.request_device(&wgpu::DeviceDescriptor {
             extensions: wgpu::Extensions {
                 anisotropic_filtering: false,
             },
             limits: Default::default(),
-        }).await;
+        });
 
         let sc_desc = wgpu::SwapChainDescriptor {
             usage: wgpu::TextureUsage::OUTPUT_ATTACHMENT,
             format: wgpu::TextureFormat::Bgra8UnormSrgb,
             width: size.width,
             height: size.height,
-            present_mode: wgpu::PresentMode::Fifo,
+            present_mode: wgpu::PresentMode::Vsync,
         };
         let swap_chain = device.create_swap_chain(&surface, &sc_desc);
 
@@ -55,7 +51,7 @@ impl State {
     }
 
 
-    async fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
+    fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
         self.size = new_size;
         self.sc_desc.width = new_size.width;
         self.sc_desc.height = new_size.height;
@@ -66,16 +62,15 @@ impl State {
         false
     }
 
-    async fn update(&mut self) {
+    fn update(&mut self) {
 
     }
 
-    async fn render(&mut self) {
-        let frame = self.swap_chain.get_next_texture()
-            .expect("Timeout getting texture");
+    fn render(&mut self) {
+        let frame = self.swap_chain.get_next_texture();
 
         let mut encoder = self.device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
-            label: Some("Render Encoder"),
+            todo: 0,
         });
 
         {
@@ -110,17 +105,16 @@ fn main() {
         .build(&event_loop)
         .unwrap();
 
-    use futures::executor::block_on;
-
-    // Since main can't be async, we're going to need to block
-    let mut state = block_on(State::new(&window));
+    let mut state = State::new(&window);
 
     event_loop.run(move |event, _, control_flow| {
         match event {
             Event::WindowEvent {
                 ref event,
                 window_id,
-            } if window_id == window.id() => if !state.input(event) {
+            } if window_id == window.id() => if state.input(event) {
+                *control_flow = ControlFlow::Wait;
+            } else {
                 match event {
                     WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
                     WindowEvent::KeyboardInput {
@@ -133,29 +127,26 @@ fn main() {
                                 virtual_keycode: Some(VirtualKeyCode::Escape),
                                 ..
                             } => *control_flow = ControlFlow::Exit,
-                            _ => {}
+                            _ => *control_flow = ControlFlow::Wait,
                         }
                     }
                     WindowEvent::Resized(physical_size) => {
-                        block_on(state.resize(*physical_size));
+                        state.resize(*physical_size);
+                        *control_flow = ControlFlow::Wait;
                     }
                     WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
-                        // new_inner_size is &mut so w have to dereference it twice
-                        block_on(state.resize(**new_inner_size));
+                        state.resize(**new_inner_size);
+                        *control_flow = ControlFlow::Wait;
                     }
-                    _ => {}
+                    _ => *control_flow = ControlFlow::Wait,
                 }
             }
-            Event::RedrawRequested(_) => {
-                block_on(state.update());
-                block_on(state.render());
-            }
             Event::MainEventsCleared => {
-                // RedrawRequested will only trigger once, unless we manually
-                // request it.
-                window.request_redraw();
+                state.update();
+                state.render();
+                *control_flow = ControlFlow::Wait;
             }
-            _ => {}
+            _ => *control_flow = ControlFlow::Wait,
         }
     });
 }

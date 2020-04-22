@@ -11,8 +11,7 @@ image = "0.22"
 winit = "0.20"
 glsl-to-spirv = "0.1"
 cgmath = "0.17"
-wgpu = "0.5.0"
-futures = "0.3.4"
+wgpu = "0.4"
 
 [[bin]]
 name = "tutorial3-pipeline"

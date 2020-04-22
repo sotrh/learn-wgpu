@@ -59,7 +59,8 @@ impl Uniforms {
         // the easiest way to convert to Vector4. We're using Vector4 because of
         // the uniforms 16 byte spacing requirement
         self.view_position = camera.eye.to_homogeneous();
-        self.view_proj = OPENGL_TO_WGPU_MATRIX * camera.build_view_projection_matrix();
+        // self.view_proj = OPENGL_TO_WGPU_MATRIX * camera.build_view_projection_matrix();
+        self.view_proj = camera.build_view_projection_matrix();
     }
 }
 unsafe impl bytemuck::Zeroable for Uniforms {}
