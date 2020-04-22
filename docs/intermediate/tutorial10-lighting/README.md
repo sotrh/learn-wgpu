@@ -42,39 +42,39 @@ let light = Light {
     _padding: 0,
     color: (1.0, 1.0, 1.0).into(),
 };
-
-let light_buffer = device
-    // We'll want to update our lights position, so we use COPY_DST
-    .create_buffer_mapped(1, wgpu::BufferUsage::UNIFORM | wgpu::BufferUsage::COPY_DST)
-    .fill_from_slice(&[light]);
+//If we want to use bytemuck, we must first implement these two traits
+unsafe impl bytemuck::Zeroable for Light {}
+unsafe impl bytemuck::Pod for Light {}
+ // We'll want to update our lights position, so we use COPY_DST
+let light_buffer = device.create_buffer_with_data(
+    bytemuck::cast_slice(&[light]),
+    wgpu::BufferUsage::UNIFORM | wgpu::BufferUsage::COPY_DST,
+);
 ```
 
 Don't forget to add the `light` and `light_buffer` to `State`. After that we need to create a bind group layout and bind group for our light.
 
 ```rust
-let light_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-    bindings: &[
-        wgpu::BindGroupLayoutBinding {
+let light_bind_group_layout =
+    device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+        bindings: &[wgpu::BindGroupLayoutEntry {
             binding: 0,
             visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
-            ty: wgpu::BindingType::UniformBuffer { 
-                dynamic: false 
-            },
-        }
-    ],
-});
+            ty: wgpu::BindingType::UniformBuffer { dynamic: false },
+        }],
+        label: None,
+    });
 
 let light_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
     layout: &light_bind_group_layout,
-    bindings: &[
-        wgpu::Binding {
-            binding: 0,
-            resource: wgpu::BindingResource::Buffer {
-                buffer: &light_buffer,
-                range: 0..std::mem::size_of_val(&light) as wgpu::BufferAddress,
-            }
-        }
-    ],
+    bindings: &[wgpu::Binding {
+        binding: 0,
+        resource: wgpu::BindingResource::Buffer {
+            buffer: &light_buffer,
+            range: 0..std::mem::size_of_val(&light) as wgpu::BufferAddress,
+        },
+    }],
+    label: None,
 });
 ```
 
@@ -97,9 +97,10 @@ Let's also update the lights position in the `update()` method, so we can see wh
 let old_position = self.light.position;
 self.light.position = cgmath::Quaternion::from_axis_angle((0.0, 1.0, 0.0).into(), cgmath::Deg(1.0)) * old_position;
 
-let staging_buffer = self.device
-    .create_buffer_mapped(1, wgpu::BufferUsage::COPY_SRC)
-    .fill_from_slice(&[self.light]);
+let staging_buffer = device.create_buffer_with_data(
+    bytemuck::cast_slice(&[self.light]),
+    wgpu::BufferUsage::COPY_SRC,
+);
 encoder.copy_buffer_to_buffer(&staging_buffer, 0, &self.light_buffer, 0, std::mem::size_of::<Light>() as wgpu::BufferAddress);
 ```
 
@@ -164,11 +165,13 @@ fn create_render_pipeline(
                 stencil_write_mask: 0,
             }
         }),
-        index_format: wgpu::IndexFormat::Uint32,
-        vertex_buffers: vertex_descs,
         sample_count: 1,
         sample_mask: !0,
         alpha_to_coverage_enabled: false,
+        vertex_state: wgpu::VertexStateDescriptor {
+            index_format: wgpu::IndexFormat::Uint32,
+            vertex_buffers: vertex_descs,
+        },
     })
 }
 ```
@@ -184,7 +187,7 @@ let render_pipeline = {
         &device, 
         &render_pipeline_layout, 
         sc_desc.format,
-        Some(DEPTH_FORMAT),
+        Some(texture::DEPTH_FORMAT),
         &[model::ModelVertex::desc()],
         vs_src, 
         fs_src
@@ -195,33 +198,87 @@ let render_pipeline = {
 We're going to need to modify `model::DrawModel` to use our `light_bind_group`.
 
 ```rust
-pub trait DrawModel {
-    fn draw_mesh(&mut self, mesh: &Mesh, material: &Material, uniforms: &wgpu::BindGroup, light: &wgpu::BindGroup);
-    fn draw_mesh_instanced(&mut self, mesh: &Mesh, material: &Material, instances: Range<u32>, uniforms: &wgpu::BindGroup, light: &wgpu::BindGroup);
+pub trait DrawModel<'a, 'b>
+where
+    'b: 'a,
+{
+    fn draw_mesh(
+        &mut self,
+        mesh: &'b Mesh,
+        material: &'b Material,
+        uniforms: &'b wgpu::BindGroup,
+        light: &'b wgpu::BindGroup,
+    );
+    fn draw_mesh_instanced(
+        &mut self,
+        mesh: &'b Mesh,
+        material: &'b Material,
+        instances: Range<u32>,
+        uniforms: &'b wgpu::BindGroup,
+        light: &'b wgpu::BindGroup,
+    );
 
-    fn draw_model(&mut self, model: &Model, uniforms: &wgpu::BindGroup, light: &wgpu::BindGroup);
-    fn draw_model_instanced(&mut self, model: &Model, instances: Range<u32>,  uniforms: &wgpu::BindGroup, light: &wgpu::BindGroup);
+    fn draw_model(
+        &mut self,
+        model: &'b Model,
+        uniforms: &'b wgpu::BindGroup,
+        light: &'b wgpu::BindGroup,
+    );
+    fn draw_model_instanced(
+        &mut self,
+        model: &'b Model,
+        instances: Range<u32>,
+        uniforms: &'b wgpu::BindGroup,
+        light: &'b wgpu::BindGroup,
+    );
 }
 
-impl<'a> DrawModel for wgpu::RenderPass<'a> {
-    fn draw_mesh(&mut self, mesh: &Mesh, material: &Material, uniforms: &wgpu::BindGroup, light: &wgpu::BindGroup) {
+impl<'a, 'b> DrawModel<'a, 'b> for wgpu::RenderPass<'a>
+where
+    'b: 'a,
+{
+    fn draw_mesh(
+        &mut self,
+        mesh: &'b Mesh,
+        material: &'b Material,
+        uniforms: &'b wgpu::BindGroup,
+        light: &'b wgpu::BindGroup,
+    ) {
         self.draw_mesh_instanced(mesh, material, 0..1, uniforms, light);
     }
 
-    fn draw_mesh_instanced(&mut self, mesh: &Mesh, material: &Material, instances: Range<u32>, uniforms: &wgpu::BindGroup, light: &wgpu::BindGroup) {
-        self.set_vertex_buffers(0, &[(&mesh.vertex_buffer, 0)]);
-        self.set_index_buffer(&mesh.index_buffer, 0);
+    fn draw_mesh_instanced(
+        &mut self,
+        mesh: &'b Mesh,
+        material: &'b Material,
+        instances: Range<u32>,
+        uniforms: &'b wgpu::BindGroup,
+        light: &'b wgpu::BindGroup,
+    ) {
+        self.set_vertex_buffer(0, &mesh.vertex_buffer, 0, 0);
+        self.set_index_buffer(&mesh.index_buffer, 0, 0);
         self.set_bind_group(0, &material.bind_group, &[]);
         self.set_bind_group(1, &uniforms, &[]);
         self.set_bind_group(2, &light, &[]);
         self.draw_indexed(0..mesh.num_elements, 0, instances);
     }
 
-    fn draw_model(&mut self, model: &Model, uniforms: &wgpu::BindGroup, light: &wgpu::BindGroup) {
+    fn draw_model(
+        &mut self,
+        model: &'b Model,
+        uniforms: &'b wgpu::BindGroup,
+        light: &'b wgpu::BindGroup,
+    ) {
         self.draw_model_instanced(model, 0..1, uniforms, light);
     }
 
-    fn draw_model_instanced(&mut self, model: &Model, instances: Range<u32>, uniforms: &wgpu::BindGroup, light: &wgpu::BindGroup) {
+    fn draw_model_instanced(
+        &mut self,
+        model: &'b Model,
+        instances: Range<u32>,
+        uniforms: &'b wgpu::BindGroup,
+        light: &'b wgpu::BindGroup,
+    ) {
         for mesh in &model.meshes {
             let material = &model.materials[mesh.material];
             self.draw_mesh_instanced(mesh, material, instances.clone(), uniforms, light);
@@ -248,7 +305,7 @@ let light_render_pipeline = {
         &device, 
         &layout, 
         sc_desc.format, 
-        Some(DEPTH_FORMAT), 
+        Some(texture::DEPTH_FORMAT), 
         &[model::ModelVertex::desc()], 
         vs_src, 
         fs_src,
@@ -305,32 +362,82 @@ void main() {
 Now we could manually implement the draw code for the light in `render()`, but to keep with the pattern we developed, let's create a new trait called `DrawLight`.
 
 ```rust
-pub trait DrawLight {
-    fn draw_light_mesh(&mut self, mesh: &Mesh, uniforms: &wgpu::BindGroup, light: &wgpu::BindGroup);
-    fn draw_light_mesh_instanced(&mut self, mesh: &Mesh, instances: Range<u32>, uniforms: &wgpu::BindGroup, light: &wgpu::BindGroup);
+pub trait DrawLight<'a, 'b>
+where
+    'b: 'a,
+{
+    fn draw_light_mesh(
+        &mut self,
+        mesh: &'b Mesh,
+        uniforms: &'b wgpu::BindGroup,
+        light: &'b wgpu::BindGroup,
+    );
+    fn draw_light_mesh_instanced(
+        &mut self,
+        mesh: &'b Mesh,
+        instances: Range<u32>,
+        uniforms: &'b wgpu::BindGroup,
+        light: &'b wgpu::BindGroup,
+    ) where
+        'b: 'a;
 
-    fn draw_light_model(&mut self, model: &Model, uniforms: &wgpu::BindGroup, light: &wgpu::BindGroup);
-    fn draw_light_model_instanced(&mut self, model: &Model, instances: Range<u32>, uniforms: &wgpu::BindGroup, light: &wgpu::BindGroup);
+    fn draw_light_model(
+        &mut self,
+        model: &'b Model,
+        uniforms: &'b wgpu::BindGroup,
+        light: &'b wgpu::BindGroup,
+    );
+    fn draw_light_model_instanced(
+        &mut self,
+        model: &'b Model,
+        instances: Range<u32>,
+        uniforms: &'b wgpu::BindGroup,
+        light: &'b wgpu::BindGroup,
+    );
 }
 
-
-impl<'a> DrawLight for wgpu::RenderPass<'a> {
-    fn draw_light_mesh(&mut self, mesh: &Mesh, uniforms: &wgpu::BindGroup, light: &wgpu::BindGroup) {
+impl<'a, 'b> DrawLight<'a, 'b> for wgpu::RenderPass<'a>
+where
+    'b: 'a,
+{
+    fn draw_light_mesh(
+        &mut self,
+        mesh: &'b Mesh,
+        uniforms: &'b wgpu::BindGroup,
+        light: &'b wgpu::BindGroup,
+    ) {
         self.draw_light_mesh_instanced(mesh, 0..1, uniforms, light);
     }
 
-    fn draw_light_mesh_instanced(&mut self, mesh: &Mesh, instances: Range<u32>, uniforms: &wgpu::BindGroup, light: &wgpu::BindGroup) {
-        self.set_vertex_buffers(0, &[(&mesh.vertex_buffer, 0)]);
-        self.set_index_buffer(&mesh.index_buffer, 0);
+    fn draw_light_mesh_instanced(
+        &mut self,
+        mesh: &'b Mesh,
+        instances: Range<u32>,
+        uniforms: &'b wgpu::BindGroup,
+        light: &'b wgpu::BindGroup,
+    ) {
+        self.set_vertex_buffer(0, &mesh.vertex_buffer, 0, 0);
+        self.set_index_buffer(&mesh.index_buffer, 0, 0);
         self.set_bind_group(0, uniforms, &[]);
         self.set_bind_group(1, light, &[]);
         self.draw_indexed(0..mesh.num_elements, 0, instances);
     }
 
-    fn draw_light_model(&mut self, model: &Model, uniforms: &wgpu::BindGroup, light: &wgpu::BindGroup) {
+    fn draw_light_model(
+        &mut self,
+        model: &'b Model,
+        uniforms: &'b wgpu::BindGroup,
+        light: &'b wgpu::BindGroup,
+    ) {
         self.draw_light_model_instanced(model, 0..1, uniforms, light);
     }
-    fn draw_light_model_instanced(&mut self, model: &Model, instances: Range<u32>, uniforms: &wgpu::BindGroup, light: &wgpu::BindGroup) {
+    fn draw_light_model_instanced(
+        &mut self,
+        model: &'b Model,
+        instances: Range<u32>,
+        uniforms: &'b wgpu::BindGroup,
+        light: &'b wgpu::BindGroup,
+    ) {
         for mesh in &model.meshes {
             self.draw_light_mesh_instanced(mesh, instances.clone(), uniforms, light);
         }
@@ -513,7 +620,9 @@ struct Uniforms {
     view_position: cgmath::Vector4<f32>,
     view_proj: cgmath::Matrix4<f32>,
 }
-
+//If we want to use bytemuck, we must first implement these two traits
+unsafe impl bytemuck::Zeroable for Uniforms {}
+unsafe impl bytemuck::Pod for Uniforms {}
 impl Uniforms {
     fn new() -> Self {
         Self {
@@ -547,7 +656,8 @@ let uniform_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroup
             },
         },
         // ...
-    ]
+    ],
+    label: None,
 });
 ```
 
