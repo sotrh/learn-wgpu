@@ -1,6 +1,7 @@
 use image::GenericImageView;
 use std::path::Path;
 
+pub const DEPTH_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Depth32Float;
 
 pub struct Texture {
     pub texture: wgpu::Texture,
@@ -9,18 +10,30 @@ pub struct Texture {
 }
 
 impl Texture {
-    pub const DEPTH_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Depth32Float;
-
-    pub fn load<P: AsRef<Path>>(device: &wgpu::Device, path: P) -> Result<(Self, wgpu::CommandBuffer), failure::Error> {
+    pub fn load<P: AsRef<Path>>(
+        device: &wgpu::Device,
+        path: P,
+    ) -> Result<(Self, wgpu::CommandBuffer), failure::Error> {
         let img = image::open(path)?;
         Self::from_image(device, &img)
     }
 
-    pub fn create_depth_texture(device: &wgpu::Device, sc_desc: &wgpu::SwapChainDescriptor) -> Self {
+    pub fn create_depth_texture(
+        device: &wgpu::Device,
+        sc_desc: &wgpu::SwapChainDescriptor,
+    ) -> Self {
         let desc = wgpu::TextureDescriptor {
-            format: Self::DEPTH_FORMAT,
+            label: None,
+            size: wgpu::Extent3d {
+                width: sc_desc.width,
+                height: sc_desc.height,
+                depth: 1,
+            },
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: wgpu::TextureDimension::D2,
+            format: DEPTH_FORMAT,
             usage: wgpu::TextureUsage::OUTPUT_ATTACHMENT,
-            ..sc_desc.to_texture_desc()
         };
         let texture = device.create_texture(&desc);
 
@@ -34,18 +47,28 @@ impl Texture {
             mipmap_filter: wgpu::FilterMode::Nearest,
             lod_min_clamp: -100.0,
             lod_max_clamp: 100.0,
-            compare_function: wgpu::CompareFunction::Always,
+            compare: wgpu::CompareFunction::Always,
         });
 
-        Self { texture, view, sampler }
+        Self {
+            texture,
+            view,
+            sampler,
+        }
     }
 
-    pub fn from_bytes(device: &wgpu::Device, bytes: &[u8]) -> Result<(Self, wgpu::CommandBuffer), failure::Error> {
+    pub fn from_bytes(
+        device: &wgpu::Device,
+        bytes: &[u8],
+    ) -> Result<(Self, wgpu::CommandBuffer), failure::Error> {
         let img = image::load_from_memory(bytes)?;
         Self::from_image(device, &img)
     }
 
-    pub fn from_image(device: &wgpu::Device, img: &image::DynamicImage) -> Result<(Self, wgpu::CommandBuffer), failure::Error> {
+    pub fn from_image(
+        device: &wgpu::Device,
+        img: &image::DynamicImage,
+    ) -> Result<(Self, wgpu::CommandBuffer), failure::Error> {
         let rgba = img.to_rgba();
         let dimensions = img.dimensions();
 
@@ -55,8 +78,8 @@ impl Texture {
             depth: 1,
         };
         let texture = device.create_texture(&wgpu::TextureDescriptor {
+            label: None,
             size,
-            array_layer_count: 1,
             mip_level_count: 1,
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
@@ -65,8 +88,7 @@ impl Texture {
         });
 
         let buffer = device
-            .create_buffer_mapped(rgba.len(), wgpu::BufferUsage::COPY_SRC)
-            .fill_from_slice(&rgba);
+            .create_buffer_with_data(bytemuck::cast_slice(&rgba), wgpu::BufferUsage::COPY_SRC);
 
         let mut encoder = device.create_command_encoder(&Default::default());
 
@@ -74,15 +96,15 @@ impl Texture {
             wgpu::BufferCopyView {
                 buffer: &buffer,
                 offset: 0,
-                row_pitch: 4 * dimensions.0,
-                image_height: dimensions.1,
-            }, 
+                bytes_per_row: 4 * dimensions.0,
+                rows_per_image: dimensions.1,
+            },
             wgpu::TextureCopyView {
                 texture: &texture,
                 mip_level: 0,
                 array_layer: 0,
                 origin: wgpu::Origin3d::ZERO,
-            }, 
+            },
             size,
         );
 
@@ -98,9 +120,16 @@ impl Texture {
             mipmap_filter: wgpu::FilterMode::Nearest,
             lod_min_clamp: -100.0,
             lod_max_clamp: 100.0,
-            compare_function: wgpu::CompareFunction::Always,
+            compare: wgpu::CompareFunction::Always,
         });
-        
-        Ok((Self { texture, view, sampler }, cmd_buffer))
+
+        Ok((
+            Self {
+                texture,
+                view,
+                sampler,
+            },
+            cmd_buffer,
+        ))
     }
 }

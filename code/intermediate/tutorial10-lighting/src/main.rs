@@ -665,7 +665,7 @@ async fn run_async(event_loop: EventLoop<()>, window: Window) {
                     }
                 }
             }
-            Event::MainEventsCleared => {
+            Event::RedrawRequested(_) => {
                 if let Some(cmd_buf) = state.update(&device) {
                     queue.submit(&[cmd_buf]);
                 }
@@ -674,13 +674,6 @@ async fn run_async(event_loop: EventLoop<()>, window: Window) {
                     .expect("Timeout when acquiring next swap chain texture");
                 let command_buf = state.render(&frame, &device);
                 queue.submit(&[command_buf]);
-            }
-            Event::RedrawRequested(_) => {
-                let frame = swap_chain
-                    .get_next_texture()
-                    .expect("Timeout when acquiring next swap chain texture");
-                    let command_buf = state.render(&frame, &device);
-                    queue.submit(&[command_buf]);
             }
             _ => {}
         }

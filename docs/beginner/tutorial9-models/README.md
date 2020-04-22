@@ -65,9 +65,10 @@ This is basically the same as the original `VertexBufferDescriptor`, but we adde
 ```rust
 let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
     // ...
-    vertex_buffers: &[
-        model::ModelVertex::desc(),
-    ],
+    vertex_state: wgpu::VertexStateDescriptor {
+        index_format: wgpu::IndexFormat::Uint16,
+        vertex_buffers: &[model::ModelVertex::desc()],
+    },
     // ...
 });
 ```
@@ -133,10 +134,14 @@ With all that out of the way, we can get to loading our model.
 
 ```rust
 impl Model {
-    pub fn load<P: AsRef<Path>>(device: &wgpu::Device, path: P) -> Result<(Self, Vec<wgpu::CommandBuffer>), failure::Error> {
+    pub fn load<P: AsRef<Path>>(
+        device: &wgpu::Device,
+        layout: &wgpu::BindGroupLayout,
+        path: P,
+    ) -> Result<(Self, Vec<wgpu::CommandBuffer>), failure::Error> {
         let (obj_models, obj_materials) = tobj::load_obj(path.as_ref())?;
 
-        // We're assuming that the texture files are stored with the obj file        
+        // We're assuming that the texture files are stored with the obj file
         let containing_folder = path.as_ref().parent().unwrap();
 
         // Our `Texure` struct currently returns a `CommandBuffer` when it's created so we need to collect those and return them.
@@ -145,7 +150,24 @@ impl Model {
         let mut materials = Vec::new();
         for mat in obj_materials {
             let diffuse_path = mat.diffuse_texture;
-            let (diffuse_texture, cmds) = texture::Texture::load(&device, containing_folder.join(diffuse_path))?;
+            let (diffuse_texture, cmds) =
+                texture::Texture::load(&device, containing_folder.join(diffuse_path))?;
+
+            let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+                layout,
+                bindings: &[
+                    wgpu::Binding {
+                        binding: 0,
+                        resource: wgpu::BindingResource::TextureView(&diffuse_texture.view),
+                    },
+                    wgpu::Binding {
+                        binding: 1,
+                        resource: wgpu::BindingResource::Sampler(&diffuse_texture.sampler),
+                    },
+                ],
+                label: None,
+            });
+
             materials.push(Material {
                 name: mat.name,
                 diffuse_texture,
@@ -163,10 +185,7 @@ impl Model {
                         m.mesh.positions[i * 3 + 1],
                         m.mesh.positions[i * 3 + 2],
                     ],
-                    tex_coords: [
-                        m.mesh.texcoords[i * 2],
-                        m.mesh.texcoords[i * 2 + 1],
-                    ],
+                    tex_coords: [m.mesh.texcoords[i * 2], m.mesh.texcoords[i * 2 + 1]],
                     normal: [
                         m.mesh.normals[i * 3],
                         m.mesh.normals[i * 3 + 1],
@@ -175,13 +194,14 @@ impl Model {
                 });
             }
 
-            let vertex_buffer = device
-                .create_buffer_mapped(vertices.len(), wgpu::BufferUsage::VERTEX)
-                .fill_from_slice(&vertices);
-
-            let index_buffer = device
-                .create_buffer_mapped(m.mesh.indices.len(), wgpu::BufferUsage::INDEX)
-                .fill_from_slice(&m.mesh.indices);
+            let vertex_buffer = device.create_buffer_with_data(
+                bytemuck::cast_slice(&vertices),
+                wgpu::BufferUsage::VERTEX,
+            );
+            let index_buffer = device.create_buffer_with_data(
+                bytemuck::cast_slice(&m.mesh.indices),
+                wgpu::BufferUsage::INDEX,
+            );
 
             meshes.push(Mesh {
                 name: m.name,
@@ -191,8 +211,8 @@ impl Model {
                 material: m.mesh.material_id.unwrap_or(0),
             });
         }
-        
-        Ok((Self { meshes, materials, }, command_buffers))
+
+        Ok((Self { meshes, materials }, command_buffers))
     }
 }
 ```
@@ -202,8 +222,10 @@ Make sure that you change the `IndexFormat` that the `RenderPipeline` uses from 
 ```rust
 let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
     // ...
-    index_format: wgpu::IndexFormat::Uint32,
-    // ...
+    vertex_state: wgpu::VertexStateDescriptor {
+        index_format: wgpu::IndexFormat::Uint32,
+        vertex_buffers: &[model::ModelVertex::desc()],
+    },    // ...
 });
 ```
 
@@ -212,19 +234,32 @@ let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescrip
 Before we can draw the model, we need to be able to draw an individual mesh. Let's create a trait called `DrawModel`, and implement it for `RenderPass`.
 
 ```rust
-pub trait DrawModel {
-    fn draw_mesh(&mut self, mesh: &Mesh);
-    fn draw_mesh_instanced(&mut self, mesh: &Mesh, instances: Range<u32>);
+pub trait DrawModel<'a, 'b>
+where
+    'b: 'a,
+{
+    fn draw_mesh(&mut self, mesh: &'b Mesh);
+    fn draw_mesh_instanced(
+        &mut self,
+        mesh: &'b Mesh,
+        instances: Range<u32>,
+    );
 }
-
-impl<'a> DrawModel for wgpu::RenderPass<'a> {
-    fn draw_mesh(&mut self, mesh: &Mesh) {
+impl<'a, 'b> DrawModel<'a, 'b> for wgpu::RenderPass<'a>
+where
+    'b: 'a,
+{
+    fn draw_mesh(&mut self, mesh: &'b Mesh) {
         self.draw_mesh_instanced(mesh, 0..1);
     }
 
-    fn draw_mesh_instanced(&mut self, mesh: &Mesh, instances: Range<u32>) {
-        self.set_vertex_buffers(0, &[(&mesh.vertex_buffer, 0)]);
-        self.set_index_buffer(&mesh.index_buffer, 0);
+    fn draw_mesh_instanced(
+        &mut self,
+        mesh: &'b Mesh,
+        instances: Range<u32>,
+    ){
+        self.set_vertex_buffer(0, &mesh.vertex_buffer, 0, 0);
+        self.set_index_buffer(&mesh.index_buffer, 0, 0);
         self.draw_indexed(0..mesh.num_elements, 0, instances);
     }
 }
@@ -246,7 +281,6 @@ Before that though we need to actually load the model and save it to `State`. Pu
 
 ```rust
 let (obj_model, cmds) = model::Model::load(&device, "code/beginner/tutorial9-models/src/res/cube.obj").unwrap();
-queue.submit(&cmds);
 ```
 
 The path to the obj will be different for you, so keep that in mind.
@@ -299,22 +333,39 @@ pub struct Material {
 We're going to add a material parameter to `DrawModel`.
 
 ```rust
-pub trait DrawModel {
-    fn draw_mesh(&mut self, mesh: &Mesh, material: &Material, uniforms: &wgpu::BindGroup);
-    fn draw_mesh_instanced(&mut self, mesh: &Mesh, material: &Material, instances: Range<u32>, uniforms: &wgpu::BindGroup);
+pub trait DrawModel<'a, 'b>
+where
+    'b: 'a,
+{
+    fn draw_mesh(&mut self, mesh: &'b Mesh, material: &'b Material, uniforms: &'b wgpu::BindGroup);
+    fn draw_mesh_instanced(
+        &mut self,
+        mesh: &'b Mesh,
+        material: &'b Material,
+        instances: Range<u32>,
+        uniforms: &'b wgpu::BindGroup,
+    );
+
 }
 
-impl<'a> DrawModel for wgpu::RenderPass<'a> {
-    fn draw_mesh(&mut self, mesh: &Mesh, material: &Material, uniforms: &wgpu::BindGroup) {
+impl<'a, 'b> DrawModel<'a, 'b> for wgpu::RenderPass<'a>
+where
+    'b: 'a,
+{
+    fn draw_mesh(&mut self, mesh: &'b Mesh, material: &'b Material, uniforms: &'b wgpu::BindGroup) {
         self.draw_mesh_instanced(mesh, material, 0..1, uniforms);
     }
 
-    fn draw_mesh_instanced(&mut self, mesh: &Mesh, material: &Material, instances: Range<u32>, uniforms: &wgpu::BindGroup) {
-        self.set_vertex_buffers(0, &[(&mesh.vertex_buffer, 0)]);
-        self.set_index_buffer(&mesh.index_buffer, 0);
+    fn draw_mesh_instanced(
+        &mut self,
+        mesh: &'b Mesh,
+        material: &'b Material,
+        instances: Range<u32>,
+        uniforms: &'b wgpu::BindGroup,
+    ) {
+        self.set_vertex_buffer(0, &mesh.vertex_buffer, 0, 0);
+        self.set_index_buffer(&mesh.index_buffer, 0, 0);
         self.set_bind_group(0, &material.bind_group, &[]);
-        // Do to a bug in 0.4, we need to pass in the uniforms and bind them here.
-        // This will be fixed in 0.5
         self.set_bind_group(1, &uniforms, &[]);
         self.draw_indexed(0..mesh.num_elements, 0, instances);
     }
@@ -340,21 +391,34 @@ With all that in place we should get the following.
 Right now we are specifying the mesh and the material directly. This is useful if we want to draw a mesh with a different material. We're also not rendering other parts of the model (if we had some). Let's create a method for `DrawModel` that will draw all the parts of the model with their respective materials.
 
 ```rust
-pub trait DrawModel {
+pub trait DrawModel<'a, 'b>
+where
+    'b: 'a,
+{
     // ...
-
-    fn draw_model(&mut self, model: &Model, uniforms: &wgpu::BindGroup);
-    fn draw_model_instanced(&mut self, model: &Model, instances: Range<u32>,  uniforms: &wgpu::BindGroup);
+    fn draw_model(&mut self, model: &'b Model, uniforms: &'b wgpu::BindGroup);
+    fn draw_model_instanced(
+        &mut self,
+        model: &'b Model,
+        instances: Range<u32>,
+        uniforms: &'b wgpu::BindGroup,
+    );
 }
 
-impl<'a> DrawModel for wgpu::RenderPass<'a> {
+impl<'a, 'b> DrawModel<'a, 'b> for wgpu::RenderPass<'a>
+where
+    'b: 'a, {
     // ...
-
-    fn draw_model(&mut self, model: &Model, uniforms: &wgpu::BindGroup) {
+    fn draw_model(&mut self, model: &'b Model, uniforms: &'b wgpu::BindGroup) {
         self.draw_model_instanced(model, 0..1, uniforms);
     }
 
-    fn draw_model_instanced(&mut self, model: &Model, instances: Range<u32>,  uniforms: &wgpu::BindGroup) {
+    fn draw_model_instanced(
+        &mut self,
+        model: &'b Model,
+        instances: Range<u32>,
+        uniforms: &'b wgpu::BindGroup,
+    ) {
         for mesh in &model.meshes {
             let material = &model.materials[mesh.material];
             self.draw_mesh_instanced(mesh, material, instances.clone(), uniforms);
