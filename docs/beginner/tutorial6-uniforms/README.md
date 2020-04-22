@@ -35,23 +35,21 @@ impl Camera {
 The `build_view_projection_matrix` is where the magic happens. 
 1. The `view` matrix moves the world to be at the position and rotation of the camera. It's essentialy an the inverse of whatever the transform matrix of the camera would be. 
 2. The `proj` matrix warps the scene to give the effect of depth. Without this, objects up close would be the same size as objects far away.
-3. Cgmath is built with OpenGL in mind. If we try to use it as is, all our transformations will be out of wack. We'll define this matrix as follows.
+3. The coordinate system in Wgpu is based on DirectX, and Metal's coordinate systems. That means that in [normalized device coordinates](https://github.com/gfx-rs/gfx/tree/master/src/backend/dx12#normalized-coordinates) the x axis and y axis are in the range of -1.0 to +1.0, and the z axis is 0.0 to +1.0. The `cgmath` crate (as well as most game math crates) are built for OpenGL's coordinate system. This matrix will scale and translate our scene from OpenGL's coordinate sytem to WGPU's. We'll define it as follows.
 
 ```rust
 #[cfg_attr(rustfmt, rustfmt_skip)]
 pub const OPENGL_TO_WGPU_MATRIX: cgmath::Matrix4<f32> = cgmath::Matrix4::new(
     1.0, 0.0, 0.0, 0.0,
-    0.0, -1.0, 0.0, 0.0,
+    0.0, 1.0, 0.0, 0.0,
     0.0, 0.0, 0.5, 0.0,
     0.0, 0.0, 0.5, 1.0,
 );
 ```
 
-I am honestly not equipped to explain how this works, but you can read [https://matthewwellings.com/blog/the-new-vulkan-coordinate-system/](https://matthewwellings.com/blog/the-new-vulkan-coordinate-system/) if you want to know more. All we need to know is that we need to use `OPENGL_TO_WGPU_MATRIX` only one time, when we create our projection matrix.
+* Note: We don't explicitly **need** the `OPENGL_TO_WGPU_MATRIX`, but models centered on (0, 0, 0) will be halfway inside the clipping area. This is only an issue if you aren't using a camera matrix.
 
-Using this conversion matrix means we're going to have to change 
-
-Now that that's done, let's add a `camera` field to `State`.
+Now let's add a `camera` field to `State`.
 
 ```rust
 struct State {
@@ -60,12 +58,13 @@ struct State {
     // ...
 }
 
-fn new(window: &Window) -> Self {
+async fn new(window: &Window) -> Self {
     // let diffuse_bind_group ...
 
     let camera = Camera {
         // position the camera one unit up and 2 units back
-        eye: (0.0, 1.0, -2.0).into(),
+        // +z is out of the screen
+        eye: (0.0, 1.0, 2.0).into(),
         // have it look at the origin
         target: (0.0, 0.0, 0.0).into(),
         // which way is "up"
@@ -119,10 +118,10 @@ Now that we have our data structured, let's make our `uniform_buffer`.
 let mut uniforms = Uniforms::new();
 uniforms.update_view_proj(&camera);
 
-let uniform_buffer = device
-    // The COPY_DST part will be important later
-    .create_buffer_mapped(1, wgpu::BufferUsage::UNIFORM | wgpu::BufferUsage::COPY_DST)
-    .fill_from_slice(&[uniforms]);
+let uniform_buffer = device.create_buffer_with_data(
+    bytemuck::cast_slice(&[uniforms]),
+    wgpu::BufferUsage::UNIFORM | wgpu::BufferUsage::COPY_DST,
+);
 ```
 
 ## Uniform buffers and bind groups
@@ -132,14 +131,15 @@ Cool, now that we have a uniform buffer, what do we do with it? The answer is we
 ```rust
 let uniform_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
     bindings: &[
-        wgpu::BindGroupLayoutBinding {
+        wgpu::BindGroupLayoutEntry {
             binding: 0,
-            visibility: wgpu::ShaderStage::VERTEX, // 1.
+            visibility: wgpu::ShaderStage::VERTEX,
             ty: wgpu::BindingType::UniformBuffer {
-                dynamic: false, // 2.
+                dynamic: false,
             },
         }
-    ]
+    ],
+    label: Some("uniform_bind_group_layout"),
 });
 ```
 
@@ -161,6 +161,7 @@ let uniform_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
             }
         }
     ],
+    label: Some("uniform_bind_group"),
 });
 ```
 
@@ -182,7 +183,7 @@ struct State {
     uniform_bind_group: wgpu::BindGroup,
 }
 
-fn new(window: &Window) -> Self {
+async fn new(window: &Window) -> Self {
     // ...
     Self {
         // ...
@@ -202,8 +203,8 @@ render_pass.set_pipeline(&self.render_pipeline);
 render_pass.set_bind_group(0, &self.diffuse_bind_group, &[]);
 // NEW!
 render_pass.set_bind_group(1, &self.uniform_bind_group, &[]);
-render_pass.set_vertex_buffers(0, &[(&self.vertex_buffer, 0)]);
-render_pass.set_index_buffer(&self.index_buffer, 0);
+render_pass.set_vertex_buffer(0, &self.vertex_buffer, 0, 0);
+render_pass.set_index_buffer(&self.index_buffer, 0, 0);
 render_pass.draw_indexed(0..self.num_indices, 0, 0..1);
 ```
 
@@ -236,31 +237,11 @@ void main() {
 2. The `uniform` block requires us to specify global identifiers for all the fields we intend to use. It's important to only specify fields that are actually in our uniform buffer, as trying to access data that isn't there may lead to undefined behavior.
 3. Multiplication order is important when it comes to matrices. The vector always goes on the right, and the matrices gone on the left in order of importance.
 
-## Changing our vertices again
-
-Because our correction matrix makes positive y up. Our model is not only upside down, it's also facing the wrong way. This might make you think that adding our correction matrix was a mistake, and you'd have a point. The thing is, most models you find online, and most modeling software expects y to be up. If we try to render any models without the correction matrix, they will likely be upside-down and inside-out. Since our model is still very simple we can easily change it to work with our new setup.
-
-```rust
-const VERTICES: &[Vertex] = &[
-    Vertex { position: [-0.0868241, -0.49240386, 0.0], tex_coords: [1.0 - 0.4131759, 1.0 - 0.00759614], }, // A
-    Vertex { position: [-0.49513406, -0.06958647, 0.0], tex_coords: [1.0 - 0.0048659444, 1.0 - 0.43041354], }, // B
-    Vertex { position: [-0.21918549, 0.44939706, 0.0], tex_coords: [1.0 - 0.28081453, 1.0 - 0.949397057], }, // C
-    Vertex { position: [0.35966998, 0.3473291, 0.0], tex_coords: [1.0 - 0.85967, 1.0 - 0.84732911], }, // D
-    Vertex { position: [0.44147372, -0.2347359, 0.0], tex_coords: [1.0 - 0.9414737, 1.0 - 0.2652641], }, // E
-];
-
-const INDICES: &[u16] = &[
-    0, 1, 4,
-    1, 2, 4,
-    2, 3, 4,
-];
-```
-
 ## A controller for our camera
 
 If you run the code right now, you should get something that looks like this.
 
-![static-tree.png](static-tree.png)
+![./static-tree.png](./static-tree.png)
 
 The shape's less stretched now, but it's still pretty static. You can experiment with moving the camera position around, but most cameras in games move around. Since this tutorial is about using wgpu and not how to process user input, I'm just going to post the `CameraController` code below.
 
@@ -368,7 +349,7 @@ struct State {
 }
 // ...
 impl State {
-    fn new(window: &Window) -> Self {
+    async fn new(window: &Window) -> Self {
         // ...
         let camera_controller = CameraController::new(0.2);
         // ...
@@ -397,19 +378,20 @@ Up to this point, the camera controller isn't actually doing anything. The value
 Enough about that though, let's get into actually implementing the code.
 
 ```rust
-fn update(&mut self) {
+async fn update(&mut self) {
     self.camera_controller.update_camera(&mut self.camera);
     self.uniforms.update_view_proj(&self.camera);
 
     // Copy operation's are performed on the gpu, so we'll need
     // a CommandEncoder for that
     let mut encoder = self.device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
-        todo: 0,
+        label: Some("update encoder"),
     });
 
-    let staging_buffer = self.device
-        .create_buffer_mapped(1, wgpu::BufferUsage::COPY_SRC)
-        .fill_from_slice(&[self.uniforms]);
+    let staging_buffer = self.device.create_buffer_with_data(
+        bytemuck::cast_slice(&[self.uniforms]),
+        wgpu::BufferUsage::COPY_SRC,
+    );
 
     encoder.copy_buffer_to_buffer(&staging_buffer, 0, &self.uniform_buffer, 0, std::mem::size_of::<Uniforms>() as wgpu::BufferAddress);
 
