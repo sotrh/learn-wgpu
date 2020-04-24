@@ -7,12 +7,14 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-image = "0.22"
-winit = "0.20"
+image = "0.23.4"
+winit = "0.22.1"
 glsl-to-spirv = "0.1"
-wgpu = "0.4"
 cgmath = "0.17"
 failure = "0.1"
+wgpu = "0.5.0"
+futures = "0.3.4"
+bytemuck = "1.2.0"
 
 [[bin]]
 name = "tutorial7-instancing"

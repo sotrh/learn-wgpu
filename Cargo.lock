@@ -2009,12 +2009,14 @@ dependencies = [
 name = "tutorial7-instancing"
 version = "0.1.0"
 dependencies = [
+ "bytemuck 1.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "cgmath 0.17.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "failure 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "futures 0.3.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "glsl-to-spirv 0.1.7 (registry+https://github.com/rust-lang/crates.io-index)",
- "image 0.22.4 (registry+https://github.com/rust-lang/crates.io-index)",
- "wgpu 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "winit 0.20.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "image 0.23.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "wgpu 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "winit 0.22.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -2028,7 +2030,7 @@ dependencies = [
  "glsl-to-spirv 0.1.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "image 0.23.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "tobj 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "wgpu 0.5.0 (git+https://github.com/gfx-rs/wgpu-rs.git)",
+ "wgpu 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "winit 0.22.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
