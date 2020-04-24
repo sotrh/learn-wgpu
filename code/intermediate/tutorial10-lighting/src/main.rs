@@ -177,6 +177,11 @@ unsafe impl bytemuck::Zeroable for Light {}
 unsafe impl bytemuck::Pod for Light {}
 
 struct State {
+    surface: wgpu::Surface,
+    device: wgpu::Device,
+    queue: wgpu::Queue,
+    sc_desc: wgpu::SwapChainDescriptor,
+    swap_chain: wgpu::SwapChain,
     render_pipeline: wgpu::RenderPipeline,
     obj_model: model::Model,
     camera: Camera,
@@ -188,6 +193,7 @@ struct State {
     instance_buffer: wgpu::Buffer,
     depth_texture: wgpu::Texture,
     depth_texture_view: wgpu::TextureView,
+    size: winit::dpi::PhysicalSize<u32>,
     light: Light,
     light_buffer: wgpu::Buffer,
     light_bind_group: wgpu::BindGroup,
@@ -254,10 +260,37 @@ fn create_render_pipeline(
 }
 
 impl State {
-    fn new(
-        sc_desc: &wgpu::SwapChainDescriptor,
-        device: &wgpu::Device,
-    ) -> (Self, Option<Vec<wgpu::CommandBuffer>>) {
+    async fn new(window: &Window) -> Self {
+        let size = window.inner_size();
+
+        let surface = wgpu::Surface::create(window);
+
+        let adapter = wgpu::Adapter::request(
+            &wgpu::RequestAdapterOptions {
+                power_preference: wgpu::PowerPreference::Default,
+                compatible_surface: Some(&surface),
+            },
+            wgpu::BackendBit::PRIMARY, // Vulkan + Metal + DX12 + Browser WebGPU
+        ).await.unwrap();
+
+        let (device, queue) = adapter.request_device(&wgpu::DeviceDescriptor {
+            extensions: wgpu::Extensions {
+                anisotropic_filtering: false,
+            },
+            limits: Default::default(),
+        }).await;
+
+
+        let sc_desc = wgpu::SwapChainDescriptor {
+            usage: wgpu::TextureUsage::OUTPUT_ATTACHMENT,
+            format: wgpu::TextureFormat::Bgra8UnormSrgb,
+            width: size.width,
+            height: size.height,
+            present_mode: wgpu::PresentMode::Fifo,
+        };
+
+        let swap_chain = device.create_swap_chain(&surface, &sc_desc);
+
         let texture_bind_group_layout =
             device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
                 bindings: &[
@@ -381,6 +414,8 @@ impl State {
         let (obj_model, cmds) =
             model::Model::load(&device, &texture_bind_group_layout, "code/intermediate/tutorial10-lighting/src/res/cube.obj").unwrap();
 
+        queue.submit(&cmds);
+
         let light = Light {
             position: (2.0, 2.0, 2.0).into(),
             _padding: 0,
@@ -460,7 +495,12 @@ impl State {
             )
         };
 
-        let state = Self {
+        Self {
+            surface,
+            device,
+            queue,
+            sc_desc,
+            swap_chain,
             render_pipeline,
             obj_model,
             camera,
@@ -472,36 +512,35 @@ impl State {
             instance_buffer,
             depth_texture,
             depth_texture_view,
+            size,
             light,
             light_buffer,
             light_bind_group,
             light_render_pipeline,
-        };
+        }
 
-        (state, Some(cmds))
     }
-    fn resize(
-        &mut self,
-        sc_desc: &wgpu::SwapChainDescriptor,
-        device: &wgpu::Device,
-    ) -> Option<wgpu::CommandBuffer> {
-        self.depth_texture = texture::Texture::create_depth_texture(device, sc_desc).texture;
+    async fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
+        self.depth_texture = texture::Texture::create_depth_texture(&self.device, &self.sc_desc).texture;
         self.depth_texture_view = self.depth_texture.create_default_view();
-        self.camera.aspect = sc_desc.width as f32 / sc_desc.height as f32;
+        self.camera.aspect = self.sc_desc.width as f32 / self.sc_desc.height as f32;
+        self.size = new_size;
+        self.sc_desc.width = new_size.width;
+        self.sc_desc.height = new_size.height;
+        self.swap_chain = self.device.create_swap_chain(&self.surface, &self.sc_desc);
 
-        None
     }
     fn input(&mut self, event: &WindowEvent) -> bool {
         self.camera_controller.process_events(event)
     }
-    fn update(&mut self, device: &wgpu::Device) -> Option<wgpu::CommandBuffer> {
+    async fn update(&mut self) {
         self.camera_controller.update_camera(&mut self.camera);
         self.uniforms.update_view_proj(&self.camera);
 
         let mut encoder =
-            device.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
+            self.device.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
 
-        let staging_buffer = device.create_buffer_with_data(
+        let staging_buffer = self.device.create_buffer_with_data(
             bytemuck::cast_slice(&[self.uniforms]),
             wgpu::BufferUsage::COPY_SRC,
         );
@@ -520,7 +559,7 @@ impl State {
             cgmath::Quaternion::from_axis_angle((0.0, 1.0, 0.0).into(), cgmath::Deg(1.0))
                 * old_position;
 
-        let staging_buffer = device.create_buffer_with_data(
+        let staging_buffer = self.device.create_buffer_with_data(
             bytemuck::cast_slice(&[self.light]),
             wgpu::BufferUsage::COPY_SRC,
         );
@@ -532,15 +571,13 @@ impl State {
             std::mem::size_of::<Light>() as wgpu::BufferAddress,
         );
 
-        Some(encoder.finish())
+        self.queue.submit(&[encoder.finish()]);
     }
-    fn render(
-        &mut self,
-        frame: &wgpu::SwapChainOutput,
-        device: &wgpu::Device,
-    ) -> wgpu::CommandBuffer {
+    async fn render(&mut self) {
+        let frame = self.swap_chain.get_next_texture()
+        .expect("Timeout getting texture");
         let mut encoder =
-            device.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
+            self.device.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
         {
             let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 color_attachments: &[wgpu::RenderPassColorAttachmentDescriptor {
@@ -579,48 +616,20 @@ impl State {
                 &self.light_bind_group,
             );
         }
-        encoder.finish()
+        self.queue.submit(&[encoder.finish()]);
     }
 }
 
-async fn run_async(event_loop: EventLoop<()>, window: Window) {
-    let size = window.inner_size();
-    let surface = wgpu::Surface::create(&window);
-    let adapter = wgpu::Adapter::request(
-        &wgpu::RequestAdapterOptions {
-            power_preference: wgpu::PowerPreference::Default,
-            compatible_surface: Some(&surface),
-        },
-        wgpu::BackendBit::PRIMARY,
-    )
-    .await
-    .unwrap();
-    let (device, queue) = adapter
-        .request_device(&wgpu::DeviceDescriptor {
-            extensions: wgpu::Extensions {
-                anisotropic_filtering: false,
-            },
-            limits: wgpu::Limits::default(),
-        })
-        .await;
-    let mut sc_desc = wgpu::SwapChainDescriptor {
-        usage: wgpu::TextureUsage::OUTPUT_ATTACHMENT,
-        format: if cfg!(target_arch = "wasm32") {
-            wgpu::TextureFormat::Bgra8Unorm
-        } else {
-            wgpu::TextureFormat::Bgra8UnormSrgb
-        },
-        width: size.width,
-        height: size.height,
-        present_mode: wgpu::PresentMode::Mailbox,
-    };
-    let mut swap_chain = device.create_swap_chain(&surface, &sc_desc);
 
-    let (mut state, init_cmds_buf) = State::new(&sc_desc, &device);
-
-    if let Some(cmds_buf) = init_cmds_buf {
-        queue.submit(&cmds_buf);
-    }
+fn main() {
+    let event_loop = EventLoop::new();
+    let title = "tutorial10-lighting";
+    let window = winit::window::WindowBuilder::new()
+        .with_title(title)
+        .build(&event_loop)
+        .unwrap();
+    use futures::executor::block_on;
+    let mut state = block_on(State::new(&window));
     event_loop.run(move |event, _, control_flow| {
         *control_flow = ControlFlow::Poll;
         match event {
@@ -643,51 +652,22 @@ async fn run_async(event_loop: EventLoop<()>, window: Window) {
                             _ => {}
                         },
                         WindowEvent::Resized(physical_size) => {
-                            sc_desc.width = physical_size.width;
-                            sc_desc.height = physical_size.height;
-                            swap_chain = device.create_swap_chain(&surface, &sc_desc);
-
-                            let cmd_buf = state.resize(&sc_desc, &device);
-                            if let Some(cmd_buf) = cmd_buf {
-                                queue.submit(&[cmd_buf]);
-                            }
+                            block_on(state.resize(*physical_size));
                         }
                         WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
-                            sc_desc.width = new_inner_size.width;
-                            sc_desc.height = new_inner_size.height;
-                            swap_chain = device.create_swap_chain(&surface, &sc_desc);
-                            let cmd_buf = state.resize(&sc_desc, &device);
-                            if let Some(cmd_buf) = cmd_buf {
-                                queue.submit(&[cmd_buf]);
-                            }
+                            block_on(state.resize(**new_inner_size));
                         }
                         _ => {}
                     }
                 }
             }
             Event::RedrawRequested(_) => {
-                if let Some(cmd_buf) = state.update(&device) {
-                    queue.submit(&[cmd_buf]);
-                }
-                let frame = swap_chain
-                    .get_next_texture()
-                    .expect("Timeout when acquiring next swap chain texture");
-                let command_buf = state.render(&frame, &device);
-                queue.submit(&[command_buf]);
+                block_on(state.update());
+                block_on(state.render());
             }
             _ => {}
         }
     });
-}
-
-fn main() {
-    let event_loop = EventLoop::new();
-    let title = "tutorial10-lighting";
-    let window = winit::window::WindowBuilder::new()
-        .with_title(title)
-        .build(&event_loop)
-        .unwrap();
-    futures::executor::block_on(run_async(event_loop, window));
 }
 #[inline]
 pub fn matrix4f_cast_slice(a: &[Vec<cgmath::Matrix4<f32>>]) -> &[u8] {
