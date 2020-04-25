@@ -80,11 +80,16 @@ Speaking of textures, let's add a `load()` method to `Texture` in `texture.rs`.
 ```rust
 use std::path::Path;
 
-impl Texture {
-    pub fn load<P: AsRef<Path>>(device: &wgpu::Device, path: P) -> Result<(Self, wgpu::CommandBuffer), failure::Error> {
-        let img = image::open(path)?;
-        Self::from_image(device, &img)
-    }
+pub fn load<P: AsRef<Path>>(
+    device: &wgpu::Device,
+    path: P,
+) -> Result<(Self, wgpu::CommandBuffer), failure::Error> {
+    // Needed to appease the borrow checker
+    let path_copy = path.as_ref().to_path_buf();
+    let label = path_copy.to_str();
+    
+    let img = image::open(path)?;
+    Self::from_image(device, &img, label)
 }
 ```
 

@@ -13,7 +13,7 @@ use model::{DrawModel, Vertex};
 #[cfg_attr(rustfmt, rustfmt_skip)]
 pub const OPENGL_TO_WGPU_MATRIX: cgmath::Matrix4<f32> = cgmath::Matrix4::new(
     1.0, 0.0, 0.0, 0.0,
-    0.0, -1.0, 0.0, 0.0,
+    0.0, 1.0, 0.0, 0.0,
     0.0, 0.0, 0.5, 0.0,
     0.0, 0.0, 0.5, 1.0,
 );
@@ -52,8 +52,7 @@ impl Uniforms {
     }
 
     fn update_view_proj(&mut self, camera: &Camera) {
-        self.view_proj = camera.build_view_projection_matrix();
-        // self.view_proj = OPENGL_TO_WGPU_MATRIX * camera.build_view_projection_matrix();
+        self.view_proj = OPENGL_TO_WGPU_MATRIX * camera.build_view_projection_matrix();
     }
 }
 unsafe impl bytemuck::Zeroable for Uniforms {}
@@ -152,10 +151,21 @@ struct Instance {
 }
 
 impl Instance {
-    fn to_matrix(&self) -> cgmath::Matrix4<f32> {
-        cgmath::Matrix4::from_translation(self.position) * cgmath::Matrix4::from(self.rotation)
+    fn to_raw(&self) -> InstanceRaw {
+        InstanceRaw {
+            model: cgmath::Matrix4::from_translation(self.position) * cgmath::Matrix4::from(self.rotation),
+        }
     }
 }
+
+#[derive(Copy, Clone)]
+struct InstanceRaw {
+    #[allow(dead_code)]
+    model: cgmath::Matrix4<f32>,
+}
+
+unsafe impl bytemuck::Pod for InstanceRaw {}
+unsafe impl bytemuck::Zeroable for InstanceRaw {}
 
 struct State {
     surface: wgpu::Surface,
@@ -171,9 +181,9 @@ struct State {
     uniform_buffer: wgpu::Buffer,
     uniform_bind_group: wgpu::BindGroup,
     instances: Vec<Instance>,
+    #[allow(dead_code)]
     instance_buffer: wgpu::Buffer,
-    depth_texture: wgpu::Texture,
-    depth_texture_view: wgpu::TextureView,
+    depth_texture: texture::Texture,
     size: winit::dpi::PhysicalSize<u32>,
 }
 
@@ -277,12 +287,12 @@ impl State {
 
         let instance_data = instances
             .iter()
-            .map(Instance::to_matrix)
+            .map(Instance::to_raw)
             .collect::<Vec<_>>();
         let instance_buffer_size =
             instance_data.len() * std::mem::size_of::<cgmath::Matrix4<f32>>();
         let instance_buffer = device.create_buffer_with_data(
-            matrix4f_cast_slice(&[instance_data]),
+            bytemuck::cast_slice(&instance_data),
             wgpu::BufferUsage::STORAGE_READ,
         );
 
@@ -343,8 +353,7 @@ impl State {
         let vs_module = device.create_shader_module(&vs_data);
         let fs_module = device.create_shader_module(&fs_data);
 
-        let depth_texture = texture::Texture::create_depth_texture(&device, &sc_desc).texture;
-        let depth_texture_view = depth_texture.create_default_view();
+        let depth_texture = texture::Texture::create_depth_texture(&device, &sc_desc, "depth_texture");
 
         let render_pipeline_layout =
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
@@ -376,7 +385,7 @@ impl State {
                 write_mask: wgpu::ColorWrite::ALL,
             }],
             depth_stencil_state: Some(wgpu::DepthStencilStateDescriptor {
-                format: texture::DEPTH_FORMAT,
+                format: texture::Texture::DEPTH_FORMAT,
                 depth_write_enabled: true,
                 depth_compare: wgpu::CompareFunction::Less,
                 stencil_front: wgpu::StencilStateFaceDescriptor::IGNORE,
@@ -409,14 +418,12 @@ impl State {
             instances,
             instance_buffer,
             depth_texture,
-            depth_texture_view,
             size,
         }
     }
 
     async fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
-        self.depth_texture = texture::Texture::create_depth_texture(&self.device, &self.sc_desc).texture;
-        self.depth_texture_view = self.depth_texture.create_default_view();
+        self.depth_texture = texture::Texture::create_depth_texture(&self.device, &self.sc_desc, "depth_texture");
         self.camera.aspect = self.sc_desc.width as f32 / self.sc_desc.height as f32;
         self.size = new_size;
         self.sc_desc.width = new_size.width;
@@ -471,7 +478,7 @@ impl State {
                     },
                 }],
                 depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachmentDescriptor {
-                    attachment: &self.depth_texture_view,
+                    attachment: &self.depth_texture.view,
                     depth_load_op: wgpu::LoadOp::Clear,
                     depth_store_op: wgpu::StoreOp::Store,
                     clear_depth: 1.0,
@@ -495,54 +502,50 @@ impl State {
 
 fn main() {
     let event_loop = EventLoop::new();
-    let title = "tutorial9-models";
+    let title = env!("CARGO_PKG_NAME");
     let window = winit::window::WindowBuilder::new()
         .with_title(title)
         .build(&event_loop)
         .unwrap();
-        use futures::executor::block_on;
-        let mut state = block_on(State::new(&window));
-        event_loop.run(move |event, _, control_flow| {
-            *control_flow = ControlFlow::Poll;
-            match event {
-                Event::MainEventsCleared => window.request_redraw(),
-                Event::WindowEvent {
-                    ref event,
-                    window_id,
-                } if window_id == window.id() => {
-                    if !state.input(event) {
-                        match event {
-                            WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
-                            WindowEvent::KeyboardInput { input, .. } => match input {
-                                KeyboardInput {
-                                    state: ElementState::Pressed,
-                                    virtual_keycode: Some(VirtualKeyCode::Escape),
-                                    ..
-                                } => {
-                                    *control_flow = ControlFlow::Exit;
-                                }
-                                _ => {}
-                            },
-                            WindowEvent::Resized(physical_size) => {
-                                block_on(state.resize(*physical_size));
-                            }
-                            WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
-                                block_on(state.resize(**new_inner_size));
+
+    use futures::executor::block_on;
+    let mut state = block_on(State::new(&window));
+    event_loop.run(move |event, _, control_flow| {
+        *control_flow = ControlFlow::Poll;
+        match event {
+            Event::MainEventsCleared => window.request_redraw(),
+            Event::WindowEvent {
+                ref event,
+                window_id,
+            } if window_id == window.id() => {
+                if !state.input(event) {
+                    match event {
+                        WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
+                        WindowEvent::KeyboardInput { input, .. } => match input {
+                            KeyboardInput {
+                                state: ElementState::Pressed,
+                                virtual_keycode: Some(VirtualKeyCode::Escape),
+                                ..
+                            } => {
+                                *control_flow = ControlFlow::Exit;
                             }
                             _ => {}
+                        },
+                        WindowEvent::Resized(physical_size) => {
+                            block_on(state.resize(*physical_size));
                         }
+                        WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
+                            block_on(state.resize(**new_inner_size));
+                        }
+                        _ => {}
                     }
                 }
-                Event::RedrawRequested(_) => {
-                    block_on(state.update());
-                    block_on(state.render());
-                }
-                _ => {}
             }
-        });
-}
-#[inline]
-pub fn matrix4f_cast_slice(a: &[Vec<cgmath::Matrix4<f32>>]) -> &[u8] {
-    let new_len = a[0].len() * std::mem::size_of::<cgmath::Matrix4<f32>>();
-    unsafe { core::slice::from_raw_parts(a[0].as_ptr() as *const u8, new_len) }
+            Event::RedrawRequested(_) => {
+                block_on(state.update());
+                block_on(state.render());
+            }
+            _ => {}
+        }
+    });
 }
