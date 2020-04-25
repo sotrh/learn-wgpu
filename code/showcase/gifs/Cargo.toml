@@ -13,7 +13,8 @@ glsl-to-spirv = "0.1.7"
 cgmath = "0.17.0"
 failure = "0.1"
 tobj = "0.1"
-wgpu = "0.4.0"
+wgpu = "0.5.0"
+futures = "0.3.4"
 gif = "0.10.3"
 
 framework = { path = "../framework" }

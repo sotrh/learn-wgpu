@@ -44,9 +44,9 @@ impl Vertex for ModelVertex {
     }
 }
 
-pub struct Material {
+pub struct Material<'a> {
     pub name: String,
-    pub diffuse_texture: texture::Texture,
+    pub diffuse_texture: texture::Texture<'a>,
     pub bind_group: wgpu::BindGroup,
 }
 
@@ -58,12 +58,12 @@ pub struct Mesh {
     pub material: usize,
 }
 
-pub struct Model {
+pub struct Model<'a> {
     pub meshes: Vec<Mesh>,
-    pub materials: Vec<Material>,
+    pub materials: Vec<Material<'a>>,
 }
 
-impl Model {
+impl<'a> Model<'a> {
     pub fn load<P: AsRef<Path>>(
         device: &wgpu::Device,
         layout: &wgpu::BindGroupLayout,

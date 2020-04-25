@@ -5,14 +5,14 @@ use std::mem;
 use crate::buffer;
 
 
-pub struct Texture {
+pub struct Texture<'a> {
     pub texture: wgpu::Texture,
     pub view: wgpu::TextureView,
     pub sampler: wgpu::Sampler,
-    // pub desc: wgpu::TextureDescriptor,
+    pub desc: wgpu::TextureDescriptor<'a>,
 }
 
-impl Texture {
+impl<'a> Texture<'a> {
     pub const DEPTH_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Depth32Float;
 
     pub fn load<P: AsRef<Path>>(device: &wgpu::Device, path: P) -> Result<(Self, wgpu::CommandBuffer), failure::Error> {
@@ -28,7 +28,7 @@ impl Texture {
                 height: sc_desc.height,
                 depth: 1,
             },
-            array
+            array_layer_count: 1,
             mip_level_count: 1,
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
@@ -38,7 +38,7 @@ impl Texture {
         Self::from_descriptor(device, desc)
     }
 
-    pub fn from_descriptor(device: &wgpu::Device, desc: wgpu::TextureDescriptor) -> Self {
+    pub fn from_descriptor(device: &wgpu::Device, desc: wgpu::TextureDescriptor<'a>) -> Self {
         let texture = device.create_texture(&desc);
 
         let view = texture.create_default_view();
@@ -54,7 +54,7 @@ impl Texture {
             compare: wgpu::CompareFunction::LessEqual,
         });
 
-        Self { texture, view, sampler, /*desc*/ }
+        Self { texture, view, sampler, desc }
     }
 
     pub fn from_bytes(device: &wgpu::Device, bytes: &[u8]) -> Result<(Self, wgpu::CommandBuffer), failure::Error> {
@@ -88,7 +88,9 @@ impl Texture {
             wgpu::BufferUsage::COPY_SRC,
         );
 
-        let mut encoder = device.create_command_encoder(&Default::default());
+        let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
+            label: None,
+        });
 
         encoder.copy_buffer_to_texture(
             wgpu::BufferCopyView {
