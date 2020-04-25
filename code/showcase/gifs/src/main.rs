@@ -113,16 +113,16 @@ async fn run() {
         queue.submit(&[encoder.finish()]);
 
         let frames_clone = frames.clone();
-
         
-        let mapping = output_buffer.map_read(0, buffer_size);
+        // Create the map request
+        let request = output_buffer.map_read(0, buffer_size);
         // wait for the GPU to finish
         device.poll(wgpu::Maintain::Wait);
-        let result = mapping.await;
+        let result = request.await;
         
         match result {
-            Ok(mapping) => {
-                let data = Vec::from(mapping.as_slice());
+            Ok(pixels) => {
+                let data = Vec::from(pixels.as_slice());
                 let mut f = frames_clone.lock().unwrap();
                 (*f).push(data);
             }

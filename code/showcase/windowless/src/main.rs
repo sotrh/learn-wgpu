@@ -1,8 +1,12 @@
-fn main() {
-    let adapter = wgpu::Adapter::request(&wgpu::RequestAdapterOptions {
-        ..Default::default()
-    }).unwrap();
-    let (device, mut queue) = adapter.request_device(&Default::default());
+async fn run() {
+    let adapter = wgpu::Adapter::request(
+        &wgpu::RequestAdapterOptions {
+            power_preference: wgpu::PowerPreference::Default,
+            compatible_surface: None,
+        },
+        wgpu::BackendBit::PRIMARY,
+    ).await.unwrap();
+    let (device, queue) = adapter.request_device(&Default::default()).await;
 
     let texture_size = 256u32;
     let texture_desc = wgpu::TextureDescriptor {
@@ -19,17 +23,21 @@ fn main() {
         usage: wgpu::TextureUsage::COPY_SRC
             | wgpu::TextureUsage::OUTPUT_ATTACHMENT
             ,
+        label: None,
     };
     let texture = device.create_texture(&texture_desc);
     let texture_view = texture.create_default_view();
 
+    // we need to store this for later
     let u32_size = std::mem::size_of::<u32>() as u32;
+
     let output_buffer_size = (u32_size * texture_size * texture_size) as wgpu::BufferAddress;
     let output_buffer_desc = wgpu::BufferDescriptor {
         size: output_buffer_size,
         usage: wgpu::BufferUsage::COPY_DST
-            | wgpu::BufferUsage::MAP_READ
-            ,
+            // this tells wpgu that we want to read this buffer from the cpu
+            | wgpu::BufferUsage::MAP_READ,
+        label: None,
     };
     let output_buffer = device.create_buffer(&output_buffer_desc);
 
@@ -73,15 +81,17 @@ fn main() {
             },
         ],
         depth_stencil_state: None,
-        index_format: wgpu::IndexFormat::Uint16,
-        vertex_buffers: &[],
+        vertex_state: wgpu::VertexStateDescriptor {
+            index_format: wgpu::IndexFormat::Uint16,
+            vertex_buffers: &[],
+        },
         sample_count: 1,
         sample_mask: !0,
         alpha_to_coverage_enabled: false,
     });
 
     let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
-        todo: 0,
+        label: None,
     });
 
     {
@@ -118,25 +128,33 @@ fn main() {
         wgpu::BufferCopyView {
             buffer: &output_buffer,
             offset: 0,
-            row_pitch: u32_size * texture_size,
-            image_height: texture_size,
+            bytes_per_row: u32_size * texture_size,
+            rows_per_image: texture_size,
         },
         texture_desc.size,
     );
 
     queue.submit(&[encoder.finish()]);
 
-    output_buffer.map_read_async(0, output_buffer_size, move |result: wgpu::BufferMapAsyncResult<&[u8]>| {
-        let mapping = result.unwrap();
-        let data = mapping.data;
+    // NOTE: We have to create the mapping THEN device.poll(). If we don't
+    // the application will freeze.
+    let mapping = output_buffer.map_read(0, output_buffer_size);
+    device.poll(wgpu::Maintain::Wait);
+    
+    let result = mapping.await.unwrap();
+    let data = result.as_slice();
 
-        use image::{ImageBuffer, Rgba};
-        let buffer = ImageBuffer::<Rgba<u8>, _>::from_raw(
-            texture_size,
-            texture_size,
-            data,
-        ).unwrap();
+    use image::{ImageBuffer, Rgba};
+    let buffer = ImageBuffer::<Rgba<u8>, _>::from_raw(
+        texture_size,
+        texture_size,
+        data,
+    ).unwrap();
 
-        buffer.save("image.png").unwrap();
-    });
+    buffer.save("image.png").unwrap();
+}
+
+fn main() {
+    use futures::executor::block_on;
+    block_on(run());
 }
