@@ -30,6 +30,9 @@ struct Light {
     _padding: u32,
     color: cgmath::Vector3<f32>,
 }
+
+unsafe impl bytemuck::Zeroable for Light {}
+unsafe impl bytemuck::Pod for Light {}
 ```
 
 Our `Light` represents a colored point in space. We're just going to use pure white light, but it's good to allow different colors of light.
@@ -42,9 +45,7 @@ let light = Light {
     _padding: 0,
     color: (1.0, 1.0, 1.0).into(),
 };
-//If we want to use bytemuck, we must first implement these two traits
-unsafe impl bytemuck::Zeroable for Light {}
-unsafe impl bytemuck::Pod for Light {}
+
  // We'll want to update our lights position, so we use COPY_DST
 let light_buffer = device.create_buffer_with_data(
     bytemuck::cast_slice(&[light]),

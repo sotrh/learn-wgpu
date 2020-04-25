@@ -201,9 +201,9 @@ struct State {
     uniform_buffer: wgpu::Buffer,
     uniform_bind_group: wgpu::BindGroup,
     instances: Vec<Instance>,
+    #[allow(dead_code)]
     instance_buffer: wgpu::Buffer,
-    depth_texture: wgpu::Texture,
-    depth_texture_view: wgpu::TextureView,
+    depth_texture: texture::Texture,
     size: winit::dpi::PhysicalSize<u32>,
     light: Light,
     light_buffer: wgpu::Buffer,
@@ -377,7 +377,7 @@ impl State {
         let instance_buffer_size =
             instance_data.len() * std::mem::size_of::<cgmath::Matrix4<f32>>();
         let instance_buffer = device.create_buffer_with_data(
-            matrix4f_cast_slice(&[instance_data]),
+            bytemuck::cast_slice(&instance_data),
             wgpu::BufferUsage::STORAGE_READ,
         );
 
@@ -460,8 +460,7 @@ impl State {
             label: None,
         });
 
-        let depth_texture = texture::Texture::create_depth_texture(&device, &sc_desc).texture;
-        let depth_texture_view = depth_texture.create_default_view();
+        let depth_texture = texture::Texture::create_depth_texture(&device, &sc_desc, "depth_texture");
 
         let render_pipeline_layout =
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
@@ -480,7 +479,7 @@ impl State {
                 &device,
                 &render_pipeline_layout,
                 sc_desc.format,
-                Some(texture::DEPTH_FORMAT),
+                Some(texture::Texture::DEPTH_FORMAT),
                 &[model::ModelVertex::desc()],
                 vs_src,
                 fs_src,
@@ -499,7 +498,7 @@ impl State {
                 &device,
                 &layout,
                 sc_desc.format,
-                Some(texture::DEPTH_FORMAT),
+                Some(texture::Texture::DEPTH_FORMAT),
                 &[model::ModelVertex::desc()],
                 vs_src,
                 fs_src,
@@ -522,7 +521,6 @@ impl State {
             instances,
             instance_buffer,
             depth_texture,
-            depth_texture_view,
             size,
             light,
             light_buffer,
@@ -531,9 +529,9 @@ impl State {
         }
 
     }
+
     async fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
-        self.depth_texture = texture::Texture::create_depth_texture(&self.device, &self.sc_desc).texture;
-        self.depth_texture_view = self.depth_texture.create_default_view();
+        self.depth_texture = texture::Texture::create_depth_texture(&self.device, &self.sc_desc, "depth_texture");
         self.camera.aspect = self.sc_desc.width as f32 / self.sc_desc.height as f32;
         self.size = new_size;
         self.sc_desc.width = new_size.width;
@@ -541,9 +539,11 @@ impl State {
         self.swap_chain = self.device.create_swap_chain(&self.surface, &self.sc_desc);
 
     }
+
     fn input(&mut self, event: &WindowEvent) -> bool {
         self.camera_controller.process_events(event)
     }
+
     async fn update(&mut self) {
         self.camera_controller.update_camera(&mut self.camera);
         self.uniforms.update_view_proj(&self.camera);
@@ -584,11 +584,14 @@ impl State {
 
         self.queue.submit(&[encoder.finish()]);
     }
+
     async fn render(&mut self) {
         let frame = self.swap_chain.get_next_texture()
-        .expect("Timeout getting texture");
-        let mut encoder =
-            self.device.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
+            .expect("Timeout getting texture");
+        let mut encoder = self.device.create_command_encoder(&wgpu::CommandEncoderDescriptor { 
+            label: None
+        });
+
         {
             let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 color_attachments: &[wgpu::RenderPassColorAttachmentDescriptor {
@@ -604,7 +607,7 @@ impl State {
                     },
                 }],
                 depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachmentDescriptor {
-                    attachment: &self.depth_texture_view,
+                    attachment: &self.depth_texture.view,
                     depth_load_op: wgpu::LoadOp::Clear,
                     depth_store_op: wgpu::StoreOp::Store,
                     clear_depth: 1.0,
@@ -634,7 +637,7 @@ impl State {
 
 fn main() {
     let event_loop = EventLoop::new();
-    let title = "tutorial10-lighting";
+    let title = env!("CARGO_PKG_NAME");
     let window = winit::window::WindowBuilder::new()
         .with_title(title)
         .build(&event_loop)
@@ -679,9 +682,4 @@ fn main() {
             _ => {}
         }
     });
-}
-#[inline]
-pub fn matrix4f_cast_slice(a: &[Vec<cgmath::Matrix4<f32>>]) -> &[u8] {
-    let new_len = a[0].len() * std::mem::size_of::<cgmath::Matrix4<f32>>();
-    unsafe { core::slice::from_raw_parts(a[0].as_ptr() as *const u8, new_len) }
 }
