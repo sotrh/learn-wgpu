@@ -13,7 +13,7 @@ use model::{DrawLight, DrawModel, Vertex};
 #[cfg_attr(rustfmt, rustfmt_skip)]
 pub const OPENGL_TO_WGPU_MATRIX: cgmath::Matrix4<f32> = cgmath::Matrix4::new(
     1.0, 0.0, 0.0, 0.0,
-    0.0, -1.0, 0.0, 0.0,
+    0.0, 1.0, 0.0, 0.0,
     0.0, 0.0, 0.5, 0.0,
     0.0, 0.0, 0.5, 1.0,
 );
@@ -159,10 +159,21 @@ struct Instance {
 }
 
 impl Instance {
-    fn to_matrix(&self) -> cgmath::Matrix4<f32> {
-        cgmath::Matrix4::from_translation(self.position) * cgmath::Matrix4::from(self.rotation)
+    fn to_raw(&self) -> InstanceRaw {
+        InstanceRaw {
+            model: cgmath::Matrix4::from_translation(self.position) * cgmath::Matrix4::from(self.rotation),
+        }
     }
 }
+
+#[derive(Copy, Clone)]
+struct InstanceRaw {
+    #[allow(dead_code)]
+    model: cgmath::Matrix4<f32>,
+}
+
+unsafe impl bytemuck::Pod for InstanceRaw {}
+unsafe impl bytemuck::Zeroable for InstanceRaw {}
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -360,7 +371,7 @@ impl State {
 
         let instance_data = instances
             .iter()
-            .map(Instance::to_matrix)
+            .map(Instance::to_raw)
             .collect::<Vec<_>>();
 
         let instance_buffer_size =
