@@ -1,6 +1,4 @@
-# Working with Lights **UPDATED!**
-
-* The old lighting tutorial was not well made (and plain wrong in places), so I've redone it!
+# Working with Lights
 
 While we can tell that our scene is 3d because of our camera, it still feels very flat. That's because our model stays the same color regardless of how it's oriented. If we want to change that we need to add lighting to our scene.
 
