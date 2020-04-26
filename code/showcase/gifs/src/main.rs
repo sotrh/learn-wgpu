@@ -3,9 +3,21 @@ extern crate framework;
 use std::mem;
 use std::sync::{Arc, Mutex};
 
-fn main() {
-    let adapter = wgpu::Adapter::request(&Default::default()).unwrap();
-    let (device, mut queue) = adapter.request_device(&Default::default());
+async fn run() {
+    let adapter = wgpu::Adapter::request(
+        &wgpu::RequestAdapterOptions {
+            power_preference: wgpu::PowerPreference::Default,
+            compatible_surface: None,
+        },
+        wgpu::BackendBit::PRIMARY, // Vulkan + Metal + DX12 + Browser WebGPU
+    ).await.unwrap();
+
+    let (device, queue) = adapter.request_device(&wgpu::DeviceDescriptor {
+        extensions: wgpu::Extensions {
+            anisotropic_filtering: false,
+        },
+        limits: Default::default(),
+    }).await;
     
     let colors = [
         [0.0, 0.0, 0.0],
@@ -33,6 +45,7 @@ fn main() {
         format: wgpu::TextureFormat::Rgba8UnormSrgb,
         usage: wgpu::TextureUsage::COPY_SRC
             | wgpu::TextureUsage::OUTPUT_ATTACHMENT,
+        label: None,
     };
     let render_target = framework::Texture::from_descriptor(&device, rt_desc);
 
@@ -42,6 +55,7 @@ fn main() {
     let buffer_desc = wgpu::BufferDescriptor {
         size: buffer_size,
         usage: wgpu::BufferUsage::COPY_DST | wgpu::BufferUsage::MAP_READ,
+        label: None,
     };
     let output_buffer = device.create_buffer(&buffer_desc);
 
@@ -52,7 +66,9 @@ fn main() {
     let frames = Arc::new(Mutex::new(Vec::new()));
 
     for c in &colors {
-        let mut encoder = device.create_command_encoder(&Default::default());
+        let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
+            label: None,
+        });
 
         let mut rpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             color_attachments: &[
@@ -88,8 +104,8 @@ fn main() {
             wgpu::BufferCopyView {
                 buffer: &output_buffer,
                 offset: 0,
-                row_pitch: pixel_size * texture_size,
-                image_height: texture_size,
+                bytes_per_row: pixel_size * texture_size,
+                rows_per_image: texture_size,
             },
             render_target.desc.size
         );
@@ -97,19 +113,22 @@ fn main() {
         queue.submit(&[encoder.finish()]);
 
         let frames_clone = frames.clone();
-        output_buffer.map_read_async(0, buffer_size, move |result: wgpu::BufferMapAsyncResult<&[u8]>| {
-            match result {
-                Ok(mapping) => {
-                    let data = Vec::from(mapping.data);
-                    let mut f = frames_clone.lock().unwrap();
-                    (*f).push(data);
-                }
-                _ => { eprintln!("Something went wrong") }
-            }
-        });
-
+        
+        // Create the map request
+        let request = output_buffer.map_read(0, buffer_size);
         // wait for the GPU to finish
-        device.poll(true);
+        device.poll(wgpu::Maintain::Wait);
+        let result = request.await;
+        
+        match result {
+            Ok(pixels) => {
+                let data = Vec::from(pixels.as_slice());
+                let mut f = frames_clone.lock().unwrap();
+                (*f).push(data);
+            }
+            _ => { eprintln!("Something went wrong") }
+        }
+
     }
     
     let mut frames = Arc::try_unwrap(frames)
@@ -191,8 +210,10 @@ fn create_render_pipeline(device: &wgpu::Device, target: &framework::Texture) ->
             },
         ],
         depth_stencil_state: None,
-        index_format: wgpu::IndexFormat::Uint16,
-        vertex_buffers: &[],
+        vertex_state: wgpu::VertexStateDescriptor {
+            index_format: wgpu::IndexFormat::Uint16,
+            vertex_buffers: &[],
+        },
         sample_count: 1,
         sample_mask: !0,
         alpha_to_coverage_enabled: false,
@@ -201,3 +222,7 @@ fn create_render_pipeline(device: &wgpu::Device, target: &framework::Texture) ->
     render_pipeline
 }
 
+fn main() {
+    use futures::executor::block_on;
+    block_on(run());
+}

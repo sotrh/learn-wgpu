@@ -5,14 +5,14 @@ use std::mem;
 use crate::buffer;
 
 
-pub struct Texture {
+pub struct Texture<'a> {
     pub texture: wgpu::Texture,
     pub view: wgpu::TextureView,
     pub sampler: wgpu::Sampler,
-    pub desc: wgpu::TextureDescriptor,
+    pub desc: wgpu::TextureDescriptor<'a>,
 }
 
-impl Texture {
+impl<'a> Texture<'a> {
     pub const DEPTH_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Depth32Float;
 
     pub fn load<P: AsRef<Path>>(device: &wgpu::Device, path: P) -> Result<(Self, wgpu::CommandBuffer), failure::Error> {
@@ -22,14 +22,23 @@ impl Texture {
 
     pub fn create_depth_texture(device: &wgpu::Device, sc_desc: &wgpu::SwapChainDescriptor) -> Self {
         let desc = wgpu::TextureDescriptor {
+            label: None,
+            size: wgpu::Extent3d {
+                width: sc_desc.width,
+                height: sc_desc.height,
+                depth: 1,
+            },
+            array_layer_count: 1,
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: wgpu::TextureDimension::D2,
             format: Self::DEPTH_FORMAT,
             usage: wgpu::TextureUsage::OUTPUT_ATTACHMENT,
-            ..sc_desc.to_texture_desc()
         };
         Self::from_descriptor(device, desc)
     }
 
-    pub fn from_descriptor(device: &wgpu::Device, desc: wgpu::TextureDescriptor) -> Self {
+    pub fn from_descriptor(device: &wgpu::Device, desc: wgpu::TextureDescriptor<'a>) -> Self {
         let texture = device.create_texture(&desc);
 
         let view = texture.create_default_view();
@@ -42,7 +51,7 @@ impl Texture {
             mipmap_filter: wgpu::FilterMode::Nearest,
             lod_min_clamp: -100.0,
             lod_max_clamp: 100.0,
-            compare_function: wgpu::CompareFunction::Always,
+            compare: wgpu::CompareFunction::LessEqual,
         });
 
         Self { texture, view, sampler, desc }
@@ -70,21 +79,25 @@ impl Texture {
             dimension: wgpu::TextureDimension::D2,
             format: wgpu::TextureFormat::Rgba8UnormSrgb,
             usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::COPY_DST,
+            label: None,
         };
         let texture = device.create_texture(&desc);
 
-        let buffer = device
-            .create_buffer_mapped(rgba.len(), wgpu::BufferUsage::COPY_SRC)
-            .fill_from_slice(&rgba);
+        let buffer = device.create_buffer_with_data(
+            &rgba, 
+            wgpu::BufferUsage::COPY_SRC,
+        );
 
-        let mut encoder = device.create_command_encoder(&Default::default());
+        let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
+            label: None,
+        });
 
         encoder.copy_buffer_to_texture(
             wgpu::BufferCopyView {
                 buffer: &buffer,
                 offset: 0,
-                row_pitch: 4 * dimensions.0,
-                image_height: dimensions.1,
+                bytes_per_row: 4 * dimensions.0,
+                rows_per_image: dimensions.1,
             }, 
             wgpu::TextureCopyView {
                 texture: &texture,
@@ -107,7 +120,7 @@ impl Texture {
             mipmap_filter: wgpu::FilterMode::Nearest,
             lod_min_clamp: -100.0,
             lod_max_clamp: 100.0,
-            compare_function: wgpu::CompareFunction::Always,
+            compare: wgpu::CompareFunction::Always,
         });
         
         Ok((Self { texture, view, sampler, desc }, cmd_buffer))
@@ -121,6 +134,7 @@ impl Texture {
         let buffer_desc = wgpu::BufferDescriptor {
             size: buffer_size as wgpu::BufferAddress,
             usage: buffer_usage,
+            label: None,
         };
         let buffer = device.create_buffer(&buffer_desc);
 

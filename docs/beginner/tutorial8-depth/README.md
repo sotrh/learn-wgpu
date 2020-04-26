@@ -16,7 +16,7 @@ A simple way of doing this is to sort all the objects by their distance to the c
 
 If want to do this properly we need to have pixel level precision. That's where a *depth buffer* comes in.
 
-## The depth of pixels
+## A pixels depth
 
 A depth buffer is a black and white texture that stores the z-coordinate of rendered pixels. Wgpu can use this when drawing new pixels to determine whether to replace the data or keep it. This technique is called depth testing. This will fix our draw order problem without needing us to sort our objects!
 
@@ -26,11 +26,23 @@ Let's make a function to create the depth texture in `texture.rs`.
 impl Texture {
     const DEPTH_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Depth32Float; // 1.
     
-    pub fn create_depth_texture(device: &wgpu::Device, sc_desc: &wgpu::SwapChainDescriptor) -> Self {
+    pub fn create_depth_texture(device: &wgpu::Device, sc_desc: &wgpu::SwapChainDescriptor, label: &str) -> Self {
+        let size = wgpu::Extent3d { // 2.
+            width: sc_desc.width,
+            height: sc_desc.height,
+            depth: 1,
+        };
         let desc = wgpu::TextureDescriptor {
-            format: DEPTH_FORMAT,
-            usage: wgpu::TextureUsage::OUTPUT_ATTACHMENT, // 2.
-            ..sc_desc.to_texture_desc() // 3.
+            label: Some(label),
+            size,
+            array_layer_count: 1,
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: wgpu::TextureDimension::D2,
+            format: Self::DEPTH_FORMAT,
+            usage: wgpu::TextureUsage::OUTPUT_ATTACHMENT // 3.
+                | wgpu::TextureUsage::SAMPLED 
+                | wgpu::TextureUsage::COPY_SRC,
         };
         let texture = device.create_texture(&desc);
 
@@ -44,7 +56,7 @@ impl Texture {
             mipmap_filter: wgpu::FilterMode::Nearest,
             lod_min_clamp: -100.0,
             lod_max_clamp: 100.0,
-            compare_function: wgpu::CompareFunction::Always,
+            compare: wgpu::CompareFunction::LessEqual, // 5.
         });
 
         Self { texture, view, sampler }
@@ -53,14 +65,15 @@ impl Texture {
 ```
 
 1. We need the DEPTH_FORMAT for when we create the depth stage of the `render_pipeline` and creating the depth texture itself.
-2. Since we are rendering to this texture, we need to add the `OUTPUT_ATTACHMENT` flag to it.
-3. Our depth texture needs to be the same size as our screen if we want things to render correctly. We can use our `sc_desc` to make sure that our depth texture is the same size as our swap chain images.
+2. Our depth texture needs to be the same size as our screen if we want things to render correctly. We can use our `sc_desc` to make sure that our depth texture is the same size as our swap chain images.
+3. Since we are rendering to this texture, we need to add the `OUTPUT_ATTACHMENT` flag to it.
 4. We technically don't *need* a sampler for a depth texture, but our `Texture` struct requires it, and we need one if we ever want to render it.
+5. If we do decide to render our depth texture, we need to use `CompareFunction::LessEqual`. This is due to how the `samplerShadow` and `sampler2DShadow()` interacts with the `texture()` function in GLSL.
 
 We create our `depth_texture` in `State::new()`.
 
 ```rust
-let depth_texture = create_depth_texture(&device, &sc_desc);
+let depth_texture = create_depth_texture(&device, &sc_desc, "depth_texture");
 ```
 
 We need to modify our `render_pipeline` to allow depth testing. 
@@ -81,20 +94,22 @@ let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescrip
 });
 ```
 
-1. The compare function tells us when to discard a new pixel. Using `LESS` means pixels will be drawn front to back. Here are all the values you can use.
+1. The `depth_compare` function tells us when to discard a new pixel. Using `LESS` means pixels will be drawn front to back. Here are all the values you can use.
 
 ```rust
 #[repr(C)]
 #[derive(Copy, Clone, Debug, Hash, Eq, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum CompareFunction {
-    Never = 0,
-    Less = 1,
-    Equal = 2,
-    LessEqual = 3,
-    Greater = 4,
-    NotEqual = 5,
-    GreaterEqual = 6,
-    Always = 7,
+    Undefined = 0,
+    Never = 1,
+    Less = 2,
+    Equal = 3,
+    LessEqual = 4,
+    Greater = 5,
+    NotEqual = 6,
+    GreaterEqual = 7,
+    Always = 8,
 }
 ```
 
@@ -115,7 +130,7 @@ We need to remember to change the `resize()` method to create a new `depth_textu
 fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
     // ...
 
-    self.depth_texture = texture::Texture::create_depth_texture(&self.device, &self.sc_desc);
+    self.depth_texture = texture::Texture::create_depth_texture(&self.device, &self.sc_desc, "depth_texture");
 
     // ...
 }

@@ -14,6 +14,9 @@ struct Uniforms {
     model: cgmath::Matrix4<f32>, // NEW!
 }
 
+unsafe impl bytemuck::Pod for Uniforms {}
+unsafe impl bytemuck::Zeroable for Uniforms {}
+
 impl Uniforms {
     fn new() -> Self {
         use cgmath::SquareMatrix;
@@ -110,9 +113,10 @@ If you run the program now, you won't see anything different. That's because we 
 for instance in &self.instances {
     // 1.
     self.uniforms.model = instance.to_matrix();
-    let staging_buffer = self.device
-        .create_buffer_mapped(1, wgpu::BufferUsage::COPY_SRC)
-        .fill_from_slice(&[self.uniforms]);
+    let staging_buffer = self.device.create_buffer_with_data(
+        bytemuck::cast_slice(&[self.uniforms]),
+        wgpu::BufferUsage::COPY_SRC,
+    );
     encoder.copy_buffer_to_buffer(&staging_buffer, 0, &self.uniform_buffer, 0, std::mem::size_of::<Uniforms>() as wgpu::BufferAddress);
 
     // 2.
@@ -137,8 +141,8 @@ for instance in &self.instances {
     render_pass.set_pipeline(&self.render_pipeline);
     render_pass.set_bind_group(0, &self.diffuse_bind_group, &[]);
     render_pass.set_bind_group(1, &self.uniform_bind_group, &[]);
-    render_pass.set_vertex_buffers(0, &[(&self.vertex_buffer, 0)]);
-    render_pass.set_index_buffer(&self.index_buffer, 0);
+    render_pass.set_vertex_buffer(0, &self.vertex_buffer, 0, 0);
+    render_pass.set_index_buffer(&self.index_buffer, 0, 0);
     render_pass.draw_indexed(0..self.num_indices, 0, 0..1);
 }
 ```
@@ -249,15 +253,38 @@ This technique has its drawbacks.
 
 A storage buffer gives us the flexibility that arrays did not. We don't have to specify it's size in the shader, and we can even use a `Vec` to create it!
 
+Since we're using `bytemuck` for casting our data to `&[u8]`, we're going to need to define a custom scruct to store the `cgmath::Matrix4`s. We need to do this because we can't implement `bytemuck::Pod`, and `bytemuck::Zeroable`, on `cgmath::Matrix4` because we don't that type.
+
+```rust
+// UPDATED!
+impl Instance {
+    // This is changed from `to_matrix()`
+    fn to_raw(&self) -> cgmath::Matrix4<f32> {
+        InstanceRaw {
+            model: cgmath::Matrix4::from_translation(self.position) * cgmath::Matrix4::from(self.rotation),
+        }
+    }
+}
+
+// NEW!
+struct InstanceRaw {
+    model: cgmath::Matrix4<f32>,
+}
+
+unsafe impl bytemuck::Pod InstanceRaw {}
+unsafe impl bytemuck::Zeroable InstanceRaw {}
+```
+
 We create a storage buffer in a similar way as any other buffer.
 
 ```rust
-let instance_data = instances.iter().map(Instance::to_matrix).collect::<Vec<_>>();
+let instance_data = instances.iter().map(Instance::to_raw).collect::<Vec<_>>();
 // we'll need the size for later
 let instance_buffer_size = instance_data.len() * std::mem::size_of::<cgmath::Matrix4<f32>>();
-let instance_buffer = device
-    .create_buffer_mapped(instance_data.len(), wgpu::BufferUsage::STORAGE_READ)
-    .fill_from_slice(&instance_data);
+let instance_buffer = device.create_buffer_with_data(
+    bytemuck::cast_slice(&instance_data),
+    wgpu::BufferUsage::STORAGE_READ,
+);
 ```
 
 To get this buffer into the shader, we'll need to attach it to a bind group. We'll use `uniform_bind_group` just to keep things simple.
@@ -266,15 +293,16 @@ To get this buffer into the shader, we'll need to attach it to a bind group. We'
 let uniform_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
     bindings: &[
         // ...
-        wgpu::BindGroupLayoutBinding {
+        wgpu::BindGroupLayoutEntry {
             binding: 1,
             visibility: wgpu::ShaderStage::VERTEX,
             ty: wgpu::BindingType::StorageBuffer {
                 dynamic: false,
                 readonly: true,
-            }
-        }
-    ]
+            },
+        },
+    ],
+    // ...
 });
 
 let uniform_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
@@ -287,12 +315,14 @@ let uniform_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
                 buffer: &instance_buffer,
                 range: 0..instance_buffer_size as wgpu::BufferAddress,
             }
-        }
+        },
     ],
 });
 ```
 
 *Note you'll probably need to shift your `instance_buffer` creation above the `uniform_bind_group` creation.*
+
+We'll want to put `instance_buffer` into the `State` struct.
 
 You don't need to change the draw call at all from the previous example, but we'll need to change the vertex shader.
 
@@ -326,7 +356,7 @@ This method is nice because it allows use to store more data overall as storage 
 
 Another benefit to storage buffers is that they can be written to by the shader, unlike uniform buffers. If we want to mutate a large amount of data with a compute shader, we'd use a writeable storage buffer for our output (and potentially input as well).
 
-## Another better way - instance buffers
+## Another better way - vertex buffers
 
 When we created the `VertexBufferDescriptor` for our model, it required a `step_mode` field. We used `InputStepMode::Vertex`, this time we'll create a `VertexBufferDescriptor` for our `instance_buffer`.
 
@@ -341,37 +371,6 @@ trait VBDesc {
 ```
 
 To change `Vertex` to use this, we just have to swap `impl Vertex`, for `impl VBDesc for Vertex`.
-
-Now we create `InstanceRaw`. It's pretty simple.
-
-```rust
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-struct InstanceRaw {
-    model: cgmath::Matrix4<f32>,
-}
-```
-
-We'll also want to change `Instance::to_matrix()` to `Instance::to_raw()`.
-
-```rust
-impl Instance {
-    fn to_raw(&self) -> InstanceRaw {
-        let model = cgmath::Matrix4::from_translation(self.position) 
-            * cgmath::Matrix4::from(self.rotation)
-        InstanceRaw { model }
-    }
-}
-```
-
-Make sure to change any references to `to_matrix` to `to_raw` as well. We'll also want to change our `BufferUsage` to `VERTEX`.
-
-```rust
-let instance_data = instances.iter().map(Instance::to_raw).collect::<Vec<_>>();
-let instance_buffer = device
-    .create_buffer_mapped(instance_data.len(), wgpu::BufferUsage::VERTEX)
-    .fill_from_slice(&instance_data);
-```
 
 With that done we can implement `VBDesc` for `InstanceRaw`.
 
@@ -419,19 +418,34 @@ Now we need to add our a `VertexBufferDescriptor` to our `render_pipeline`.
 ```rust
 let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
     // ...
-    vertex_buffers: &[
-        Vertex::desc(), InstanceRaw::desc(),
-    ],
+    vertex_state: wgpu::VertexStateDescriptor {
+        index_format: wgpu::IndexFormat::Uint16,
+        vertex_buffers: &[
+            Vertex::desc(),
+            InstanceRaw::desc(), // NEW!
+        ],
+    },
     // ...
 });
 ```
 
 *You'll probably want to remove the `BindGroupLayoutBinding` and `Binding` from `uniform_bind_group_layout` and `uniform_bind_group` respectively, as we won't be accessing our buffer from there.*
 
+We'll also want to change `instance_buffer`'s `BufferUsage` to `VERTEX`.
+
+```rust
+let instance_data = instances.iter().map(Instance::to_raw).collect::<Vec<_>>();
+let instance_buffer = device.create_buffer_with_data(
+    bytemuck::cast_slice(&instance_data),
+    wgpu::BufferUsage::VERTEX,
+);
+```
+
 This last thing we'll need to do from Rust is use our `instance_buffer` in the `render()` method.
 
 ```rust
-render_pass.set_vertex_buffers(0, &[(&self.vertex_buffer, 0), (&self.instance_buffer, 0)]);
+render_pass.set_vertex_buffer(0, &self.vertex_buffer, 0, 0);
+render_pass.set_vertex_buffer(1, &self.instance_buffer, 0, 0); // NEW!
 ```
 
 Now we get to the shader. We don't have to change much, we just make our shader reference our `instance_buffer` through the attributes rather than a uniform/buffer block.
@@ -464,6 +478,8 @@ That's all you need to get an instance buffer working! There's a bit of overhead
 This seems like a really backwards way to do instancing. Storing non image data in a texture seems really bizarre even though it's a perfectly valid thing to do. After all, a texture is just an array of bytes, and that could theoretically be anything. In our case, we're going to cram our matrix data into that array of bytes.
 
 If you're following along, it'd be best to start from the storage buffer example. We're going to modify it to take our `instance_buffer`, and copy it into a 1D `instance_texture`. First we need to create the texture.
+
+* We won't use our `texture` module for this, though we could refactor it to store random data as a texture.
 
 ```rust
 let instance_extent = wgpu::Extent3d {
@@ -500,19 +516,22 @@ let instance_sampler = device.create_sampler(&wgpu::SamplerDescriptor {
     minmap_filter: wgpu::FilterMode::Nearest,
     lod_min_clamp: -100.0,
     lod_max_clamp: 100.0,
-    compare_function: wgpu::CompareFunction::Always,
+            compare: wgpu::CompareFunction::Always,
 });
 ```
 
-Then we need to copy the `instance_buffer` to our `instance_texture`. *You may need to move the `queue.submit(&[encoder.finish()]);` line to use appease the borrow checker.*
+Then we need to copy the `instance_buffer` to our `instance_texture`.
 
 ```rust
+let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
+    label: Some("instance_texture_encoder"),
+});
 encoder.copy_buffer_to_texture(
     wgpu::BufferCopyView {
         buffer: &instance_buffer,
         offset: 0,
-        row_pitch: std::mem::size_of::<f32>() as u32 * 4,
-        image_height: instance_data.len() * 4,
+        bytes_per_row: std::mem::size_of::<f32>() as u32 * 4,
+        rows_per_image: instance_data.len() as u32 * 4,
     }, 
     wgpu::TextureCopyView {
         texture: &instance_texture,
@@ -522,6 +541,7 @@ encoder.copy_buffer_to_texture(
     }, 
     instance_extent,
 );
+queue.submit(&[encoder.finish()]);
 ```
 
 Now we need to add our texture and sampler to a bind group. Let with the storage buffer example, we'll use `uniform_bind_group` and its corresponding layout.
@@ -530,20 +550,22 @@ Now we need to add our texture and sampler to a bind group. Let with the storage
 let uniform_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
     bindings: &[
         // ...
-        wgpu::BindGroupLayoutBinding {
+        wgpu::BindGroupLayoutEntry {
             binding: 1,
             visibility: wgpu::ShaderStage::VERTEX,
             ty: wgpu::BindingType::SampledTexture {
                 multisampled: false,
+                component_type: wgpu::TextureComponentType::Uint,
                 dimension: wgpu::TextureViewDimension::D1,
             }
         },
-        wgpu::BindGroupLayoutBinding {
+        wgpu::BindGroupLayoutEntry {
             binding: 2,
             visibility: wgpu::ShaderStage::VERTEX,
             ty: wgpu::BindingType::Sampler,
         },
-    ]
+    ],
+    // ...
 });
 
 let uniform_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
@@ -559,6 +581,7 @@ let uniform_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
             resource: wgpu::BindingResource::Sampler(&instance_sampler),
         },
     ],
+    // ...
 });
 ```
 
@@ -592,6 +615,40 @@ void main() {
     v_tex_coords = a_tex_coords;
     mat4 transform = get_matrix(gl_InstanceIndex);
     gl_Position = u_view_proj * transform * vec4(a_position, 1.0);
+}
+```
+
+There's a couple of things we need to do before this method will work. First `instance_buffer` we'll need to be `BufferUsage::COPY_SRC`.
+
+```rust
+let instance_buffer = device.create_buffer_with_data(
+    bytemuck::cast_slice(&instance_data),
+    wgpu::BufferUsage::COPY_SRC, // UPDATED!
+);
+```
+
+You'll need is to remove `InstanceRaw::desc()` from the `render_pipeline`'s `vertex_state`.
+
+```rust
+let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+    // ...
+    vertex_state: wgpu::VertexStateDescriptor {
+        index_format: wgpu::IndexFormat::Uint16,
+        vertex_buffers: &[
+            Vertex::desc(),
+        ],
+    },
+    // ...
+});
+```
+
+Lastly you'll want to store `instance_texture` in `State` to prevent it from being disposed of.
+
+```rust
+// new()
+Self {
+    // ...
+    instance_texture,
 }
 ```
 

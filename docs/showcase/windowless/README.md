@@ -7,9 +7,14 @@ Sometimes we just want to leverage the gpu. Maybe we want to crunch a large set 
 It's actually quite simple. We don't *need* a window to create an `Instance`, we don't *need* a window to select an `Adapter`, nor do we *need* a window to create a `Device`. We only needed the window to create a `Surface` which we needed to create the `SwapChain`. Once we have a `Device`, we have all we need to start sending commands to the gpu.
 
 ```rust
-let instance = wgpu::Instance::new();
-let adapter = instance.request_adapter(&Default::default());
-let mut device = adapter.request_device(&Default::default());
+let adapter = wgpu::Adapter::request(
+    &wgpu::RequestAdapterOptions {
+        power_preference: wgpu::PowerPreference::Default,
+        compatible_surface: None,
+    },
+    wgpu::BackendBit::PRIMARY,
+).await.unwrap();
+let (device, queue) = adapter.request_device(&Default::default()).await;
 ```
 
 ## A triangle without a window
@@ -19,7 +24,6 @@ Now we've talked about not needing to see what the gpu is doing, but we do need 
 ```rust
 let texture_size = 256u32;
 
-// we need to store this for later
 let texture_desc = wgpu::TextureDescriptor {
     size: wgpu::Extent3d {
         width: texture_size,
@@ -31,16 +35,17 @@ let texture_desc = wgpu::TextureDescriptor {
     sample_count: 1,
     dimension: wgpu::TextureDimension::D2,
     format: wgpu::TextureFormat::Rgba8UnormSrgb,
-    usage: wgpu::TextureUsage::COPY_SRC 
+    usage: wgpu::TextureUsage::COPY_SRC
         | wgpu::TextureUsage::OUTPUT_ATTACHMENT
         ,
+    label: None,
 };
 
 let texture = device.create_texture(&texture_desc);
 let texture_view = texture.create_default_view();
 ```
 
-We're using both `TextureUsage::OUTPUT_ATTACHMENT` so wgpu can render to our texture.
+We're using `TextureUsage::OUTPUT_ATTACHMENT` so wgpu can render to our texture. The `TextureUsage::COPY_SRC` is so we can pull data out of the texture so we can save it to a file.
 
 While we can use this texture to draw our triangle, we need some way to get at the pixels inside it. Back in the [texture tutorial](/beginner/tutorial5-textures/) we used a buffer load color data from a file that we then copied into our buffer. Now we are going to do the reverse: copy data into a buffer from our texture to save into a file. We'll need a buffer big enough for our data.
 
@@ -54,6 +59,7 @@ let output_buffer_desc = wgpu::BufferDescriptor {
     usage: wgpu::BufferUsage::COPY_DST 
         // this tells wpgu that we want to read this buffer from the cpu
         | wgpu::BufferUsage::MAP_READ,
+    label: None,
 };
 let output_buffer = device.create_buffer(&output_buffer_desc);
 ```
@@ -65,9 +71,9 @@ Now that we have something to draw to, let's make something to draw. Since we're
 #version 450
 
 const vec2 positions[3] = vec2[3](
-    vec2(0.0, -0.5),
-    vec2(-0.5, 0.5),
-    vec2(0.5, 0.5)
+    vec2(0.0, 0.5),
+    vec2(-0.5, -0.5),
+    vec2(0.5, -0.5)
 );
 
 void main() {
@@ -129,8 +135,10 @@ let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescrip
         },
     ],
     depth_stencil_state: None,
-    index_format: wgpu::IndexFormat::Uint16,
-    vertex_buffers: &[],
+    vertex_state: wgpu::VertexStateDescriptor {
+        index_format: wgpu::IndexFormat::Uint16,
+        vertex_buffers: &[],
+    },
     sample_count: 1,
     sample_mask: !0,
     alpha_to_coverage_enabled: false,
@@ -141,7 +149,7 @@ We're going to need an encoder, so let's do that.
 
 ```rust
 let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
-    todo: 0,
+    label: None,
 });
 ```
 
@@ -186,8 +194,8 @@ encoder.copy_texture_to_buffer(
     wgpu::BufferCopyView {
         buffer: &output_buffer,
         offset: 0,
-        row_pitch: u32_size * texture_size,
-        image_height: texture_size,
+        bytes_per_row: u32_size * texture_size,
+        rows_per_image: texture_size,
     }, 
     texture_desc.size,
 );
@@ -201,27 +209,42 @@ device.get_queue().submit(&[encoder.finish()]);
 
 ## Getting data out of a buffer
 
-The `Buffer` struct has two methods to access it's contents: `map_read_async`, and `map_write_async`. Both of these methods take in a `BufferAddress` specifying the byte to start from, the size in bytes of the chunk we're reading/writing, and a callback lambda that where we'll actually access the data. We're going to use `map_read_async` to save our `output_buffer` to a png file.
-
-One things to note: `map_write_async` and `map_read_async` don't return any synchrononization primitives such as a future. If we want to wait for the buffer to be mapped we have to call `device.poll(true)`, otherwise our program will just continue on it's merry way which if you try to map that buffer again, you're program will panic.
+The `Buffer` struct has two methods to access it's contents: `map_read`, and `map_write`. Both of these methods take in a `BufferAddress` specifying the byte to start from, the size in bytes of the chunk we're reading/writing, and a callback lambda that where we'll actually access the data. We're going to use `map_read` to save our `output_buffer` to a png file.
 
 The actual mapping code is fairly simple.
 
 ```rust
-// We need to manually specify the type data as Buffer has no type information
-output_buffer.map_read_async(0, output_buffer_size, move |result: wgpu::BufferMapAsyncResult<&[u8]>| {
-    let mapping = result.unwrap();
-    let data = mapping.data;
+// NOTE: We have to create the mapping THEN device.poll(). If we don't
+// the application will freeze.
+let mapping = output_buffer.map_read(0, output_buffer_size);
+device.poll(wgpu::Maintain::Wait);
 
-    use image::{ImageBuffer, Rgba};
-    let buffer = ImageBuffer::<Rgba<u8>, _>::from_raw(
-        texture_size,
-        texture_size,
-        data,
-    ).unwrap();
+let result = mapping.await.unwrap();
+let data = result.as_slice();
 
-    buffer.save("image.png").unwrap();
-});
+use image::{ImageBuffer, Rgba};
+let buffer = ImageBuffer::<Rgba<u8>, _>::from_raw(
+    texture_size,
+    texture_size,
+    data,
+).unwrap();
+
+buffer.save("image.png").unwrap();
+```
+
+## Main is not asyncable
+
+The `main()` method can't return a future, so we can't use the `async` keyword. We'll get around this by putting our code into a different function so that we can block on it in `main()`. You'll need to use the [futures crate](https://docs.rs/futures).
+
+```rust
+async fn run() {
+    // Windowless drawing code...
+}
+
+fn main() {
+    use futures::executor::block_on;
+    block_on(run());
+}
 ```
 
 With all that you should have an image like this. 

@@ -63,6 +63,7 @@ let rt_desc = wgpu::TextureDescriptor {
     format: wgpu::TextureFormat::Rgba8UnormSrgb,
     usage: wgpu::TextureUsage::COPY_SRC
         | wgpu::TextureUsage::OUTPUT_ATTACHMENT,
+    label: None,
 };
 let render_target = framework::Texture::from_descriptor(&device, rt_desc);
 
@@ -72,6 +73,7 @@ let buffer_size = (pixel_size * texture_size * texture_size) as wgpu::BufferAddr
 let buffer_desc = wgpu::BufferDescriptor {
     size: buffer_size,
     usage: wgpu::BufferUsage::COPY_DST | wgpu::BufferUsage::MAP_READ,
+    label: None,
 };
 let output_buffer = device.create_buffer(&buffer_desc);
 ```
@@ -128,19 +130,21 @@ for c in &colors {
     queue.submit(&[encoder.finish()]);
 
     let frames_clone = frames.clone();
-    output_buffer.map_read_async(0, buffer_size, move |result: wgpu::BufferMapAsyncResult<&[u8]>| {
-        match result {
-            Ok(mapping) => {
-                let data = Vec::from(mapping.data);
-                let mut f = frames_clone.lock().unwrap();
-                (*f).push(data);
-            }
-            _ => { eprintln!("Something went wrong") }
-        }
-    });
-
+        
+    // Create the map request
+    let request = output_buffer.map_read(0, buffer_size);
     // wait for the GPU to finish
-    device.poll(true);
+    device.poll(wgpu::Maintain::Wait);
+    let result = request.await;
+    
+    match result {
+        Ok(pixels) => {
+            let data = Vec::from(pixels.as_slice());
+            let mut f = frames_clone.lock().unwrap();
+            (*f).push(data);
+        }
+        _ => { eprintln!("Something went wrong") }
+    }
 }
 ```
 

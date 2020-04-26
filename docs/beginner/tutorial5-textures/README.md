@@ -53,9 +53,10 @@ let diffuse_texture = device.create_texture(&wgpu::TextureDescriptor {
 The `Texture` struct has no methods to interact with the data directly. We actually need to load the data into a `Buffer` and copy it into the `Texture`. First we need to create a buffer big enough to hold our texture data. Luckily we have `diffuse_rgba`!
 
 ```rust
-let diffuse_buffer = device
-    .create_buffer_mapped(diffuse_rgba.len(), wgpu::BufferUsage::COPY_SRC)
-    .fill_from_slice(&diffuse_rgba);
+let buffer = device.create_buffer_with_data(
+    &rgba, 
+    wgpu::BufferUsage::COPY_SRC,
+);
 ```
 
 We specified our `diffuse_buffer` to be `COPY_SRC` so that we can copy it to our `diffuse_texture`. We preform the copy using a `CommandEncoder`. We'll need to change `queue`'s mutablility so we can submit the resulting `CommandBuffer`.
@@ -66,18 +67,18 @@ let (device, mut queue) = // ...
 // ...
 
 let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
-    todo: 0,
+    label: Some("texture_buffer_copy_encoder"),
 });
 
 encoder.copy_buffer_to_texture(
     wgpu::BufferCopyView {
-        buffer: &diffuse_buffer,
+        buffer: &buffer,
         offset: 0,
-        row_pitch: 4 * dimensions.0, // the width of the texture in bytes
-        image_height: dimensions.1,
+        bytes_per_row: 4 * dimensions.0,
+        rows_per_image: dimensions.1,
     }, 
     wgpu::TextureCopyView {
-        texture: &diffuse_texture,
+        texture: &texture,
         mip_level: 0,
         array_layer: 0,
         origin: wgpu::Origin3d::ZERO,
@@ -138,20 +139,24 @@ A `BindGroup` describes a set of resources and how they can be accessed by a sha
 ```rust
 let texture_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
     bindings: &[
-        wgpu::BindGroupLayoutBinding {
+        wgpu::BindGroupLayoutEntry {
             binding: 0,
             visibility: wgpu::ShaderStage::FRAGMENT,
             ty: wgpu::BindingType::SampledTexture {
                 multisampled: false,
                 dimension: wgpu::TextureViewDimension::D2,
+                component_type: wgpu::TextureComponentType::Uint,
             },
         },
-        wgpu::BindGroupLayoutBinding {
+        wgpu::BindGroupLayoutEntry {
             binding: 1,
             visibility: wgpu::ShaderStage::FRAGMENT,
-            ty: wgpu::BindingType::Sampler,
+            ty: wgpu::BindingType::Sampler {
+                comparison: false,
+            },
         },
     ],
+    label: Some("texture_bind_group_layout"),
 });
 ```
 
@@ -172,6 +177,7 @@ let diffuse_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
             resource: wgpu::BindingResource::Sampler(&diffuse_sampler),
         }
     ],
+    label: Some("diffuse_bind_group"),
 });
 ```
 
@@ -193,7 +199,7 @@ struct State {
 
 // ...
 impl State {
-    fn new() -> Self {
+    async fn new() -> Self {
         // ...
         Self {
             surface,
@@ -278,11 +284,11 @@ Lastly we need to change `VERTICES` itself.
 
 ```rust
 const VERTICES: &[Vertex] = &[
-    Vertex { position: [-0.0868241, -0.49240386, 0.0], tex_coords: [0.4131759, 0.99240386], }, // A
-    Vertex { position: [-0.49513406, -0.06958647, 0.0], tex_coords: [0.0048659444, 0.56958646], }, // B
-    Vertex { position: [-0.21918549, 0.44939706, 0.0], tex_coords: [0.28081453, 0.050602943], }, // C
-    Vertex { position: [0.35966998, 0.3473291, 0.0], tex_coords: [0.85967, 0.15267089], }, // D
-    Vertex { position: [0.44147372, -0.2347359, 0.0], tex_coords: [0.9414737, 0.7347359], }, // E
+    Vertex { position: [-0.0868241, 0.49240386, 0.0], tex_coords: [0.4131759, 0.99240386], }, // A
+    Vertex { position: [-0.49513406, 0.06958647, 0.0], tex_coords: [0.0048659444, 0.56958646], }, // B
+    Vertex { position: [-0.21918549, -0.44939706, 0.0], tex_coords: [0.28081453, 0.050602943], }, // C
+    Vertex { position: [0.35966998, -0.3473291, 0.0], tex_coords: [0.85967, 0.15267089], }, // D
+    Vertex { position: [0.44147372, 0.2347359, 0.0], tex_coords: [0.9414737, 0.7347359], }, // E
 ];
 ```
 
@@ -328,7 +334,7 @@ void main() {
 }
 ```
 
-You'll notice that `t_diffuse` and `s_diffuse` are defined with the `uniform` keyword, they don't have `in` nor `out`, and the layout definition uses `set` and `binding` instead of `location`. This is because `t_diffuse` and `s_diffuse` are what we call uniforms. We won't go too deep into what a uniform is, until we talk about uniform buffers in the [cameras section](/beginner/tutorial6-uniforms/). What we need to know, for now, is that `set = 0` corresponds to the 1st parameter in `set_bind_group`, `binding = 0` relates the the `binding` specified when we create the `BindGroupLayout` and `BindGroup`.
+You'll notice that `t_diffuse` and `s_diffuse` are defined with the `uniform` keyword, they don't have `in` nor `out`, and the layout definition uses `set` and `binding` instead of `location`. This is because `t_diffuse` and `s_diffuse` are what we call uniforms. We won't go too deep into what a uniform is, until we talk about uniform buffers in the [cameras section](/beginner/tutorial6-uniforms/). What we need to know, for now, is that `set = 0` corresponds to the 1st parameter in `set_bind_group()`, `binding = 0` relates the the `binding` specified when we create the `BindGroupLayout` and `BindGroup`.
 
 ## The results
 
@@ -344,11 +350,11 @@ We can get our triangle right-side up by inverting the y coord of each texture c
 
 ```rust
 const VERTICES: &[Vertex] = &[
-    Vertex { position: [-0.0868241, -0.49240386, 0.0], tex_coords: [0.4131759, 1.0 - 0.99240386], }, // A
-    Vertex { position: [-0.49513406, -0.06958647, 0.0], tex_coords: [0.0048659444, 1.0 - 0.56958646], }, // B
-    Vertex { position: [-0.21918549, 0.44939706, 0.0], tex_coords: [0.28081453, 1.0 - 0.050602943], }, // C
-    Vertex { position: [0.35966998, 0.3473291, 0.0], tex_coords: [0.85967, 1.0 - 0.15267089], }, // D
-    Vertex { position: [0.44147372, -0.2347359, 0.0], tex_coords: [0.9414737, 1.0 - 0.7347359], }, // E
+    Vertex { position: [-0.0868241, 0.49240386, 0.0], tex_coords: [0.4131759, 1.0 - 0.99240386], }, // A
+    Vertex { position: [-0.49513406, 0.06958647, 0.0], tex_coords: [0.0048659444, 1.0 - 0.56958646], }, // B
+    Vertex { position: [-0.21918549, -0.44939706, 0.0], tex_coords: [0.28081453, 1.0 - 0.050602943], }, // C
+    Vertex { position: [0.35966998, -0.3473291, 0.0], tex_coords: [0.85967, 1.0 - 0.15267089], }, // D
+    Vertex { position: [0.44147372, 0.2347359, 0.0], tex_coords: [0.9414737, 1.0 - 0.7347359], }, // E
 ];
 ```
 
@@ -356,11 +362,11 @@ Simplifying that gives us.
 
 ```rust
 const VERTICES: &[Vertex] = &[
-    Vertex { position: [-0.0868241, -0.49240386, 0.0], tex_coords: [0.4131759, 0.00759614], }, // A
-    Vertex { position: [-0.49513406, -0.06958647, 0.0], tex_coords: [0.0048659444, 0.43041354], }, // B
-    Vertex { position: [-0.21918549, 0.44939706, 0.0], tex_coords: [0.28081453, 0.949397057], }, // C
-    Vertex { position: [0.35966998, 0.3473291, 0.0], tex_coords: [0.85967, 0.84732911], }, // D
-    Vertex { position: [0.44147372, -0.2347359, 0.0], tex_coords: [0.9414737, 0.2652641], }, // E
+    Vertex { position: [-0.0868241, 0.49240386, 0.0], tex_coords: [0.4131759, 0.00759614], }, // A
+    Vertex { position: [-0.49513406, 0.06958647, 0.0], tex_coords: [0.0048659444, 0.43041354], }, // B
+    Vertex { position: [-0.21918549, -0.44939706, 0.0], tex_coords: [0.28081453, 0.949397057], }, // C
+    Vertex { position: [0.35966998, -0.3473291, 0.0], tex_coords: [0.85967, 0.84732911], }, // D
+    Vertex { position: [0.44147372, 0.2347359, 0.0], tex_coords: [0.9414737, 0.2652641], }, // E
 ];
 ```
 
@@ -407,18 +413,21 @@ impl Texture {
             usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::COPY_DST,
         });
 
-        let buffer = device
-            .create_buffer_mapped(rgba.len(), wgpu::BufferUsage::COPY_SRC)
-            .fill_from_slice(&rgba);
+        let buffer = device.create_buffer_with_data(
+            &rgba, 
+            wgpu::BufferUsage::COPY_SRC,
+        );
 
-        let mut encoder = device.create_command_encoder(&Default::default());
+        let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
+            label: Some("texture_buffer_copy_encoder"),
+        });
 
         encoder.copy_buffer_to_texture(
             wgpu::BufferCopyView {
                 buffer: &buffer,
                 offset: 0,
-                row_pitch: 4 * dimensions.0,
-                image_height: dimensions.1,
+                bytes_per_row: 4 * dimensions.0,
+                rows_per_image: dimensions.1,
             }, 
             wgpu::TextureCopyView {
                 texture: &texture,
@@ -493,6 +502,7 @@ let diffuse_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
             resource: wgpu::BindingResource::Sampler(&diffuse_texture.sampler),
         }
     ],
+    label: Some("diffuse_bind_group"),
 });
 ```
 
@@ -503,16 +513,3 @@ The code should be working the same as it was before, but now have an easier way
 Create another texture and swap it out when you press the space key.
 
 <AutoGithubLink/>
-
-<!-- Things changed to accomodate textures: vertex struct and desc, the shader, -->
-<!-- -1..1 -> 0..1
-(x + 1) / 2
-
-[
-    [0.4131759, 0.99240386], 
-    [0.0048659444, 0.56958646], 
-    [0.28081453, 0.050602943], 
-    [0.85967, 0.15267089], 
-    [0.9414737, 0.7347359],
-]
--->
