@@ -172,7 +172,7 @@ impl State {
     }
 
 
-    async fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
+    fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
         self.size = new_size;
         self.sc_desc.width = new_size.width;
         self.sc_desc.height = new_size.height;
@@ -183,11 +183,11 @@ impl State {
         false
     }
 
-    async fn update(&mut self) {
+    fn update(&mut self) {
 
     }
 
-    async fn render(&mut self) {
+    fn render(&mut self) {
         let frame = self.swap_chain.get_next_texture()
             .expect("Timeout getting texture");
 
@@ -259,18 +259,18 @@ fn main() {
                         }
                     }
                     WindowEvent::Resized(physical_size) => {
-                        block_on(state.resize(*physical_size));
+                        state.resize(*physical_size);
                     }
                     WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
                         // new_inner_size is &mut so w have to dereference it twice
-                        block_on(state.resize(**new_inner_size));
+                        state.resize(**new_inner_size);
                     }
                     _ => {}
                 }
             }
             Event::RedrawRequested(_) => {
-                block_on(state.update());
-                block_on(state.render());
+                state.update();
+                state.render();
             }
             Event::MainEventsCleared => {
                 // RedrawRequested will only trigger once, unless we manually

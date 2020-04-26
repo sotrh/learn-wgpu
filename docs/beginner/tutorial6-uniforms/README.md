@@ -378,7 +378,7 @@ Up to this point, the camera controller isn't actually doing anything. The value
 Enough about that though, let's get into actually implementing the code.
 
 ```rust
-async fn update(&mut self) {
+fn update(&mut self) {
     self.camera_controller.update_camera(&mut self.camera);
     self.uniforms.update_view_proj(&self.camera);
 

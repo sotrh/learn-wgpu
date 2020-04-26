@@ -422,7 +422,7 @@ impl State {
         }
     }
 
-    async fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
+    fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
         self.depth_texture = texture::Texture::create_depth_texture(&self.device, &self.sc_desc, "depth_texture");
         self.camera.aspect = self.sc_desc.width as f32 / self.sc_desc.height as f32;
         self.size = new_size;
@@ -434,7 +434,7 @@ impl State {
         self.camera_controller.process_events(event)
     }
 
-    async fn update(&mut self) {
+    fn update(&mut self) {
         self.camera_controller.update_camera(&mut self.camera);
         self.uniforms.update_view_proj(&self.camera);
 
@@ -457,7 +457,7 @@ impl State {
         self.queue.submit(&[encoder.finish()]);
     }
 
-    async fn render(&mut self) {
+    fn render(&mut self) {
         let frame = self.swap_chain.get_next_texture()
         .expect("Timeout getting texture");
         let mut encoder =
@@ -532,18 +532,18 @@ fn main() {
                             _ => {}
                         },
                         WindowEvent::Resized(physical_size) => {
-                            block_on(state.resize(*physical_size));
+                            state.resize(*physical_size);
                         }
                         WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
-                            block_on(state.resize(**new_inner_size));
+                            state.resize(**new_inner_size);
                         }
                         _ => {}
                     }
                 }
             }
             Event::RedrawRequested(_) => {
-                block_on(state.update());
-                block_on(state.render());
+                state.update();
+                state.render();
             }
             _ => {}
         }

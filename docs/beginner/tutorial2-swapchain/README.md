@@ -22,7 +22,7 @@ impl State {
         unimplemented!()
     }
 
-    async fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
+    fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
         unimplemented!()
     }
 
@@ -31,11 +31,11 @@ impl State {
         unimplemented!()
     }
 
-    async fn update(&mut self) {
+    fn update(&mut self) {
         unimplemented!()
     }
 
-    async fn render(&mut self) {
+    fn render(&mut self) {
         unimplemented!()
     }
 }
@@ -148,7 +148,7 @@ If we want to support resizing in our application, we're going to need to recrea
 
 ```rust
 // impl State
-async fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
+fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
     self.size = new_size;
     self.sc_desc.width = new_size.width;
     self.sc_desc.height = new_size.height;
