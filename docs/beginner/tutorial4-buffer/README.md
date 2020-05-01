@@ -7,7 +7,7 @@ You were probably getting sick of me saying stuff like "we'll get to that when w
 A buffer is a blob of data on the GPU. A buffer is guaranteed to be contiguous, meaning that all the data is store sequentially in memory. Buffer's generally are used to store simple things like a struct or an array, but it can store more complex stuff such as graph structures like a tree (provided all the nodes are stored together and don't reference anything outside of the buffer). We are going to use buffer's a lot, so let's get started with two of the most important one's: the vertex buffer, and the index buffer.
 
 ## The vertex buffer
-Previously we've stored vertex data directly in the vertex shader. While that worked fine to get our bootstraps on, it simply won't do longterm. The types of objects we need to draw will very in size, and recompiling the shader whenever we need to update the model would massively slow down our program. Instead we are going to use buffers to store the vertex data we want to draw. Before we do that though we need to describe what a vertex looks like. We'll do this by creating a new struct.
+Previously we've stored vertex data directly in the vertex shader. While that worked fine to get our bootstraps on, it simply won't do longterm. The types of objects we need to draw will vary in size, and recompiling the shader whenever we need to update the model would massively slow down our program. Instead we are going to use buffers to store the vertex data we want to draw. Before we do that though we need to describe what a vertex looks like. We'll do this by creating a new struct.
 
 ```rust
 // main.rs
