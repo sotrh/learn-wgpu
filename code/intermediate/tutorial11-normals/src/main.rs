@@ -18,7 +18,7 @@ pub const OPENGL_TO_WGPU_MATRIX: cgmath::Matrix4<f32> = cgmath::Matrix4::new(
     0.0, 0.0, 0.5, 1.0,
 );
 
-const NUM_INSTANCES_PER_ROW: u32 = 10;
+const NUM_INSTANCES_PER_ROW: u32 = 1;
 
 struct Camera {
     eye: cgmath::Point3<f32>,
@@ -42,7 +42,7 @@ impl Camera {
 #[repr(C)]
 #[derive(Copy, Clone)]
 struct Uniforms {
-    // view_position: cgmath::Vector4<f32>,
+    view_position: cgmath::Vector4<f32>,
     view: cgmath::Matrix4<f32>,
     proj: cgmath::Matrix4<f32>,
 }
@@ -50,7 +50,7 @@ struct Uniforms {
 impl Uniforms {
     fn new() -> Self {
         Self {
-            // view_position: Zero::zero(),
+            view_position: Zero::zero(),
             view: cgmath::Matrix4::identity(),
             proj: cgmath::Matrix4::identity(),
             // view_3x3: cgmath::Matrix3::identity(),
@@ -58,7 +58,7 @@ impl Uniforms {
     }
 
     fn update_view_proj(&mut self, camera: &Camera) {
-        // self.view_position = camera.eye.to_homogeneous();
+        self.view_position = camera.eye.to_homogeneous();
 
         let matrices = camera.build_matrices();
         self.view = matrices.0;
@@ -213,6 +213,7 @@ struct State {
     light_buffer: wgpu::Buffer,
     light_bind_group: wgpu::BindGroup,
     light_render_pipeline: wgpu::RenderPipeline,
+    debug_material: model::Material,
 }
 
 fn create_render_pipeline(
@@ -523,6 +524,20 @@ impl State {
             )
         };
 
+        let debug_material = {
+            let diffuse_bytes = include_bytes!("res/alt-diffuse.png");
+            let normal_bytes = include_bytes!("res/alt-normal.jpg");
+
+            let mut command_buffers = vec![];
+            let (diffuse_texture, cmds) = texture::Texture::from_bytes(&device, diffuse_bytes, "res/alt-diffuse.png").unwrap();
+            command_buffers.push(cmds);
+            let (normal_texture, cmds) = texture::Texture::from_bytes(&device, normal_bytes, "res/alt-normal.png").unwrap();
+            command_buffers.push(cmds);
+            queue.submit(&command_buffers);
+            
+            model::Material::new(&device, "alt-material", diffuse_texture, normal_texture, &texture_bind_group_layout)
+        };
+
         Self {
             surface,
             device,
@@ -544,6 +559,7 @@ impl State {
             light_buffer,
             light_bind_group,
             light_render_pipeline,
+            debug_material,
         }
 
     }
@@ -555,7 +571,6 @@ impl State {
         self.sc_desc.width = new_size.width;
         self.sc_desc.height = new_size.height;
         self.swap_chain = self.device.create_swap_chain(&self.surface, &self.sc_desc);
-
     }
 
     fn input(&mut self, event: &WindowEvent) -> bool {
@@ -649,6 +664,13 @@ impl State {
                 &self.uniform_bind_group,
                 &self.light_bind_group,
             );
+            // render_pass.draw_model_instanced_with_material(
+            //     &self.obj_model,
+            //     &self.debug_material,
+            //     0..self.instances.len() as u32,
+            //     &self.uniform_bind_group,
+            //     &self.light_bind_group,
+            // );
         }
         self.queue.submit(&[encoder.finish()]);
     }

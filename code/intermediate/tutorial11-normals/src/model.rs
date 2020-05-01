@@ -65,6 +65,46 @@ pub struct Material {
     pub bind_group: wgpu::BindGroup,
 }
 
+impl Material {
+    pub fn new(
+        device: &wgpu::Device, 
+        name: &str, 
+        diffuse_texture: texture::Texture, 
+        normal_texture: texture::Texture,
+        layout: &wgpu::BindGroupLayout,
+    ) -> Self {
+        let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            layout,
+            bindings: &[
+                wgpu::Binding {
+                    binding: 0,
+                    resource: wgpu::BindingResource::TextureView(&diffuse_texture.view),
+                },
+                wgpu::Binding {
+                    binding: 1,
+                    resource: wgpu::BindingResource::Sampler(&diffuse_texture.sampler),
+                },
+                wgpu::Binding {
+                    binding: 2,
+                    resource: wgpu::BindingResource::TextureView(&normal_texture.view),
+                },
+                wgpu::Binding {
+                    binding: 3,
+                    resource: wgpu::BindingResource::Sampler(&normal_texture.sampler),
+                },
+            ],
+            label: Some(name),
+        });
+
+        Self { 
+            name: String::from(name),
+            diffuse_texture,
+            normal_texture,
+            bind_group,
+        }
+    }
+}
+
 pub struct Mesh {
     pub name: String,
     pub vertex_buffer: wgpu::Buffer,
@@ -105,35 +145,13 @@ impl Model {
             let (normal_texture, cmds) = texture::Texture::load(device, containing_folder.join(normal_path?))?;
             command_buffers.push(cmds);
 
-            let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
-                layout,
-                bindings: &[
-                    wgpu::Binding {
-                        binding: 0,
-                        resource: wgpu::BindingResource::TextureView(&diffuse_texture.view),
-                    },
-                    wgpu::Binding {
-                        binding: 1,
-                        resource: wgpu::BindingResource::Sampler(&diffuse_texture.sampler),
-                    },
-                    wgpu::Binding {
-                        binding: 2,
-                        resource: wgpu::BindingResource::TextureView(&normal_texture.view),
-                    },
-                    wgpu::Binding {
-                        binding: 3,
-                        resource: wgpu::BindingResource::Sampler(&normal_texture.sampler),
-                    },
-                ],
-                label: None,
-            });
-
-            materials.push(Material {
-                name: mat.name,
+            materials.push(Material::new(
+                device,
+                &mat.name,
                 diffuse_texture,
                 normal_texture,
-                bind_group,
-            });
+                layout,
+            ));
         }
 
         let mut meshes = Vec::new();
@@ -262,6 +280,14 @@ where
         uniforms: &'b wgpu::BindGroup,
         light: &'b wgpu::BindGroup,
     );
+    fn draw_model_instanced_with_material(
+        &mut self,
+        model: &'b Model,
+        material: &'b Material,
+        instances: Range<u32>,
+        uniforms: &'b wgpu::BindGroup,
+        light: &'b wgpu::BindGroup,
+    );
 }
 
 impl<'a, 'b> DrawModel<'a, 'b> for wgpu::RenderPass<'a>
@@ -312,6 +338,19 @@ where
     ) {
         for mesh in &model.meshes {
             let material = &model.materials[mesh.material];
+            self.draw_mesh_instanced(mesh, material, instances.clone(), uniforms, light);
+        }
+    }
+
+    fn draw_model_instanced_with_material(
+        &mut self,
+        model: &'b Model,
+        material: &'b Material,
+        instances: Range<u32>,
+        uniforms: &'b wgpu::BindGroup,
+        light: &'b wgpu::BindGroup,
+    ) {
+        for mesh in &model.meshes {
             self.draw_mesh_instanced(mesh, material, instances.clone(), uniforms, light);
         }
     }

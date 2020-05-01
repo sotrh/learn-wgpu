@@ -10,9 +10,11 @@ layout(location=0) out vec2 v_tex_coords;
 layout(location=1) out vec3 v_normal;
 layout(location=2) out vec3 v_position_model_tangent_space;
 layout(location=3) out vec3 v_light_position_tangent_space;
+layout(location=4) out vec3 v_view_position_tangent_space;
 
 layout(set=1, binding=0) 
 uniform Uniforms {
+    vec3 u_view_position;
     mat4 u_view;
     mat4 u_proj;
 };
@@ -34,21 +36,25 @@ void main() {
     mat4 model_matrix = s_models[gl_InstanceIndex];
     mat4 model_view_matrix = u_view * model_matrix;
 
-    vec4 light_position_view_space = u_view * vec4(light_position, 1.0);
-    vec4 position_model_view_space = model_view_matrix * vec4(a_position, 1.0);
+    // vec4 light_position_view_space = u_view * vec4(light_position, 1.0);
+    // vec4 position_model_view_space = model_view_matrix * vec4(a_position, 1.0);
+    vec4 position_world_space = model_matrix * vec4(a_position, 1.0);
 
-    mat3 MV3x3 = mat3(model_view_matrix);
-    vec3 normal_view_space = MV3x3 * normalize(a_normal);
-    vec3 tangent_view_space = MV3x3 * normalize(a_tangent);
-    vec3 bitangent_view_space = MV3x3 * normalize(a_bitangent);
+    mat3 normal_matrix = transpose(inverse(mat3(model_matrix)));
+    vec3 normal = normal_matrix * normalize(a_normal);
+    vec3 tangent = normal_matrix * normalize(a_tangent);
+    vec3 bitangent = normal_matrix * normalize(a_bitangent);
+
     mat3 TBN = transpose(mat3(
-        tangent_view_space,
-        bitangent_view_space,
-        normal_view_space
+        tangent,
+        bitangent,
+        normal
     ));
 
-    gl_Position = u_proj * position_model_view_space;
+    // Transform the lighting values
+    v_light_position_tangent_space = TBN * light_position;
+    v_position_model_tangent_space = TBN * position_world_space.xyz;
+    v_view_position_tangent_space = TBN * u_view_position;
 
-    v_light_position_tangent_space = TBN * light_position_view_space.xyz;
-    v_position_model_tangent_space = TBN * position_model_view_space.xyz;
+    gl_Position = u_proj * u_view * position_world_space;
 }
