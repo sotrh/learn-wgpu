@@ -216,7 +216,12 @@ impl Model {
         for m in obj_models {
             let mut vertices = Vec::new();
             for i in 0..m.mesh.positions.len() / 3 {
-                // ...
+                vertices.push(ModelVertex {
+                    // ...
+                    // We'll calculate these later
+                    tangent: [0.0; 3].into(),
+                    bitangent: [0.0; 3].into(),
+                });
             }
 
             let indices = &m.mesh.indices;
@@ -389,5 +394,160 @@ void main() {
 ```
 
 The resulting image isn't noticeably different so I won't show it here, but the calculation definitely is more efficient.
+
+## Unrelated stuff
+
+While I was debugging the normal mapping code, I made a few changes to `model.rs` that I haven't mentioned. I wanted to be able to see the model with different textures, so I modified the `Material` struct to have a `new()` method.
+
+```rust
+
+impl Material {
+    pub fn new(
+        device: &wgpu::Device, 
+        name: &str, 
+        diffuse_texture: texture::Texture, 
+        normal_texture: texture::Texture,
+        layout: &wgpu::BindGroupLayout,
+    ) -> Self {
+        let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            layout,
+            bindings: &[
+                wgpu::Binding {
+                    binding: 0,
+                    resource: wgpu::BindingResource::TextureView(&diffuse_texture.view),
+                },
+                wgpu::Binding {
+                    binding: 1,
+                    resource: wgpu::BindingResource::Sampler(&diffuse_texture.sampler),
+                },
+                wgpu::Binding {
+                    binding: 2,
+                    resource: wgpu::BindingResource::TextureView(&normal_texture.view),
+                },
+                wgpu::Binding {
+                    binding: 3,
+                    resource: wgpu::BindingResource::Sampler(&normal_texture.sampler),
+                },
+            ],
+            label: Some(name),
+        });
+
+        Self { 
+            name: String::from(name),
+            diffuse_texture,
+            normal_texture,
+            bind_group,
+        }
+    }
+}
+```
+
+This simplifies the code in `Model::load()`.
+
+```rust
+let mut materials = Vec::new();
+for mat in obj_materials {
+    let diffuse_path = mat.diffuse_texture;
+    let (diffuse_texture, cmds) = texture::Texture::load(device, containing_folder.join(diffuse_path))?;
+    command_buffers.push(cmds);
+    
+    let normal_path = match mat.unknown_param.get("map_Bump") {
+        Some(v) => Ok(v),
+        None => Err(failure::err_msg("Unable to find normal map"))
+    };
+    let (normal_texture, cmds) = texture::Texture::load(device, containing_folder.join(normal_path?))?;
+    command_buffers.push(cmds);
+
+    materials.push(Material::new(
+        device,
+        &mat.name,
+        diffuse_texture,
+        normal_texture,
+        layout,
+    ));
+}
+```
+
+I also added a `draw_model_instanced_with_material()` to the `DrawModel` trait.
+
+```rust
+pub trait DrawModel<'a, 'b>
+where
+    'b: 'a,
+{
+    // ...
+    fn draw_model_instanced_with_material(
+        &mut self,
+        model: &'b Model,
+        material: &'b Material,
+        instances: Range<u32>,
+        uniforms: &'b wgpu::BindGroup,
+        light: &'b wgpu::BindGroup,
+    );
+}
+
+impl<'a, 'b> DrawModel<'a, 'b> for wgpu::RenderPass<'a>
+where
+    'b: 'a,
+{
+    // ...
+    fn draw_model_instanced_with_material(
+        &mut self,
+        model: &'b Model,
+        material: &'b Material,
+        instances: Range<u32>,
+        uniforms: &'b wgpu::BindGroup,
+        light: &'b wgpu::BindGroup,
+    ) {
+        for mesh in &model.meshes {
+            self.draw_mesh_instanced(mesh, material, instances.clone(), uniforms, light);
+        }
+    }
+}
+```
+
+I found a cobblestone texture with matching normal map, and created a `debug_material` for that.
+
+```rust
+// new()
+let debug_material = {
+    let diffuse_bytes = include_bytes!("res/cobble-diffuse.png");
+    let normal_bytes = include_bytes!("res/cobble-normal.png");
+
+    let mut command_buffers = vec![];
+    let (diffuse_texture, cmds) = texture::Texture::from_bytes(&device, diffuse_bytes, "res/alt-diffuse.png").unwrap();
+    command_buffers.push(cmds);
+    let (normal_texture, cmds) = texture::Texture::from_bytes(&device, normal_bytes, "res/alt-normal.png").unwrap();
+    command_buffers.push(cmds);
+    queue.submit(&command_buffers);
+    
+    model::Material::new(&device, "alt-material", diffuse_texture, normal_texture, &texture_bind_group_layout)
+};
+
+Self {
+    // ...
+    #[allow(dead_code)]
+    debug_material,
+}
+```
+
+Then to render with the `debug_material` I used the `draw_model_instanced_with_material()` that I created.
+
+```rust
+render_pass.set_pipeline(&self.render_pipeline);
+render_pass.draw_model_instanced_with_material(
+    &self.obj_model,
+    &self.debug_material,
+    0..self.instances.len() as u32,
+    &self.uniform_bind_group,
+    &self.light_bind_group,
+);
+```
+
+That gives us something like this.
+
+![](./debug_material.png)
+
+You can find the textures I use in the Github Repository.
 
 <AutoGithubLink/>

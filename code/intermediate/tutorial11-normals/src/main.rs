@@ -553,6 +553,7 @@ impl State {
             light_buffer,
             light_bind_group,
             light_render_pipeline,
+            #[allow(dead_code)]
             debug_material,
         }
 
@@ -591,44 +592,23 @@ impl State {
             std::mem::size_of::<Uniforms>() as wgpu::BufferAddress,
         );
 
-        // for instance in &mut self.instances {
-        //     instance.rotation = instance.rotation * cgmath::Quaternion::from_axis_angle(
-        //         cgmath::Vector3::unit_y(),
-        //         cgmath::Deg(2.0),
-        //     )
-        // }
-        // let instance_data = self.instances.iter()
-        //     .map(Instance::to_raw)
-        //     .collect::<Vec<_>>();
-        // let staging_buffer = self.device.create_buffer_with_data(
-        //     bytemuck::cast_slice(&instance_data), 
-        //     wgpu::BufferUsage::COPY_SRC,
-        // );
-        // encoder.copy_buffer_to_buffer(
-        //     &staging_buffer, 
-        //     0, 
-        //     &self.instance_buffer, 
-        //     0, 
-        //     (std::mem::size_of::<InstanceRaw>() * instance_data.len()) as wgpu::BufferAddress,
-        // );
-
         // Update the light
-        // let old_position = self.light.position;
-        // self.light.position =
-        //     cgmath::Quaternion::from_axis_angle((0.0, 1.0, 0.0).into(), cgmath::Deg(1.0))
-        //         * old_position;
+        let old_position = self.light.position;
+        self.light.position =
+            cgmath::Quaternion::from_axis_angle((0.0, 1.0, 0.0).into(), cgmath::Deg(1.0))
+                * old_position;
 
-        // let staging_buffer = self.device.create_buffer_with_data(
-        //     bytemuck::cast_slice(&[self.light]),
-        //     wgpu::BufferUsage::COPY_SRC,
-        // );
-        // encoder.copy_buffer_to_buffer(
-        //     &staging_buffer,
-        //     0,
-        //     &self.light_buffer,
-        //     0,
-        //     std::mem::size_of::<Light>() as wgpu::BufferAddress,
-        // );
+        let staging_buffer = self.device.create_buffer_with_data(
+            bytemuck::cast_slice(&[self.light]),
+            wgpu::BufferUsage::COPY_SRC,
+        );
+        encoder.copy_buffer_to_buffer(
+            &staging_buffer,
+            0,
+            &self.light_buffer,
+            0,
+            std::mem::size_of::<Light>() as wgpu::BufferAddress,
+        );
 
         self.queue.submit(&[encoder.finish()]);
     }
