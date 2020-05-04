@@ -181,7 +181,9 @@ impl Model {
 
             let indices = &m.mesh.indices;
 
-            // Calculate tangents and bitangets
+            // Calculate tangents and bitangets. We're going to
+            // use the triangles, so we need to loop through the
+            // indices in chunks of 3
             for c in indices.chunks(3) {
                 let v0 = vertices[c[0] as usize];
                 let v1 = vertices[c[1] as usize];

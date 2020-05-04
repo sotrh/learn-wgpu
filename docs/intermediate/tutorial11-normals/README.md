@@ -95,7 +95,7 @@ materials.push(Material {
 });
 ```
 
-Now we can add use the texture in the fragment shader. Color values are by default in the range `[0, 1]`, so we'll have to convert the normal values to `[-1, 1]`.
+Now we can add use the texture in the fragment shader.
 
 ```glsl
 // shader.frag
@@ -112,12 +112,282 @@ void main() {
 
     // ...
 
-    vec3 normal = normalize(object_normal.rgb * 2.0 - 1.0); // UPDATED!
+    vec3 normal = normalize(object_normal.rgb); // UPDATED!
     
     // ...
 }
 ```
 
-## View Space
+Now if you've used normal mapping in OpenGL, you may be wondering by we didn't adjust the normal value. Normally you'd do something like the following.
 
-I mentioned it briefly in the [lighting tutorial](/intermediate/tutorial10-lighting/#the-normal-matrix), that we were doing our lighting calculation in "world space". This meant that the entire scene was oriented with respect to the *world's* coordinate system. 
+```glsl
+vec3 normal = normalize(object_normal.rgb * 2.0 - 1.0);
+```
+
+We don't have to do this because we are using `wgpu::TextureFormat::Rgba8UnormSrgb`, our shader gets the texture data in the range of [-1.0, 1.0].
+
+If we run the code now, you'll notice things don't look quite right. Let's compare our results with the last tutorial.
+
+![](./normal_mapping_wrong.png)
+![](./ambient_diffuse_specular_lighting.png)
+
+Parts of the scene are dark when they should be lit up, and vice versa.
+
+## Tangent Space to World Space
+
+I mentioned it briefly in the [lighting tutorial](/intermediate/tutorial10-lighting/#the-normal-matrix), that we were doing our lighting calculation in "world space". This meant that the entire scene was oriented with respect to the *world's* coordinate system. When we pull the normal data from our normal texture, all the normals are in what's known as  pointing roughly in the positive z direction. That means that our lighting calculation thinks all of the surfaces of our models are facing in roughly the same direction. This is referred to as `tangent space`.
+
+If we remember the [lighting-tutorial](/intermediate/tutorial10-lighting/#), we used the vertex normal to indicate the direction of the surface. It turns out we can use that to transform our normals from `tangent space` into `world space`. In order to do that we need to draw from the depths of linear algebra.
+
+We can create a matrix that represents a coordinate system using 3 vectors that are perpendicular (or orthonormal) to each other. Basically we define the x, y, and z axes of our coordinate system.
+
+```glsl
+mat3 coordinate_system = mat3(
+    vec3(1, 0, 0), // x axis (right)
+    vec3(0, 1, 0), // y axis (up)
+    vec3(0, 0, 1)  // z axis (forward)
+);
+```
+
+We're going to create a matrix that will represent the coordinate space relative to our vertex normals. We're then going to use that to transform our normal map data to be in world space. 
+
+## The tangent, and the bitangent
+
+We have one of the 3 vectors we need, the normal. What about the others? These are the tangent, and bitangent vectors. A tangent represents any vector that is parallel with a surface (aka. doesn't intersect with it). The tangent is always perpendicular to the normal vector. The bitangent is a tangent vector that is perpendicular to the other tangent vector. Together the tangent, bitangent, and normal represent the x, y, and z axes respectively.
+
+Some model formats include the tanget and bitangent (sometimes called the binormal) in the vertex data, but OBJ does not. We'll have to calculate them manually. Luckily we can derive our tangent, and bitangent from our existing vertex data. Take a look at the following diagram.
+
+![](./tangent_space.png)
+
+Basically we can use the edges of our triangles, and our normal to calculate the tangent and bitangent. But first, we need to update our `ModelVertex` struct in `model.rs`.
+
+```rust
+#[repr(C)]
+#[derive(Copy, Clone, Debug)]
+pub struct ModelVertex {
+    position: cgmath::Vector3<f32>,
+    tex_coords: cgmath::Vector2<f32>,
+    normal: cgmath::Vector3<f32>,
+    // NEW!
+    tangent: cgmath::Vector3<f32>,
+    bitangent: cgmath::Vector3<f32>,
+}
+```
+
+We'll need to upgrade our `VertexBufferDescriptor` as well.
+
+```rust
+impl Vertex for ModelVertex {
+    fn desc<'a>() -> wgpu::VertexBufferDescriptor<'a> {
+        use std::mem;
+        wgpu::VertexBufferDescriptor {
+            stride: mem::size_of::<ModelVertex>() as wgpu::BufferAddress,
+            step_mode: wgpu::InputStepMode::Vertex,
+            attributes: &[
+                // ...
+
+                // Tangent and bitangent
+                wgpu::VertexAttributeDescriptor {
+                    offset: mem::size_of::<[f32; 8]>() as wgpu::BufferAddress,
+                    shader_location: 3,
+                    format: wgpu::VertexFormat::Float3,
+                },
+                wgpu::VertexAttributeDescriptor {
+                    offset: mem::size_of::<[f32; 11]>() as wgpu::BufferAddress,
+                    shader_location: 4,
+                    format: wgpu::VertexFormat::Float3,
+                },
+            ],
+        }
+    }
+}
+```
+
+Now we can calculate the new tangent, and bitangent vectors.
+
+```rust
+impl Model {
+    pub fn load<P: AsRef<Path>>(
+        device: &wgpu::Device,
+        layout: &wgpu::BindGroupLayout,
+        path: P,
+    ) -> Result<(Self, Vec<wgpu::CommandBuffer>), failure::Error> {
+        // ...
+        for m in obj_models {
+            let mut vertices = Vec::new();
+            for i in 0..m.mesh.positions.len() / 3 {
+                // ...
+            }
+
+            let indices = &m.mesh.indices;
+
+            // Calculate tangents and bitangets. We're going to
+            // use the triangles, so we need to loop through the
+            // indices in chunks of 3
+            for c in indices.chunks(3) {
+                let v0 = vertices[c[0] as usize];
+                let v1 = vertices[c[1] as usize];
+                let v2 = vertices[c[2] as usize];
+
+                let pos0 = v0.position;
+                let pos1 = v1.position;
+                let pos2 = v2.position;
+
+                let uv0 = v0.tex_coords;
+                let uv1 = v1.tex_coords;
+                let uv2 = v2.tex_coords;
+
+                // Calculate the edges of the triangle
+                let delta_pos1 = pos1 - pos0;
+                let delta_pos2 = pos2 - pos0;
+
+                // This will give us a direction to calculate the
+                // tangent and bitangent
+                let delta_uv1 = uv1 - uv0;
+                let delta_uv2 = uv2 - uv0;
+
+                // Solving the following system of equations will
+                // give us the tangent and bitangent.
+                //     delta_pos1 = delta_uv1.x * T + delta_u.y * B
+                //     delta_pos2 = delta_uv2.x * T + delta_uv2.y * B
+                // Luckily, the place I found this equation provided 
+                // the solution!
+                let r = 1.0 / (delta_uv1 .x * delta_uv2.y - delta_uv1.y * delta_uv2.x);
+                let tangent = (delta_pos1 * delta_uv2.y - delta_pos2 * delta_uv1.y) * r;
+                let bitangent = (delta_pos2 * delta_uv1.x - delta_pos1 * delta_uv2.x) * r;
+                
+                // We'll use the same tangent/bitangent for each vertex in the triangle
+                vertices[c[0] as usize].tangent = tangent;
+                vertices[c[1] as usize].tangent = tangent;
+                vertices[c[2] as usize].tangent = tangent;
+
+                vertices[c[0] as usize].bitangent = bitangent;
+                vertices[c[1] as usize].bitangent = bitangent;
+                vertices[c[2] as usize].bitangent = bitangent;
+            }
+
+            // ...
+        }
+
+        Ok((Self { meshes, materials }, command_buffers))
+    }
+}
+```
+
+## Shader time!
+
+The fragment shader needs to be updated to include our tangent and bitangent.
+
+```glsl
+// shader.vert
+layout(location=0) in vec3 a_position;
+layout(location=1) in vec2 a_tex_coords;
+layout(location=2) in vec3 a_normal;
+// NEW!
+layout(location=3) in vec3 a_tangent;
+layout(location=4) in vec3 a_bitangent;
+```
+
+We're going to change up the output variables as well. We're going to calculate a `tangent_matrix` that we're going to pass to the fragment shader. We're also going to remove `v_normal` as we will be using the normal map data instead.
+
+```glsl
+layout(location=0) out vec2 v_tex_coords;
+layout(location=1) out vec3 v_position; // UPDATED!
+layout(location=2) out mat3 v_tangent_matrix; // NEW!
+```
+
+We need to reflect these updates in the fragment shader as well. We'll also transform the normal into `world space`.
+
+```glsl
+// shader.frag
+layout(location=0) in vec2 v_tex_coords;
+layout(location=1) in vec3 v_position; // UPDATED!
+layout(location=2) in mat3 v_tangent_matrix; // NEW!
+
+// ...
+
+void main() {
+    // ...
+    vec3 normal = normalize(v_tangent_matrix * object_normal.rgb);
+    // ...
+}
+```
+
+With that we get the following.
+
+![](./normal_mapping_correct.png)
+
+## Eww, matrix multiplication in the fragment shader...
+
+Currently we are transforming the normal in the fragment shader. The fragment shader gets run for **every pixel**. To say this is inefficient is an understatement. Even so, we can't do the transformation in the vertex shader since we need to sample the normal map in the pixel shader. If want to use the `tangent_matrix` out of the fragment shader, we're going to have to think outside the box.
+
+## World Space to Tangent Space
+
+The variables we're using in the lighting calculation are `v_position`, `light_position`, and `u_view_position`. These are in `world space` while our normals are in `tangent space`. We can convert from `world space` to `tangent space` by multiplying by the inverse of the `tangent_matrix`. The inverse operation is a little expensive, but because our `tangent_matrix` is made up of vectors that are perpendicular to each other (aka. orthonormal), we can use the `transpose()` function instead!
+
+But first, we need to change up our output variables, and import the `Light` uniforms.
+
+```glsl
+// ...
+layout(location=0) out vec2 v_tex_coords;
+layout(location=1) out vec3 v_position; // UPDATED!
+layout(location=2) out vec3 v_light_position; // NEW!
+layout(location=3) out vec3 v_view_position; // NEW!
+// ...
+
+// NEW!
+layout(set=2, binding=0) uniform Light {
+    vec3 light_position;
+    vec3 light_color;
+};
+```
+
+Now we'll convert the other lighting values as follows.
+
+```glsl
+void main() {
+    // ...
+
+    // UDPATED!
+    mat3 tangent_matrix = transpose(mat3(
+        tangent,
+        bitangent,
+        normal
+    ));
+
+    vec4 model_space = model_matrix * vec4(a_position, 1.0);
+    v_position = model_space.xyz;
+
+    // NEW!
+    v_position = tangent_matrix * model_space.xyz;
+    v_light_position = tangent_matrix * light_position;
+    v_view_position = tangent_matrix * u_view_position;
+    // ...
+}
+```
+
+Finally we'll update `shader.frag` to import and use the transformed lighting values.
+
+```glsl
+#version 450
+
+layout(location=0) in vec2 v_tex_coords;
+layout(location=1) in vec3 v_position; // UPDATED!
+layout(location=2) in vec3 v_light_position; // NEW!
+layout(location=3) in vec3 v_view_position; // NEW!
+// ...
+void main() {
+    // ...
+
+    vec3 normal = normalize(object_normal.rgb); // UPDATED!
+    vec3 light_dir = normalize(v_light_position - v_position); // UPDATED!
+    // ...
+
+    vec3 view_dir = normalize(v_view_position - v_position); // UPDATED!
+    // ...
+}
+```
+
+The resulting image isn't noticeably different so I won't show it here, but the calculation definitely is more efficient.
+
+<AutoGithubLink/>

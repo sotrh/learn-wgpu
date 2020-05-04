@@ -1,9 +1,9 @@
 #version 450
 
 layout(location=0) in vec2 v_tex_coords;
-layout(location=1) in vec3 v_position; // UPDATED!
-layout(location=2) in vec3 v_light_position; // NEW!
-layout(location=3) in vec3 v_view_position; // NEW!
+layout(location=1) in vec3 v_model_position_tangent_space;
+layout(location=2) in vec3 v_light_position_tangent_space;
+layout(location=3) in vec3 v_view_position_tangent_space;
 
 layout(location=0) out vec4 f_color;
 
@@ -24,13 +24,14 @@ void main() {
     float ambient_strength = 0.1;
     vec3 ambient_color = light_color * ambient_strength;
 
-    vec3 normal = normalize(object_normal.rgb); // UPDATED!
-    vec3 light_dir = normalize(v_light_position - v_position); // UPDATED!
+    vec3 normal = normalize(object_normal.rgb);
+
+    vec3 light_dir = normalize(v_light_position_tangent_space - v_model_position_tangent_space);
     
     float diffuse_strength = max(dot(normal, light_dir), 0.0);
     vec3 diffuse_color = light_color * diffuse_strength;
 
-    vec3 view_dir = normalize(v_view_position - v_position); // UPDATED!
+    vec3 view_dir = normalize(v_view_position_tangent_space - v_model_position_tangent_space);
     vec3 half_dir = normalize(view_dir + light_dir);
     float specular_strength = pow(max(dot(normal, half_dir), 0.0), 32);
     vec3 specular_color = specular_strength * light_color;

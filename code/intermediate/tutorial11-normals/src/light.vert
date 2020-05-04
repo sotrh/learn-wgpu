@@ -7,8 +7,7 @@ layout(location=0) out vec4 v_color;
 layout(set=0, binding=0)
 uniform Uniforms {
     vec3 u_view_position;
-    mat4 u_view;
-    mat4 u_proj;
+    mat4 u_view_proj;
 };
 
 layout(set=1, binding=0)
@@ -22,7 +21,7 @@ float scale = 0.25;
 
 void main() {
     vec3 v_position = a_position * scale + u_position;
-    gl_Position = u_proj * u_view * vec4(v_position, 1);
+    gl_Position = u_view_proj * vec4(v_position, 1);
 
     v_color = vec4(u_color, 0);
 }
