@@ -301,8 +301,8 @@ event_loop.run(move |event, _, control_flow| {
     match event {
         // ...
         Event::RedrawRequested(_) => {
-            block_on(state.update());
-            block_on(state.render());
+            state.update();
+            state.render();
         }
         Event::MainEventsCleared => {
             // RedrawRequested will only trigger once, unless we manually
