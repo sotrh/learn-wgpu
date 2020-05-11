@@ -156,20 +156,20 @@ fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
 }
 ```
 
-There's nothing really different here from creating the `swap_chain` initially, so I won't get into it. 
+There's nothing really different here from creating the `swap_chain` initially, so I won't get into it.
 
 We call this method in `main()` in the event loop for the following events.
 
 ```rust
 match event {
     // ...
-    
+
     WindowEvent::Resized(physical_size) => {
-        block_on(state.resize(*physical_size));
+        state.resize(*physical_size);
     }
     WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
         // new_inner_size is &mut so w have to dereference it twice
-        block_on(state.resize(**new_inner_size));
+        state.resize(**new_inner_size);
     }
     // ...
 }
@@ -214,11 +214,11 @@ event_loop.run(move |event, _, control_flow| {
                     }
                 }
                 WindowEvent::Resized(physical_size) => {
-                    block_on(state.resize(*physical_size));
+                    state.resize(*physical_size);
                 }
                 WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
                     // new_inner_size is &mut so w have to dereference it twice
-                    block_on(state.resize(**new_inner_size));
+                    state.resize(**new_inner_size);
                 }
                 _ => {}
             }
@@ -280,7 +280,7 @@ Now we can actually get to clearing the screen (long time coming). We need to us
             depth_stencil_attachment: None,
         });
     }
-    
+
     self.queue.submit(&[
         encoder.finish()
     ]);
@@ -301,8 +301,8 @@ event_loop.run(move |event, _, control_flow| {
     match event {
         // ...
         Event::RedrawRequested(_) => {
-            block_on(state.update());
-            block_on(state.render());
+            state.update();
+            state.render();
         }
         Event::MainEventsCleared => {
             // RedrawRequested will only trigger once, unless we manually

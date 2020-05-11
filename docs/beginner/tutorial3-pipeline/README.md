@@ -7,7 +7,7 @@ If you're familiar with OpenGL, you may remember using shader programs. You can 
 Shaders are mini programs that you send to the gpu to perform operations on your data. There are 3 main types of shader: vertex, fragment, and compute. There are others such as geometry shaders, but they're more of an advanced topic. For now we're just going to use vertex, and fragment shaders.
 
 ## Vertex, fragment.. what are those?
-A vertex is a point in 3d space (can also be 2d). These vertices are then bundle in groups of 2s to form lines and/or 3s to form triangles. 
+A vertex is a point in 3d space (can also be 2d). These vertices are then bundled in groups of 2s to form lines and/or 3s to form triangles.
 
 <img src="./tutorial3-pipeline-vertices.png" />
 
@@ -143,7 +143,7 @@ let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescrip
     }),
 ```
 
-Two things to note here: 
+Two things to note here:
 1. You can specify an `entry_point` for your shaders. I normally use `"main"` as that's what it would be in OpenGL, but feel free to use whatever name you like.
 2. The `fragment_stage` is technically optional, so you have to wrap it in `Some()`. I've never used a vertex shader without a fragment shader, but the option is available if you need it.
 

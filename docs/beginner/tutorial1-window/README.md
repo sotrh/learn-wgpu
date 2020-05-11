@@ -33,7 +33,7 @@ There's not much going on here yet, so I'm just going to post the code in full. 
 use winit::{
     event::*,
     event_loop::{EventLoop, ControlFlow},
-    window::{WindowBuilder},
+    window::{Window, WindowBuilder},
 };
 
 fn main() {

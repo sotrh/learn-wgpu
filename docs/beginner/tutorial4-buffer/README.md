@@ -19,9 +19,9 @@ struct Vertex {
 }
 ```
 
-Our vertices will all have a position and a color. The position represents the x, y, and z of the vertex in 3d space. The color is the red, greed, and blue values for the vertex. We need the `Vertex` to be copyable so we can create a buffer with it.
+Our vertices will all have a position and a color. The position represents the x, y, and z of the vertex in 3d space. The color is the red, green, and blue values for the vertex. We need the `Vertex` to be copyable so we can create a buffer with it.
 
-Next we need the actual data to will make up our triangle. Below `Vertex` add the following.
+Next we need the actual data that will make up our triangle. Below `Vertex` add the following.
 
 ```rust
 //main.rs
@@ -265,7 +265,7 @@ const VERTICES: &[Vertex] = &[
     Vertex { position: [-0.49513406, 0.06958647, 0.0], color: [0.5, 0.0, 0.5] }, // B
     Vertex { position: [-0.21918549, -0.44939706, 0.0], color: [0.5, 0.0, 0.5] }, // C
     Vertex { position: [0.44147372, 0.2347359, 0.0],color: [0.5, 0.0, 0.5] }, // E
-    
+
     Vertex { position: [-0.21918549, -0.44939706, 0.0], color: [0.5, 0.0, 0.5] }, // C
     Vertex { position: [0.35966998, -0.3473291, 0.0], color: [0.5, 0.0, 0.5] }, // D
     Vertex { position: [0.44147372, 0.2347359, 0.0],color: [0.5, 0.0, 0.5] }, // E
