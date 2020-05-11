@@ -1,5 +1,11 @@
 # News **UPDATED!**
 
+## Normal mapping
+
+My perfectionism got in my way a bit with this one. I wasn't sure that what I was getting was "physically accurate", but it seems to look good.
+
+![](./normal_mapping_correct.png)
+
 ## 0.5!
 
 To many things changed to make note of them here. Check out [the 0.5 pull request](https://github.com/sotrh/learn-wgpu/pull/29) if you're curious about specifics. That being said, 2 things are worth mentioning directly: the y-axis now points up like with DirectX and Metal, and requesting an adapter and creating a device now use `Future`s. The tutorials have been updated as well as the code.

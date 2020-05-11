@@ -37,6 +37,7 @@ module.exports = {
                 collapsable: false,
                 children: [
                     '/intermediate/tutorial10-lighting/',
+                    '/intermediate/tutorial11-normals/',
                 ],
             },
             {
