@@ -1,7 +1,7 @@
 # Dependencies and the window
 
 ## Boring, I know
-Some of you reading this are very experienced with opening up windows in Rust and probably have your favorite windowing library, but this guide is designed for everybody, so it's something that we need to cover. Luckily, if you don't need to read this if you know what you're doing. One thing that you do need to know is that whatever windowing solution you use needs to support the [raw-window-handle](https://github.com/rust-windowing/raw-window-handle) crate.
+Some of you reading this are very experienced with opening up windows in Rust and probably have your favorite windowing library, but this guide is designed for everybody, so it's something that we need to cover. Luckily, you don't need to read this if you know what you're doing. One thing that you do need to know is that whatever windowing solution you use needs to support the [raw-window-handle](https://github.com/rust-windowing/raw-window-handle) crate.
 
 ## What crates are we using?
 For the beginner stuff, we're going to keep things very simple, we'll add things as we go, but I've listed the relevant `Cargo.toml` bits below.
@@ -14,7 +14,7 @@ wgpu = "0.5.0"
 futures = "0.3.4"
 ```
 
-If you're on Windows, you can specify Vulkan as you desired backend by removing the `wgpu = "0.5.0"` and adding the following.
+If you're on Windows, you can specify Vulkan as your desired backend instead of DirectX by removing the `wgpu = "0.5.0"` and adding the following.
 
 ``` toml
 [dependencies.wgpu]
@@ -33,7 +33,7 @@ There's not much going on here yet, so I'm just going to post the code in full. 
 use winit::{
     event::*,
     event_loop::{EventLoop, ControlFlow},
-    window::{WindowBuilder},
+    window::{Window, WindowBuilder},
 };
 
 fn main() {
@@ -43,7 +43,6 @@ fn main() {
         .unwrap();
 
     event_loop.run(move |event, _, control_flow| {
-        *control_flow = ControlFlow::Poll;
         match event {
             Event::WindowEvent {
                 ref event,

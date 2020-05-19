@@ -1,7 +1,6 @@
 # The Swapchain
-# The Swapchain
 
-## First, some house keeping
+## First, some house keeping: State
 For convenience we're going to pack all the fields into a struct, and create some methods on that.
 
 ```rust
@@ -43,7 +42,7 @@ impl State {
 
 I'm glossing over `State`s fields, but they'll make more sense as I explain the code behind the methods.
 
-## new()
+## State::new()
 The code for this is pretty straight forward, but let's break this down a bit.
 
 ```rust
@@ -144,7 +143,7 @@ let mut state = block_on(State::new(&window));
 ```
 
 ## resize()
-If we want to support resizing in our application, we're going to need to recreate the `swap_chain` everytime the window's size changes. That's the reason we stored the `hidpi_factor`, the logical `size`, and the `sc_desc` used to create the swapchain. With all of these, the resize method is very simple.
+If we want to support resizing in our application, we're going to need to recreate the `swap_chain` everytime the window's size changes. That's the reason we stored the physical `size` and the `sc_desc` used to create the swapchain. With all of these, the resize method is very simple.
 
 ```rust
 // impl State
@@ -197,7 +196,7 @@ event_loop.run(move |event, _, control_flow| {
         Event::WindowEvent {
             ref event,
             window_id,
-        } if window_id == window.id() => if !state.input(event) {
+        } if window_id == window.id() => if !state.input(event) { // <- This line changed after the "=>"
             match event {
                 WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
                 WindowEvent::KeyboardInput {
@@ -221,8 +220,8 @@ event_loop.run(move |event, _, control_flow| {
                     state.resize(**new_inner_size);
                 }
                 _ => {}
-            }
-        }
+            } // <- remove the comma on this line
+        } // <- Add a new closing brace for the if expression
         _ => {}
     }
 });
@@ -234,7 +233,7 @@ We don't have anything to update yet, so leave the method empty.
 
 ```rust
 fn update(&mut self) {
-
+    // remove `unimplemented!()`
 }
 ```
 
@@ -331,7 +330,7 @@ Some of you may be able to tell what's going on just by looking at it, but I'd b
 }
 ```
 
-A `RenderPassDescriptor` only has two fields: `color_attachments` and `depth_stencil_attachment`. The `color_attachements` describe where we are going to draw our color too.
+A `RenderPassDescriptor` only has two fields: `color_attachments` and `depth_stencil_attachment`. The `color_attachements` describe where we are going to draw our color to.
 
 We'll use `depth_stencil_attachment` later, but we'll set it to `None` for now.
 
