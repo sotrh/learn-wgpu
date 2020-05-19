@@ -1,29 +1,42 @@
-use winit::window::{Window, WindowBuilder};
-use winit::event_loop::EventLoop;
-use winit::dpi::LogicalSize;
+mod buffer;
+
+use winit::window::{Window};
+
+use buffer::*;
 
 use crate::state;
 
+const FONT_BYTES: &[u8] = include_bytes!("../../res/fonts/PressStart2P-Regular.ttf");
+
 pub struct Render {
-    window: Window,
+    // todo: fix this
+    #[allow(dead_code)]
     surface: wgpu::Surface,
+    #[allow(dead_code)]
     adapter: wgpu::Adapter,
+
     device: wgpu::Device,
     queue: wgpu::Queue,
+    sc_desc: wgpu::SwapChainDescriptor,
     swap_chain: wgpu::SwapChain,
     pipeline: wgpu::RenderPipeline,
     vertex_buffer: wgpu::Buffer,
     index_buffer: wgpu::Buffer,
+    glyph_brush: wgpu_glyph::GlyphBrush<'static, ()>,
 }
 
 impl Render {
-    pub async fn new<T: 'static>(event_loop: &EventLoop<T>) -> Self {
-        let window = WindowBuilder::new()
-            .with_title("Pong")
-            .with_inner_size(LogicalSize::<f64>::from((800, 600)))
-            .build(&event_loop).unwrap();
-        
-        let surface = wgpu::Surface::create(&window);
+    pub fn width(&self) -> f32 {
+        self.sc_desc.width as f32
+    }
+
+    #[allow(dead_code)]
+    pub fn height(&self) -> f32 {
+        self.sc_desc.height as f32
+    }
+
+    pub async fn new(window: &Window) -> Self {
+        let surface = wgpu::Surface::create(window);
 
         let adapter = wgpu::Adapter::request(
             &wgpu::RequestAdapterOptions {
@@ -56,8 +69,8 @@ impl Render {
             &pipeline_layout, 
             sc_desc.format, 
             &[Vertex::DESC], 
-            include_str!("textured.vert"), 
-            include_str!("textured.frag"),
+            include_str!("../../res/shaders/textured.vert"), 
+            include_str!("../../res/shaders/textured.frag"),
         );
 
         let vertex_buffer = device.create_buffer(&wgpu::BufferDescriptor {
@@ -72,16 +85,21 @@ impl Render {
             usage: wgpu::BufferUsage::INDEX | wgpu::BufferUsage::COPY_DST,
         });
 
+        let font = wgpu_glyph::Font::from_bytes(FONT_BYTES).unwrap();
+        let glyph_brush = wgpu_glyph::GlyphBrushBuilder::using_font(font)
+            .build(&device, sc_desc.format);
+
         Self {
-            window,
             surface,
             adapter,
             device,
             queue,
+            sc_desc,
             swap_chain,
             pipeline,
             vertex_buffer,
             index_buffer,
+            glyph_brush,
         }
     }
 
@@ -90,14 +108,22 @@ impl Render {
             label: None,
         });
 
-        let (stg_vertex, stg_index, num_indices) = QuadBufferBuilder::new()
-            .push_ball(&state.ball)
-            .push_player(&state.player1)
-            .push_player(&state.player2)
-            .build(&self.device);
-
-        stg_vertex.copy_to_buffer(&mut encoder, &self.vertex_buffer);
-        stg_index.copy_to_buffer(&mut encoder, &self.index_buffer);
+        let num_indices = if state.ball.visible 
+            || state.player1.visible
+            || state.player2.visible 
+        {
+            let (stg_vertex, stg_index, num_indices) = QuadBufferBuilder::new()
+                .push_ball(&state.ball)
+                .push_player(&state.player1)
+                .push_player(&state.player2)
+                .build(&self.device);
+    
+            stg_vertex.copy_to_buffer(&mut encoder, &self.vertex_buffer);
+            stg_index.copy_to_buffer(&mut encoder, &self.index_buffer);
+            num_indices
+        } else {
+            0
+        };
         
         let frame = self.swap_chain.get_next_texture().unwrap();
 
@@ -114,144 +140,73 @@ impl Render {
             depth_stencil_attachment: None,
         });
 
-        render_pass.set_vertex_buffer(0, &self.vertex_buffer, 0, 0);
-        render_pass.set_index_buffer(&self.index_buffer, 0, 0);
-        render_pass.set_pipeline(&self.pipeline);
-        render_pass.draw_indexed(0..num_indices, 0, 0..1);
-
+        if num_indices != 0 {
+            render_pass.set_vertex_buffer(0, &self.vertex_buffer, 0, 0);
+            render_pass.set_index_buffer(&self.index_buffer, 0, 0);
+            render_pass.set_pipeline(&self.pipeline);
+            render_pass.draw_indexed(0..num_indices, 0, 0..1);
+        }
+ 
         drop(render_pass);
 
+        if state.title_text.visible {
+            draw_text(&state.title_text, &mut self.glyph_brush);
+        }
+        if state.play_button.visible {
+            draw_text(&state.play_button, &mut self.glyph_brush);
+        }
+        if state.quit_button.visible {
+            draw_text(&state.quit_button, &mut self.glyph_brush);
+        }
+        if state.player1_score.visible {
+            draw_text(&state.player1_score, &mut self.glyph_brush);
+        }
+        if state.player2_score.visible {
+            draw_text(&state.player2_score, &mut self.glyph_brush);
+        }
+        if state.win_text.visible {
+            draw_text(&state.win_text, &mut self.glyph_brush);
+        }
+
+        self.glyph_brush.draw_queued(
+            &self.device,
+            &mut encoder,
+            &frame.view,
+            self.sc_desc.width,
+            self.sc_desc.height,
+        ).unwrap();
+
         self.queue.submit(&[encoder.finish()]);
-
-        self.window.request_redraw();
     }
 }
 
-const U32_SIZE: wgpu::BufferAddress = std::mem::size_of::<u32>() as wgpu::BufferAddress;
-
-pub struct QuadBufferBuilder {
-    vertex_data: Vec<Vertex>,
-    index_data: Vec<u32>,
-    current_quad: u32,
-}
-
-impl QuadBufferBuilder {
-    pub fn new() -> Self {
-        Self {
-            vertex_data: Vec::new(),
-            index_data: Vec::new(),
-            current_quad: 0,
+fn draw_text(
+    text: &state::Text,
+    glyph_brush: &mut wgpu_glyph::GlyphBrush<'static, ()>,
+) {
+    let layout = wgpu_glyph::Layout::default();
+    if text.centered {
+        layout.h_align(wgpu_glyph::HorizontalAlign::Center);
+    }
+    let scale = {
+        let mut size = text.size;
+        if text.focused {
+            size += 8.0;
         }
-    }
-
-    pub fn push_ball(mut self, ball: &state::Ball) -> Self {
-        if ball.visible {
-            let min_x = ball.position.x - ball.radius;
-            let min_y = ball.position.y - ball.radius;
-            let max_x = ball.position.x + ball.radius;
-            let max_y = ball.position.y + ball.radius;
-    
-            self.push_quad(min_x, min_y, max_x, max_y)
-        } else {
-            self
-        }
-    }
-
-    pub fn push_player(mut self, player: &state::Player) -> Self {
-        if player.visible {
-            self.push_quad(
-                player.position.x - player.size.x * 0.5, 
-                player.position.y - player.size.y * 0.5, 
-                player.position.x + player.size.x * 0.5,
-                player.position.y + player.size.y * 0.5, 
-            )
-        } else {
-            self
-        }
-    }
-
-    pub fn push_quad(mut self, min_x: f32, min_y: f32, max_x: f32, max_y: f32) -> Self {
-        self.vertex_data.extend(&[
-            Vertex {
-                position: (min_x, min_y).into(),
-                tex_coord: (0.0, 0.0).into(),
-            },
-            Vertex {
-                position: (max_x, min_y).into(),
-                tex_coord: (1.0, 0.0).into(),
-            },
-            Vertex {
-                position: (max_x, max_y).into(),
-                tex_coord: (1.0, 1.0).into(),
-            },
-            Vertex {
-                position: (min_x, max_y).into(),
-                tex_coord: (0.0, 1.0).into(),
-            },
-        ]);
-        self.index_data.extend(&[
-            self.current_quad * 4 + 0,
-            self.current_quad * 4 + 1,
-            self.current_quad * 4 + 2,
-            self.current_quad * 4 + 0,
-            self.current_quad * 4 + 2,
-            self.current_quad * 4 + 3,
-        ]);
-        self.current_quad += 1;
-        self
-    }
-
-    pub fn build(self, device: &wgpu::Device) -> (StagingBuffer, StagingBuffer, u32) {
-        (
-            StagingBuffer::new(device, &self.vertex_data),
-            StagingBuffer::new(device, &self.index_data),
-            self.index_data.len() as u32,
-        )
-    }
-}
-
-pub struct StagingBuffer {
-    buffer: wgpu::Buffer,
-    size: wgpu::BufferAddress,
-}
-
-impl StagingBuffer {
-    pub fn new<T: bytemuck::Pod + Sized>(device: &wgpu::Device, data: &[T]) -> StagingBuffer {
-        StagingBuffer {
-            buffer: device.create_buffer_with_data(
-                bytemuck::cast_slice(data),
-                wgpu::BufferUsage::COPY_SRC,
-            ),
-            size: (std::mem::size_of::<T>() * data.len()) as wgpu::BufferAddress
-        }
-    }
-
-    pub fn copy_to_buffer(&self, encoder: &mut wgpu::CommandEncoder, other: &wgpu::Buffer) {
-        encoder.copy_buffer_to_buffer(&self.buffer, 0, other, 0, self.size)
-    }
-}
-
-#[derive(Copy, Clone)]
-struct Vertex {
-    position: cgmath::Vector2<f32>,
-    tex_coord: cgmath::Vector2<f32>,
-}
-
-unsafe impl bytemuck::Pod for Vertex {}
-unsafe impl bytemuck::Zeroable for Vertex {}
-
-impl Vertex {
-    const SIZE: wgpu::BufferAddress = std::mem::size_of::<Self>() as wgpu::BufferAddress;
-    const DESC: wgpu::VertexBufferDescriptor<'static> = wgpu::VertexBufferDescriptor {
-        stride: Self::SIZE,
-        step_mode: wgpu::InputStepMode::Vertex,
-        attributes: &wgpu::vertex_attr_array![
-            0 => Float2,
-            1 => Float2
-        ],
+        wgpu_glyph::Scale::uniform(size)
     };
-}
+    let section = wgpu_glyph::Section {
+        text: &text.text,
+        screen_position: (text.position.x, text.position.y),
+        bounds: (text.bounds.x, text.bounds.y),
+        color: text.color.into(),
+        scale,
+        layout,
+        ..Default::default()
+    };
 
+    glyph_brush.queue(section);
+}
 
 fn create_render_pipeline(
     device: &wgpu::Device, 
