@@ -136,6 +136,8 @@ fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
 }
 ```
 
+Make sure you update the `depth_texture` *after* you update `sc_desc`. If you don't, your program will crash as the `depth_texture` will be a different size than the `swap_chain` texture.
+
 The last change we need to make is in the `render()` function. We've created the `depth_texture`, but we're not currently using it. We use it by attaching it to the `depth_stencil_attachment` of a render pass.
 
 ```rust
