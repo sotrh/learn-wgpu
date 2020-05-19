@@ -45,6 +45,7 @@ let diffuse_texture = device.create_texture(&wgpu::TextureDescriptor {
     // SAMPLED tells wgpu that we want to use this texture in shaders
     // COPY_DST means that we want to copy data to this texture
     usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::COPY_DST,
+    label: Some("diffuse_texture"),
 });
 ```
 
@@ -54,7 +55,7 @@ The `Texture` struct has no methods to interact with the data directly. We actua
 
 ```rust
 let buffer = device.create_buffer_with_data(
-    &rgba, 
+    &diffuse_rgba,
     wgpu::BufferUsage::COPY_SRC,
 );
 ```
@@ -76,17 +77,17 @@ encoder.copy_buffer_to_texture(
         offset: 0,
         bytes_per_row: 4 * dimensions.0,
         rows_per_image: dimensions.1,
-    }, 
+    },
     wgpu::TextureCopyView {
-        texture: &texture,
+        texture: &diffuse_texture,
         mip_level: 0,
         array_layer: 0,
         origin: wgpu::Origin3d::ZERO,
-    }, 
+    },
     size,
 );
 
-device.get_queue().submit(&[encoder.finish()]);
+queue.submit(&[encoder.finish()]);
 ```
 
 ## TextureViews and Samplers
@@ -109,7 +110,7 @@ let diffuse_sampler = device.create_sampler(&wgpu::SamplerDescriptor {
     mipmap_filter: wgpu::FilterMode::Nearest,
     lod_min_clamp: -100.0,
     lod_max_clamp: 100.0,
-    compare_function: wgpu::CompareFunction::Always,
+    compare: wgpu::CompareFunction::Always,
 });
 ```
 
@@ -128,7 +129,7 @@ Mipmaps are a complex topic, and will require [their own section](/todo). Suffic
 
 `lod_(min/max)_clamp` are also related to mipmapping, so will skip over them.
 
-The `compare_function` is often use in filtering. This is used in techniques such as [shadow mapping](/todo). We don't really care here, but the options are `Never`, `Less`, `Equal`, `LessEqual`, `Greater`, `NotEqual`, `GreaterEqual`, and `Always`.
+The `compare` is often use in filtering. This is used in techniques such as [shadow mapping](/todo). We don't really care here, but the options are `Never`, `Less`, `Equal`, `LessEqual`, `Greater`, `NotEqual`, `GreaterEqual`, and `Always`.
 
 All these different resources are nice and all, but they doesn't do us much good if we can't plug them in anywhere. This is where `BindGroup`s and `PipelineLayout`s come in.
 
@@ -342,7 +343,7 @@ If we run our program now we should get the following result.
 
 ![an upside down tree on a hexagon](./upside-down.png)
 
-That's weird, our tree is upside down! This is because wgpu's coordinate system has positive y values going down while texture coords have y as up. 
+That's weird, our tree is upside down! This is because wgpu's coordinate system has positive y values going down while texture coords have y as up.
 
 ![happy-tree-uv-coords.png](./happy-tree-uv-coords.png)
 
@@ -411,10 +412,11 @@ impl Texture {
             dimension: wgpu::TextureDimension::D2,
             format: wgpu::TextureFormat::Rgba8UnormSrgb,
             usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::COPY_DST,
+            label: Some("texture"),
         });
 
         let buffer = device.create_buffer_with_data(
-            &rgba, 
+            &rgba,
             wgpu::BufferUsage::COPY_SRC,
         );
 
@@ -428,13 +430,13 @@ impl Texture {
                 offset: 0,
                 bytes_per_row: 4 * dimensions.0,
                 rows_per_image: dimensions.1,
-            }, 
+            },
             wgpu::TextureCopyView {
                 texture: &texture,
                 mip_level: 0,
                 array_layer: 0,
                 origin: wgpu::Origin3d::ZERO,
-            }, 
+            },
             size,
         );
 
@@ -450,9 +452,9 @@ impl Texture {
             mipmap_filter: wgpu::FilterMode::Nearest,
             lod_min_clamp: -100.0,
             lod_max_clamp: 100.0,
-            compare_function: wgpu::CompareFunction::Always,
+            compare: wgpu::CompareFunction::Always,
         });
-        
+
         Ok((Self { texture, view, sampler }, cmd_buffer))
     }
 }

@@ -155,14 +155,14 @@ fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
 }
 ```
 
-There's nothing really different here from creating the `swap_chain` initially, so I won't get into it. 
+There's nothing really different here from creating the `swap_chain` initially, so I won't get into it.
 
 We call this method in `main()` in the event loop for the following events.
 
 ```rust
 match event {
     // ...
-    
+
     WindowEvent::Resized(physical_size) => {
         state.resize(*physical_size);
     }
@@ -279,7 +279,7 @@ Now we can actually get to clearing the screen (long time coming). We need to us
             depth_stencil_attachment: None,
         });
     }
-    
+
     self.queue.submit(&[
         encoder.finish()
     ]);
