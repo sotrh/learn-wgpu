@@ -165,11 +165,11 @@ match event {
     // ...
     
     WindowEvent::Resized(physical_size) => {
-        block_on(state.resize(*physical_size));
+        state.resize(*physical_size);
     }
     WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
         // new_inner_size is &mut so w have to dereference it twice
-        block_on(state.resize(**new_inner_size));
+        state.resize(**new_inner_size);
     }
     // ...
 }
@@ -214,11 +214,11 @@ event_loop.run(move |event, _, control_flow| {
                     }
                 }
                 WindowEvent::Resized(physical_size) => {
-                    block_on(state.resize(*physical_size));
+                    state.resize(*physical_size);
                 }
                 WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
                     // new_inner_size is &mut so w have to dereference it twice
-                    block_on(state.resize(**new_inner_size));
+                    state.resize(**new_inner_size);
                 }
                 _ => {}
             }
@@ -301,8 +301,8 @@ event_loop.run(move |event, _, control_flow| {
     match event {
         // ...
         Event::RedrawRequested(_) => {
-            block_on(state.update());
-            block_on(state.render());
+            state.update();
+            state.render();
         }
         Event::MainEventsCleared => {
             // RedrawRequested will only trigger once, unless we manually
