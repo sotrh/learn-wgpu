@@ -2,6 +2,7 @@ mod render;
 mod state;
 mod util;
 mod system;
+mod sound;
 
 use system::System;
 
@@ -85,6 +86,10 @@ fn main() {
         game_state: state::GameState::MainMenu,
     };
 
+    let sound_system = sound::SoundSystem::new();
+    let sound_pack = sound::SoundPack::new();
+    let mut events = Vec::new();
+
     let mut play_system = system::PlaySystem::new();
     let mut menu_system = system::MenuSystem::new();
     let mut serving_system = system::ServingSystem::new();
@@ -138,21 +143,38 @@ fn main() {
                 }
             }
             Event::RedrawRequested(_) => {
+                for event in &events {
+                    match event {
+                        state::Event::FocusChanged 
+                        | state::Event::ButtonPressed => {
+                            sound_system.queue(sound_pack.bounce());
+                        }
+                        state::Event::BallBounce(_pos) => {
+                            sound_system.queue(sound_pack.bounce());
+                        }
+                        state::Event::Score(_) => {
+                            sound_system.queue(sound_pack.bounce());
+                        }
+                        _ => {}
+                    }
+                }
+                events.clear();
+
                 match state.game_state {
                     state::GameState::MainMenu => {
-                        menu_system.update_state(&mut state);
+                        menu_system.update_state(&mut state, &mut events);
                         if state.game_state == state::GameState::Serving {
                             serving_system.start(&mut state);
                         }
                     },
                     state::GameState::Serving => {
-                        serving_system.update_state(&mut state);
+                        serving_system.update_state(&mut state, &mut events);
                         if state.game_state == state::GameState::Playing {
                             play_system.start(&mut state);
                         }
                     },
                     state::GameState::Playing => {
-                        play_system.update_state(&mut state);
+                        play_system.update_state(&mut state, &mut events);
                         if state.game_state == state::GameState::Serving {
                             serving_system.start(&mut state);
                         } else if state.game_state == state::GameState::GameOver {
@@ -160,7 +182,7 @@ fn main() {
                         }
                     },
                     state::GameState::GameOver => {
-                        game_over_system.update_state(&mut state);
+                        game_over_system.update_state(&mut state, &mut events);
                         if state.game_state == state::GameState::MainMenu {
                             menu_system.start(&mut state);
                         }

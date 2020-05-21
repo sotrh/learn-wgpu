@@ -6,7 +6,7 @@ use crate::util;
 pub trait System {
     fn start(&mut self, state: &mut state::State);
     fn process_input(&mut self, keycode: VirtualKeyCode, pressed: bool) -> bool;
-    fn update_state(&self, state: &mut state::State);
+    fn update_state(&self, state: &mut state::State, events: &mut Vec<state::Event>);
 }
 
 #[derive(Debug)]
@@ -65,19 +65,23 @@ impl System for MenuSystem {
         }
     }   
 
-    fn update_state(&self, state: &mut state::State) {
+    fn update_state(&self, state: &mut state::State, events: &mut Vec<state::Event>) {
 
         if state.play_button.focused && self.down_pressed {
+            events.push(state::Event::FocusChanged);
             state.play_button.focused = false;
             state.quit_button.focused = true;
         } else if state.quit_button.focused && self.up_pressed {
+            events.push(state::Event::FocusChanged);
             state.quit_button.focused = false;
             state.play_button.focused = true;
         }
 
         if state.play_button.focused && self.enter_pressed {
+            events.push(state::Event::ButtonPressed);
             state.game_state = state::GameState::Serving;
         } else if state.quit_button.focused && self.enter_pressed {
+            events.push(state::Event::ButtonPressed);
             state.game_state = state::GameState::Quiting;
         }
     }
@@ -139,7 +143,7 @@ impl System for PlaySystem {
         }
     }
 
-    fn update_state(&self, state: &mut state::State) {
+    fn update_state(&self, state: &mut state::State, events: &mut Vec<state::Event>) {
         // move the players
         if self.player1_up_pressed {
             state.player1.position.y += 0.025;
@@ -189,9 +193,11 @@ impl System for PlaySystem {
 
         // bounce the ball off the players
         if state.player1.contains(&state.ball) {
+            events.push(state::Event::BallBounce(state.ball.position));
             state.ball.position.x -= state.ball.velocity.x - state.player1.size.x;
             state.ball.velocity.x *= -1.0;
         } else if state.player2.contains(&state.ball) {
+            events.push(state::Event::BallBounce(state.ball.position));
             state.ball.position.x -= state.ball.velocity.x + state.player2.size.x;
             state.ball.velocity.x *= -1.0;
         }
@@ -232,7 +238,7 @@ impl System for ServingSystem {
         false
     }
 
-    fn update_state(&self, state: &mut state::State) {
+    fn update_state(&self, state: &mut state::State, _events: &mut Vec<state::Event>) {
         let current_time = std::time::Instant::now();
         let delta_time = current_time - self.last_time;
         if delta_time.as_secs_f32() > 1.0 {
@@ -273,7 +279,7 @@ impl System for GameOverSystem {
         false
     }
 
-    fn update_state(&self, state: &mut state::State) {
+    fn update_state(&self, state: &mut state::State, _events: &mut Vec<state::Event>) {
         let current_time = std::time::Instant::now();
         let delta_time = current_time - self.last_time;
         if delta_time.as_secs_f32() > 1.0 {

@@ -74,3 +74,12 @@ impl Default for Text {
         }
     }
 }
+
+#[derive(Debug, Copy, Clone)]
+pub enum Event {
+    ButtonPressed,
+    FocusChanged,
+    BallBounce(cgmath::Vector2<f32>),
+    Score(u32),
+    GameOver,
+}

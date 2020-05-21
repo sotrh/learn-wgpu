@@ -184,10 +184,14 @@ fn draw_text(
     text: &state::Text,
     glyph_brush: &mut wgpu_glyph::GlyphBrush<'static, ()>,
 ) {
-    let layout = wgpu_glyph::Layout::default();
-    if text.centered {
-        layout.h_align(wgpu_glyph::HorizontalAlign::Center);
-    }
+    let layout = wgpu_glyph::Layout::default()
+        .h_align(
+            if text.centered {
+                wgpu_glyph::HorizontalAlign::Center
+            } else {
+                wgpu_glyph::HorizontalAlign::Left
+            }
+        );
     let scale = {
         let mut size = text.size;
         if text.focused {
