@@ -172,10 +172,11 @@ fn save_gif_old(path: &str, frames: &mut Vec<Vec<u8>>, speed: i32, size: u16) ->
 fn create_render_pipeline(device: &wgpu::Device, target: &framework::Texture) -> wgpu::RenderPipeline {
     let vs_src = include_str!("res/shader.vert");
     let fs_src = include_str!("res/shader.frag");
-    let vs_spirv = glsl_to_spirv::compile(vs_src, glsl_to_spirv::ShaderType::Vertex).unwrap();
-    let fs_spirv = glsl_to_spirv::compile(fs_src, glsl_to_spirv::ShaderType::Fragment).unwrap();
-    let vs_data = wgpu::read_spirv(vs_spirv).unwrap();
-    let fs_data = wgpu::read_spirv(fs_spirv).unwrap();
+    let mut compiler = shaderc::Compiler::new().unwrap();
+    let vs_spirv = compiler.compile_into_spirv(vs_src, shaderc::ShaderKind::Vertex, "shader.vert", "main", None).unwrap();
+    let fs_spirv = compiler.compile_into_spirv(fs_src, shaderc::ShaderKind::Fragment, "shader.frag", "main", None).unwrap();
+    let vs_data = wgpu::read_spirv(std::io::Cursor::new(vs_spirv.as_binary_u8())).unwrap();
+    let fs_data = wgpu::read_spirv(std::io::Cursor::new(fs_spirv.as_binary_u8())).unwrap();
     let vs_module = device.create_shader_module(&vs_data);
     let fs_module = device.create_shader_module(&fs_data);
 
