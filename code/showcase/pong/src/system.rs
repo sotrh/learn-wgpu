@@ -1,161 +1,106 @@
-use winit::event::*;
-
-use crate::state;
+use crate::state::{self, GameState};
+use crate::input;
 use crate::util;
 
+use cgmath::prelude::*;
+
 pub trait System {
-    fn start(&mut self, state: &mut state::State);
-    fn process_input(&mut self, keycode: VirtualKeyCode, pressed: bool) -> bool;
-    fn update_state(&self, state: &mut state::State, events: &mut Vec<state::Event>);
+    #[allow(unused_variables)]
+    fn start(&mut self, state: &mut state::State) {}
+    fn update_state(
+        &self, 
+        input: &input::Input, 
+        state: &mut state::State, 
+        events: &mut Vec<state::Event>,
+    );
+}
+
+pub struct VisibilitySystem;
+impl System for VisibilitySystem {
+    fn update_state(
+        &self, 
+        _input: &input::Input, 
+        state: &mut state::State, 
+        _events: &mut Vec<state::Event>,
+    ) {
+        let gs = state.game_state;
+
+        let is_in_game = any!(gs, GameState::Serving, GameState::Playing, GameState::GameOver);
+        state.ball.visible = is_in_game && gs != GameState::GameOver;
+        state.player1.visible = is_in_game;
+        state.player1_score.visible = is_in_game;
+        state.player2.visible = is_in_game;
+        state.player2_score.visible = is_in_game;
+
+        state.title_text.visible = gs == GameState::MainMenu;
+        state.play_button.visible = gs == GameState::MainMenu;
+        state.quit_button.visible = gs == GameState::MainMenu;
+
+        state.win_text.visible = gs == GameState::GameOver;
+    }
 }
 
 #[derive(Debug)]
-pub struct MenuSystem {
-    enter_pressed: bool,
-    down_pressed: bool,
-    up_pressed: bool,
-}
-
-impl MenuSystem {
-    pub fn new() -> Self {
-        Self {
-            enter_pressed: false,
-            down_pressed: false,
-            up_pressed: false,
-        }
-    }
-}
+pub struct MenuSystem;
 
 impl System for MenuSystem {
     fn start(&mut self, state: &mut state::State) {
-        self.enter_pressed = false;
-        self.down_pressed = false;
-        self.up_pressed = false;
         state.player1.score = 0;
         state.player2.score = 0;
-        state.ball.visible = false;
-        state.player1.visible = false;
-        state.player2.visible = false;
-        state.title_text.visible = true;
-        state.play_button.visible = true;
+        state.player1.position.y = 0.0;
+        state.player2.position.y = 0.0;
         state.play_button.focused = true;
-        state.quit_button.visible = true;
-        state.player1_score.visible = false;
-        state.player2_score.visible = false;
-        state.win_text.visible = false;
+        state.quit_button.focused = false;
     }
 
-    fn process_input(&mut self, keycode: VirtualKeyCode, pressed: bool) -> bool {
-        match keycode {
-            VirtualKeyCode::Up | VirtualKeyCode::W => {
-                self.up_pressed = pressed;
-                true
-            }
-            VirtualKeyCode::Down | VirtualKeyCode::S => {
-                self.down_pressed = pressed;
-                true
-            }
-            VirtualKeyCode::Return 
-            | VirtualKeyCode::NumpadEnter
-            | VirtualKeyCode::Space => {
-                self.enter_pressed = pressed;
-                true
-            }
-            _ => false,
-        }
-    }   
+    fn update_state(
+        &self, 
+        input: &input::Input,
+        state: &mut state::State, 
+        events: &mut Vec<state::Event>
+    ) {
 
-    fn update_state(&self, state: &mut state::State, events: &mut Vec<state::Event>) {
-
-        if state.play_button.focused && self.down_pressed {
+        if state.play_button.focused && input.ui_down_pressed() {
             events.push(state::Event::FocusChanged);
             state.play_button.focused = false;
             state.quit_button.focused = true;
-        } else if state.quit_button.focused && self.up_pressed {
+        } else if state.quit_button.focused && input.ui_up_pressed() {
             events.push(state::Event::FocusChanged);
             state.quit_button.focused = false;
             state.play_button.focused = true;
         }
 
-        if state.play_button.focused && self.enter_pressed {
+        if state.play_button.focused && input.enter_pressed {
             events.push(state::Event::ButtonPressed);
             state.game_state = state::GameState::Serving;
-        } else if state.quit_button.focused && self.enter_pressed {
+        } else if state.quit_button.focused && input.enter_pressed {
             events.push(state::Event::ButtonPressed);
             state.game_state = state::GameState::Quiting;
         }
     }
 }
 
-pub struct PlaySystem {
-    player1_up_pressed: bool,
-    player1_down_pressed: bool,
-    player2_up_pressed: bool,
-    player2_down_pressed: bool,
-}
-
-impl PlaySystem {
-    pub fn new() -> Self {
-        Self {
-            player1_up_pressed: false,
-            player1_down_pressed: false,
-            player2_up_pressed: false,
-            player2_down_pressed: false,
-        }
-    }
-}
-
+pub struct PlaySystem;
 impl System for PlaySystem {
-    fn start(&mut self, state: &mut state::State) {
-        self.player1_up_pressed = false;
-        self.player1_down_pressed = false;
-        self.player2_up_pressed = false;
-        self.player2_down_pressed = false;
-        state.ball.visible = true;
-        state.player1.visible = true;
-        state.player2.visible = true;
-        state.title_text.visible = false;
-        state.play_button.visible = false;
-        state.quit_button.visible = false;
-        state.player1_score.visible = true;
-        state.player2_score.visible = true;
-    }
 
-    fn process_input(&mut self, keycode: VirtualKeyCode, pressed: bool) -> bool {
-        match keycode {
-            VirtualKeyCode::W => {
-                self.player1_up_pressed = pressed;
-                true
-            }
-            VirtualKeyCode::S => {
-                self.player1_down_pressed = pressed;
-                true
-            }
-            VirtualKeyCode::Up => {
-                self.player2_up_pressed = pressed;
-                true
-            }
-            VirtualKeyCode::Down => {
-                self.player2_down_pressed = pressed;
-                true
-            }
-            _ => false,
-        }
-    }
-
-    fn update_state(&self, state: &mut state::State, events: &mut Vec<state::Event>) {
+    fn update_state(
+        &self, 
+        input: &input::Input,
+        state: &mut state::State,
+         _events: &mut Vec<state::Event>,
+    ) {
         // move the players
-        if self.player1_up_pressed {
-            state.player1.position.y += 0.025;
+        if input.p1_up_pressed {
+            state.player1.position.y += util::PLAYER_SPEED;
         }
-        if self.player1_down_pressed {
-            state.player1.position.y -= 0.025;
+        if input.p1_down_pressed {
+            state.player1.position.y -= util::PLAYER_SPEED;
         }
-        if self.player2_up_pressed {
-            state.player2.position.y += 0.025;
+        if input.p2_up_pressed {
+            state.player2.position.y += util::PLAYER_SPEED;
         }
-        if self.player2_down_pressed {
-            state.player2.position.y -= 0.025;
+        if input.p2_down_pressed {
+            state.player2.position.y -= util::PLAYER_SPEED;
         }
 
         // normalize players
@@ -170,11 +115,40 @@ impl System for PlaySystem {
             state.player2.position.y = -1.0;
         }
 
+        if state.player1.score > 2 || state.player2.score > 2 {
+            state.game_state = state::GameState::GameOver;
+        }
+    }
+}
+
+
+pub struct BallSystem;
+impl System for BallSystem {
+    fn update_state(
+        &self, 
+        _input: &input::Input,
+        state: &mut state::State, 
+        events: &mut Vec<state::Event>,
+    ) {
+        // bounce the ball off the players
+        if state.player1.contains(&state.ball) {
+            events.push(state::Event::BallBounce(state.ball.position));
+            state.ball.position.x -= state.ball.velocity.x - state.player1.size.x;
+            state.ball.velocity = util::calc_ball_velocity(&state.ball, &state.player1);
+        } else if state.player2.contains(&state.ball) {
+            events.push(state::Event::BallBounce(state.ball.position));
+            state.ball.position.x -= state.ball.velocity.x + state.player2.size.x;
+            state.ball.velocity.x *= -state.player2.size.y;
+            state.ball.velocity = util::calc_ball_velocity(&state.ball, &state.player2);
+        }
+        
         state.ball.position += state.ball.velocity;
         if state.ball.position.y > 1.0 {
+            events.push(state::Event::BallBounce(state.ball.position));
             state.ball.position.y = 1.0;
             state.ball.velocity.y *= -1.0;
         } else if state.ball.position.y < -1.0 {
+            events.push(state::Event::BallBounce(state.ball.position));
             state.ball.position.y = -1.0;
             state.ball.velocity.y *= -1.0;
         }
@@ -182,24 +156,11 @@ impl System for PlaySystem {
         if state.ball.position.x > 1.0 {
             state.player1.score += 1;
             state.game_state = state::GameState::Serving;
+            events.push(state::Event::Score(0));
         } else if state.ball.position.x < -1.0 {
             state.player2.score += 1;
             state.game_state = state::GameState::Serving;
-        }
-
-        if state.player1.score > 2 || state.player2.score > 2 {
-            state.game_state = state::GameState::GameOver;
-        }
-
-        // bounce the ball off the players
-        if state.player1.contains(&state.ball) {
-            events.push(state::Event::BallBounce(state.ball.position));
-            state.ball.position.x -= state.ball.velocity.x - state.player1.size.x;
-            state.ball.velocity.x *= -1.0;
-        } else if state.player2.contains(&state.ball) {
-            events.push(state::Event::BallBounce(state.ball.position));
-            state.ball.position.x -= state.ball.velocity.x + state.player2.size.x;
-            state.ball.velocity.x *= -1.0;
+            events.push(state::Event::Score(1));
         }
     }
 }
@@ -220,28 +181,22 @@ impl ServingSystem {
 impl System for ServingSystem {
     fn start(&mut self, state: &mut state::State) {
         self.last_time = std::time::Instant::now();
-        state.ball.visible = true;
-        state.player1.visible = true;
-        state.player2.visible = true;
-        state.title_text.visible = false;
-        state.play_button.visible = false;
-        state.quit_button.visible = false;
+        let direction = state.ball.position.x.signum();
         state.ball.position = (0.0, 0.0).into();
-        state.ball.velocity = util::random_vec2_scaled(0.025);
-        state.player1_score.visible = true;
-        state.player2_score.visible = true;
+        state.ball.velocity = cgmath::Vector2::unit_x() * direction * -util::BALL_SPEED;
         state.player1_score.text = format!("{}", state.player1.score);
         state.player2_score.text = format!("{}", state.player2.score);
     }
 
-    fn process_input(&mut self, _keycode: VirtualKeyCode, _pressed: bool) -> bool {
-        false
-    }
-
-    fn update_state(&self, state: &mut state::State, _events: &mut Vec<state::Event>) {
+    fn update_state(
+        &self,
+        _input: &input::Input,
+        state: &mut state::State, 
+        _events: &mut Vec<state::Event>,
+    ) {
         let current_time = std::time::Instant::now();
         let delta_time = current_time - self.last_time;
-        if delta_time.as_secs_f32() > 1.0 {
+        if delta_time.as_secs_f32() > 2.0 {
             state.game_state = state::GameState::Playing;
         }
     }
@@ -249,14 +204,12 @@ impl System for ServingSystem {
 
 pub struct GameOverSystem {
     last_time: std::time::Instant,
-    key_pressed: bool,
 }
 
 impl GameOverSystem {
     pub fn new() -> Self {
         Self { 
             last_time: std::time::Instant::now(),
-            key_pressed: false,
         }
     }
 }
@@ -264,22 +217,19 @@ impl GameOverSystem {
 impl System for GameOverSystem {
     fn start(&mut self, state: &mut state::State) {
         self.last_time = std::time::Instant::now();
-        self.key_pressed = false;
-        state.ball.visible = false;
         
         state.win_text.text = if state.player1.score > state.player2.score {
             String::from("Player1 wins!")
         } else {
             String::from("Player2 wins!")
         };
-        state.win_text.visible = true;
     }
 
-    fn process_input(&mut self, _keycode: VirtualKeyCode, _pressed: bool) -> bool {
-        false
-    }
-
-    fn update_state(&self, state: &mut state::State, _events: &mut Vec<state::Event>) {
+    fn update_state(&self,
+        _input: &input::Input,
+        state: &mut state::State,
+        _events: &mut Vec<state::Event>,
+    ) {
         let current_time = std::time::Instant::now();
         let delta_time = current_time - self.last_time;
         if delta_time.as_secs_f32() > 1.0 {

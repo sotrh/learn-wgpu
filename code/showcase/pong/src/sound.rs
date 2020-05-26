@@ -12,6 +12,7 @@ impl SoundSystem {
     pub fn new() -> Self {
         let device = rodio::default_output_device().unwrap();
         let sink = rodio::Sink::new(&device);
+        sink.set_volume(0.5);
 
         Self {
             device,

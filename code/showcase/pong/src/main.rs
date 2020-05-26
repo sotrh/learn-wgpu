@@ -3,8 +3,10 @@ mod state;
 mod util;
 mod system;
 mod sound;
+mod input;
 
 use system::System;
+use input::Input;
 
 use winit::event::*;
 use winit::dpi::LogicalSize;
@@ -89,11 +91,16 @@ fn main() {
     let sound_system = sound::SoundSystem::new();
     let sound_pack = sound::SoundPack::new();
     let mut events = Vec::new();
+    let mut input = Input::new();
 
-    let mut play_system = system::PlaySystem::new();
-    let mut menu_system = system::MenuSystem::new();
+    let mut menu_system = system::MenuSystem;
     let mut serving_system = system::ServingSystem::new();
+    let mut play_system = system::PlaySystem;
+    let ball_system = system::BallSystem;
     let mut game_over_system = system::GameOverSystem::new();
+
+    let mut visiblity_system = system::VisibilitySystem;
+    visiblity_system.start(&mut state);
 
     menu_system.start(&mut state);
 
@@ -115,31 +122,19 @@ fn main() {
                 event: WindowEvent::KeyboardInput {
                     input: KeyboardInput {
                         state: element_state,
-                        virtual_keycode: Some(keycode),
+                        virtual_keycode: Some(key),
                         ..
                     },
                     ..
                 },
                 ..
             } => {
-                let pressed = element_state == ElementState::Pressed;
                 let input_handled = match state.game_state {
-                    state::GameState::MainMenu => {
-                        menu_system.process_input(keycode, pressed)
-                    },
-                    state::GameState::Serving => {
-                        serving_system.process_input(keycode, pressed)
-                    },
-                    state::GameState::Playing => {
-                        play_system.process_input(keycode, pressed)
-                    },
-                    state::GameState::GameOver => {
-                        game_over_system.process_input(keycode, pressed)
-                    },
                     state::GameState::Quiting => true,
+                    _ => input.update(key, element_state),
                 };
                 if !input_handled {
-                    process_input(element_state, keycode, control_flow);
+                    process_input(element_state, key, control_flow);
                 }
             }
             Event::RedrawRequested(_) => {
@@ -155,26 +150,29 @@ fn main() {
                         state::Event::Score(_) => {
                             sound_system.queue(sound_pack.bounce());
                         }
-                        _ => {}
+                        // _ => {}
                     }
                 }
                 events.clear();
 
+                visiblity_system.update_state(&input, &mut state, &mut events);
                 match state.game_state {
                     state::GameState::MainMenu => {
-                        menu_system.update_state(&mut state, &mut events);
+                        menu_system.update_state(&input, &mut state, &mut events);
                         if state.game_state == state::GameState::Serving {
                             serving_system.start(&mut state);
                         }
                     },
                     state::GameState::Serving => {
-                        serving_system.update_state(&mut state, &mut events);
+                        serving_system.update_state(&input, &mut state, &mut events);
+                        play_system.update_state(&input, &mut state, &mut events);
                         if state.game_state == state::GameState::Playing {
                             play_system.start(&mut state);
                         }
                     },
                     state::GameState::Playing => {
-                        play_system.update_state(&mut state, &mut events);
+                        ball_system.update_state(&input, &mut state, &mut events);
+                        play_system.update_state(&input, &mut state, &mut events);
                         if state.game_state == state::GameState::Serving {
                             serving_system.start(&mut state);
                         } else if state.game_state == state::GameState::GameOver {
@@ -182,7 +180,7 @@ fn main() {
                         }
                     },
                     state::GameState::GameOver => {
-                        game_over_system.update_state(&mut state, &mut events);
+                        game_over_system.update_state(&input, &mut state, &mut events);
                         if state.game_state == state::GameState::MainMenu {
                             menu_system.start(&mut state);
                         }
@@ -191,7 +189,9 @@ fn main() {
                 }
 
                 render.render_state(&state);
-                window.request_redraw();
+                if state.game_state != state::GameState::Quiting {
+                    window.request_redraw();
+                }
             }
             _ => {}
         }

@@ -28,6 +28,7 @@ pub struct Ball {
     pub visible: bool,
 }
 
+#[derive(Debug)]
 pub struct Player {
     pub position: cgmath::Vector2<f32>,
     pub size: cgmath::Vector2<f32>,
@@ -41,8 +42,18 @@ impl Player {
         let radii = self.size * 0.5;
         let min = self.position - radii;
         let max = self.position + radii;
-        ball.position.x > min.x && ball.position.y > min.y
-        && ball.position.x < max.x && ball.position.y < max.y
+
+        let b_radii = cgmath::Vector2 {
+            x: ball.radius,
+            y: ball.radius,
+        };
+        let b_min = ball.position - b_radii;
+        let b_max = ball.position + b_radii;
+
+        min.x < b_max.x 
+        && max.x > b_min.x
+        && min.y < b_max.y 
+        && max.y > b_min.y
     }
 }
 
@@ -81,5 +92,28 @@ pub enum Event {
     FocusChanged,
     BallBounce(cgmath::Vector2<f32>),
     Score(u32),
-    GameOver,
+    // GameOver,
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    #[test]
+    fn player_contains_ball() {
+        let ball = Ball {
+            position: (0.0, 0.0).into(),
+            velocity: (0.0, 0.0).into(),
+            radius: 1.0,
+            visible: true,
+        };
+
+        let p1 = Player {
+            position: (0.0, -1.5).into(),
+            size: (2.0, 2.0).into(),
+            score: 0,
+            visible: true,
+        };
+
+        assert!(p1.contains(&ball));
+    }
 }
