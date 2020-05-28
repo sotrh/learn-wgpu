@@ -47,6 +47,7 @@ module.exports = {
                     '/showcase/',
                     '/showcase/windowless/',
                     '/showcase/gifs/',
+                    '/showcase/pong/',
                 ]
             },
             '/news/'

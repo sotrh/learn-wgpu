@@ -1,0 +1,20 @@
+[package]
+name = "pong"
+version = "0.1.0"
+authors = ["Ben Hansen <bhbenjaminhansen@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+winit = "0.22"
+shaderc = "0.6"
+failure = "0.1"
+bytemuck = "1.2"
+futures = "0.3.5"
+wgpu = "0.5.0"
+wgpu_glyph = "0.8.0"
+rand = "0.7.3"
+rodio = "0.11.0"
+
+[dependencies.cgmath]
+version = "0.17"
+features = ["swizzle"]

@@ -1,4 +1,8 @@
-# News **UPDATED!**
+# News
+
+## Added Pong Showcase
+
+[See it here](/showcase/pong/)
 
 ## Normal mapping
 
