@@ -7,7 +7,7 @@ If you're familiar with OpenGL, you may remember using shader programs. You can 
 Shaders are mini programs that you send to the gpu to perform operations on your data. There are 3 main types of shader: vertex, fragment, and compute. There are others such as geometry shaders, but they're more of an advanced topic. For now we're just going to use vertex, and fragment shaders.
 
 ## Vertex, fragment.. what are those?
-A vertex is a point in 3d space (can also be 2d). These vertices are then bundle in groups of 2s to form lines and/or 3s to form triangles. 
+A vertex is a point in 3d space (can also be 2d). These vertices are then bundled in groups of 2s to form lines and/or 3s to form triangles.
 
 <img src="./tutorial3-pipeline-vertices.png" />
 
@@ -110,11 +110,12 @@ Now let's move to the `new()` method, and start making the pipeline. We'll have 
 let vs_src = include_str!("shader.vert");
 let fs_src = include_str!("shader.frag");
 
-let vs_spirv = glsl_to_spirv::compile(vs_src, glsl_to_spirv::ShaderType::Vertex).unwrap();
-let fs_spirv = glsl_to_spirv::compile(fs_src, glsl_to_spirv::ShaderType::Fragment).unwrap();
+let mut compiler = shaderc::Compiler::new().unwrap();
+let vs_spirv = compiler.compile_into_spirv(vs_src, shaderc::ShaderKind::Vertex, "shader.vert", "main", None).unwrap();
+let fs_spirv = compiler.compile_into_spirv(fs_src, shaderc::ShaderKind::Fragment, "shader.frag", "main", None).unwrap();
 
-let vs_data = wgpu::read_spirv(vs_spirv).unwrap();
-let fs_data = wgpu::read_spirv(fs_spirv).unwrap();
+let vs_data = wgpu::read_spirv(std::io::Cursor::new(vs_spirv.as_binary_u8())).unwrap();
+let fs_data = wgpu::read_spirv(std::io::Cursor::new(fs_spirv.as_binary_u8())).unwrap();
 
 let vs_module = device.create_shader_module(&vs_data);
 let fs_module = device.create_shader_module(&fs_data);
@@ -143,7 +144,7 @@ let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescrip
     }),
 ```
 
-Two things to note here: 
+Two things to note here:
 1. You can specify an `entry_point` for your shaders. I normally use `"main"` as that's what it would be in OpenGL, but feel free to use whatever name you like.
 2. The `fragment_stage` is technically optional, so you have to wrap it in `Some()`. I've never used a vertex shader without a fragment shader, but the option is available if you need it.
 

@@ -1,6 +1,6 @@
 # Instancing
 
-Up to this point we've been drawing just one object. Most games have hundreds of objects on screen at the same time. If we wanted to draw multiple instances of our model, we could copy the vertex buffer and modify it's vertices to be in the right place, but this would be hilariously inefficient. We have our model, and we now how to position it in 3d space with a matrix, like we did the camera, so all we have to do is change the matrix we're using when we draw. 
+Up to this point we've been drawing just one object. Most games have hundreds of objects on screen at the same time. If we wanted to draw multiple instances of our model, we could copy the vertex buffer and modify it's vertices to be in the right place, but this would be hilariously inefficient. We have our model, and we now how to position it in 3d space with a matrix, like we did the camera, so all we have to do is change the matrix we're using when we draw.
 
 ## The naive method
 
@@ -42,13 +42,13 @@ struct Instance {
 
 impl Instance {
     fn to_matrix(&self) -> cgmath::Matrix4<f32> {
-        cgmath::Matrix4::from_translation(self.position) 
+        cgmath::Matrix4::from_translation(self.position)
             * cgmath::Matrix4::from(self.rotation)
     }
 }
 ```
 
-Next we'll add `instances: Vec<Instance>,` to `State` and create our instances in new with the following in `new()`.
+Next we'll add `instances: Vec<Instance>,` to `State` and create our instances with the following in `new()`.
 
 ```rust
 // ...
@@ -95,7 +95,7 @@ layout(location=1) in vec2 a_tex_coords;
 
 layout(location=0) out vec2 v_tex_coords;
 
-layout(set=1, binding=0) 
+layout(set=1, binding=0)
 uniform Uniforms {
     mat4 u_view_proj;
     mat4 u_model; // NEW!
@@ -201,7 +201,7 @@ layout(location=1) in vec2 a_tex_coords;
 
 layout(location=0) out vec2 v_tex_coords;
 
-layout(set=1, binding=0) 
+layout(set=1, binding=0)
 uniform Uniforms {
     mat4 u_view_proj;
     mat4 u_model[100];
@@ -259,7 +259,7 @@ Since we're using `bytemuck` for casting our data to `&[u8]`, we're going to nee
 // UPDATED!
 impl Instance {
     // This is changed from `to_matrix()`
-    fn to_raw(&self) -> cgmath::Matrix4<f32> {
+    fn to_raw(&self) -> InstanceRaw {
         InstanceRaw {
             model: cgmath::Matrix4::from_translation(self.position) * cgmath::Matrix4::from(self.rotation),
         }
@@ -267,12 +267,14 @@ impl Instance {
 }
 
 // NEW!
+#[repr(C)]
+#[derive(Copy, Clone)]
 struct InstanceRaw {
     model: cgmath::Matrix4<f32>,
 }
 
-unsafe impl bytemuck::Pod InstanceRaw {}
-unsafe impl bytemuck::Zeroable InstanceRaw {}
+unsafe impl bytemuck::Pod for InstanceRaw {}
+unsafe impl bytemuck::Zeroable for InstanceRaw {}
 ```
 
 We create a storage buffer in a similar way as any other buffer.
@@ -334,12 +336,12 @@ layout(location=1) in vec2 a_tex_coords;
 
 layout(location=0) out vec2 v_tex_coords;
 
-layout(set=1, binding=0) 
+layout(set=1, binding=0)
 uniform Uniforms {
     mat4 u_view_proj;
 };
 
-layout(set=1, binding=1) 
+layout(set=1, binding=1)
 buffer Instances {
     mat4 s_models[];
 };
@@ -352,7 +354,7 @@ void main() {
 
 You can see that we got rid of the `u_model` field from the `Uniforms` block and create a new `Instances` located at `set=1, binding=1` corresponding with our bind group layout. Another thing to notice is that we use the `buffer` keyword for the block instead of `uniform`. The details of the `buffer` can be found on [the OpenGL wiki](https://www.khronos.org/opengl/wiki/Shader_Storage_Buffer_Object).
 
-This method is nice because it allows use to store more data overall as storage buffers can theoretically store as much data as the GPU can handle, where uniform buffers are capped. This does mean that storage buffers are slower that uniform buffers as they are stored like other buffers such as textures as and therefore aren't as close in memory, but that usually won't matter much if you're dealing with large amounts of data.
+This method is nice because it allows us to store more data overall as storage buffers can theoretically store as much data as the GPU can handle, where uniform buffers are capped. This does mean that storage buffers are slower that uniform buffers as they are stored like other buffers such as textures as and therefore aren't as close in memory, but that usually won't matter much if you're dealing with large amounts of data.
 
 Another benefit to storage buffers is that they can be written to by the shader, unlike uniform buffers. If we want to mutate a large amount of data with a compute shader, we'd use a writeable storage buffer for our output (and potentially input as well).
 
@@ -413,7 +415,7 @@ Let's unpack this a bit.
 2. Vertex attributes have a limited size: `Float4` or the equivalent. This means that our instance buffer will take up multiple attribute slots. 4 in our case.
 3. Since we're using 2 slots for our `Vertex` struct, we need to start the `shader_location` at 2.
 
-Now we need to add our a `VertexBufferDescriptor` to our `render_pipeline`.
+Now we need to add a `VertexBufferDescriptor` to our `render_pipeline`.
 
 ```rust
 let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
@@ -460,7 +462,7 @@ layout(location=2) in mat4 a_model; // NEW!
 
 layout(location=0) out vec2 v_tex_coords;
 
-layout(set=1, binding=0) 
+layout(set=1, binding=0)
 uniform Uniforms {
     mat4 u_view_proj;
 };
@@ -532,13 +534,13 @@ encoder.copy_buffer_to_texture(
         offset: 0,
         bytes_per_row: std::mem::size_of::<f32>() as u32 * 4,
         rows_per_image: instance_data.len() as u32 * 4,
-    }, 
+    },
     wgpu::TextureCopyView {
         texture: &instance_texture,
         mip_level: 0,
         array_layer: 0,
         origin: wgpu::Origin3d::ZERO,
-    }, 
+    },
     instance_extent,
 );
 queue.submit(&[encoder.finish()]);

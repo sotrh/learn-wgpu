@@ -32,9 +32,9 @@ impl Camera {
 }
 ```
 
-The `build_view_projection_matrix` is where the magic happens. 
-1. The `view` matrix moves the world to be at the position and rotation of the camera. It's essentialy an the inverse of whatever the transform matrix of the camera would be. 
-2. The `proj` matrix warps the scene to give the effect of depth. Without this, objects up close would be the same size as objects far away.
+The `build_view_projection_matrix` is where the magic happens.
+1. The `view` matrix moves the world to be at the position and rotation of the camera. It's essentialy an inverse of whatever the transform matrix of the camera would be.
+2. The `proj` matrix wraps the scene to give the effect of depth. Without this, objects up close would be the same size as objects far away.
 3. The coordinate system in Wgpu is based on DirectX, and Metal's coordinate systems. That means that in [normalized device coordinates](https://github.com/gfx-rs/gfx/tree/master/src/backend/dx12#normalized-coordinates) the x axis and y axis are in the range of -1.0 to +1.0, and the z axis is 0.0 to +1.0. The `cgmath` crate (as well as most game math crates) are built for OpenGL's coordinate system. This matrix will scale and translate our scene from OpenGL's coordinate sytem to WGPU's. We'll define it as follows.
 
 ```rust
@@ -87,7 +87,7 @@ Now that we have our camera, and it can make us a view projection matrix, we nee
 
 ## The uniform buffer
 
-Up to this point we've used `Buffer`s to store our vertex and index data, and even to load our textures. We going to use them again to create what's known as a uniform buffer. A uniform is a blob of data that is available to every invocation of a set of shaders. We've technically already used uniforms for our texture and sampler. We're going to use them again to store our view projection matrix. To start let's create a struct to hold our `Uniforms`.
+Up to this point we've used `Buffer`s to store our vertex and index data, and even to load our textures. We are going to use them again to create what's known as a uniform buffer. A uniform is a blob of data that is available to every invocation of a set of shaders. We've technically already used uniforms for our texture and sampler. We're going to use them again to store our view projection matrix. To start let's create a struct to hold our `Uniforms`.
 
 ```rust
 #[repr(C)] // We need this for Rust to store our data correctly for the shaders
@@ -411,7 +411,7 @@ Have our model rotate on it's own independently of the the camera. *Hint: you'll
 
 <!-- TODO: add a gif/video for this -->
 
-<!-- 
+<!--
 [ThinMatrix](https://www.youtube.com/watch?v=DLKN0jExRIM)
-http://antongerdelan.net/opengl/raycasting.html 
+http://antongerdelan.net/opengl/raycasting.html
 -->
