@@ -92,7 +92,6 @@ pub enum Event {
     FocusChanged,
     BallBounce(cgmath::Vector2<f32>),
     Score(u32),
-    // GameOver,
 }
 
 #[cfg(test)]

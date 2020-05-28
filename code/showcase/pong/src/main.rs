@@ -9,20 +9,23 @@ use system::System;
 use input::Input;
 
 use winit::event::*;
-use winit::dpi::LogicalSize;
-use winit::window::WindowBuilder;
+use winit::window::{WindowBuilder, Fullscreen};
 use winit::event_loop::{EventLoop, ControlFlow};
 use futures::executor::block_on;
 
 
 fn main() {
     let event_loop = EventLoop::new();
+    let monitor = event_loop.primary_monitor();
+    let video_mode = monitor.video_modes().next().unwrap();
     let window = WindowBuilder::new()
+        .with_visible(false)
         .with_title("Pong")
-        .with_inner_size(LogicalSize::<f64>::from((800, 600)))
+        .with_fullscreen(Some(Fullscreen::Exclusive(video_mode.clone())))
         .build(&event_loop).unwrap();
+    window.set_cursor_visible(false);
 
-    let mut render = block_on(render::Render::new(&window));
+    let mut render = block_on(render::Render::new(&window, &video_mode));
     let mut state = state::State {
         ball: state::Ball {
             position: (0.0, 0.0).into(),
@@ -103,6 +106,8 @@ fn main() {
     visiblity_system.start(&mut state);
 
     menu_system.start(&mut state);
+
+    window.set_visible(true);
 
     event_loop.run(move |event, _, control_flow| {
         *control_flow = if state.game_state == state::GameState::Quiting {

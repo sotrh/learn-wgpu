@@ -2,8 +2,6 @@ use crate::state::{self, GameState};
 use crate::input;
 use crate::util;
 
-use cgmath::prelude::*;
-
 pub trait System {
     #[allow(unused_variables)]
     fn start(&mut self, state: &mut state::State) {}
@@ -104,15 +102,15 @@ impl System for PlaySystem {
         }
 
         // normalize players
-        if state.player1.position.y > 1.0 {
-            state.player1.position.y = 1.0;
-        } else if state.player1.position.y < -1.0 {
-            state.player1.position.y = -1.0;
+        if state.player1.position.y > 1.0 - state.player1.size.y * 0.5 {
+            state.player1.position.y = 1.0 - state.player1.size.y * 0.5;
+        } else if state.player1.position.y < state.player1.size.y * 0.5 - 1.0 {
+            state.player1.position.y = state.player1.size.y * 0.5 - 1.0;
         }
-        if state.player2.position.y > 1.0 {
-            state.player2.position.y = 1.0;
-        } else if state.player2.position.y < -1.0 {
-            state.player2.position.y = -1.0;
+        if state.player2.position.y > 1.0 - state.player1.size.y * 0.5 {
+            state.player2.position.y = 1.0 - state.player1.size.y * 0.5;
+        } else if state.player2.position.y < state.player1.size.y * 0.5 - 1.0 {
+            state.player2.position.y = state.player1.size.y * 0.5 - 1.0;
         }
 
         if state.player1.score > 2 || state.player2.score > 2 {
@@ -123,6 +121,7 @@ impl System for PlaySystem {
 
 
 pub struct BallSystem;
+
 impl System for BallSystem {
     fn update_state(
         &self, 
@@ -141,7 +140,7 @@ impl System for BallSystem {
             state.ball.velocity.x *= -state.player2.size.y;
             state.ball.velocity = util::calc_ball_velocity(&state.ball, &state.player2);
         }
-        
+
         state.ball.position += state.ball.velocity;
         if state.ball.position.y > 1.0 {
             events.push(state::Event::BallBounce(state.ball.position));
@@ -217,11 +216,14 @@ impl GameOverSystem {
 impl System for GameOverSystem {
     fn start(&mut self, state: &mut state::State) {
         self.last_time = std::time::Instant::now();
+
+        state.player1_score.text = format!("{}", state.player1.score);
+        state.player2_score.text = format!("{}", state.player2.score);
         
         state.win_text.text = if state.player1.score > state.player2.score {
-            String::from("Player1 wins!")
+            String::from("Player 1 wins!")
         } else {
-            String::from("Player2 wins!")
+            String::from("Player 2 wins!")
         };
     }
 

@@ -1,6 +1,7 @@
 mod buffer;
 
 use winit::window::{Window};
+use winit::monitor::{VideoMode};
 
 use buffer::*;
 
@@ -9,7 +10,6 @@ use crate::state;
 const FONT_BYTES: &[u8] = include_bytes!("../../res/fonts/PressStart2P-Regular.ttf");
 
 pub struct Render {
-    // todo: fix this
     #[allow(dead_code)]
     surface: wgpu::Surface,
     #[allow(dead_code)]
@@ -35,7 +35,7 @@ impl Render {
         self.sc_desc.height as f32
     }
 
-    pub async fn new(window: &Window) -> Self {
+    pub async fn new(window: &Window, video_mode: &VideoMode) -> Self {
         let surface = wgpu::Surface::create(window);
 
         let adapter = wgpu::Adapter::request(
@@ -51,7 +51,7 @@ impl Render {
             limits: Default::default(),
         }).await;
 
-        let size = window.inner_size();
+        let size = video_mode.size();
         let sc_desc = wgpu::SwapChainDescriptor {
             usage: wgpu::TextureUsage::OUTPUT_ATTACHMENT,
             format: wgpu::TextureFormat::Bgra8UnormSrgb,
