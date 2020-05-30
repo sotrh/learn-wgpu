@@ -27,7 +27,7 @@ In order to do that, we're going to need something to do the conversion. Add the
 ```toml
 [dependencies]
 # ...
-glsl-to-spirv = "0.1"
+shaderc = "0.6"
 ```
 
 We'll use this in a bit, but first let's create the shaders.
