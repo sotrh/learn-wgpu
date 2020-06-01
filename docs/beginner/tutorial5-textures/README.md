@@ -396,9 +396,9 @@ pub struct Texture {
 
 impl Texture {
     // 1.
-    pub fn from_bytes(device: &wgpu::Device, bytes: &[u8]) -> Result<(Self, wgpu::CommandBuffer), failure::Error> {
+    pub fn from_bytes(device: &wgpu::Device, bytes: &[u8], label: &str) -> Result<(Self, wgpu::CommandBuffer), failure::Error> {
         let img = image::load_from_memory(bytes)?;
-        Self::from_image(device, &img)
+        Self::from_image(device, &img, Some(label))
     }
 
     pub fn from_image(device: &wgpu::Device, img: &image::DynamicImage) -> Result<(Self, wgpu::CommandBuffer), failure::Error> {
