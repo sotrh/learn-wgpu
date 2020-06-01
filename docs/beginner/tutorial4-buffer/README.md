@@ -83,7 +83,6 @@ Self {
     swap_chain,
     render_pipeline,
     vertex_buffer,
-    hidpi_factor,
     size,
 }
 ```
@@ -324,7 +323,6 @@ Self {
     // NEW!
     index_buffer,
     num_indices,
-    hidpi_factor,
     size,
 }
 ```

@@ -11,7 +11,7 @@ A vertex is a point in 3d space (can also be 2d). These vertices are then bundle
 
 <img src="./tutorial3-pipeline-vertices.png" />
 
-Most modern rendering uses triangles to make simple shapes such as cube, and complex shapes such as person.
+Most modern rendering uses triangles to make all shapes, from simple (such as cubes) to complex (such as people).
 
 <!-- Todo: Find/make an image to put here -->
 
@@ -27,7 +27,7 @@ In order to do that, we're going to need something to do the conversion. Add the
 ```toml
 [dependencies]
 # ...
-glsl-to-spirv = "0.1"
+shaderc = "0.6"
 ```
 
 We'll use this in a bit, but first let's create the shaders.
