@@ -4,10 +4,10 @@
 You were probably getting sick of me saying stuff like "we'll get to that when we talk about buffers". Well now's the time to finally talk about buffers, but first...
 
 ## What is a buffer?
-A buffer is a blob of data on the GPU. A buffer is guaranteed to be contiguous, meaning that all the data is store sequentially in memory. Buffer's generally are used to store simple things like a struct or an array, but it can store more complex stuff such as graph structures like a tree (provided all the nodes are stored together and don't reference anything outside of the buffer). We are going to use buffer's a lot, so let's get started with two of the most important one's: the vertex buffer, and the index buffer.
+A buffer is a blob of data on the GPU. A buffer is guaranteed to be contiguous, meaning that all the data is stored sequentially in memory. Buffers are generally used to store simple things like structs or arrays, but it can store more complex stuff such as graph structures like trees (provided all the nodes are stored together and don't reference anything outside of the buffer). We are going to use buffers a lot, so let's get started with two of the most important ones: the vertex buffer, and the index buffer.
 
 ## The vertex buffer
-Previously we've stored vertex data directly in the vertex shader. While that worked fine to get our bootstraps on, it simply won't do long-term. The types of objects we need to draw will vary in size, and recompiling the shader whenever we need to update the model would massively slow down our program. Instead we are going to use buffers to store the vertex data we want to draw. Before we do that though we need to describe what a vertex looks like. We'll do this by creating a new struct.
+Previously we've stored vertex data directly in the vertex shader. While that worked fine to get our bootstraps on, it simply won't do for the long-term. The types of objects we need to draw will vary in size, and recompiling the shader whenever we need to update the model would massively slow down our program. Instead we are going to use buffers to store the vertex data we want to draw. Before we do that though we need to describe what a vertex looks like. We'll do this by creating a new struct.
 
 ```rust
 // main.rs
@@ -32,7 +32,7 @@ const VERTICES: &[Vertex] = &[
 ];
 ```
 
-We arrange the vertices in counter clockwise order: top, bottom left, bottom right. We do it this way partially out of tradition, but mostly because we specified in the `rasterization_state` of the `render_pipeline` that we want the `front_face` of our triangle to be `wgpu::FrontFace::Ccw` so that we cull the back face. This means that any triangle that should be facing us should have it's vertices in counter clockwise order.
+We arrange the vertices in counter clockwise order: top, bottom left, bottom right. We do it this way partially out of tradition, but mostly because we specified in the `rasterization_state` of the `render_pipeline` that we want the `front_face` of our triangle to be `wgpu::FrontFace::Ccw` so that we cull the back face. This means that any triangle that should be facing us should have its vertices in counter clockwise order.
 
 Now that we have our vertex data, we need to store it in a buffer. Let's add a `vertex_buffer` field to `State`.
 
@@ -90,7 +90,7 @@ Self {
 ## So what do I do with it?
 We need to tell the `render_pipeline` to use this buffer when we are drawing, but first we need to tell the `render_pipeline` how to read the buffer. We do this using `VertexBufferDescriptor`s and the `vertex_buffers` field that I promised we'd talk about when we created the `render_pipeline`.
 
-A `VertexBufferDescriptor` define's how a buffer is layed out in memory. Without this, the render_pipeline has no idea how to map the buffer in the shader. Here's what the descriptor for a buffer full of `Vertex` would look like.
+A `VertexBufferDescriptor` defines how a buffer is layed out in memory. Without this, the render_pipeline has no idea how to map the buffer in the shader. Here's what the descriptor for a buffer full of `Vertex` would look like.
 
 ```rust
 use std::mem;
@@ -213,7 +213,7 @@ Then use it in the draw call.
 render_pass.draw(0..self.num_vertices, 0..1);
 ```
 
-Before our changes will have any effect, we need to update our vertex shader to get it's data from the vertex buffer.
+Before our changes will have any effect, we need to update our vertex shader to get its data from the vertex buffer.
 
 ```glsl
 // shader.vert
