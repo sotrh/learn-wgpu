@@ -96,7 +96,7 @@ Let's also update the lights position in the `update()` method, so we can see wh
 let old_position = self.light.position;
 self.light.position = cgmath::Quaternion::from_axis_angle((0.0, 1.0, 0.0).into(), cgmath::Deg(1.0)) * old_position;
 
-let staging_buffer = device.create_buffer_with_data(
+let staging_buffer = self.device.create_buffer_with_data(
     bytemuck::cast_slice(&[self.light]),
     wgpu::BufferUsage::COPY_SRC,
 );
@@ -189,7 +189,7 @@ let render_pipeline = {
         &device, 
         &render_pipeline_layout, 
         sc_desc.format,
-        Some(texture::DEPTH_FORMAT),
+        Some(texture::Texture::DEPTH_FORMAT),
         &[model::ModelVertex::desc()],
         vs_src, 
         fs_src
@@ -307,7 +307,7 @@ let light_render_pipeline = {
         &device, 
         &layout, 
         sc_desc.format, 
-        Some(texture::DEPTH_FORMAT), 
+        Some(texture::Texture::DEPTH_FORMAT), 
         &[model::ModelVertex::desc()], 
         vs_src, 
         fs_src,
@@ -345,7 +345,7 @@ void main() {
     vec3 v_position = a_position * scale + u_position;
     gl_Position = u_view_proj * vec4(v_position, 1);
 
-    v_color = u_color;
+    v_color = vec4(u_color, 1.0);
 }
 ```
 
@@ -459,8 +459,8 @@ The ambient part is based on the light color as well as the object color. We've 
 
 ```glsl
 layout(set = 2, binding = 0) uniform Light {
-    vec3 u_position;
-    vec3 u_color;
+    vec3 light_position;
+    vec3 light_color;
 };
 ```
 
@@ -515,8 +515,9 @@ For now let's just pass the normal directly as is. This is wrong, but we'll fix 
 void main() {
     v_tex_coords = a_tex_coords;
     v_normal = a_normal; // NEW!
-    v_position = s_models[gl_InstanceIndex] * vec4(a_position, 1.0); // NEW!
-    gl_Position = u_view_proj * v_position; // UPDATED!
+    vec4 model_space = s_models[gl_InstanceIndex] * vec4(a_position, 1.0); // NEW!
+    v_position = model_space.xyz; // NEW!
+    gl_Position = u_view_proj * model_space; // UPDATED!
 }
 ```
 
@@ -601,7 +602,7 @@ Specular lighting describes the highlights that appear on objects when viewed fr
 
 ![./specular_diagram.png](./specular_diagram.png)
 
-Because this is relative to the view angle, we are going to need to pass in the camera's position into the fragment shader.
+Because this is relative to the view angle, we are going to need to pass in the camera's position both into the fragment shader and into the vertex shader.
 
 ```glsl
 // shader.frag
@@ -611,6 +612,16 @@ uniform Uniforms {
     mat4 u_view_proj; // unused
 };
 ```
+
+```glsl
+// shader.vert & light.vert
+layout(set=1, binding=0) 
+uniform Uniforms {
+    vec3 u_view_position; // unused
+    mat4 u_view_proj;
+};
+```
+
 
 We're going to need to update the `Uniforms` struct as well.
 
