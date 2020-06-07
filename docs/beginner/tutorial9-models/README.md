@@ -131,7 +131,7 @@ pub struct Mesh {
 }
 ```
 
-The `Material` is pretty simple, it's just the name and one texture. Our cube obj actually has 2 textures, but one is a normal map, and we'll get to those [later](./intermediate/normal-mapping). The name is more for debugging purposes.
+The `Material` is pretty simple, it's just the name and one texture. Our cube obj actually has 2 textures, but one is a normal map, and we'll get to those [later](../../intermediate/normal-mapping). The name is more for debugging purposes.
 
 `Mesh` holds a vertex buffer, an index buffer, and the number of indices in the mesh. We're using an `usize` for the material. This `usize` will be used to index the `materials` list when it comes time to draw.
 
@@ -285,7 +285,11 @@ render_pass.draw_mesh_instanced(&self.obj_model.meshes[0], 0..self.instances.len
 Before that though we need to actually load the model and save it to `State`. Put the following in `State::new()`.
 
 ```rust
-let (obj_model, cmds) = model::Model::load(&device, "code/beginner/tutorial9-models/src/res/cube.obj").unwrap();
+let (obj_model, cmds) = model::Model::load(
+    &device,
+    &texture_bind_group_layout,
+    "code/beginner/tutorial9-models/src/res/cube.obj",
+).unwrap();
 ```
 
 The path to the obj will be different for you, so keep that in mind.
