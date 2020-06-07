@@ -498,6 +498,7 @@ let instance_texture = device.create_texture(&wgpu::TextureDescriptor {
     dimension: wgpu::TextureDimension::D1,
     format: wgpu::TextureFormat::Rgba32Float,
     usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::COPY_DST,
+    label: Some("instance_texture"),
 });
 ```
 
@@ -505,7 +506,7 @@ All of this is fairly normal texture creation stuff, save two things:
 1. We specify the height of the texture as 1. While you could theoretically use a height greater than 1, keeping the texture 1D simplifies things a bit. This also means that we need to use `TextureDimension::D1` for our `dimension`.
 2. We're using `TextureFormat::Rgba32Float` for the texture format. Since our matrices are 32bit floats, this makes sense. We could use lower memory formats such as `Rgba16Float`, or even `Rgba8UnormSrgb`, but we loose precision when we do that. We might not need that precision for basic rendering, but applications that need to model reality definetly do.
 
-With that said, let's create our a texture view and sampler for our `instance_texture`.
+With that said, let's create our texture view and sampler for our `instance_texture`.
 
 ```rust
 let instance_texture_view = instance_texture.create_default_view();
@@ -515,7 +516,7 @@ let instance_sampler = device.create_sampler(&wgpu::SamplerDescriptor {
     address_mode_w: wgpu::AddressMode::ClampToEdge,
     mag_filter: wgpu::FilterMode::Nearest,
     min_filter: wgpu::FilterMode::Nearest,
-    minmap_filter: wgpu::FilterMode::Nearest,
+    mipmap_filter: wgpu::FilterMode::Nearest,
     lod_min_clamp: -100.0,
     lod_max_clamp: 100.0,
             compare: wgpu::CompareFunction::Always,
@@ -564,7 +565,7 @@ let uniform_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroup
         wgpu::BindGroupLayoutEntry {
             binding: 2,
             visibility: wgpu::ShaderStage::VERTEX,
-            ty: wgpu::BindingType::Sampler,
+            ty: wgpu::BindingType::Sampler { comparison: false },
         },
     ],
     // ...
