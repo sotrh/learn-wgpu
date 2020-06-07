@@ -24,7 +24,7 @@ Let's make a function to create the depth texture in `texture.rs`.
 
 ```rust
 impl Texture {
-    const DEPTH_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Depth32Float; // 1.
+    pub const DEPTH_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Depth32Float; // 1.
     
     pub fn create_depth_texture(device: &wgpu::Device, sc_desc: &wgpu::SwapChainDescriptor, label: &str) -> Self {
         let size = wgpu::Extent3d { // 2.
@@ -73,7 +73,7 @@ impl Texture {
 We create our `depth_texture` in `State::new()`.
 
 ```rust
-let depth_texture = create_depth_texture(&device, &sc_desc, "depth_texture");
+let depth_texture = texture::Texture::create_depth_texture(&device, &sc_desc, "depth_texture");
 ```
 
 We need to modify our `render_pipeline` to allow depth testing. 
