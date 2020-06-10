@@ -391,6 +391,12 @@ let material = &self.obj_model.materials[mesh.material];
 render_pass.draw_mesh_instanced(mesh, material, 0..self.instances.len() as u32, &self.uniform_bind_group);
 ```
 
+We also need to make a subtle change on `from_image()` method in `texture.rs`. PNGs work fine with `as_rgba8()`, as they have an alpha channel. But, JPEGs don't have an alpha channel, and the code would panic if we try to call `as_rgba8()` on the JPEG texture image we are going to use. Instead, we can use `to_rgba()` to handle such an image.
+
+```rust
+let rgba = img.to_rgba(); 
+```
+
 With all that in place we should get the following.
 
 ![cubes-correct.png](./cubes-correct.png)
