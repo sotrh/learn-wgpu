@@ -14,16 +14,13 @@ wgpu = "0.5.0"
 futures = "0.3.4"
 ```
 
-If you're on Windows, you can specify Vulkan as your desired backend instead of DirectX by removing the `wgpu = "0.5.0"` and adding the following.
+If you're on MacOS, you can specify Vulkan (MoltenVK) as your desired backend instead of Metal by removing the `wgpu = "0.5.0"` and adding the following.
 
 ``` toml
 [dependencies.wgpu]
 version = "0.5.0"
 features = ["vulkan"]
 ```
-
-<!-- ## Why vulkan?
-You need to specify what rendering backend you're using through [Cargo features](https://doc.rust-lang.org/cargo/reference/manifest.html#the-features-section) in order to run a program with wgpu. I'm specifying [vulkan](https://www.khronos.org/vulkan/), because I'm on [linux](https://www.linuxmint.com/). You're welcome to use [metal](https://developer.apple.com/metal/), or `DirectX 11/12` using `"metal"`, `"dx11"`, or `"dx12"` respectively.  -->
 
 
 ## The code

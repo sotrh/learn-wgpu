@@ -135,14 +135,14 @@ impl Model {
         let mut materials = Vec::new();
         for mat in obj_materials {
             let diffuse_path = mat.diffuse_texture;
-            let (diffuse_texture, cmds) = texture::Texture::load(device, containing_folder.join(diffuse_path))?;
+            let (diffuse_texture, cmds) = texture::Texture::load(device, containing_folder.join(diffuse_path), false)?;
             command_buffers.push(cmds);
             
             let normal_path = match mat.unknown_param.get("map_Bump") {
                 Some(v) => Ok(v),
                 None => Err(failure::err_msg("Unable to find normal map"))
             };
-            let (normal_texture, cmds) = texture::Texture::load(device, containing_folder.join(normal_path?))?;
+            let (normal_texture, cmds) = texture::Texture::load(device, containing_folder.join(normal_path?), true)?;
             command_buffers.push(cmds);
 
             materials.push(Material::new(

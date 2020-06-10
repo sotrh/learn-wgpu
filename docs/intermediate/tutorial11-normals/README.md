@@ -112,19 +112,11 @@ void main() {
 
     // ...
 
-    vec3 normal = normalize(object_normal.rgb); // UPDATED!
+    vec3 normal = normalize(object_normal.rgb * 2.0 - 1.0); // UPDATED!
     
     // ...
 }
 ```
-
-Now if you've used normal mapping in OpenGL, you may be wondering by we didn't adjust the normal value. Normally you'd do something like the following.
-
-```glsl
-vec3 normal = normalize(object_normal.rgb * 2.0 - 1.0);
-```
-
-We don't have to do this because we are using `wgpu::TextureFormat::Rgba8UnormSrgb`, our shader gets the texture data in the range of [-1.0, 1.0].
 
 If we run the code now, you'll notice things don't look quite right. Let's compare our results with the last tutorial.
 
@@ -313,7 +305,7 @@ layout(location=2) in mat3 v_tangent_matrix; // NEW!
 
 void main() {
     // ...
-    vec3 normal = normalize(v_tangent_matrix * object_normal.rgb);
+    vec3 normal = normalize(v_tangent_matrix * (object_normal.rgb * 2.0 - 1.0));
     // ...
 }
 ```
@@ -395,6 +387,90 @@ void main() {
 
 The resulting image isn't noticeably different so I won't show it here, but the calculation definitely is more efficient.
 
+## Srgb and normal textures
+
+We've been using `Rgba8UnormSrgb` for all our textures. The `Srgb` bit specifies that we will be using [standard red green blue color space](https://en.wikipedia.org/wiki/SRGB). This is also known as linear color space. Linear color space has less color density. Even so, it is often used for diffuse textures, as they are typically made in `Srgb` color space.
+
+Normal textures aren't made with `Srgb`. Using `Rgba8UnormSrgb` can changes how the GPU samples the texture. This can make the resulting simulation [less accurate](https://medium.com/@bgolus/generating-perfect-normal-maps-for-unity-f929e673fc57#b86c). We can avoid these issues by using `Rgba8Unorm` when we create the texture. Let's add an `is_normal_map` method to our `Texture` struct.
+
+```rust
+pub fn from_image(
+    device: &wgpu::Device,
+    img: &image::DynamicImage,
+    label: Option<&str>,
+    is_normal_map: bool, // NEW!
+) -> Result<(Self, wgpu::CommandBuffer), failure::Error> {
+    // ...
+    let texture = device.create_texture(&wgpu::TextureDescriptor {
+        label,
+        size,
+        array_layer_count: 1,
+        mip_level_count: 1,
+        sample_count: 1,
+        dimension: wgpu::TextureDimension::D2,
+        // UPDATED!
+        format: if is_normal_map {
+            wgpu::TextureFormat::Rgba8Unorm
+        } else {
+            wgpu::TextureFormat::Rgba8UnormSrgb
+        },
+        usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::COPY_DST,
+    });
+
+    // ...
+    
+    Ok((Self { texture, view, sampler }, cmd_buffer))
+}
+```
+
+We'll need to propagate this change to the other methods that use this.
+
+```rust
+pub fn load<P: AsRef<Path>>(
+    device: &wgpu::Device,
+    path: P,
+    is_normal_map: bool, // NEW!
+) -> Result<(Self, wgpu::CommandBuffer), failure::Error> {
+    // ...
+    let img = image::open(path)?;
+    Self::from_image(device, &img, label, is_normal_map) // UPDATED!
+}
+
+// ...
+
+#[allow(dead_code)]
+pub fn from_bytes(
+    device: &wgpu::Device, 
+    bytes: &[u8], 
+    label: &str, 
+    is_normal_map: bool, // NEW!
+) -> Result<(Self, wgpu::CommandBuffer), failure::Error> {
+    let img = image::load_from_memory(bytes)?;
+    Self::from_image(device, &img, Some(label), is_normal_map)
+}
+```
+
+We need to update `model.rs` as well.
+
+```rust
+let diffuse_path = mat.diffuse_texture;
+// UPDATED!
+let (diffuse_texture, cmds) = texture::Texture::load(device, containing_folder.join(diffuse_path), false)?;
+command_buffers.push(cmds);
+
+let normal_path = match mat.unknown_param.get("map_Bump") {
+    Some(v) => Ok(v),
+    None => Err(failure::err_msg("Unable to find normal map"))
+};
+// UDPATED!
+let (normal_texture, cmds) = texture::Texture::load(device, containing_folder.join(normal_path?), true)?;
+command_buffers.push(cmds);
+```
+
+That gives us the following.
+
+![](./no_srgb.png)
+
 ## Unrelated stuff
 
 While I was debugging the normal mapping code, I made a few changes to `model.rs` that I haven't mentioned. I wanted to be able to see the model with different textures, so I modified the `Material` struct to have a `new()` method.
@@ -448,14 +524,14 @@ This simplifies the code in `Model::load()`.
 let mut materials = Vec::new();
 for mat in obj_materials {
     let diffuse_path = mat.diffuse_texture;
-    let (diffuse_texture, cmds) = texture::Texture::load(device, containing_folder.join(diffuse_path))?;
+    let (diffuse_texture, cmds) = texture::Texture::load(device, containing_folder.join(diffuse_path), false)?;
     command_buffers.push(cmds);
     
     let normal_path = match mat.unknown_param.get("map_Bump") {
         Some(v) => Ok(v),
         None => Err(failure::err_msg("Unable to find normal map"))
     };
-    let (normal_texture, cmds) = texture::Texture::load(device, containing_folder.join(normal_path?))?;
+    let (normal_texture, cmds) = texture::Texture::load(device, containing_folder.join(normal_path?), true)?;
     command_buffers.push(cmds);
 
     materials.push(Material::new(

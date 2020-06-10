@@ -207,6 +207,7 @@ struct State {
     light_buffer: wgpu::Buffer,
     light_bind_group: wgpu::BindGroup,
     light_render_pipeline: wgpu::RenderPipeline,
+    #[allow(dead_code)]
     debug_material: model::Material,
 }
 
@@ -524,9 +525,9 @@ impl State {
             let normal_bytes = include_bytes!("res/cobble-normal.png");
 
             let mut command_buffers = vec![];
-            let (diffuse_texture, cmds) = texture::Texture::from_bytes(&device, diffuse_bytes, "res/alt-diffuse.png").unwrap();
+            let (diffuse_texture, cmds) = texture::Texture::from_bytes(&device, diffuse_bytes, "res/alt-diffuse.png", false).unwrap();
             command_buffers.push(cmds);
-            let (normal_texture, cmds) = texture::Texture::from_bytes(&device, normal_bytes, "res/alt-normal.png").unwrap();
+            let (normal_texture, cmds) = texture::Texture::from_bytes(&device, normal_bytes, "res/alt-normal.png", true).unwrap();
             command_buffers.push(cmds);
             queue.submit(&command_buffers);
             

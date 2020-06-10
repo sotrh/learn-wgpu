@@ -275,7 +275,6 @@ struct State {
 
     size: winit::dpi::PhysicalSize<u32>,
 
-    instances: Vec<Instance>,
     #[allow(dead_code)]
     instance_texture: wgpu::Texture,
 }
@@ -389,8 +388,6 @@ impl State {
 
         
         let instance_data = instances.iter().map(Instance::to_raw).collect::<Vec<_>>();
-        // we'll need the size for later
-        let instance_buffer_size = instance_data.len() * std::mem::size_of::<cgmath::Matrix4<f32>>();
         let instance_buffer = device.create_buffer_with_data(
             bytemuck::cast_slice(&instance_data),
             wgpu::BufferUsage::COPY_SRC,
@@ -577,7 +574,6 @@ impl State {
             uniform_bind_group,
             uniforms,
             size,
-            instances,
             instance_texture,
         }
     }
