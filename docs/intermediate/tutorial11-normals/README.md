@@ -151,13 +151,15 @@ Some model formats include the tanget and bitangent (sometimes called the binorm
 
 ![](./tangent_space.png)
 
-Basically we can use the edges of our triangles, and our normal to calculate the tangent and bitangent. But first, we need to update our `ModelVertex` struct in `model.rs`. In addition to adding two new fields `tangent` and `bitangent`, we also need to change the types from `[f32, N]` to `cgmath::VectorN<f32>` so that we can do some matrix calculations later.
+Basically we can use the edges of our triangles, and our normal to calculate the tangent and bitangent. But first, we need to update our `ModelVertex` struct in `model.rs`.
 
 ```rust
 #[repr(C)]
 #[derive(Copy, Clone, Debug)]
 pub struct ModelVertex {
-    // UPDATED!
+    // Use cgmath to simplify the tangent, bitanget
+    // calculation. You can't add and subtract [f32; 3]
+    // without implementing such traits by yourself.
     position: cgmath::Vector3<f32>,
     tex_coords: cgmath::Vector2<f32>,
     normal: cgmath::Vector3<f32>,
