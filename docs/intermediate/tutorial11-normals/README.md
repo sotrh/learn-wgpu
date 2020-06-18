@@ -157,6 +157,9 @@ Basically we can use the edges of our triangles, and our normal to calculate the
 #[repr(C)]
 #[derive(Copy, Clone, Debug)]
 pub struct ModelVertex {
+    // Use cgmath to simplify the tangent, bitanget
+    // calculation. You can't add and subtract [f32; 3]
+    // without implementing such traits by yourself.
     position: cgmath::Vector3<f32>,
     tex_coords: cgmath::Vector2<f32>,
     normal: cgmath::Vector3<f32>,
@@ -209,6 +212,16 @@ impl Model {
             let mut vertices = Vec::new();
             for i in 0..m.mesh.positions.len() / 3 {
                 vertices.push(ModelVertex {
+                    // Add .into() to convert arrays to cgmath::VectorN
+                    position: [
+                        // ...
+                    ].into(),
+                    tex_coords: [
+                        // ...
+                    ].into(),
+                    normal: [
+                        // ...
+                    ].into(),
                     // ...
                     // We'll calculate these later
                     tangent: [0.0; 3].into(),
@@ -291,6 +304,22 @@ We're going to change up the output variables as well. We're going to calculate 
 layout(location=0) out vec2 v_tex_coords;
 layout(location=1) out vec3 v_position; // UPDATED!
 layout(location=2) out mat3 v_tangent_matrix; // NEW!
+
+// ...
+
+void main() {
+    // ...
+    vec3 normal = normalize(normal_matrix * a_normal);
+    vec3 tangent = normalize(normal_matrix * a_tangent);
+    vec3 bitangent = normalize(normal_matrix * a_bitangent);
+    
+    v_tangent_matrix = transpose(mat3(
+        tangent,
+        bitangent,
+        normal
+    ));
+    // ...
+}
 ```
 
 We need to reflect these updates in the fragment shader as well. We'll also transform the normal into `world space`.
