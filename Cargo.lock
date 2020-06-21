@@ -1263,6 +1263,22 @@ version = "2.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
+name = "performance"
+version = "0.1.0"
+dependencies = [
+ "bytemuck 1.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "cgmath 0.17.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "failure 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "futures 0.3.5 (registry+https://github.com/rust-lang/crates.io-index)",
+ "glob 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "image 0.23.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "shaderc 0.6.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "tobj 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "wgpu 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "winit 0.22.1 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
 name = "pin-project"
 version = "0.4.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
