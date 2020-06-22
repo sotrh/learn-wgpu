@@ -99,11 +99,7 @@ impl Texture {
         };
 
         // Get the number of mip maps from the images width
-        let mip_level_count = if is_normal_map { 
-            1 
-        } else {
-            (size.width as f32).log2().round() as u32
-        };
+        let mip_level_count = (size.width as f32).log2().round() as u32;
         let texture_desc = wgpu::TextureDescriptor {
             label,
             size,
@@ -169,7 +165,7 @@ impl Texture {
             address_mode_w: wgpu::AddressMode::ClampToEdge,
             mag_filter: wgpu::FilterMode::Linear,
             min_filter: wgpu::FilterMode::Nearest,
-            mipmap_filter: wgpu::FilterMode::Linear,
+            mipmap_filter: wgpu::FilterMode::Nearest,
             lod_min_clamp: 0.0,
             lod_max_clamp: 1000.0,
             compare: wgpu::CompareFunction::LessEqual,
