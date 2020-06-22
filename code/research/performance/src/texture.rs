@@ -1,3 +1,4 @@
+use failure::bail;
 use image::GenericImageView;
 use std::path::Path;
 
@@ -17,9 +18,11 @@ impl Texture {
         path: P,
         is_normal_map: bool,
     ) -> Result<(Self, wgpu::CommandBuffer), failure::Error> {
-        // Needed to appease the borrow checker
         let path_copy = path.as_ref().to_path_buf();
-        let label = path_copy.to_str();
+
+        // The label currently can only be 64 characters, so we'll need
+        // to use just the file name for the label.
+        let label = path_copy.file_name().unwrap().to_str();
         
         let img = image::open(path)?;
         Self::from_image(device, &img, label, is_normal_map)
@@ -81,14 +84,26 @@ impl Texture {
         let rgba = img.to_rgba();
         let dimensions = img.dimensions();
 
+        if dimensions.0 == 0 || dimensions.1 == 0 {
+            bail!(
+                "Image {} has invalid dimensions! {:?}", 
+                label.unwrap_or("UNAMED_IMAGE"),
+                dimensions
+            )
+        }
+
         let size = wgpu::Extent3d {
             width: dimensions.0,
             height: dimensions.1,
             depth: 1,
         };
-        // Ideally this number should be related to the size of
-        // the image, but let's keep things simple for now.
-        let mip_level_count = 4;
+
+        // Get the number of mip maps from the images width
+        let mip_level_count = if is_normal_map { 
+            1 
+        } else {
+            (size.width as f32).log2().round() as u32
+        };
         let texture_desc = wgpu::TextureDescriptor {
             label,
             size,
@@ -102,9 +117,9 @@ impl Texture {
                 wgpu::TextureFormat::Rgba8UnormSrgb
             },
             usage: wgpu::TextureUsage::SAMPLED
+                | wgpu::TextureUsage::COPY_DST
                 // Needed for to make the mip maps.
-                | wgpu::TextureUsage::OUTPUT_ATTACHMENT
-                | wgpu::TextureUsage::COPY_DST,
+                | wgpu::TextureUsage::OUTPUT_ATTACHMENT,
         };
         let texture = device.create_texture(&texture_desc);
 
@@ -154,10 +169,10 @@ impl Texture {
             address_mode_w: wgpu::AddressMode::ClampToEdge,
             mag_filter: wgpu::FilterMode::Linear,
             min_filter: wgpu::FilterMode::Nearest,
-            mipmap_filter: wgpu::FilterMode::Nearest,
-            lod_min_clamp: -100.0,
-            lod_max_clamp: 100.0,
-            compare: wgpu::CompareFunction::Always,
+            mipmap_filter: wgpu::FilterMode::Linear,
+            lod_min_clamp: 0.0,
+            lod_max_clamp: 1000.0,
+            compare: wgpu::CompareFunction::LessEqual,
         });
         
         Ok((Self { texture, view, sampler }, cmd_buffer))

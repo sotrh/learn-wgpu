@@ -1,9 +1,29 @@
 use glob::glob;
 use failure::bail;
+use fs_extra::copy_items;
+use fs_extra::dir::CopyOptions;
+use std::env;
 use std::fs::{read_to_string, write};
 use std::path::{PathBuf};
 
 fn main() {
+    copy_res();
+    compile_shaders();
+}
+
+fn copy_res() {
+    // This tells cargo to rerun this script if something in /res/ changes.
+    println!("cargo:rerun-if-changed=res/*");
+
+    let out_dir = env::var("OUT_DIR").unwrap();
+    let mut copy_options = CopyOptions::new();
+    copy_options.overwrite = true;
+    let mut paths_to_copy = Vec::new();
+    paths_to_copy.push("res/");
+    copy_items(&paths_to_copy, out_dir, &copy_options).unwrap();
+}
+
+fn compile_shaders() {
     // This tells cargo to rerun this script if something in /src/ changes.
     println!("cargo:rerun-if-changed=src/*");
     

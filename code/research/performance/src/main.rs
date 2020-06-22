@@ -5,6 +5,7 @@ use winit::{
     window::Window,
 };
 use futures::executor::block_on;
+use std::path::Path;
 use std::time::{Duration, Instant};
 
 mod pipeline;
@@ -381,8 +382,12 @@ impl State {
             label: None,
         });
 
-        let (obj_model, cmds) =
-            model::Model::load(&device, &texture_bind_group_layout, "code/intermediate/tutorial10-lighting/src/res/cube.obj").unwrap();
+        let res_dir = Path::new(env!("OUT_DIR")).join("res");
+        let (obj_model, cmds) = model::Model::load(
+            &device, 
+            &texture_bind_group_layout, 
+            res_dir.join("cube.obj"),
+        ).unwrap();
 
         queue.submit(&cmds);
 

@@ -21,6 +21,7 @@ features = ["swizzle"]
 shaderc = "0.6"
 glob = "0.3"
 failure = "0.1"
+fs_extra = "1.1"
 
 
 [[bin]]
