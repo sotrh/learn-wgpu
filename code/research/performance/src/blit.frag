@@ -2,7 +2,7 @@
 
 layout(location = 0) in vec2 v_TexCoord;
 
-layout(location = 1) out vec4 f_MipMap;
+layout(location = 0) out vec4 f_MipMap;
 
 layout(set = 0, binding = 0) uniform texture2D t_Color;
 layout(set = 0, binding = 1) uniform sampler s_Color;

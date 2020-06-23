@@ -5,13 +5,15 @@ authors = ["Ben Hansen <bhbenjaminhansen@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-image = "0.23"
-winit = "0.22"
-failure = "0.1"
-tobj = "1"
 bytemuck = "1.2"
+env_logger = "0.7"
+failure = "0.1"
 futures = "0.3.4"
+image = "0.23"
+log = "0.4"
+tobj = "1"
 wgpu = "0.5.0"
+winit = "0.22"
 
 [dependencies.cgmath]
 version = "0.17"

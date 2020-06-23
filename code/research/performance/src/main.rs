@@ -608,6 +608,8 @@ impl State {
 }
 
 fn main() {
+    env_logger::init();
+
     let event_loop = EventLoop::new();
     let title = env!("CARGO_PKG_NAME");
     let window = winit::window::WindowBuilder::new()
