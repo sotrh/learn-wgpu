@@ -92,7 +92,7 @@ queue.submit(&[encoder.finish()]);
 
 ## TextureViews and Samplers
 
-Now that our texture has data in it, we need a way to use it. This is where a `TextureView` and a `Sampler`. A `TextureView` offers us a *view* into our texture. A `Sampler` controls how the `Texture` is *sampled*. Sampling works similar to the eyedropper tool in Gimp/Photoshop. Our program supplies a coordinate on the texture (known as a texture coordinate), and the sampler then returns a color back based on it's internal parameters.
+Now that our texture has data in it, we need a way to use it. This is where a `TextureView` and a `Sampler` come in. A `TextureView` offers us a *view* into our texture. A `Sampler` controls how the `Texture` is *sampled*. Sampling works similar to the eyedropper tool in Gimp/Photoshop. Our program supplies a coordinate on the texture (known as a texture coordinate), and the sampler then returns a color back based on it's internal parameters.
 
 Let's define our `diffuse_texture_view` and `diffuse_sampler` now.
 
