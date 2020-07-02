@@ -1,0 +1,30 @@
+[package]
+name = "performance"
+version = "0.1.0"
+authors = ["Ben Hansen <bhbenjaminhansen@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+bytemuck = "1.2"
+env_logger = "0.7"
+failure = "0.1"
+futures = "0.3.4"
+image = "0.23"
+log = "0.4"
+tobj = "1"
+wgpu = "0.5.0"
+winit = "0.22"
+
+[dependencies.cgmath]
+version = "0.17"
+features = ["swizzle"]
+
+[build-dependencies]
+shaderc = "0.6"
+glob = "0.3"
+failure = "0.1"
+fs_extra = "1.1"
+
+[[bin]]
+name = "performance"
+path = "src/main.rs"
