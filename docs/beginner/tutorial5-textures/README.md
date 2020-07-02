@@ -401,7 +401,7 @@ impl Texture {
         Self::from_image(device, &img, Some(label))
     }
 
-    pub fn from_image(device: &wgpu::Device, img: &image::DynamicImage) -> Result<(Self, wgpu::CommandBuffer), failure::Error> {
+    pub fn from_image(device: &wgpu::Device, img: &image::DynamicImage, label: Option<&str>) -> Result<(Self, wgpu::CommandBuffer), failure::Error> {
         let rgba = img.as_rgba8().unwrap();
         let dimensions = img.dimensions();
 
@@ -490,7 +490,7 @@ The texture creation code in `new()` gets a lot simpler.
 
 ```rust
 let diffuse_bytes = include_bytes!("happy-tree.png");
-let (diffuse_texture, cmd_buffer) = texture::Texture::from_bytes(&device, diffuse_bytes).unwrap();
+let (diffuse_texture, cmd_buffer) = texture::Texture::from_bytes(&device, diffuse_bytes, "happy-tree.png").unwrap();
 
 queue.submit(&[cmd_buffer]);
 ```
