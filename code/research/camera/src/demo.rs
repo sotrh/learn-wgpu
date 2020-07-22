@@ -151,13 +151,10 @@ impl Demo {
 
     pub fn update(&mut self, dt: Duration) {
         if self.controller.is_dirty() {
-            println!("controller is dirty");
-            println!("{:?}", self.camera);
             self.controller.update_camera(&mut self.camera, dt);
             self.uniforms.apply_camera(&self.camera);
         }
         if let Some(cmds) = self.uniforms.update(&self.device) {
-            println!("updating uniforms");
             self.queue.submit(&[cmds]);
         }
     }

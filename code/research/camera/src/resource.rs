@@ -2,7 +2,6 @@ use cgmath::*;
 
 use crate::camera::*;
 use std::mem::size_of;
-use futures::executor::block_on;
 
 #[derive(Debug)]
 pub struct Uniforms {

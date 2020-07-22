@@ -136,6 +136,7 @@ impl<'a> RenderPipelineBuilder<'a> {
     }
 
     /// Helper method for [RenderPipelineBuilder::depth_no_stencil]
+    #[allow(dead_code)]
     pub fn depth_format(&mut self, format: wgpu::TextureFormat) -> &mut Self {
         self.depth_no_stencil(format, true, wgpu::CompareFunction::Less)
     }

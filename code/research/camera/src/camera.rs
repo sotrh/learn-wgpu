@@ -4,6 +4,14 @@ use winit::event::*;
 use std::time::Duration;
 use std::f32::consts::FRAC_PI_2;
 
+#[cfg_attr(rustfmt, rustfmt_skip)]
+pub const OPENGL_TO_WGPU_MATRIX: cgmath::Matrix4<f32> = cgmath::Matrix4::new(
+    1.0, 0.0, 0.0, 0.0,
+    0.0, 1.0, 0.0, 0.0,
+    0.0, 0.0, 0.5, 0.0,
+    0.0, 0.0, 0.5, 1.0,
+);
+
 #[derive(Debug)]
 pub struct Camera {
     position: Point3<f32>,
@@ -69,7 +77,7 @@ impl Projection {
     }
 
     pub fn calc_matrix(&self) -> Matrix4<f32> {
-        perspective(self.fovy, self.aspect, self.znear, self.zfar)
+        OPENGL_TO_WGPU_MATRIX * perspective(self.fovy, self.aspect, self.znear, self.zfar)
     }
 }
 
@@ -136,17 +144,18 @@ impl CameraController {
         self.is_dirty = false;
         let dt = dt.as_secs_f32();
 
-        let forward = Vector3::new(
-            camera.yaw.0.cos(),
-            0.0,
-            camera.yaw.0.sin(),
-        ).normalize();
-        let right = Vector3::unit_y().cross(forward).normalize();
+        let (sin, cos) = camera.yaw.0.sin_cos();
+
+        let forward = Vector3::new(cos, 0.0, sin).normalize();
+        let right = Vector3::new(sin, 0.0, cos).normalize();
 
         camera.position += forward * (self.amount_forward - self.amount_backward) * self.speed * dt;
         camera.position += right * (self.amount_right - self.amount_left) * self.speed * dt;
         camera.yaw += Rad(-self.rotate_horizontal) * dt;
         camera.pitch += Rad(self.rotate_vertical) * dt;
+
+        self.rotate_horizontal = 0.0;
+        self.rotate_vertical = 0.0;
 
         if camera.pitch < -Rad(FRAC_PI_2) {
             camera.pitch = -Rad(FRAC_PI_2);
