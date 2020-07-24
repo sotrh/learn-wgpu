@@ -105,7 +105,7 @@ On thing to note: `cgmath` currently returns a right-handed projection matrix fr
 
 You can tell the difference between a right-handed coordinate system and a left-handed one by using your hands. Point your thumb to the right. This is the x-axis. Point your pointer finger up. This is the y-axis. Extend your middle finger. This is the z-axis. On your right hand your middle finger should be pointing towards you. On your left hand it should be pointing away.
 
-![left_right_hand.gif]()
+![./left_right_hand.gif](./left_right_hand.gif)
 
 # The Camera Controller
 
@@ -406,4 +406,6 @@ fn main() {
 
 With that we should be able to move our camera wherever we want.
 
-![screenshot.png]()
+![./screenshot.png](./screenshot.png)
+
+<AutoGithubLink/>

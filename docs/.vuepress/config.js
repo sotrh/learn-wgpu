@@ -38,6 +38,7 @@ module.exports = {
                 children: [
                     '/intermediate/tutorial10-lighting/',
                     '/intermediate/tutorial11-normals/',
+                    '/intermediate/tutorial12-camera/',
                 ],
             },
             {
