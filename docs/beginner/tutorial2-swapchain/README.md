@@ -171,7 +171,7 @@ match event {
                 state.resize(*physical_size);
             }
             WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
-                // new_inner_size is &mut so w have to dereference it twice
+                // new_inner_size is &mut so we have to dereference it twice
                 state.resize(**new_inner_size);
             }
             // ...
