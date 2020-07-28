@@ -253,7 +253,7 @@ This technique has its drawbacks.
 
 A storage buffer gives us the flexibility that arrays did not. We don't have to specify it's size in the shader, and we can even use a `Vec` to create it!
 
-Since we're using `bytemuck` for casting our data to `&[u8]`, we're going to need to define a custom scruct to store the `cgmath::Matrix4`s. We need to do this because we can't implement `bytemuck::Pod`, and `bytemuck::Zeroable`, on `cgmath::Matrix4` because we don't that type.
+Since we're using `bytemuck` for casting our data to `&[u8]`, we're going to need to define a custom scruct to store the `cgmath::Matrix4`s. We need to do this because we can't implement `bytemuck::Pod`, and `bytemuck::Zeroable`, on `cgmath::Matrix4` as it is an external type.
 
 ```rust
 // UPDATED!
