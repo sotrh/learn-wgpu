@@ -331,6 +331,7 @@ All we have to do now is update the `render()` method to use the `index_buffer`.
 
 ```rust
 // render()
+render_pass.set_vertex_buffer(0, &self.vertex_buffer, 0, 0);
 render_pass.set_index_buffer(&self.index_buffer, 0, 0); // 1.
 render_pass.draw_indexed(0..self.num_indices, 0, 0..1); // 2.
 ```
