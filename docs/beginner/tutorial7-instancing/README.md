@@ -374,37 +374,20 @@ trait VBDesc {
 
 To change `Vertex` to use this, we just have to swap `impl Vertex`, for `impl VBDesc for Vertex`.
 
-With that done we can implement `VBDesc` for `InstanceRaw`.
+With that done we can implement `VBDesc` for `InstanceRaw`. Since we're using 2 slots for our `Vertex` struct, we need to start the `shader_location` at 2.
 
 ```rust
-const FLOAT_SIZE: wgpu::BufferAddress = std::mem::size_of::<f32>() as wgpu::BufferAddress;
 impl VBDesc for InstanceRaw {
     fn desc<'a>() -> wgpu::VertexBufferDescriptor<'a> {
         wgpu::VertexBufferDescriptor {
             stride: std::mem::size_of::<InstanceRaw>() as wgpu::BufferAddress,
             step_mode: wgpu::InputStepMode::Instance, // 1.
-            attributes: &[
-                wgpu::VertexAttributeDescriptor {
-                    offset: 0,
-                    format: wgpu::VertexFormat::Float4, // 2.
-                    shader_location: 2, // 3.
-                },
-                wgpu::VertexAttributeDescriptor {
-                    offset: FLOAT_SIZE * 4,
-                    format: wgpu::VertexFormat::Float4,
-                    shader_location: 3,
-                },
-                wgpu::VertexAttributeDescriptor {
-                    offset: FLOAT_SIZE * 4 * 2,
-                    format: wgpu::VertexFormat::Float4,
-                    shader_location: 4,
-                },
-                wgpu::VertexAttributeDescriptor {
-                    offset: FLOAT_SIZE * 4 * 3,
-                    format: wgpu::VertexFormat::Float4,
-                    shader_location: 5,
-                },
-            ]
+            attributes: &wgpu::vertex_attr_array![
+                2 => Float4, // 2.
+                3 => Float4,
+                4 => Float4,
+                5 => Float4
+            ],
         }
     }
 }
@@ -413,7 +396,6 @@ impl VBDesc for InstanceRaw {
 Let's unpack this a bit.
 1. This line makes what would be a vertex buffer into and index buffer. If we didn't specify this, the shader would loop through the elements in this list for every vertex.
 2. Vertex attributes have a limited size: `Float4` or the equivalent. This means that our instance buffer will take up multiple attribute slots. 4 in our case.
-3. Since we're using 2 slots for our `Vertex` struct, we need to start the `shader_location` at 2.
 
 Now we need to add a `VertexBufferDescriptor` to our `render_pipeline`.
 
