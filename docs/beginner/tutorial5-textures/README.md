@@ -263,9 +263,8 @@ We need to reflect these changes in the `VertexBufferDescriptor`.
 ```rust
 impl Vertex {
     fn desc<'a>() -> wgpu::VertexBufferDescriptor<'a> {
-        use std::mem;
         wgpu::VertexBufferDescriptor {
-            stride: mem::size_of::<Vertex>() as wgpu::BufferAddress,
+            stride: std::mem::size_of::<Vertex>() as wgpu::BufferAddress,
             step_mode: wgpu::InputStepMode::Vertex,
             attributes: &wgpu::vertex_attr_array![0 => Float3, 1 => Float2],
         }
