@@ -247,7 +247,7 @@ let render_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayout
 ```
 
 ## A change to the VERTICES
-There's a few things we need to change about our `Vertex` definition. Up to now we've been using a `color` attribute to dictate the color of our mesh. Now that we're using a texture we want to replace our `color` with `tex_coords`.
+There's a few things we need to change about our `Vertex` definition. Up to now we've been using a `color` attribute to dictate the color of our mesh. Now that we're using a texture we want to replace our `color` with `tex_coords`, which is only two floats instead of three.
 
 ```rust
 #[repr(C)]
@@ -267,21 +267,7 @@ impl Vertex {
         wgpu::VertexBufferDescriptor {
             stride: mem::size_of::<Vertex>() as wgpu::BufferAddress,
             step_mode: wgpu::InputStepMode::Vertex,
-            attributes: &[
-                wgpu::VertexAttributeDescriptor {
-                    offset: 0,
-                    shader_location: 0,
-                    format: wgpu::VertexFormat::Float3,
-                },
-                wgpu::VertexAttributeDescriptor {
-                    offset: mem::size_of::<[f32; 3]>() as wgpu::BufferAddress,
-                    shader_location: 1,
-                    // We only need to change this to reflect that tex_coords
-                    // is only 2 floats and not 3. It's in the same position
-                    // as color was, so nothing else needs to change
-                    format: wgpu::VertexFormat::Float2,
-                },
-            ]
+            attributes: &wgpu::vertex_attr_array![0 => Float3, 1 => Float2],
         }
     }
 }
