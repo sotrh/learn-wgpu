@@ -28,7 +28,7 @@ impl<R: Copy + bytemuck::Pod + bytemuck::Zeroable> RawBuffer<R> {
         Self::from_parts(buffer, data, usage)
     }
 
-    pub fn from_parts(buffer: wgpu::Buffer, data: Vec<R>, usage: wgpu::BufferUsage) -> Self {
+    pub fn from_parts(buffer: wgpu::Buffer, data: Vec<R>, _usage: wgpu::BufferUsage) -> Self {
         Self { buffer, data }
     }
 
@@ -40,7 +40,7 @@ impl<R: Copy + bytemuck::Pod + bytemuck::Zeroable> RawBuffer<R> {
 pub struct Buffer<U: ToRaw<Output=R>, R: Copy + bytemuck::Pod + bytemuck::Zeroable> {
     pub data: Vec<U>,
     pub raw_buffer: RawBuffer<R>,
-    usage: wgpu::BufferUsage,
+    pub usage: wgpu::BufferUsage,
 }
 
 impl<U: ToRaw<Output=R>, R: Copy + bytemuck::Pod + bytemuck::Zeroable> Buffer<U, R> {
