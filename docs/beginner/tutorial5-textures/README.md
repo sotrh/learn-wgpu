@@ -60,10 +60,10 @@ let buffer = device.create_buffer_with_data(
 );
 ```
 
-We specified our `diffuse_buffer` to be `COPY_SRC` so that we can copy it to our `diffuse_texture`. We preform the copy using a `CommandEncoder`. We'll need to change `queue`'s mutablility so we can submit the resulting `CommandBuffer`.
+We specified our `diffuse_buffer` to be `COPY_SRC` so that we can copy it to our `diffuse_texture`. We preform the copy using a `CommandEncoder`.
 
 ```rust
-let (device, mut queue) = // ...
+let (device, queue) = // ...
 
 // ...
 
@@ -467,7 +467,7 @@ impl Texture {
 ```
 
 1. We're using the [failure](https://docs.rs/failure/0.1.6/failure/) crate to simplify error handling.
-2. In order to prevent importing `queue` as `&mut`, we're returning a `CommandBuffer` with our texture. This means we could load multiple textures at the same time, and then submit all there command buffers at once.
+2. We're returning a `CommandBuffer` with our texture. This means we could load multiple textures at the same time, and then submit all there command buffers at once.
 
 We need to import `texture.rs` as a module, so somewhere at the top of `main.rs` add the following.
 
