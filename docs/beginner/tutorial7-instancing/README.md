@@ -1,6 +1,6 @@
 # Instancing
 
-Up to this point we've been drawing just one object. Most games have hundreds of objects on screen at the same time. If we wanted to draw multiple instances of our model, we could copy the vertex buffer and modify it's vertices to be in the right place, but this would be hilariously inefficient. We have our model, and we now how to position it in 3d space with a matrix, like we did the camera, so all we have to do is change the matrix we're using when we draw.
+Up to this point we've been drawing just one object. Most games have hundreds of objects on screen at the same time. If we wanted to draw multiple instances of our model, we could copy the vertex buffer and modify it's vertices to be in the right place, but this would be hilariously inefficient. We have our model, and we know how to position it in 3d space with a matrix, like we did the camera, so all we have to do is change the matrix we're using when we draw.
 
 ## The naive method
 
@@ -253,7 +253,7 @@ This technique has its drawbacks.
 
 A storage buffer gives us the flexibility that arrays did not. We don't have to specify it's size in the shader, and we can even use a `Vec` to create it!
 
-Since we're using `bytemuck` for casting our data to `&[u8]`, we're going to need to define a custom scruct to store the `cgmath::Matrix4`s. We need to do this because we can't implement `bytemuck::Pod`, and `bytemuck::Zeroable`, on `cgmath::Matrix4` because we don't that type.
+Since we're using `bytemuck` for casting our data to `&[u8]`, we're going to need to define a custom scruct to store the `cgmath::Matrix4`s. We need to do this because we can't implement `bytemuck::Pod`, and `bytemuck::Zeroable`, on `cgmath::Matrix4` as it is an external type.
 
 ```rust
 // UPDATED!
