@@ -3,8 +3,12 @@ use winit::{
     event_loop::{EventLoop, ControlFlow},
     window::{Window, WindowBuilder},
 };
+use cgmath::prelude::*;
 
 mod texture;
+
+const NUM_INSTANCES_PER_ROW: u32 = 10;
+const INSTANCE_DISPLACEMENT: cgmath::Vector3<f32> = cgmath::Vector3::new(NUM_INSTANCES_PER_ROW as f32 * 0.5, 0.0, NUM_INSTANCES_PER_ROW as f32 * 0.5);
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug)]
@@ -52,12 +56,6 @@ const INDICES: &[u16] = &[
     2, 3, 4,
 ];
 
-// NEW!
-const NUM_INSTANCES_PER_ROW: u32 = 10;
-#[allow(dead_code)]
-const NUM_INSTANCES: u32 = NUM_INSTANCES_PER_ROW * NUM_INSTANCES_PER_ROW;
-const INSTANCE_DISPLACEMENT: cgmath::Vector3<f32> = cgmath::Vector3::new(NUM_INSTANCES_PER_ROW as f32 * 0.5, 0.0, NUM_INSTANCES_PER_ROW as f32 * 0.5);
-
 #[cfg_attr(rustfmt, rustfmt_skip)]
 pub const OPENGL_TO_WGPU_MATRIX: cgmath::Matrix4<f32> = cgmath::Matrix4::new(
     1.0, 0.0, 0.0, 0.0,
@@ -85,7 +83,7 @@ impl Camera {
 }
 
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Copy, Clone)]
 struct Uniforms {
     view_proj: cgmath::Matrix4<f32>,
 }
@@ -95,7 +93,6 @@ unsafe impl bytemuck::Zeroable for Uniforms {}
 
 impl Uniforms {
     fn new() -> Self {
-        use cgmath::SquareMatrix;
         Self {
             view_proj: cgmath::Matrix4::identity(),
         }
@@ -173,34 +170,22 @@ impl CameraController {
     }
 
     fn update_camera(&self, camera: &mut Camera) {
-        use cgmath::InnerSpace;
-        let forward = camera.target - camera.eye;
-        let forward_norm = forward.normalize();
-        let forward_mag = forward.magnitude();
+        let forward = (camera.target - camera.eye).normalize();
 
-        // Prevents glitching when camera gets too close to the
-        // center of the scene.
-        if self.is_forward_pressed && forward_mag > self.speed {
-            camera.eye += forward_norm * self.speed;
+        if self.is_forward_pressed {
+            camera.eye += forward * self.speed;
         }
         if self.is_backward_pressed {
-            camera.eye -= forward_norm * self.speed;
+            camera.eye -= forward * self.speed;
         }
 
-        let right = forward_norm.cross(camera.up);
-
-        // Redo radius calc in case the up/ down is pressed.
-        let forward = camera.target - camera.eye;
-        let forward_mag = forward.magnitude();
+        let right = forward.cross(camera.up);
 
         if self.is_right_pressed {
-            // Rescale the distance between the target and eye so 
-            // that it doesn't change. The eye therefore still 
-            // lies on the circle made by the target and eye.
-            camera.eye = camera.target - (forward + right * self.speed).normalize() * forward_mag;
+            camera.eye += right * self.speed;
         }
         if self.is_left_pressed {
-            camera.eye = camera.target - (forward - right * self.speed).normalize() * forward_mag;
+            camera.eye -= right * self.speed;
         }
     }
 }
@@ -211,6 +196,7 @@ struct Instance {
     rotation: cgmath::Quaternion<f32>,
 }
 
+// NEW!
 impl Instance {
     fn to_raw(&self) -> InstanceRaw {
         InstanceRaw {
@@ -219,9 +205,10 @@ impl Instance {
     }
 }
 
+// NEW!
+#[repr(C)]
 #[derive(Copy, Clone)]
 struct InstanceRaw {
-    #[allow(dead_code)]
     model: cgmath::Matrix4<f32>,
 }
 
@@ -241,6 +228,7 @@ struct State {
     index_buffer: wgpu::Buffer,
     num_indices: u32,
 
+    #[allow(dead_code)]
     diffuse_texture: texture::Texture,
     diffuse_bind_group: wgpu::BindGroup,
 
@@ -252,7 +240,6 @@ struct State {
 
     size: winit::dpi::PhysicalSize<u32>,
 
-    // NEW!
     instances: Vec<Instance>,
     #[allow(dead_code)]
     instance_buffer: wgpu::Buffer,
@@ -263,7 +250,6 @@ impl State {
         let size = window.inner_size();
 
         let surface = wgpu::Surface::create(window);
-
         let adapter = wgpu::Adapter::request(
             &wgpu::RequestAdapterOptions {
                 power_preference: wgpu::PowerPreference::Default,
@@ -289,12 +275,7 @@ impl State {
         let swap_chain = device.create_swap_chain(&surface, &sc_desc);
 
         let diffuse_bytes = include_bytes!("happy-tree.png");
-        let (diffuse_texture, cmd_buffer) = texture::Texture::from_bytes(
-            &device, 
-            diffuse_bytes, 
-            "happy-tree.png"
-        ).unwrap();
-        
+        let (diffuse_texture, cmd_buffer) = texture::Texture::from_bytes(&device, diffuse_bytes, "happy-tree.png").unwrap();
         queue.submit(&[cmd_buffer]);
 
         let texture_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
@@ -335,7 +316,7 @@ impl State {
         });
 
         let camera = Camera {
-            eye: (0.0, 1.0, 2.0).into(),
+            eye: (0.0, 5.0, 10.0).into(),
             target: (0.0, 0.0, 0.0).into(),
             up: cgmath::Vector3::unit_y(),
             aspect: sc_desc.width as f32 / sc_desc.height as f32,
@@ -353,6 +334,34 @@ impl State {
             wgpu::BufferUsage::UNIFORM | wgpu::BufferUsage::COPY_DST,
         );
 
+        let instances = (0..NUM_INSTANCES_PER_ROW).flat_map(|z| {
+            (0..NUM_INSTANCES_PER_ROW).map(move |x| {
+                let position = cgmath::Vector3 { x: x as f32, y: 0.0, z: z as f32 } - INSTANCE_DISPLACEMENT;
+
+                let rotation = if position.is_zero() {
+                    // this is needed so an object at (0, 0, 0) won't get scaled to zero
+                    // as Quaternions can effect scale if they're not created correctly
+                    cgmath::Quaternion::from_axis_angle(cgmath::Vector3::unit_z(), cgmath::Deg(0.0))
+                } else {
+                    cgmath::Quaternion::from_axis_angle(position.clone().normalize(), cgmath::Deg(45.0))
+                };
+
+                Instance {
+                    position, rotation,
+                }
+            })
+        }).collect::<Vec<_>>();
+
+        
+        let instance_data = instances.iter().map(Instance::to_raw).collect::<Vec<_>>();
+        // we'll need the size for later
+        let instance_buffer_size = instance_data.len() * std::mem::size_of::<cgmath::Matrix4<f32>>();
+        let instance_buffer = device.create_buffer_with_data(
+            bytemuck::cast_slice(&instance_data),
+            wgpu::BufferUsage::STORAGE_READ,
+        );
+
+
         let uniform_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
             bindings: &[
                 wgpu::BindGroupLayoutEntry {
@@ -361,7 +370,18 @@ impl State {
                     ty: wgpu::BindingType::UniformBuffer {
                         dynamic: false,
                     },
-                }
+                },
+                // NEW!
+                wgpu::BindGroupLayoutEntry {
+                    binding: 1,
+                    visibility: wgpu::ShaderStage::VERTEX,
+                    ty: wgpu::BindingType::StorageBuffer {
+                        // We don't plan on changing the size of this buffer
+                        dynamic: false,
+                        // The shader is not allowed to modify it's contents
+                        readonly: true,
+                    },
+                },
             ],
             label: Some("uniform_bind_group_layout"),
         });
@@ -375,7 +395,15 @@ impl State {
                         buffer: &uniform_buffer,
                         range: 0..std::mem::size_of_val(&uniforms) as wgpu::BufferAddress,
                     }
-                }
+                },
+                // NEW!
+                wgpu::Binding {
+                    binding: 1,
+                    resource: wgpu::BindingResource::Buffer {
+                        buffer: &instance_buffer,
+                        range: 0..instance_buffer_size as wgpu::BufferAddress,
+                    }
+                },
             ],
             label: Some("uniform_bind_group"),
         });
@@ -460,6 +488,9 @@ impl State {
             uniform_bind_group,
             uniforms,
             size,
+            // NEW!
+            instances,
+            instance_buffer,
         }
     }
 
@@ -527,7 +558,8 @@ impl State {
             render_pass.set_bind_group(1, &self.uniform_bind_group, &[]);
             render_pass.set_vertex_buffer(0, &self.vertex_buffer, 0, 0);
             render_pass.set_index_buffer(&self.index_buffer, 0, 0);
-            render_pass.draw_indexed(0..self.num_indices, 0, 0..1);
+            // UPDATED!
+            render_pass.draw_indexed(0..self.num_indices, 0, 0..1000 as _);
         }
 
         self.queue.submit(&[
