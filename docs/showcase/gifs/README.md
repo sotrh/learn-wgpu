@@ -1,6 +1,6 @@
 # Creating gifs 
 
-Sometimes you've created a nice simulation/animation, and you want to show it off. While you can record a video, that might be a bit overkill to break our your video recording if you just want something to post on twitter. That's where what [GIF](https://en.wikipedia.org/wiki/GIF)s are for.
+Sometimes you've created a nice simulation/animation, and you want to show it off. While you can record a video, that might be a bit overkill to break out your video recording if you just want something to post on twitter. That's where what [GIF](https://en.wikipedia.org/wiki/GIF)s are for.
 
 Also, GIF is pronounced GHIF, not JIF as JIF is not only [peanut butter](https://en.wikipedia.org/wiki/Jif_%28peanut_butter%29), it is also a [different image format](https://filext.com/file-extension/JIF).
 
@@ -148,7 +148,7 @@ for c in &colors {
 }
 ```
 
-Once that's done we can pull the frame data our of the `Arc<Mutex<_>>`, and pass it into `save_gif()`.
+Once that's done we can pull the frame data out of the `Arc<Mutex<_>>`, and pass it into `save_gif()`.
 
 ```rust
 let mut frames = Arc::try_unwrap(frames)
