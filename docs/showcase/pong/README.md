@@ -155,7 +155,7 @@ This works really well. I simply pass this struct into the `update_state` method
 
 ## Render
 
-I used [wgpu_glyph](https://docs.rs/wgpu_glyph) for the text, and white quads for the ball and paddles. There's not much to say here, its Pong after all.
+I used [wgpu_glyph](https://docs.rs/wgpu_glyph) for the text, and white quads for the ball and paddles. There's not much to say here, it's Pong after all.
 
 I did mess around with batching however. It was totally overkill for this project, but it was a good learning experience. Here's the code if you're interested.
 
@@ -240,7 +240,7 @@ impl QuadBufferBuilder {
 
 ## Sound
 
-I used [rodio](https://docs.rs/rodio) for sound. I created a `SoundPack` class to store the sounds. Deciding how to get the sounds to play took some thinking. I chose to pass in an `Vec<state::Event>` into the `update_state` method. The system would then push an event to the `Vec`. The `Event` enum is listed below.
+I used [rodio](https://docs.rs/rodio) for sound. I created a `SoundPack` class to store the sounds. Deciding how to get the sounds to play took some thinking. I chose to pass in a `Vec<state::Event>` into the `update_state` method. The system would then push an event to the `Vec`. The `Event` enum is listed below.
 
 ```rust
 #[derive(Debug, Copy, Clone)]
