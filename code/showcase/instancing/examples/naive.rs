@@ -7,10 +7,6 @@ use cgmath::prelude::*;
 
 mod texture;
 
-const NUM_INSTANCES_PER_ROW: u32 = 10;
-const NUM_INSTANCES: u32 = NUM_INSTANCES_PER_ROW * NUM_INSTANCES_PER_ROW;
-const INSTANCE_DISPLACEMENT: cgmath::Vector3<f32> = cgmath::Vector3::new(NUM_INSTANCES_PER_ROW as f32 * 0.5, 0.0, NUM_INSTANCES_PER_ROW as f32 * 0.5);
-
 #[repr(C)]
 #[derive(Copy, Clone, Debug)]
 struct Vertex {
@@ -57,7 +53,7 @@ const INDICES: &[u16] = &[
     2, 3, 4,
 ];
 
-#[cfg_attr(rustfmt, rustfmt_skip)]
+#[rustfmt::skip]
 pub const OPENGL_TO_WGPU_MATRIX: cgmath::Matrix4<f32> = cgmath::Matrix4::new(
     1.0, 0.0, 0.0, 0.0,
     0.0, 1.0, 0.0, 0.0,
@@ -79,15 +75,15 @@ impl Camera {
     fn build_view_projection_matrix(&self) -> cgmath::Matrix4<f32> {
         let view = cgmath::Matrix4::look_at(self.eye, self.target, self.up);
         let proj = cgmath::perspective(cgmath::Deg(self.fovy), self.aspect, self.znear, self.zfar);
-        return proj * view;
+        proj * view
     }
 }
 
 #[repr(C)]
-#[derive(Copy, Clone)]
+#[derive(Debug, Copy, Clone)]
 struct Uniforms {
     view_proj: cgmath::Matrix4<f32>,
-    model: [cgmath::Matrix4<f32>; NUM_INSTANCES as usize],
+    model: cgmath::Matrix4<f32>,
 }
 
 unsafe impl bytemuck::Pod for Uniforms {}
@@ -97,7 +93,7 @@ impl Uniforms {
     fn new() -> Self {
         Self {
             view_proj: cgmath::Matrix4::identity(),
-            model: [cgmath::Matrix4::identity(); NUM_INSTANCES as usize],
+            model: cgmath::Matrix4::identity(),
         }
     }
 
@@ -347,10 +343,10 @@ impl State {
             label: Some("uniform_bind_group"),
         });
 
-        let vs_src = include_str!("arrays.vert");
+        let vs_src = include_str!("naive.vert");
         let fs_src = include_str!("shader.frag");
         let mut compiler = shaderc::Compiler::new().unwrap();
-        let vs_spirv = compiler.compile_into_spirv(vs_src, shaderc::ShaderKind::Vertex, "arrays.vert", "main", None).unwrap();
+        let vs_spirv = compiler.compile_into_spirv(vs_src, shaderc::ShaderKind::Vertex, "naive.vert", "main", None).unwrap();
         let fs_spirv = compiler.compile_into_spirv(fs_src, shaderc::ShaderKind::Fragment, "shader.frag", "main", None).unwrap();
         let vs_data = wgpu::read_spirv(std::io::Cursor::new(vs_spirv.as_binary_u8())).unwrap();
         let fs_data = wgpu::read_spirv(std::io::Cursor::new(fs_spirv.as_binary_u8())).unwrap();
@@ -408,6 +404,9 @@ impl State {
             wgpu::BufferUsage::INDEX,
         );
         let num_indices = INDICES.len() as u32;
+
+        const NUM_INSTANCES_PER_ROW: u32 = 10;
+        const INSTANCE_DISPLACEMENT: cgmath::Vector3<f32> = cgmath::Vector3::new(NUM_INSTANCES_PER_ROW as f32 * 0.5, 0.0, NUM_INSTANCES_PER_ROW as f32 * 0.5);
 
         let instances = (0..NUM_INSTANCES_PER_ROW).flat_map(|z| {
             (0..NUM_INSTANCES_PER_ROW).map(move |x| {
@@ -467,10 +466,6 @@ impl State {
         self.camera_controller.update_camera(&mut self.camera);
         self.uniforms.update_view_proj(&self.camera);
 
-        for (i, instance) in self.instances.iter().enumerate() {
-            self.uniforms.model[i] = instance.to_matrix();
-        }
-
         let mut encoder = self.device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
             label: Some("update encoder"),
         });
@@ -494,12 +489,39 @@ impl State {
         });
 
         {
-            let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+            encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 color_attachments: &[
                     wgpu::RenderPassColorAttachmentDescriptor {
                         attachment: &frame.view,
                         resolve_target: None,
                         load_op: wgpu::LoadOp::Clear,
+                        store_op: wgpu::StoreOp::Store,
+                        clear_color: wgpu::Color {
+                            r: 0.1,
+                            g: 0.2,
+                            b: 0.3,
+                            a: 1.0,
+                        },
+                    }
+                ],
+                depth_stencil_attachment: None,
+            });
+        }
+
+        for instance in &self.instances {
+            self.uniforms.model = instance.to_matrix();
+            let staging_buffer = self.device.create_buffer_with_data(
+                bytemuck::cast_slice(&[self.uniforms]),
+                wgpu::BufferUsage::COPY_SRC,
+            );
+            encoder.copy_buffer_to_buffer(&staging_buffer, 0, &self.uniform_buffer, 0, std::mem::size_of::<Uniforms>() as wgpu::BufferAddress);
+
+            let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                color_attachments: &[
+                    wgpu::RenderPassColorAttachmentDescriptor {
+                        attachment: &frame.view,
+                        resolve_target: None,
+                        load_op: wgpu::LoadOp::Load,
                         store_op: wgpu::StoreOp::Store,
                         clear_color: wgpu::Color {
                             r: 0.1,
@@ -517,7 +539,7 @@ impl State {
             render_pass.set_bind_group(1, &self.uniform_bind_group, &[]);
             render_pass.set_vertex_buffer(0, &self.vertex_buffer, 0, 0);
             render_pass.set_index_buffer(&self.index_buffer, 0, 0);
-            render_pass.draw_indexed(0..self.num_indices, 0, 0..NUM_INSTANCES);
+            render_pass.draw_indexed(0..self.num_indices, 0, 0..1);
         }
 
         self.queue.submit(&[

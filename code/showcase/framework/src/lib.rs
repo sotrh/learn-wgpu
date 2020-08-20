@@ -1,9 +1,254 @@
 mod buffer;
 mod camera;
+mod light;
 mod model;
+mod pipeline;
 mod texture;
+pub mod prelude;
 
 pub use buffer::*;
 pub use camera::*;
+pub use light::*;
 pub use model::*;
+pub use pipeline::*;
 pub use texture::*;
+
+use anyhow::*;
+use cgmath::*;
+use std::time::{Duration, Instant};
+use winit::event::*;
+use winit::event_loop::{ControlFlow, EventLoop};
+use winit::window::{Window, WindowBuilder};
+
+pub struct Display {
+    _adapter: wgpu::Adapter,
+    surface: wgpu::Surface,
+    pub sc_desc: wgpu::SwapChainDescriptor,
+    pub swap_chain: wgpu::SwapChain,
+    pub device: wgpu::Device,
+    pub queue: wgpu::Queue,
+}
+
+impl Display {
+    pub async fn new(window: &Window) -> Result<Self, Error> {
+        let size = window.inner_size();
+        let surface = wgpu::Surface::create(window);
+        let _adapter: wgpu::Adapter = wgpu::Adapter::request(
+            &wgpu::RequestAdapterOptions {
+                power_preference: wgpu::PowerPreference::Default,
+                compatible_surface: Some(&surface),
+            },
+            wgpu::BackendBit::PRIMARY,
+        ).await.context("Unable to find valid device!")?;
+        let (device, queue) = _adapter.request_device(&Default::default()).await;
+        let sc_desc = wgpu::SwapChainDescriptor {
+            usage: wgpu::TextureUsage::OUTPUT_ATTACHMENT,
+            format: wgpu::TextureFormat::Bgra8UnormSrgb,
+            width: size.width,
+            height: size.height,
+            present_mode: wgpu::PresentMode::Fifo,
+        };
+        let swap_chain = device.create_swap_chain(&surface, &sc_desc);
+
+        Ok(Self {
+            _adapter,
+            surface,
+            sc_desc,
+            swap_chain,
+            device,
+            queue,
+        })
+    }
+
+    pub fn resize(&mut self, width: u32, height: u32) {
+        self.sc_desc.width = width;
+        self.sc_desc.height = height;
+        self.swap_chain = self.device.create_swap_chain(&self.surface, &self.sc_desc);
+    }
+}
+
+
+/**
+ * Holds the camera data to be passed to wgpu.
+ */
+#[repr(C)]
+#[derive(Copy, Clone)]
+pub struct UniformData {
+    view_position: cgmath::Vector4<f32>,
+    view_proj: cgmath::Matrix4<f32>,
+}
+
+unsafe impl bytemuck::Zeroable for UniformData {}
+unsafe impl bytemuck::Pod for UniformData {}
+
+pub struct Uniforms {
+    data: UniformData,
+    buffer: wgpu::Buffer,
+}
+
+impl Uniforms {
+    pub fn new(device: &wgpu::Device) -> Self {
+        let data = UniformData {
+            view_position: Zero::zero(),
+            view_proj: cgmath::Matrix4::identity(),
+        };
+        let buffer = device.create_buffer_with_data(
+            bytemuck::cast_slice(&[data]),
+            wgpu::BufferUsage::COPY_DST | wgpu::BufferUsage::UNIFORM,
+        );
+
+        Self { data, buffer }
+    }
+
+    pub fn update_view_proj(&mut self, camera: &camera::Camera, projection: &camera::Projection) {
+        self.data.view_position = camera.position.to_homogeneous();
+        self.data.view_proj = projection.calc_matrix() * camera.calc_matrix()
+    }
+
+    pub fn update_buffer(&self, device: &wgpu::Device, encoder: &mut wgpu::CommandEncoder) {
+        let staging_buffer = device.create_buffer_with_data(
+            bytemuck::cast_slice(&[self.data]), 
+            wgpu::BufferUsage::COPY_SRC,
+        );
+        encoder.copy_buffer_to_buffer(
+            &staging_buffer,
+            0,
+            &self.buffer,
+            0,
+            std::mem::size_of::<UniformData>() as _,
+        );
+    }
+}
+
+/**
+ * Holds the wgpu::BindGroupLayout and one wgpu::BindGroup for the
+ * just the Uniforms struct.
+ */
+pub struct UniformBinding {
+    pub layout: wgpu::BindGroupLayout,
+    pub bind_group: wgpu::BindGroup,
+}
+
+impl UniformBinding {
+    pub fn new(device: &wgpu::Device, uniforms: &Uniforms) -> Self {
+        let layout = device.create_bind_group_layout(
+            &wgpu::BindGroupLayoutDescriptor {
+                bindings: &[
+                    wgpu::BindGroupLayoutEntry {
+                        binding: 0,
+                        visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+                        ty: wgpu::BindingType::UniformBuffer { dynamic: false },
+                    },
+                ],
+                label: Some("UniformBinding::layout"),
+            }
+        );
+        let bind_group = device.create_bind_group(
+            &wgpu::BindGroupDescriptor {
+                layout: &layout,
+                bindings: &[
+                    wgpu::Binding {
+                        binding: 0,
+                        resource: wgpu::BindingResource::Buffer {
+                            buffer: &uniforms.buffer,
+                            range: 0..std::mem::size_of_val(&uniforms.data) as _,
+                        },
+                    },
+                ],
+                label: Some("UniformBinding::bind_group")
+            }
+        );
+
+        Self { layout, bind_group }
+    }
+
+    pub fn rebind(&mut self, device: &wgpu::Device, uniforms: &Uniforms) {
+        self.bind_group = device.create_bind_group(
+            &wgpu::BindGroupDescriptor {
+                layout: &self.layout,
+                bindings: &[
+                    wgpu::Binding {
+                        binding: 0,
+                        resource: wgpu::BindingResource::Buffer {
+                            buffer: &uniforms.buffer,
+                            range: 0..std::mem::size_of_val(&uniforms) as wgpu::BufferAddress,
+                        },
+                    },
+                ],
+                label: Some("UniformBinding::bind_group")
+            }
+        );
+    }
+}
+
+pub trait Demo: 'static + Sized {
+    fn init(display: &Display) -> Result<Self, Error>;
+    fn process_mouse(&mut self, dx: f64, dy: f64);
+    fn resize(&mut self, display: &Display);
+    fn update(&mut self, display: &Display, dt: Duration);
+    fn render(&mut self, display: &mut Display);
+}
+
+pub async fn run<D: Demo>() -> Result<(), Error> {
+    let event_loop = EventLoop::new();
+    let window = WindowBuilder::new()
+        .with_title(env!("CARGO_PKG_NAME"))
+        .build(&event_loop)?;
+    let mut display = Display::new(&window).await?;
+    let mut demo = D::init(&mut display)?;
+    let mut last_update = Instant::now();
+    let mut is_resumed = true;
+    let mut is_focused = true;
+
+    event_loop.run(move |event, _, control_flow| {
+        *control_flow = if is_resumed && is_focused {
+            ControlFlow::Poll
+        } else {
+            ControlFlow::Wait
+        };
+
+        match event {
+            Event::Resumed => is_resumed = true,
+            Event::Suspended => is_resumed = false,
+            Event::RedrawRequested(wid) => if wid == window.id() {
+                let now = Instant::now();
+                let dt = now - last_update;
+                last_update = now;
+
+                demo.update(&mut display, dt);
+                demo.render(&mut display);
+            }
+            Event::MainEventsCleared => {
+                if is_focused && is_resumed {
+                    window.request_redraw();
+                } else {
+                    // Freeze time while the demo is not in the foreground
+                    last_update = Instant::now();
+                }
+            }
+            Event::WindowEvent {
+                event,
+                window_id,
+                ..
+            } => if window_id == window.id() {
+                match event {
+                    WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
+                    WindowEvent::Focused(f) => is_focused = f,
+                    WindowEvent::ScaleFactorChanged {
+                        new_inner_size,
+                        ..
+                    } => {
+                        display.resize(new_inner_size.width, new_inner_size.height);
+                        demo.resize(&mut display);
+                    }
+                    WindowEvent::Resized(new_inner_size) => {
+                        display.resize(new_inner_size.width, new_inner_size.height);
+                        demo.resize(&mut display);
+                    }
+                    _ => {}
+                }
+            }
+            _ => {}
+        }
+    });
+}

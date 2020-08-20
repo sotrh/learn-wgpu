@@ -11,10 +11,6 @@ const NUM_INSTANCES_PER_ROW: u32 = 10;
 const NUM_INSTANCES: u32 = NUM_INSTANCES_PER_ROW * NUM_INSTANCES_PER_ROW;
 const INSTANCE_DISPLACEMENT: cgmath::Vector3<f32> = cgmath::Vector3::new(NUM_INSTANCES_PER_ROW as f32 * 0.5, 0.0, NUM_INSTANCES_PER_ROW as f32 * 0.5);
 
-trait VBDesc {
-    fn desc<'a>() -> wgpu::VertexBufferDescriptor<'a>;
-}
-
 #[repr(C)]
 #[derive(Copy, Clone, Debug)]
 struct Vertex {
@@ -25,7 +21,7 @@ struct Vertex {
 unsafe impl bytemuck::Pod for Vertex {}
 unsafe impl bytemuck::Zeroable for Vertex {}
 
-impl VBDesc for Vertex {
+impl Vertex {
     fn desc<'a>() -> wgpu::VertexBufferDescriptor<'a> {
         use std::mem;
         wgpu::VertexBufferDescriptor {
@@ -61,7 +57,7 @@ const INDICES: &[u16] = &[
     2, 3, 4,
 ];
 
-#[cfg_attr(rustfmt, rustfmt_skip)]
+#[rustfmt::skip]
 pub const OPENGL_TO_WGPU_MATRIX: cgmath::Matrix4<f32> = cgmath::Matrix4::new(
     1.0, 0.0, 0.0, 0.0,
     0.0, 1.0, 0.0, 0.0,
@@ -83,7 +79,7 @@ impl Camera {
     fn build_view_projection_matrix(&self) -> cgmath::Matrix4<f32> {
         let view = cgmath::Matrix4::look_at(self.eye, self.target, self.up);
         let proj = cgmath::perspective(cgmath::Deg(self.fovy), self.aspect, self.znear, self.zfar);
-        return proj * view;
+        proj * view
     }
 }
 
@@ -91,6 +87,7 @@ impl Camera {
 #[derive(Copy, Clone)]
 struct Uniforms {
     view_proj: cgmath::Matrix4<f32>,
+    model: [cgmath::Matrix4<f32>; NUM_INSTANCES as usize],
 }
 
 unsafe impl bytemuck::Pod for Uniforms {}
@@ -100,6 +97,7 @@ impl Uniforms {
     fn new() -> Self {
         Self {
             view_proj: cgmath::Matrix4::identity(),
+            model: [cgmath::Matrix4::identity(); NUM_INSTANCES as usize],
         }
     }
 
@@ -201,52 +199,8 @@ struct Instance {
 }
 
 impl Instance {
-    // This is changed from `to_matrix()`
-    fn to_raw(&self) -> InstanceRaw {
-        InstanceRaw {
-            model: cgmath::Matrix4::from_translation(self.position) * cgmath::Matrix4::from(self.rotation),
-        }
-    }
-}
-
-#[repr(C)]
-#[derive(Copy, Clone)]
-struct InstanceRaw {
-    model: cgmath::Matrix4<f32>,
-}
-
-unsafe impl bytemuck::Pod for InstanceRaw {}
-unsafe impl bytemuck::Zeroable for InstanceRaw {}
-
-const FLOAT_SIZE: wgpu::BufferAddress = std::mem::size_of::<f32>() as wgpu::BufferAddress;
-impl VBDesc for InstanceRaw {
-    fn desc<'a>() -> wgpu::VertexBufferDescriptor<'a> {
-        wgpu::VertexBufferDescriptor {
-            stride: std::mem::size_of::<InstanceRaw>() as wgpu::BufferAddress,
-            step_mode: wgpu::InputStepMode::Instance, // 1.
-            attributes: &[
-                wgpu::VertexAttributeDescriptor {
-                    offset: 0,
-                    format: wgpu::VertexFormat::Float4, // 2.
-                    shader_location: 2, // 3.
-                },
-                wgpu::VertexAttributeDescriptor {
-                    offset: FLOAT_SIZE * 4,
-                    format: wgpu::VertexFormat::Float4,
-                    shader_location: 3,
-                },
-                wgpu::VertexAttributeDescriptor {
-                    offset: FLOAT_SIZE * 4 * 2,
-                    format: wgpu::VertexFormat::Float4,
-                    shader_location: 4,
-                },
-                wgpu::VertexAttributeDescriptor {
-                    offset: FLOAT_SIZE * 4 * 3,
-                    format: wgpu::VertexFormat::Float4,
-                    shader_location: 5,
-                },
-            ]
-        }
+    fn to_matrix(&self) -> cgmath::Matrix4<f32> {
+        cgmath::Matrix4::from_translation(self.position) * cgmath::Matrix4::from(self.rotation)
     }
 }
 
@@ -263,7 +217,6 @@ struct State {
     index_buffer: wgpu::Buffer,
     num_indices: u32,
 
-    #[allow(dead_code)]
     diffuse_texture: texture::Texture,
     diffuse_bind_group: wgpu::BindGroup,
 
@@ -275,8 +228,7 @@ struct State {
 
     size: winit::dpi::PhysicalSize<u32>,
 
-    #[allow(dead_code)]
-    instance_texture: wgpu::Texture,
+    instances: Vec<Instance>,
 }
 
 impl State {
@@ -368,81 +320,6 @@ impl State {
             wgpu::BufferUsage::UNIFORM | wgpu::BufferUsage::COPY_DST,
         );
 
-        let instances = (0..NUM_INSTANCES_PER_ROW).flat_map(|z| {
-            (0..NUM_INSTANCES_PER_ROW).map(move |x| {
-                let position = cgmath::Vector3 { x: x as f32, y: 0.0, z: z as f32 } - INSTANCE_DISPLACEMENT;
-
-                let rotation = if position.is_zero() {
-                    // this is needed so an object at (0, 0, 0) won't get scaled to zero
-                    // as Quaternions can effect scale if they're not create correctly
-                    cgmath::Quaternion::from_axis_angle(cgmath::Vector3::unit_z(), cgmath::Deg(0.0))
-                } else {
-                    cgmath::Quaternion::from_axis_angle(position.clone().normalize(), cgmath::Deg(45.0))
-                };
-
-                Instance {
-                    position, rotation,
-                }
-            })
-        }).collect::<Vec<_>>();
-
-        
-        let instance_data = instances.iter().map(Instance::to_raw).collect::<Vec<_>>();
-        let instance_buffer = device.create_buffer_with_data(
-            bytemuck::cast_slice(&instance_data),
-            wgpu::BufferUsage::COPY_SRC,
-        );
-
-        let instance_extent = wgpu::Extent3d {
-            width: instance_data.len() as u32 * 4,
-            height: 1,
-            depth: 1,
-        };
-
-        let instance_texture = device.create_texture(&wgpu::TextureDescriptor {
-            size: instance_extent,
-            array_layer_count: 1,
-            mip_level_count: 1,
-            sample_count: 1,
-            dimension: wgpu::TextureDimension::D1,
-            format: wgpu::TextureFormat::Rgba32Float,
-            usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::COPY_DST,
-            label: Some("instance_texture"),
-        });
-
-        let instance_texture_view = instance_texture.create_default_view();
-        let instance_sampler = device.create_sampler(&wgpu::SamplerDescriptor {
-            address_mode_u: wgpu::AddressMode::ClampToEdge,
-            address_mode_v: wgpu::AddressMode::ClampToEdge,
-            address_mode_w: wgpu::AddressMode::ClampToEdge,
-            mag_filter: wgpu::FilterMode::Nearest,
-            min_filter: wgpu::FilterMode::Nearest,
-            mipmap_filter: wgpu::FilterMode::Nearest,
-            lod_min_clamp: -100.0,
-            lod_max_clamp: 100.0,
-            compare: wgpu::CompareFunction::Always,
-        });
-        
-        let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
-            label: Some("instance_texture_encoder"),
-        });
-        encoder.copy_buffer_to_texture(
-            wgpu::BufferCopyView {
-                buffer: &instance_buffer,
-                offset: 0,
-                bytes_per_row: std::mem::size_of::<f32>() as u32 * 4,
-                rows_per_image: instance_data.len() as u32 * 4,
-            }, 
-            wgpu::TextureCopyView {
-                texture: &instance_texture,
-                mip_level: 0,
-                array_layer: 0,
-                origin: wgpu::Origin3d::ZERO,
-            }, 
-            instance_extent,
-        );
-        queue.submit(&[encoder.finish()]);
-
         let uniform_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
             bindings: &[
                 wgpu::BindGroupLayoutEntry {
@@ -451,23 +328,7 @@ impl State {
                     ty: wgpu::BindingType::UniformBuffer {
                         dynamic: false,
                     },
-                },
-                wgpu::BindGroupLayoutEntry {
-                    binding: 1,
-                    visibility: wgpu::ShaderStage::VERTEX,
-                    ty: wgpu::BindingType::SampledTexture {
-                        multisampled: false,
-                        component_type: wgpu::TextureComponentType::Uint,
-                        dimension: wgpu::TextureViewDimension::D1,
-                    }
-                },
-                wgpu::BindGroupLayoutEntry {
-                    binding: 2,
-                    visibility: wgpu::ShaderStage::VERTEX,
-                    ty: wgpu::BindingType::Sampler {
-                        comparison: false,
-                    },
-                },
+                }
             ],
             label: Some("uniform_bind_group_layout"),
         });
@@ -480,24 +341,16 @@ impl State {
                     resource: wgpu::BindingResource::Buffer {
                         buffer: &uniform_buffer,
                         range: 0..std::mem::size_of_val(&uniforms) as wgpu::BufferAddress,
-                    },
-                },
-                wgpu::Binding {
-                    binding: 1,
-                    resource: wgpu::BindingResource::TextureView(&instance_texture_view),
-                },
-                wgpu::Binding {
-                    binding: 2,
-                    resource: wgpu::BindingResource::Sampler(&instance_sampler),
+                    }
                 },
             ],
             label: Some("uniform_bind_group"),
         });
 
-        let vs_src = include_str!("texture.vert");
+        let vs_src = include_str!("arrays.vert");
         let fs_src = include_str!("shader.frag");
         let mut compiler = shaderc::Compiler::new().unwrap();
-        let vs_spirv = compiler.compile_into_spirv(vs_src, shaderc::ShaderKind::Vertex, "texture.vert", "main", None).unwrap();
+        let vs_spirv = compiler.compile_into_spirv(vs_src, shaderc::ShaderKind::Vertex, "arrays.vert", "main", None).unwrap();
         let fs_spirv = compiler.compile_into_spirv(fs_src, shaderc::ShaderKind::Fragment, "shader.frag", "main", None).unwrap();
         let vs_data = wgpu::read_spirv(std::io::Cursor::new(vs_spirv.as_binary_u8())).unwrap();
         let fs_data = wgpu::read_spirv(std::io::Cursor::new(fs_spirv.as_binary_u8())).unwrap();
@@ -556,6 +409,24 @@ impl State {
         );
         let num_indices = INDICES.len() as u32;
 
+        let instances = (0..NUM_INSTANCES_PER_ROW).flat_map(|z| {
+            (0..NUM_INSTANCES_PER_ROW).map(move |x| {
+                let position = cgmath::Vector3 { x: x as f32, y: 0.0, z: z as f32 } - INSTANCE_DISPLACEMENT;
+
+                let rotation = if position.is_zero() {
+                    // this is needed so an object at (0, 0, 0) won't get scaled to zero
+                    // as Quaternions can effect scale if they're not create correctly
+                    cgmath::Quaternion::from_axis_angle(cgmath::Vector3::unit_z(), cgmath::Deg(0.0))
+                } else {
+                    cgmath::Quaternion::from_axis_angle(position.clone().normalize(), cgmath::Deg(45.0))
+                };
+
+                Instance {
+                    position, rotation,
+                }
+            })
+        }).collect();
+
         Self {
             surface,
             device,
@@ -574,7 +445,7 @@ impl State {
             uniform_bind_group,
             uniforms,
             size,
-            instance_texture,
+            instances,
         }
     }
 
@@ -595,6 +466,10 @@ impl State {
     fn update(&mut self) {
         self.camera_controller.update_camera(&mut self.camera);
         self.uniforms.update_view_proj(&self.camera);
+
+        for (i, instance) in self.instances.iter().enumerate() {
+            self.uniforms.model[i] = instance.to_matrix();
+        }
 
         let mut encoder = self.device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
             label: Some("update encoder"),

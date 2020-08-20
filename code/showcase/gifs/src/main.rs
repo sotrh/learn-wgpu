@@ -153,21 +153,6 @@ fn save_gif(path: &str, frames: &mut Vec<Vec<u8>>, speed: i32, size: u16) -> Res
     Ok(())
 }
 
-// The image crate currently doesn't support looping gifs, so I'm not using this
-// code. I'm keeping it around in case image adds looping support.
-#[allow(unused)]
-fn save_gif_old(path: &str, frames: &mut Vec<Vec<u8>>, speed: i32, size: u16) -> Result<(), failure::Error> {
-    let output = std::fs::File::create(path)?;
-    let mut encoder = image::gif::Encoder::new(output);
-
-    for mut data in frames {
-        let frame = image::gif::Frame::from_rgba_speed(size, size, &mut data, speed);
-        encoder.encode(&frame)?;
-    }
-
-    Ok(())
-}
-
 
 fn create_render_pipeline(device: &wgpu::Device, target: &framework::Texture) -> wgpu::RenderPipeline {
     let vs_src = include_str!("res/shader.vert");

@@ -61,7 +61,7 @@ const INDICES: &[u16] = &[
     2, 3, 4,
 ];
 
-#[cfg_attr(rustfmt, rustfmt_skip)]
+#[rustfmt::skip]
 pub const OPENGL_TO_WGPU_MATRIX: cgmath::Matrix4<f32> = cgmath::Matrix4::new(
     1.0, 0.0, 0.0, 0.0,
     0.0, 1.0, 0.0, 0.0,
@@ -83,7 +83,7 @@ impl Camera {
     fn build_view_projection_matrix(&self) -> cgmath::Matrix4<f32> {
         let view = cgmath::Matrix4::look_at(self.eye, self.target, self.up);
         let proj = cgmath::perspective(cgmath::Deg(self.fovy), self.aspect, self.znear, self.zfar);
-        return proj * view;
+        proj * view
     }
 }
 
@@ -263,6 +263,7 @@ struct State {
     index_buffer: wgpu::Buffer,
     num_indices: u32,
 
+    #[allow(dead_code)]
     diffuse_texture: texture::Texture,
     diffuse_bind_group: wgpu::BindGroup,
 
@@ -274,8 +275,8 @@ struct State {
 
     size: winit::dpi::PhysicalSize<u32>,
 
-    instances: Vec<Instance>,
-    instance_buffer: wgpu::Buffer,
+    #[allow(dead_code)]
+    instance_texture: wgpu::Texture,
 }
 
 impl State {
@@ -387,12 +388,60 @@ impl State {
 
         
         let instance_data = instances.iter().map(Instance::to_raw).collect::<Vec<_>>();
-        // we'll need the size for later
-        let instance_buffer_size = instance_data.len() * std::mem::size_of::<cgmath::Matrix4<f32>>();
         let instance_buffer = device.create_buffer_with_data(
             bytemuck::cast_slice(&instance_data),
-            wgpu::BufferUsage::VERTEX,
+            wgpu::BufferUsage::COPY_SRC,
         );
+
+        let instance_extent = wgpu::Extent3d {
+            width: instance_data.len() as u32 * 4,
+            height: 1,
+            depth: 1,
+        };
+
+        let instance_texture = device.create_texture(&wgpu::TextureDescriptor {
+            size: instance_extent,
+            array_layer_count: 1,
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: wgpu::TextureDimension::D1,
+            format: wgpu::TextureFormat::Rgba32Float,
+            usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::COPY_DST,
+            label: Some("instance_texture"),
+        });
+
+        let instance_texture_view = instance_texture.create_default_view();
+        let instance_sampler = device.create_sampler(&wgpu::SamplerDescriptor {
+            address_mode_u: wgpu::AddressMode::ClampToEdge,
+            address_mode_v: wgpu::AddressMode::ClampToEdge,
+            address_mode_w: wgpu::AddressMode::ClampToEdge,
+            mag_filter: wgpu::FilterMode::Nearest,
+            min_filter: wgpu::FilterMode::Nearest,
+            mipmap_filter: wgpu::FilterMode::Nearest,
+            lod_min_clamp: -100.0,
+            lod_max_clamp: 100.0,
+            compare: wgpu::CompareFunction::Always,
+        });
+        
+        let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
+            label: Some("instance_texture_encoder"),
+        });
+        encoder.copy_buffer_to_texture(
+            wgpu::BufferCopyView {
+                buffer: &instance_buffer,
+                offset: 0,
+                bytes_per_row: std::mem::size_of::<f32>() as u32 * 4,
+                rows_per_image: instance_data.len() as u32 * 4,
+            }, 
+            wgpu::TextureCopyView {
+                texture: &instance_texture,
+                mip_level: 0,
+                array_layer: 0,
+                origin: wgpu::Origin3d::ZERO,
+            }, 
+            instance_extent,
+        );
+        queue.submit(&[encoder.finish()]);
 
         let uniform_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
             bindings: &[
@@ -401,6 +450,22 @@ impl State {
                     visibility: wgpu::ShaderStage::VERTEX,
                     ty: wgpu::BindingType::UniformBuffer {
                         dynamic: false,
+                    },
+                },
+                wgpu::BindGroupLayoutEntry {
+                    binding: 1,
+                    visibility: wgpu::ShaderStage::VERTEX,
+                    ty: wgpu::BindingType::SampledTexture {
+                        multisampled: false,
+                        component_type: wgpu::TextureComponentType::Uint,
+                        dimension: wgpu::TextureViewDimension::D1,
+                    }
+                },
+                wgpu::BindGroupLayoutEntry {
+                    binding: 2,
+                    visibility: wgpu::ShaderStage::VERTEX,
+                    ty: wgpu::BindingType::Sampler {
+                        comparison: false,
                     },
                 },
             ],
@@ -415,16 +480,24 @@ impl State {
                     resource: wgpu::BindingResource::Buffer {
                         buffer: &uniform_buffer,
                         range: 0..std::mem::size_of_val(&uniforms) as wgpu::BufferAddress,
-                    }
+                    },
+                },
+                wgpu::Binding {
+                    binding: 1,
+                    resource: wgpu::BindingResource::TextureView(&instance_texture_view),
+                },
+                wgpu::Binding {
+                    binding: 2,
+                    resource: wgpu::BindingResource::Sampler(&instance_sampler),
                 },
             ],
             label: Some("uniform_bind_group"),
         });
 
-        let vs_src = include_str!("vertex.vert");
+        let vs_src = include_str!("texture.vert");
         let fs_src = include_str!("shader.frag");
         let mut compiler = shaderc::Compiler::new().unwrap();
-        let vs_spirv = compiler.compile_into_spirv(vs_src, shaderc::ShaderKind::Vertex, "vertex.vert", "main", None).unwrap();
+        let vs_spirv = compiler.compile_into_spirv(vs_src, shaderc::ShaderKind::Vertex, "texture.vert", "main", None).unwrap();
         let fs_spirv = compiler.compile_into_spirv(fs_src, shaderc::ShaderKind::Fragment, "shader.frag", "main", None).unwrap();
         let vs_data = wgpu::read_spirv(std::io::Cursor::new(vs_spirv.as_binary_u8())).unwrap();
         let fs_data = wgpu::read_spirv(std::io::Cursor::new(fs_spirv.as_binary_u8())).unwrap();
@@ -466,7 +539,6 @@ impl State {
                 index_format: wgpu::IndexFormat::Uint16,
                 vertex_buffers: &[
                     Vertex::desc(),
-                    InstanceRaw::desc(),
                 ],
             },
             sample_count: 1,
@@ -502,8 +574,7 @@ impl State {
             uniform_bind_group,
             uniforms,
             size,
-            instances,
-            instance_buffer,
+            instance_texture,
         }
     }
 
@@ -570,7 +641,6 @@ impl State {
             render_pass.set_bind_group(0, &self.diffuse_bind_group, &[]);
             render_pass.set_bind_group(1, &self.uniform_bind_group, &[]);
             render_pass.set_vertex_buffer(0, &self.vertex_buffer, 0, 0);
-            render_pass.set_vertex_buffer(1, &self.instance_buffer, 0, 0);
             render_pass.set_index_buffer(&self.index_buffer, 0, 0);
             render_pass.draw_indexed(0..self.num_indices, 0, 0..NUM_INSTANCES);
         }

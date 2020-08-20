@@ -1,6 +1,7 @@
 use image::GenericImageView;
 use std::path::Path;
 use std::mem;
+use anyhow::*;
 
 use crate::buffer;
 
@@ -15,30 +16,19 @@ pub struct Texture<'a> {
 impl<'a> Texture<'a> {
     pub const DEPTH_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Depth32Float;
 
-    pub fn load<P: AsRef<Path>>(device: &wgpu::Device, path: P) -> Result<(Self, wgpu::CommandBuffer), failure::Error> {
+    pub fn load<P: AsRef<Path>>(
+        device: &wgpu::Device,
+        path: P,
+        is_normal_map: bool,
+    ) -> Result<(Self, wgpu::CommandBuffer)> {
         let img = image::open(path)?;
-        Self::from_image(device, &img)
+        Self::from_image(device, &img, is_normal_map)
     }
 
-    pub fn create_depth_texture(device: &wgpu::Device, sc_desc: &wgpu::SwapChainDescriptor) -> Self {
-        let desc = wgpu::TextureDescriptor {
-            label: None,
-            size: wgpu::Extent3d {
-                width: sc_desc.width,
-                height: sc_desc.height,
-                depth: 1,
-            },
-            array_layer_count: 1,
-            mip_level_count: 1,
-            sample_count: 1,
-            dimension: wgpu::TextureDimension::D2,
-            format: Self::DEPTH_FORMAT,
-            usage: wgpu::TextureUsage::OUTPUT_ATTACHMENT,
-        };
-        Self::from_descriptor(device, desc)
-    }
-
-    pub fn from_descriptor(device: &wgpu::Device, desc: wgpu::TextureDescriptor<'a>) -> Self {
+    pub fn from_descriptor(
+        device: &wgpu::Device, 
+        desc: wgpu::TextureDescriptor<'a>
+    ) -> Self {
         let texture = device.create_texture(&desc);
 
         let view = texture.create_default_view();
@@ -57,12 +47,20 @@ impl<'a> Texture<'a> {
         Self { texture, view, sampler, desc }
     }
 
-    pub fn from_bytes(device: &wgpu::Device, bytes: &[u8]) -> Result<(Self, wgpu::CommandBuffer), failure::Error> {
+    pub fn from_bytes(
+        device: &wgpu::Device,
+        is_normal_map: bool,
+        bytes: &[u8],
+    ) -> Result<(Self, wgpu::CommandBuffer)> {
         let img = image::load_from_memory(bytes)?;
-        Self::from_image(device, &img)
+        Self::from_image(device, &img, is_normal_map)
     }
 
-    pub fn from_image(device: &wgpu::Device, img: &image::DynamicImage) -> Result<(Self, wgpu::CommandBuffer), failure::Error> {
+    pub fn from_image(
+        device: &wgpu::Device,
+        img: &image::DynamicImage,
+        is_normal_map: bool,
+    ) -> Result<(Self, wgpu::CommandBuffer)> {
         let rgba = img.to_rgba();
         let dimensions = img.dimensions();
 
@@ -77,7 +75,11 @@ impl<'a> Texture<'a> {
             mip_level_count: 1,
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
-            format: wgpu::TextureFormat::Rgba8UnormSrgb,
+            format: if is_normal_map {
+                wgpu::TextureFormat::Rgba8Unorm
+            } else {
+                wgpu::TextureFormat::Rgba8UnormSrgb
+            },
             usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::COPY_DST,
             label: None,
         };
@@ -126,6 +128,24 @@ impl<'a> Texture<'a> {
         Ok((Self { texture, view, sampler, desc }, cmd_buffer))
     }
 
+    pub fn create_depth_texture(device: &wgpu::Device, sc_desc: &wgpu::SwapChainDescriptor) -> Self {
+        let desc = wgpu::TextureDescriptor {
+            label: None,
+            size: wgpu::Extent3d {
+                width: sc_desc.width,
+                height: sc_desc.height,
+                depth: 1,
+            },
+            array_layer_count: 1,
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: wgpu::TextureDimension::D2,
+            format: Self::DEPTH_FORMAT,
+            usage: wgpu::TextureUsage::OUTPUT_ATTACHMENT,
+        };
+        Self::from_descriptor(device, desc)
+    }
+
     pub fn prepare_buffer_rgba(&self, device: &wgpu::Device) -> buffer::RawBuffer<[f32;4]> {
         let num_pixels = self.desc.size.width * self.desc.size.height * self.desc.size.depth;
 
@@ -144,4 +164,4 @@ impl<'a> Texture<'a> {
 
         raw_buffer
     }
-} 
+}

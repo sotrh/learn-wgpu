@@ -170,6 +170,7 @@ impl State {
 
         let surface = wgpu::Surface::create(window);
 
+
         let adapter = wgpu::Adapter::request(
             &wgpu::RequestAdapterOptions {
                 power_preference: wgpu::PowerPreference::Default,

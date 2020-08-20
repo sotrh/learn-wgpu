@@ -11,6 +11,10 @@ const NUM_INSTANCES_PER_ROW: u32 = 10;
 const NUM_INSTANCES: u32 = NUM_INSTANCES_PER_ROW * NUM_INSTANCES_PER_ROW;
 const INSTANCE_DISPLACEMENT: cgmath::Vector3<f32> = cgmath::Vector3::new(NUM_INSTANCES_PER_ROW as f32 * 0.5, 0.0, NUM_INSTANCES_PER_ROW as f32 * 0.5);
 
+trait VBDesc {
+    fn desc<'a>() -> wgpu::VertexBufferDescriptor<'a>;
+}
+
 #[repr(C)]
 #[derive(Copy, Clone, Debug)]
 struct Vertex {
@@ -21,7 +25,7 @@ struct Vertex {
 unsafe impl bytemuck::Pod for Vertex {}
 unsafe impl bytemuck::Zeroable for Vertex {}
 
-impl Vertex {
+impl VBDesc for Vertex {
     fn desc<'a>() -> wgpu::VertexBufferDescriptor<'a> {
         use std::mem;
         wgpu::VertexBufferDescriptor {
@@ -57,7 +61,7 @@ const INDICES: &[u16] = &[
     2, 3, 4,
 ];
 
-#[cfg_attr(rustfmt, rustfmt_skip)]
+#[rustfmt::skip]
 pub const OPENGL_TO_WGPU_MATRIX: cgmath::Matrix4<f32> = cgmath::Matrix4::new(
     1.0, 0.0, 0.0, 0.0,
     0.0, 1.0, 0.0, 0.0,
@@ -79,7 +83,7 @@ impl Camera {
     fn build_view_projection_matrix(&self) -> cgmath::Matrix4<f32> {
         let view = cgmath::Matrix4::look_at(self.eye, self.target, self.up);
         let proj = cgmath::perspective(cgmath::Deg(self.fovy), self.aspect, self.znear, self.zfar);
-        return proj * view;
+        proj * view
     }
 }
 
@@ -214,6 +218,38 @@ struct InstanceRaw {
 unsafe impl bytemuck::Pod for InstanceRaw {}
 unsafe impl bytemuck::Zeroable for InstanceRaw {}
 
+const FLOAT_SIZE: wgpu::BufferAddress = std::mem::size_of::<f32>() as wgpu::BufferAddress;
+impl VBDesc for InstanceRaw {
+    fn desc<'a>() -> wgpu::VertexBufferDescriptor<'a> {
+        wgpu::VertexBufferDescriptor {
+            stride: std::mem::size_of::<InstanceRaw>() as wgpu::BufferAddress,
+            step_mode: wgpu::InputStepMode::Instance, // 1.
+            attributes: &[
+                wgpu::VertexAttributeDescriptor {
+                    offset: 0,
+                    format: wgpu::VertexFormat::Float4, // 2.
+                    shader_location: 2, // 3.
+                },
+                wgpu::VertexAttributeDescriptor {
+                    offset: FLOAT_SIZE * 4,
+                    format: wgpu::VertexFormat::Float4,
+                    shader_location: 3,
+                },
+                wgpu::VertexAttributeDescriptor {
+                    offset: FLOAT_SIZE * 4 * 2,
+                    format: wgpu::VertexFormat::Float4,
+                    shader_location: 4,
+                },
+                wgpu::VertexAttributeDescriptor {
+                    offset: FLOAT_SIZE * 4 * 3,
+                    format: wgpu::VertexFormat::Float4,
+                    shader_location: 5,
+                },
+            ]
+        }
+    }
+}
+
 struct State {
     surface: wgpu::Surface,
     device: wgpu::Device,
@@ -239,7 +275,6 @@ struct State {
     size: winit::dpi::PhysicalSize<u32>,
 
     instances: Vec<Instance>,
-    #[allow(dead_code)]
     instance_buffer: wgpu::Buffer,
 }
 
@@ -356,9 +391,8 @@ impl State {
         let instance_buffer_size = instance_data.len() * std::mem::size_of::<cgmath::Matrix4<f32>>();
         let instance_buffer = device.create_buffer_with_data(
             bytemuck::cast_slice(&instance_data),
-            wgpu::BufferUsage::STORAGE_READ,
+            wgpu::BufferUsage::VERTEX,
         );
-
 
         let uniform_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
             bindings: &[
@@ -367,14 +401,6 @@ impl State {
                     visibility: wgpu::ShaderStage::VERTEX,
                     ty: wgpu::BindingType::UniformBuffer {
                         dynamic: false,
-                    },
-                },
-                wgpu::BindGroupLayoutEntry {
-                    binding: 1,
-                    visibility: wgpu::ShaderStage::VERTEX,
-                    ty: wgpu::BindingType::StorageBuffer {
-                        dynamic: false,
-                        readonly: true,
                     },
                 },
             ],
@@ -391,21 +417,14 @@ impl State {
                         range: 0..std::mem::size_of_val(&uniforms) as wgpu::BufferAddress,
                     }
                 },
-                wgpu::Binding {
-                    binding: 1,
-                    resource: wgpu::BindingResource::Buffer {
-                        buffer: &instance_buffer,
-                        range: 0..instance_buffer_size as wgpu::BufferAddress,
-                    }
-                },
             ],
             label: Some("uniform_bind_group"),
         });
 
-        let vs_src = include_str!("storage.vert");
+        let vs_src = include_str!("vertex.vert");
         let fs_src = include_str!("shader.frag");
         let mut compiler = shaderc::Compiler::new().unwrap();
-        let vs_spirv = compiler.compile_into_spirv(vs_src, shaderc::ShaderKind::Vertex, "storage.vert", "main", None).unwrap();
+        let vs_spirv = compiler.compile_into_spirv(vs_src, shaderc::ShaderKind::Vertex, "vertex.vert", "main", None).unwrap();
         let fs_spirv = compiler.compile_into_spirv(fs_src, shaderc::ShaderKind::Fragment, "shader.frag", "main", None).unwrap();
         let vs_data = wgpu::read_spirv(std::io::Cursor::new(vs_spirv.as_binary_u8())).unwrap();
         let fs_data = wgpu::read_spirv(std::io::Cursor::new(fs_spirv.as_binary_u8())).unwrap();
@@ -447,6 +466,7 @@ impl State {
                 index_format: wgpu::IndexFormat::Uint16,
                 vertex_buffers: &[
                     Vertex::desc(),
+                    InstanceRaw::desc(),
                 ],
             },
             sample_count: 1,
@@ -550,6 +570,7 @@ impl State {
             render_pass.set_bind_group(0, &self.diffuse_bind_group, &[]);
             render_pass.set_bind_group(1, &self.uniform_bind_group, &[]);
             render_pass.set_vertex_buffer(0, &self.vertex_buffer, 0, 0);
+            render_pass.set_vertex_buffer(1, &self.instance_buffer, 0, 0);
             render_pass.set_index_buffer(&self.index_buffer, 0, 0);
             render_pass.draw_indexed(0..self.num_indices, 0, 0..NUM_INSTANCES);
         }
