@@ -12,9 +12,9 @@ name = "tutorial1-window"
 path = "src/main.rs"
 
 [dependencies]
-image = "0.22"
-winit = "0.20"
+image = "0.23"
+winit = "0.22"
 shaderc = "0.6"
 cgmath = "0.17"
-wgpu = "0.5.0"
-futures = "0.3.4"
+wgpu = "0.6"
+futures = "0.3"
