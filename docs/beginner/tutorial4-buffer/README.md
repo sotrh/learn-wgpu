@@ -123,28 +123,16 @@ For you visually learners, our vertex buffer looks like this.
 
 ![A figure of the VertexBufferDescriptor](./vb_desc.png)
 
-Let's create a static method on `Vertex` that returns this descriptor.
+Let's create a static method on `Vertex` that returns this descriptor. Thankfully, wgpu provides us with a convenient macro for doing this! `vertex_attr_array!` expands into an array of descriptors with automatically calculated offsets.
 
 ```rust
 // main.rs
 impl Vertex {
     fn desc<'a>() -> wgpu::VertexBufferDescriptor<'a> {
-        use std::mem;
         wgpu::VertexBufferDescriptor {
-            stride: mem::size_of::<Vertex>() as wgpu::BufferAddress,
+            stride: std::mem::size_of::<Vertex>() as wgpu::BufferAddress,
             step_mode: wgpu::InputStepMode::Vertex,
-            attributes: &[
-                wgpu::VertexAttributeDescriptor {
-                    offset: 0,
-                    shader_location: 0,
-                    format: wgpu::VertexFormat::Float3,
-                },
-                wgpu::VertexAttributeDescriptor {
-                    offset: mem::size_of::<[f32; 3]>() as wgpu::BufferAddress,
-                    shader_location: 1,
-                    format: wgpu::VertexFormat::Float3,
-                },
-            ]
+            attributes: &wgpu::vertex_attr_array![0 => Float3, 1 => Float3],
         }
     }
 }
