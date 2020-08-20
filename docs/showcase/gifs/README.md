@@ -148,7 +148,7 @@ for c in &colors {
 }
 ```
 
-Once that's done we can pull the frame data our of the `Arc<Mutex<_>>`, and pass it into `save_gif()`.
+Once that's done we can pull the frame data out of the `Arc<Mutex<_>>`, and pass it into `save_gif()`.
 
 ```rust
 let mut frames = Arc::try_unwrap(frames)
