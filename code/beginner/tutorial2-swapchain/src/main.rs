@@ -18,22 +18,25 @@ impl State {
     async fn new(window: &Window) -> Self {
         let size = window.inner_size();
 
-        let surface = wgpu::Surface::create(window);
-
-        let adapter = wgpu::Adapter::request(
+        // The instance is a handle to our GPU
+        // BackendBit::PRIMARY => Vulkan + Metal + DX12 + Browser WebGPU
+        let instance = wgpu::Instance::new(wgpu::BackendBit::PRIMARY);
+        let surface = unsafe { instance.create_surface(window) };
+        let adapter = instance.request_adapter(
             &wgpu::RequestAdapterOptions {
                 power_preference: wgpu::PowerPreference::Default,
                 compatible_surface: Some(&surface),
             },
-            wgpu::BackendBit::PRIMARY, // Vulkan + Metal + DX12 + Browser WebGPU
         ).await.unwrap();
 
-        let (device, queue) = adapter.request_device(&wgpu::DeviceDescriptor {
-            extensions: wgpu::Extensions {
-                anisotropic_filtering: false,
+        let (device, queue) = adapter.request_device(
+            &wgpu::DeviceDescriptor {
+                features: wgpu::Features::empty(),
+                limits: wgpu::Limits::default(),
+                shader_validation: true,
             },
-            limits: Default::default(),
-        }).await;
+            None, // Trace path
+        ).await.unwrap();
 
         let sc_desc = wgpu::SwapChainDescriptor {
             usage: wgpu::TextureUsage::OUTPUT_ATTACHMENT,
@@ -62,6 +65,7 @@ impl State {
         self.swap_chain = self.device.create_swap_chain(&self.surface, &self.sc_desc);
     }
 
+    #[allow(unused_variables)]
     fn input(&mut self, event: &WindowEvent) -> bool {
         false
     }
@@ -71,8 +75,9 @@ impl State {
     }
 
     fn render(&mut self) {
-        let frame = self.swap_chain.get_next_texture()
-            .expect("Timeout getting texture");
+        let frame = self.swap_chain.get_current_frame()
+            .expect("Timeout getting texture")
+            .output;
 
         let mut encoder = self.device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
             label: Some("Render Encoder"),
@@ -84,23 +89,23 @@ impl State {
                     wgpu::RenderPassColorAttachmentDescriptor {
                         attachment: &frame.view,
                         resolve_target: None,
-                        load_op: wgpu::LoadOp::Clear,
-                        store_op: wgpu::StoreOp::Store,
-                        clear_color: wgpu::Color {
-                            r: 0.1,
-                            g: 0.2,
-                            b: 0.3,
-                            a: 1.0,
-                        },
+                        ops: wgpu::Operations {
+                            load: wgpu::LoadOp::Clear(wgpu::Color {
+                                r: 0.1,
+                                g: 0.2,
+                                b: 0.3,
+                                a: 1.0,
+                            }),
+                            store: true,
+                        }
                     }
                 ],
                 depth_stencil_attachment: None,
             });
         }
 
-        self.queue.submit(&[
-            encoder.finish()
-        ]);
+        // submit will accept anything that implements IntoIter
+        self.queue.submit(Some(encoder.finish()));
     }
 }
 
@@ -120,7 +125,7 @@ fn main() {
             Event::WindowEvent {
                 ref event,
                 window_id,
-            } if window_id == window.id() => if !state.input(event) {
+            } if window_id == window.id() => if !state.input(event) { // UPDATED!
                 match event {
                     WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
                     WindowEvent::KeyboardInput {
@@ -140,7 +145,7 @@ fn main() {
                         state.resize(*physical_size);
                     }
                     WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
-                        // new_inner_size is &mut so w have to dereference it twice
+                        // new_inner_size is &&mut so w have to dereference it twice
                         state.resize(**new_inner_size);
                     }
                     _ => {}

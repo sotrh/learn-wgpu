@@ -7,16 +7,15 @@ For convenience we're going to pack all the fields into a struct, and create som
 // main.rs
 struct State {
     surface: wgpu::Surface,
-    adapter: wgpu::Adapter,
     device: wgpu::Device,
     queue: wgpu::Queue,
     sc_desc: wgpu::SwapChainDescriptor,
     swap_chain: wgpu::SwapChain,
-
     size: winit::dpi::PhysicalSize<u32>,
 }
 
 impl State {
+    // Creating some of the wgpu types requires async code
     async fn new(window: &Window) -> Self {
         unimplemented!()
     }
@@ -25,7 +24,6 @@ impl State {
         unimplemented!()
     }
 
-    // input() won't deal with GPU code, so it can be synchronous
     fn input(&mut self, event: &WindowEvent) -> bool {
         unimplemented!()
     }
@@ -51,15 +49,17 @@ impl State {
     async fn new(window: &Window) -> Self {
         let size = window.inner_size();
 
-        let surface = wgpu::Surface::create(window);
-
-        let adapter = wgpu::Adapter::request(
+        // The instance is a handle to our GPU
+        // BackendBit::PRIMARY => Vulkan + Metal + DX12 + Browser WebGPU
+        let instance = wgpu::Instance::new(wgpu::BackendBit::PRIMARY);
+        let surface = unsafe { instance.create_surface(window) };
+        let adapter = instance.request_adapter(
             &wgpu::RequestAdapterOptions {
                 power_preference: wgpu::PowerPreference::Default,
                 compatible_surface: Some(&surface),
             },
-            wgpu::BackendBit::PRIMARY, // Vulkan + Metal + DX12 + Browser WebGPU
-        ).await.unwrap(); // Get used to seeing this
+        ).await.unwrap();
+        let size = window.inner_size();
 ```
 
 The `surface` is used to create the `swap_chain`. Our `window` needs to implement [raw-window-handle](https://crates.io/crates/raw-window-handle)'s `HasRawWindowHandle` trait to access the native window implementation for `wgpu` to properly create the graphics backend. Fortunately, winit's `Window` fits the bill. We also need it to request our `adapter`.
@@ -67,14 +67,29 @@ The `surface` is used to create the `swap_chain`. Our `window` needs to implemen
 We need the `adapter` to create the device and queue.
 
 ```rust
-        let (device, queue) = adapter.request_device(&wgpu::DeviceDescriptor {
-            extensions: wgpu::Extensions {
-                anisotropic_filtering: false,
+        let (device, queue) = adapter.request_device(
+            &wgpu::DeviceDescriptor {
+                features: wgpu::Features::empty(),
+                limits: wgpu::Limits::default(),
+                shader_validation: true,
             },
-            limits: Default::default(),
-        }).await;
+            None, // Trace path
+        ).await.unwrap();
 ```
-As of writing, the wgpu implementation doesn't allow you to customize much of requesting a device and queue. Eventually the descriptor structs will be filled out more to allow you to find the optimal device and queue. Even so, we still need them, so we'll store them in the struct.
+
+The `features` field on `DeviceDescriptor`, allows us to specify what extra features we want. For this simple example, I've deviced to not use any extra features.
+
+<div class="note">
+
+The device you have limits the features you can use. If you want to use certain features you may need to limit what devices you support, or provide work arounds.
+
+You can get a list of features supported by your device using `adapter.features()`, or `device.features()`.
+
+You can view a full list of features [here](https://docs.rs/wgpu/0.6.0/wgpu/struct.Features.html).
+
+</div>
+
+The `limits` field describes the limit of certain types of resource we can create. We'll use the defaults for this tutorial, so we can support most devices. You can view a list of limits [here](https://docs.rs/wgpu/0.6.0/wgpu/struct.Limits.html).
 
 ```rust
         let sc_desc = wgpu::SwapChainDescriptor {
@@ -171,7 +186,7 @@ match event {
                 state.resize(*physical_size);
             }
             WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
-                // new_inner_size is &mut so we have to dereference it twice
+                // new_inner_size is &&mut so we have to dereference it twice
                 state.resize(**new_inner_size);
             }
             // ...
@@ -200,7 +215,7 @@ event_loop.run(move |event, _, control_flow| {
         Event::WindowEvent {
             ref event,
             window_id,
-        } if window_id == window.id() => if !state.input(event) { // <- This line changed after the "=>"
+        } if window_id == window.id() => if !state.input(event) { // UPDATED!
             match event {
                 WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
                 WindowEvent::KeyboardInput {
@@ -220,12 +235,11 @@ event_loop.run(move |event, _, control_flow| {
                     state.resize(*physical_size);
                 }
                 WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
-                    // new_inner_size is &mut so w have to dereference it twice
                     state.resize(**new_inner_size);
                 }
                 _ => {}
-            } // <- remove the comma on this line
-        } // <- Add a new closing brace for the if expression
+            }
+        }
         _ => {}
     }
 });
@@ -249,8 +263,9 @@ Here's where the magic happens. First we need to get a frame to render to. This 
 // impl State
 
 fn render(&mut self) {
-    let frame = self.swap_chain.get_next_texture()
-        .expect("Timeout getting texture");
+    let frame = self.swap_chain.get_current_frame()
+        .expect("Timeout getting texture")
+        .output;
 ```
 
 We also need to create a `CommandEncoder` to create the actual commands to send to the gpu. Most modern graphics frameworks expect commands to be stored in a command buffer before being sent to the gpu. The `encoder` builds a command buffer that we can then send to the gpu.
@@ -284,9 +299,8 @@ Now we can actually get to clearing the screen (long time coming). We need to us
         });
     }
 
-    self.queue.submit(&[
-        encoder.finish()
-    ]);
+    // submit will accept anything that implements IntoIter
+    self.queue.submit(Some(encoder.finish()));
 }
 ```
 
@@ -342,24 +356,31 @@ We'll use `depth_stencil_attachment` later, but we'll set it to `None` for now.
 wgpu::RenderPassColorAttachmentDescriptor {
     attachment: &frame.view,
     resolve_target: None,
-    load_op: wgpu::LoadOp::Clear,
-    store_op: wgpu::StoreOp::Store,
-    clear_color: wgpu::Color {
-        r: 0.1,
-        g: 0.2,
-        b: 0.3,
-        a: 1.0,
-    },
+    ops: wgpu::Operations {
+        load: wgpu::LoadOp::Clear(wgpu::Color {
+            r: 0.1,
+            g: 0.2,
+            b: 0.3,
+            a: 1.0,
+        }),
+        store: true,
+    }
 }
 ```
 
 The `RenderPassColorAttachmentDescriptor` has the `attachment` field which informs `wgpu` what texture to save the colors to. In this case we specify `frame.view` that we created using `swap_chain.get_next_texture()`. This means that any colors we draw to this attachment will get drawn to the screen.
 
-There's not much documentation for `resolve_target` at the moment, but it does expect an `Option<&'a TextureView>`. Fortunately, we can use `None`.
+This is the texture that will received the resolved output. This will be the same as `attachment` unless multisampling is enabled. We don't need to specify this, so we leave it as `None`.
 
-`load_op` and `store_op` define what operation to perform when gpu looks to load and store the colors for this color attachment for this render pass. We'll get more into this when we cover render passes in depth, but for now we just `LoadOp::Clear` the texture when the render pass starts, and `StoreOp::Store` the colors when it ends.
+The `obs` field takes an `wpgu::Operations` object. This tells wgpu what to do with the colors on the screen (specified by `frame.view`). The `load` field tells wgpu how to handle colors store from the previous frame. Currently we are clearing the screen with a bluish color.
 
-The last field `clear_color` is just the color to use when `LoadOp::Clear` and/or `StoreOp::Clear` are used. This is where the blue color comes from.
+<div class="note">
+
+It's not uncommon to not clear the screen if the streen is going to be completely covered up with objects. If you're scene doesn't cover the entire screen however you'll end up with something like this.
+
+![./no-clear.png](./no-clear.png)
+
+</div>
 
 ## Challenge
 
