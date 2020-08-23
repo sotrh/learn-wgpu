@@ -10,7 +10,6 @@ struct State {
     queue: wgpu::Queue,
     sc_desc: wgpu::SwapChainDescriptor,
     swap_chain: wgpu::SwapChain,
-
     size: winit::dpi::PhysicalSize<u32>,
 }
 
