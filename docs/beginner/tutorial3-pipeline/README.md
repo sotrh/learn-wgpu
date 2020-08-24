@@ -96,11 +96,9 @@ struct State {
     queue: wgpu::Queue,
     sc_desc: wgpu::SwapChainDescriptor,
     swap_chain: wgpu::SwapChain,
-
+    size: winit::dpi::PhysicalSize<u32>,
     // NEW!
     render_pipeline: wgpu::RenderPipeline,
-
-    size: winit::dpi::PhysicalSize<u32>,
 }
 ```
 
@@ -109,16 +107,11 @@ Now let's move to the `new()` method, and start making the pipeline. We'll have 
 ```rust
 let vs_src = include_str!("shader.vert");
 let fs_src = include_str!("shader.frag");
-
 let mut compiler = shaderc::Compiler::new().unwrap();
 let vs_spirv = compiler.compile_into_spirv(vs_src, shaderc::ShaderKind::Vertex, "shader.vert", "main", None).unwrap();
 let fs_spirv = compiler.compile_into_spirv(fs_src, shaderc::ShaderKind::Fragment, "shader.frag", "main", None).unwrap();
-
-let vs_data = wgpu::read_spirv(std::io::Cursor::new(vs_spirv.as_binary_u8())).unwrap();
-let fs_data = wgpu::read_spirv(std::io::Cursor::new(fs_spirv.as_binary_u8())).unwrap();
-
-let vs_module = device.create_shader_module(&vs_data);
-let fs_module = device.create_shader_module(&fs_data);
+let vs_module = device.create_shader_module(wgpu::util::make_spirv(&vs_spirv.as_binary_u8()));
+let fs_module = device.create_shader_module(wgpu::util::make_spirv(&fs_spirv.as_binary_u8()));
 ```
 
 One more thing, we need to create a `PipelineLayout`. We'll get more into this after we cover `Buffer`s.
@@ -259,6 +252,119 @@ We didn't change much, but let's talk about what we did change.
 With all that you should be seeing a lovely brown triangle.
 
 ![Said lovely brown triangle](./tutorial3-pipeline-triangle.png)
+
+## Compiling shaders and include_spirv
+
+Currently we're compiling our shaders when our program starts up, and while this is a valid way of doing things it slows down our programs start up considerably. It also prevents us from using wgpu's `include_spirv` convenience macro that would inline the spirv code directly. Doing this would also remove our dependency on shaderc (at least for the runtime code).
+
+We can do this using a build script. A build script is a file that runs when cargo is compiling your project. We can use it for all sorts of things including compiling our shaders!
+
+Add a file called `build.rs` at the same level as the src directory. It should be at in the same folder as your `Cargo.toml`.
+
+We'll start writing code in it in a bit. First we need to add some things to our `Cargo.toml`.
+
+```toml
+[dependencies]
+image = "0.23"
+winit = "0.22"
+# shaderc = "0.6" # REMOVED!
+cgmath = "0.17"
+wgpu = "0.6"
+futures = "0.3"
+
+# NEW!
+[build-dependencies]
+shaderc = "0.6"
+glob = "0.3"
+failure = "0.1"
+fs_extra = "1.1"
+```
+
+We've removed shaderc from our dependencies and added a new `[build-depencies]` block. These are dependencies for our build script. We know about shaderc, but the other ones are meant to simplify dealing with the file system and dealing with rust errors.
+
+Now we can put some code in our `build.rs`.
+
+```rust
+use glob::glob;
+use failure::bail;
+use std::fs::{read_to_string, write};
+use std::path::{PathBuf};
+
+struct ShaderData {
+    src: String,
+    src_path: PathBuf,
+    spv_path: PathBuf,
+    kind: shaderc::ShaderKind,
+}
+
+impl ShaderData {
+    pub fn load(src_path: PathBuf) -> Result<Self, failure::Error> {
+        let extension = src_path.extension().unwrap().to_str().unwrap();
+        let kind = match extension {
+            "vert" => shaderc::ShaderKind::Vertex,
+            "frag" => shaderc::ShaderKind::Fragment,
+            "comp" => shaderc::ShaderKind::Compute,
+            _ => bail!("Unsupported shader: {}", src_path.display()),
+        };
+
+        let src = read_to_string(src_path.clone())?;
+        let spv_path = src_path.with_extension(format!("{}.spv", extension));
+
+        Ok(Self { src, src_path, spv_path, kind })
+    }
+}
+
+fn main() {
+    // This tells cargo to rerun this script if something in /src/ changes.
+    println!("cargo:rerun-if-changed=src/*");
+    
+    // Collect all shaders recursively within /src/
+    let mut shader_paths = [
+        glob("./src/**/*.vert").unwrap(),
+        glob("./src/**/*.frag").unwrap(),
+        glob("./src/**/*.comp").unwrap(),
+    ];
+    
+    // This could be parallelized
+    let shaders = shader_paths.iter_mut()
+        .flatten()
+        .map(|glob_result| {
+            ShaderData::load(glob_result.unwrap()).unwrap()
+        })
+        .collect::<Vec<ShaderData>>();
+
+    let mut compiler = shaderc::Compiler::new().unwrap();
+
+    // This can't be parallelized. The [shaderc::Compiler] is not
+    // thread safe. Also, it creates a lot of resources. You could
+    // spawn multiple processes to handle this, but it would probably
+    // be better just to only compile shaders that have been changed
+    // recently.
+    for shader in shaders {
+        let compiled = compiler.compile_into_spirv(
+            &shader.src, 
+            shader.kind, 
+            &shader.src_path.to_str().unwrap(), 
+            "main", 
+            None
+        ).unwrap();
+        write(shader.spv_path, compiled.as_binary_u8()).unwrap();
+    }
+}
+```
+
+With that in place we can replace our shader compiling code in `main.rs` with just two lines!
+
+```rust
+let vs_module = device.create_shader_module(wgpu::include_spirv!("shader.vert.spv"));
+let fs_module = device.create_shader_module(wgpu::include_spirv!("shader.frag.spv"));
+```
+
+<div class="note">
+
+I'm glossing over the code in the build script as this guide is focused on wgpu related topics. Designing build scripts is a topic in and of itself, and going into it in detail would be quite a long tangent.
+
+</div>
 
 ## Challenge
 Create a second pipeline that uses the triangle's position data to create a color that it then sends to the fragment shader to use for `f_color`. Have the app swap between these when you press the spacebar. *Hint: use*`in`*and*`out`*variables in a separate shader.*
