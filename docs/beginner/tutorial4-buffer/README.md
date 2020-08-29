@@ -160,7 +160,11 @@ wgpu::VertexBufferDescriptor {
 }
 ```
 
-While this is definitely nice, it wouldn't work
+While this is definitely nice, we would have to change the lifetime on `wgpu::VertexBufferDescriptor` to `'static` as rust wouldn't compile the code because the result of `vertex_attr_array` is a temporary value, which we can't return from a function.
+
+Beyond that, I feel it's good to show how the data gets mapped, so I'll forgo using this macro for now.
+
+</div>
 
 Now we can use it when we create the `render_pipeline`.
 
