@@ -274,10 +274,10 @@ futures = "0.3"
 
 # NEW!
 [build-dependencies]
-shaderc = "0.6"
-glob = "0.3"
-failure = "0.1"
+anyhow = "1.0"
 fs_extra = "1.1"
+glob = "0.3"
+shaderc = "0.6"
 ```
 
 We've removed shaderc from our dependencies and added a new `[build-depencies]` block. These are dependencies for our build script. We know about shaderc, but the other ones are meant to simplify dealing with the file system and dealing with rust errors.

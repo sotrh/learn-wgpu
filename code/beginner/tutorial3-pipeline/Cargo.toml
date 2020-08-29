@@ -16,8 +16,8 @@ futures = "0.3"
 [build-dependencies]
 shaderc = "0.6"
 glob = "0.3"
-failure = "0.1"
-fs_extra = "1.1"
+fs_extra = "1.2"
+anyhow = "1.0"
 
 [[bin]]
 name = "tutorial3-pipeline"
