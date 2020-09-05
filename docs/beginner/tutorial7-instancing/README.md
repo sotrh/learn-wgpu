@@ -123,11 +123,12 @@ Now that we have our data, we can create the actual `instance_buffer`.
 
 ```rust
 let instance_data = instances.iter().map(Instance::to_raw).collect::<Vec<_>>();
-// we'll need the size for later
-let instance_buffer_size = instance_data.len() * std::mem::size_of::<cgmath::Matrix4<f32>>();
-let instance_buffer = device.create_buffer_with_data(
-    bytemuck::cast_slice(&instance_data),
-    wgpu::BufferUsage::STORAGE_READ,
+let instance_buffer = device.create_buffer_init(
+    &wgpu::util::BufferInitDescriptor {
+        label: Some("Instance Buffer"),
+        contents: bytemuck::cast_slice(&instance_data),
+        usage: wgpu::BufferUsage::STORAGE,
+    }
 );
 ```
 
@@ -135,7 +136,7 @@ We need a way to bind our new instance buffer so we can use it in the vertex sha
 
 ```rust
 let uniform_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-    bindings: &[
+    entries: &[
         // ...
         // NEW!
         wgpu::BindGroupLayoutEntry {
@@ -146,7 +147,9 @@ let uniform_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroup
                 dynamic: false,
                 // The shader is not allowed to modify it's contents
                 readonly: true,
+                min_binding_size: None,
             },
+            count: None,
         },
     ],
     label: Some("uniform_bind_group_layout"),
@@ -154,15 +157,12 @@ let uniform_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroup
 
 let uniform_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
     layout: &uniform_bind_group_layout,
-    bindings: &[
+    entries: &[
         // ...
         // NEW!
-        wgpu::Binding {
+        wgpu::BindGroupEntry {
             binding: 1,
-            resource: wgpu::BindingResource::Buffer {
-                buffer: &instance_buffer,
-                range: 0..instance_buffer_size as wgpu::BufferAddress,
-            }
+            resource: wgpu::BindingResource::Buffer(instance_buffer.slice(..))
         },
     ],
     label: Some("uniform_bind_group"),
@@ -186,8 +186,8 @@ The last change we need to make is in the `render()` method. We need to change t
 render_pass.set_pipeline(&self.render_pipeline);
 render_pass.set_bind_group(0, &self.diffuse_bind_group, &[]);
 render_pass.set_bind_group(1, &self.uniform_bind_group, &[]);
-render_pass.set_vertex_buffer(0, &self.vertex_buffer, 0, 0);
-render_pass.set_index_buffer(&self.index_buffer, 0, 0);
+render_pass.set_vertex_buffer(0, &self.vertex_buffer.slice(..));
+render_pass.set_index_buffer(&self.index_buffer.slice(..));
 // UPDATED!
 render_pass.draw_indexed(0..self.num_indices, 0, 0..self.instances.len() as _);
 ```
