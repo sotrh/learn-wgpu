@@ -65,8 +65,10 @@ struct State {
     vertex_buffer: wgpu::Buffer,
     index_buffer: wgpu::Buffer,
     num_indices: u32,
+    #[allow(dead_code)]
     diffuse_texture: texture::Texture,
     diffuse_bind_group: wgpu::BindGroup,
+    #[allow(dead_code)]
     cartoon_texture: texture::Texture,
     cartoon_bind_group: wgpu::BindGroup,
     is_space_pressed: bool,
