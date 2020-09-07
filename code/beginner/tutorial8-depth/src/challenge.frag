@@ -15,4 +15,8 @@ void main() {
     float r = (2.0 * near * far) / (far + near - depth * (far - near));
 
     f_color = vec4(vec3(r), 1);
+
+    float dbg = 1.0;
+    if (depth < 1.0) depth = 0;
+    f_color = vec4(vec3(dbg), 1);
 }
