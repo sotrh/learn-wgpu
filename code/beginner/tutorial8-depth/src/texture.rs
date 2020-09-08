@@ -25,8 +25,7 @@ impl Texture {
             dimension: wgpu::TextureDimension::D2,
             format: Self::DEPTH_FORMAT,
             usage: wgpu::TextureUsage::OUTPUT_ATTACHMENT
-                | wgpu::TextureUsage::SAMPLED 
-                | wgpu::TextureUsage::COPY_SRC,
+                | wgpu::TextureUsage::SAMPLED,
         };
         let texture = device.create_texture(&desc);
         let view = texture.create_view(&wgpu::TextureViewDescriptor::default());
@@ -36,8 +35,9 @@ impl Texture {
                 address_mode_v: wgpu::AddressMode::ClampToEdge,
                 address_mode_w: wgpu::AddressMode::ClampToEdge,
                 mag_filter: wgpu::FilterMode::Linear,
-                min_filter: wgpu::FilterMode::Nearest,
+                min_filter: wgpu::FilterMode::Linear,
                 mipmap_filter: wgpu::FilterMode::Nearest,
+                compare: Some(wgpu::CompareFunction::Always),
                 ..Default::default()
             }
         );
