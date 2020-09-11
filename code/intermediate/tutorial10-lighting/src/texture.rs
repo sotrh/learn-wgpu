@@ -22,7 +22,7 @@ impl Texture {
         let label = path_copy.to_str();
         
         let img = image::open(path)?;
-        Self::from_image(device, queue, img, label)
+        Self::from_image(device, queue, &img, label)
     }
 
     pub fn create_depth_texture(device: &wgpu::Device, sc_desc: &wgpu::SwapChainDescriptor, label: &str) -> Self {
@@ -69,17 +69,17 @@ impl Texture {
         label: &str
     ) -> Result<Self> {
         let img = image::load_from_memory(bytes)?;
-        Self::from_image(device, queue, img, Some(label))
+        Self::from_image(device, queue, &img, Some(label))
     }
 
     pub fn from_image(
         device: &wgpu::Device,
         queue: &wgpu::Queue,
-        img: image::DynamicImage,
+        img: &image::DynamicImage,
         label: Option<&str>
     ) -> Result<Self> {
         let dimensions = img.dimensions();
-        let rgba = img.into_rgba();
+        let rgba = img.to_rgba();
 
         let size = wgpu::Extent3d {
             width: dimensions.0,
