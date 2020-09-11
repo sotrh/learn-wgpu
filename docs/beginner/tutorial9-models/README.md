@@ -316,8 +316,11 @@ let obj_model = model::Model::load(
 ).unwrap();
 ```
 
+<div class="note">
 
+We're using `OUT_DIR` here to get at our `res` folder.
 
+</div>
 
 Our new model is a bit bigger than our previous one so we're gonna need to adjust the spacing on our instances a bit.
 
