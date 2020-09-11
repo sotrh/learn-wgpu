@@ -15,7 +15,7 @@ uniform Uniforms {
     mat4 u_view_proj; // unused
 };
 
-layout(set = 2, binding = 0) uniform Light {
+layout(set=2, binding=0) uniform Light {
     vec3 light_position;
     vec3 light_color;
 };
