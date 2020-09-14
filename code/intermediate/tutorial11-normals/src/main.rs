@@ -348,7 +348,8 @@ impl State {
                     },
                 ],
                 label: Some("texture_bind_group_layout"),
-            });
+            }
+        );
 
         let camera = Camera {
             eye: (0.0, 5.0, -10.0).into(),
