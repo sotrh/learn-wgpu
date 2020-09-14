@@ -300,7 +300,6 @@ impl State {
             None, // Trace path
         ).await.unwrap();
 
-
         let sc_desc = wgpu::SwapChainDescriptor {
             usage: wgpu::TextureUsage::OUTPUT_ATTACHMENT,
             format: wgpu::TextureFormat::Bgra8UnormSrgb,

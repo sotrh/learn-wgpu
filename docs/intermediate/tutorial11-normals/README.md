@@ -25,7 +25,7 @@ We'll have to update the `texture_bind_group_layout` to include the normal map a
 
 ```rust
 let texture_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-    bindings: &[
+    entries: &[
         // ...
         // normal map
         wgpu::BindGroupLayoutEntry {
@@ -36,30 +36,28 @@ let texture_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroup
                 component_type: wgpu::TextureComponentType::Float,
                 dimension: wgpu::TextureViewDimension::D2,
             },
+            count: None,
         },
         wgpu::BindGroupLayoutEntry {
             binding: 3,
             visibility: wgpu::ShaderStage::FRAGMENT,
             ty: wgpu::BindingType::Sampler { comparison: false },
+            count: None,
         },
     ],
-    label: None,
+    label: Some("texture_bind_group_layout"),
 });
 ```
 
 We'll need to actually the normal map itself. We'll do this in the loop we create the materials in.
 
 ```rust
-let diffuse_path = mat.diffuse_texture;
-let (diffuse_texture, cmds) = texture::Texture::load(device, containing_folder.join(diffuse_path))?;
-command_buffers.push(cmds);
+    let diffuse_path = mat.diffuse_texture;
+    let diffuse_texture = texture::Texture::load(device, queue, containing_folder.join(diffuse_path))?;
+    
+    let normal_path = mat.normal_texture;
+    let normal_texture = texture::Texture::load(device, queue, containing_folder.join(normal_path))?;
 
-let normal_path = match mat.unknown_param.get("map_Bump") {
-    Some(v) => Ok(v),
-    None => Err(failure::err_msg("Unable to find normal map"))
-};
-let (normal_texture, cmds) = texture::Texture::load(device, containing_folder.join(normal_path?))?;
-command_buffers.push(cmds);
 ```
 
 * Note: I duplicated and moved teh `command_buffers.push(cmds);` line. This means we can reuse the `cmds` variable for both the normal map and diffuse/color map.
@@ -69,13 +67,13 @@ Our `Material`'s `bind_group` will have to change as well.
 ```rust
 let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
     layout,
-    bindings: &[
+    entries: &[
         // ...
-        wgpu::Binding {
+        wgpu::BindGroupEntry {
             binding: 2,
             resource: wgpu::BindingResource::TextureView(&normal_texture.view),
         },
-        wgpu::Binding {
+        wgpu::BindGroupEntry {
             binding: 3,
             resource: wgpu::BindingResource::Sampler(&normal_texture.sampler),
         },
@@ -204,6 +202,7 @@ Now we can calculate the new tangent, and bitangent vectors.
 impl Model {
     pub fn load<P: AsRef<Path>>(
         device: &wgpu::Device,
+        queue: &wgpu::Queue,
         layout: &wgpu::BindGroupLayout,
         path: P,
     ) -> Result<(Self, Vec<wgpu::CommandBuffer>), failure::Error> {
@@ -425,6 +424,7 @@ Normal textures aren't made with `Srgb`. Using `Rgba8UnormSrgb` can changes how 
 ```rust
 pub fn from_image(
     device: &wgpu::Device,
+    queue: &wgpu::Queue,
     img: &image::DynamicImage,
     label: Option<&str>,
     is_normal_map: bool, // NEW!
@@ -457,19 +457,21 @@ We'll need to propagate this change to the other methods that use this.
 ```rust
 pub fn load<P: AsRef<Path>>(
     device: &wgpu::Device,
+    queue: &wgpu::Queue,
     path: P,
     is_normal_map: bool, // NEW!
 ) -> Result<(Self, wgpu::CommandBuffer), failure::Error> {
     // ...
     let img = image::open(path)?;
-    Self::from_image(device, &img, label, is_normal_map) // UPDATED!
+    Self::from_image(device, queue, &img, label, is_normal_map) // UPDATED!
 }
 
 // ...
 
 #[allow(dead_code)]
 pub fn from_bytes(
-    device: &wgpu::Device, 
+    device: &wgpu::Device,
+    queue: &wgpu::Queue,
     bytes: &[u8], 
     label: &str, 
     is_normal_map: bool, // NEW!
@@ -484,16 +486,11 @@ We need to update `model.rs` as well.
 ```rust
 let diffuse_path = mat.diffuse_texture;
 // UPDATED!
-let (diffuse_texture, cmds) = texture::Texture::load(device, containing_folder.join(diffuse_path), false)?;
-command_buffers.push(cmds);
+let diffuse_texture = texture::Texture::load(device, queue, containing_folder.join(diffuse_path), false)?;
 
-let normal_path = match mat.unknown_param.get("map_Bump") {
-    Some(v) => Ok(v),
-    None => Err(failure::err_msg("Unable to find normal map"))
-};
-// UDPATED!
-let (normal_texture, cmds) = texture::Texture::load(device, containing_folder.join(normal_path?), true)?;
-command_buffers.push(cmds);
+let normal_path = mat.normal_texture;
+// UPDATED!
+let normal_texture = texture::Texture::load(device, queue, containing_folder.join(normal_path), true)?;
 ```
 
 That gives us the following.
@@ -508,7 +505,7 @@ While I was debugging the normal mapping code, I made a few changes to `model.rs
 
 impl Material {
     pub fn new(
-        device: &wgpu::Device, 
+        device: &wgpu::Device,
         name: &str, 
         diffuse_texture: texture::Texture, 
         normal_texture: texture::Texture,
@@ -516,20 +513,20 @@ impl Material {
     ) -> Self {
         let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
             layout,
-            bindings: &[
-                wgpu::Binding {
+            entries: &[
+                wgpu::BindGroupEntry {
                     binding: 0,
                     resource: wgpu::BindingResource::TextureView(&diffuse_texture.view),
                 },
-                wgpu::Binding {
+                wgpu::BindGroupEntry {
                     binding: 1,
                     resource: wgpu::BindingResource::Sampler(&diffuse_texture.sampler),
                 },
-                wgpu::Binding {
+                wgpu::BindGroupEntry {
                     binding: 2,
                     resource: wgpu::BindingResource::TextureView(&normal_texture.view),
                 },
-                wgpu::Binding {
+                wgpu::BindGroupEntry {
                     binding: 3,
                     resource: wgpu::BindingResource::Sampler(&normal_texture.sampler),
                 },
@@ -553,15 +550,10 @@ This simplifies the code in `Model::load()`.
 let mut materials = Vec::new();
 for mat in obj_materials {
     let diffuse_path = mat.diffuse_texture;
-    let (diffuse_texture, cmds) = texture::Texture::load(device, containing_folder.join(diffuse_path), false)?;
-    command_buffers.push(cmds);
+    let diffuse_texture = texture::Texture::load(device, queue, containing_folder.join(diffuse_path), false)?;
     
-    let normal_path = match mat.unknown_param.get("map_Bump") {
-        Some(v) => Ok(v),
-        None => Err(failure::err_msg("Unable to find normal map"))
-    };
-    let (normal_texture, cmds) = texture::Texture::load(device, containing_folder.join(normal_path?), true)?;
-    command_buffers.push(cmds);
+    let normal_path = mat.normal_texture;
+    let normal_texture = texture::Texture::load(device, queue, containing_folder.join(normal_path), true)?;
 
     materials.push(Material::new(
         device,
@@ -616,19 +608,14 @@ I found a cobblestone texture with matching normal map, and created a `debug_mat
 ```rust
 // new()
 let debug_material = {
-    let diffuse_bytes = include_bytes!("res/cobble-diffuse.png");
-    let normal_bytes = include_bytes!("res/cobble-normal.png");
+    let diffuse_bytes = include_bytes!("../res/cobble-diffuse.png");
+    let normal_bytes = include_bytes!("../res/cobble-normal.png");
 
-    let mut command_buffers = vec![];
-    let (diffuse_texture, cmds) = texture::Texture::from_bytes(&device, diffuse_bytes, "res/alt-diffuse.png").unwrap();
-    command_buffers.push(cmds);
-    let (normal_texture, cmds) = texture::Texture::from_bytes(&device, normal_bytes, "res/alt-normal.png").unwrap();
-    command_buffers.push(cmds);
-    queue.submit(&command_buffers);
+    let diffuse_texture = texture::Texture::from_bytes(&device, &queue, diffuse_bytes, "res/alt-diffuse.png", false).unwrap();
+    let normal_texture = texture::Texture::from_bytes(&device, &queue, normal_bytes, "res/alt-normal.png", true).unwrap();
     
     model::Material::new(&device, "alt-material", diffuse_texture, normal_texture, &texture_bind_group_layout)
 };
-
 Self {
     // ...
     #[allow(dead_code)]
