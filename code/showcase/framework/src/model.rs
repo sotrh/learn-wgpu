@@ -1,6 +1,7 @@
+use anyhow::*;
 use std::ops::Range;
 use std::path::Path;
-use anyhow::*;
+use wgpu::util::DeviceExt;
 
 use crate::texture;
 
@@ -76,20 +77,20 @@ impl<'a> Material<'a> {
     ) -> Self {
         let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
             layout,
-            bindings: &[
-                wgpu::Binding {
+            entries: &[
+                wgpu::BindGroupEntry {
                     binding: 0,
                     resource: wgpu::BindingResource::TextureView(&diffuse_texture.view),
                 },
-                wgpu::Binding {
+                wgpu::BindGroupEntry {
                     binding: 1,
                     resource: wgpu::BindingResource::Sampler(&diffuse_texture.sampler),
                 },
-                wgpu::Binding {
+                wgpu::BindGroupEntry {
                     binding: 2,
                     resource: wgpu::BindingResource::TextureView(&normal_texture.view),
                 },
-                wgpu::Binding {
+                wgpu::BindGroupEntry {
                     binding: 3,
                     resource: wgpu::BindingResource::Sampler(&normal_texture.sampler),
                 },
@@ -122,34 +123,27 @@ pub struct Model<'a> {
 impl<'a> Model<'a> {
     pub fn load<P: AsRef<Path>>(
         device: &wgpu::Device,
+        queue: &wgpu::Queue,
         layout: &wgpu::BindGroupLayout,
         path: P,
-    ) -> Result<(Self, Vec<wgpu::CommandBuffer>)> {
+    ) -> Result<Self> {
         let (obj_models, obj_materials) = tobj::load_obj(path.as_ref(), true)?;
 
         // We're assuming that the texture files are stored with the obj file
-        let containing_folder = path.as_ref()
-            .parent()
-            .context("Unable to find parent for model")?;
-
-        // Our `Texure` struct currently returns a `CommandBuffer` when it's created so we need to collect those and return them.
-        let mut command_buffers = Vec::new();
+        let containing_folder = path.as_ref().parent()
+            .context("Directory has no parent")?;
 
         let mut materials = Vec::new();
         for mat in obj_materials {
-            let name = mat.name;
             let diffuse_path = mat.diffuse_texture;
-            let (diffuse_texture, cmds) = texture::Texture::load(device, containing_folder.join(diffuse_path), false)?;
-            command_buffers.push(cmds);
+            let diffuse_texture = texture::Texture::load(device, queue, containing_folder.join(diffuse_path), false)?;
             
-            let normal_path = mat.unknown_param.get("map_Bump")
-                .with_context(|| format!("No normal map specified for {}", name))?;
-            let (normal_texture, cmds) = texture::Texture::load(device, containing_folder.join(normal_path), true)?;
-            command_buffers.push(cmds);
+            let normal_path = mat.normal_texture;
+            let normal_texture = texture::Texture::load(device, queue, containing_folder.join(normal_path), true)?;
 
             materials.push(Material::new(
                 device,
-                &name,
+                &mat.name,
                 diffuse_texture,
                 normal_texture,
                 layout,
@@ -228,14 +222,19 @@ impl<'a> Model<'a> {
                 vertices[c[2] as usize].bitangent = bitangent;
             }
 
-            let vertex_buffer = device.create_buffer_with_data(
-                bytemuck::cast_slice(&vertices),
-                wgpu::BufferUsage::VERTEX,
+            let vertex_buffer = device.create_buffer_init(
+                &wgpu::util::BufferInitDescriptor {
+                    label: Some(&format!("{:?} Vertex Buffer", path.as_ref())),
+                    contents: bytemuck::cast_slice(&vertices),
+                    usage: wgpu::BufferUsage::VERTEX,
+                }
             );
-
-            let index_buffer = device.create_buffer_with_data(
-                bytemuck::cast_slice(indices),
-                wgpu::BufferUsage::INDEX,
+            let index_buffer = device.create_buffer_init(
+                &wgpu::util::BufferInitDescriptor {
+                    label: Some(&format!("{:?} Index Buffer", path.as_ref())),
+                    contents: bytemuck::cast_slice(&m.mesh.indices),
+                    usage: wgpu::BufferUsage::INDEX,
+                }
             );
 
             meshes.push(Mesh {
@@ -247,7 +246,7 @@ impl<'a> Model<'a> {
             });
         }
 
-        Ok((Self { meshes, materials }, command_buffers))
+        Ok(Self { meshes, materials })
     }
 }
 
@@ -316,8 +315,8 @@ where
         uniforms: &'b wgpu::BindGroup,
         light: &'b wgpu::BindGroup,
     ) {
-        self.set_vertex_buffer(0, &mesh.vertex_buffer, 0, 0);
-        self.set_index_buffer(&mesh.index_buffer, 0, 0);
+        self.set_vertex_buffer(0, mesh.vertex_buffer.slice(..));
+        self.set_index_buffer(mesh.index_buffer.slice(..));
         self.set_bind_group(0, &material.bind_group, &[]);
         self.set_bind_group(1, &uniforms, &[]);
         self.set_bind_group(2, &light, &[]);
@@ -414,8 +413,8 @@ where
         uniforms: &'b wgpu::BindGroup,
         light: &'b wgpu::BindGroup,
     ) {
-        self.set_vertex_buffer(0, &mesh.vertex_buffer, 0, 0);
-        self.set_index_buffer(&mesh.index_buffer, 0, 0);
+        self.set_vertex_buffer(0, mesh.vertex_buffer.slice(..));
+        self.set_index_buffer(mesh.index_buffer.slice(..));
         self.set_bind_group(0, uniforms, &[]);
         self.set_bind_group(1, light, &[]);
         self.draw_indexed(0..mesh.num_elements, 0, instances);
@@ -440,10 +439,4 @@ where
             self.draw_light_mesh_instanced(mesh, instances.clone(), uniforms, light);
         }
     }
-}
-
-
-pub struct ModelPass {
-    pipeline: wgpu::RenderPipeline,
-    // uniforms: 
 }

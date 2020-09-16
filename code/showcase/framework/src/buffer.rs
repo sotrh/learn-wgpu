@@ -1,4 +1,5 @@
 use std::mem;
+use wgpu::util::{DeviceExt, BufferInitDescriptor};
 
 pub trait ToRaw {
     type Output;
@@ -21,9 +22,12 @@ impl<R: Copy + bytemuck::Pod + bytemuck::Zeroable> RawBuffer<R> {
 
 
     pub fn from_vec(device: &wgpu::Device, data: Vec<R>, usage: wgpu::BufferUsage) -> Self {
-        let buffer = device.create_buffer_with_data(
-            bytemuck::cast_slice(&data), 
-            usage,
+        let buffer = device.create_buffer_init(
+            &BufferInitDescriptor {
+                contents: bytemuck::cast_slice(&data), 
+                usage,
+                label: None,
+            }
         );
         Self::from_parts(buffer, data, usage)
     }
@@ -62,6 +66,7 @@ impl<U: ToRaw<Output=R>, R: Copy + bytemuck::Pod + bytemuck::Zeroable> Buffer<U,
             size: buffer_size,
             usage,
             label: None,
+            mapped_at_creation: false,
         });
         let raw_buffer = RawBuffer::from_parts(buffer, Vec::new(), usage);
         Self::from_parts(Vec::new(), raw_buffer, usage)

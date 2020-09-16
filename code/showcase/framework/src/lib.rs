@@ -16,6 +16,7 @@ pub use texture::*;
 use anyhow::*;
 use cgmath::*;
 use std::time::{Duration, Instant};
+use wgpu::util::{BufferInitDescriptor, DeviceExt};
 use winit::event::*;
 use winit::event_loop::{ControlFlow, EventLoop};
 use winit::window::{Window, WindowBuilder};
@@ -32,15 +33,22 @@ pub struct Display {
 impl Display {
     pub async fn new(window: &Window) -> Result<Self, Error> {
         let size = window.inner_size();
-        let surface = wgpu::Surface::create(window);
-        let _adapter: wgpu::Adapter = wgpu::Adapter::request(
+        let instance = wgpu::Instance::new(wgpu::BackendBit::PRIMARY);
+        let surface = unsafe { instance.create_surface(window) };
+        let _adapter = instance.request_adapter(
             &wgpu::RequestAdapterOptions {
                 power_preference: wgpu::PowerPreference::Default,
                 compatible_surface: Some(&surface),
             },
-            wgpu::BackendBit::PRIMARY,
-        ).await.context("Unable to find valid device!")?;
-        let (device, queue) = _adapter.request_device(&Default::default()).await;
+        ).await.unwrap();
+        let (device, queue) = _adapter.request_device(
+            &wgpu::DeviceDescriptor {
+                features: wgpu::Features::empty(),
+                limits: wgpu::Limits::default(),
+                shader_validation: true,
+            },
+            None,
+        ).await.unwrap();
         let sc_desc = wgpu::SwapChainDescriptor {
             usage: wgpu::TextureUsage::OUTPUT_ATTACHMENT,
             format: wgpu::TextureFormat::Bgra8UnormSrgb,
@@ -92,9 +100,12 @@ impl Uniforms {
             view_position: Zero::zero(),
             view_proj: cgmath::Matrix4::identity(),
         };
-        let buffer = device.create_buffer_with_data(
-            bytemuck::cast_slice(&[data]),
-            wgpu::BufferUsage::COPY_DST | wgpu::BufferUsage::UNIFORM,
+        let buffer = device.create_buffer_init(
+            &BufferInitDescriptor {
+                label: Some("Uniform Buffer"),
+                contents: bytemuck::cast_slice(&[data]),
+                usage: wgpu::BufferUsage::COPY_DST | wgpu::BufferUsage::UNIFORM,
+            }
         );
 
         Self { data, buffer }
@@ -106,9 +117,12 @@ impl Uniforms {
     }
 
     pub fn update_buffer(&self, device: &wgpu::Device, encoder: &mut wgpu::CommandEncoder) {
-        let staging_buffer = device.create_buffer_with_data(
-            bytemuck::cast_slice(&[self.data]), 
-            wgpu::BufferUsage::COPY_SRC,
+        let staging_buffer = device.create_buffer_init(
+            &BufferInitDescriptor {
+                label: Some("Uniform Update Buffer"),
+                contents: bytemuck::cast_slice(&[self.data]), 
+                usage: wgpu::BufferUsage::COPY_SRC,
+            }
         );
         encoder.copy_buffer_to_buffer(
             &staging_buffer,
@@ -133,11 +147,15 @@ impl UniformBinding {
     pub fn new(device: &wgpu::Device, uniforms: &Uniforms) -> Self {
         let layout = device.create_bind_group_layout(
             &wgpu::BindGroupLayoutDescriptor {
-                bindings: &[
+                entries: &[
                     wgpu::BindGroupLayoutEntry {
                         binding: 0,
                         visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
-                        ty: wgpu::BindingType::UniformBuffer { dynamic: false },
+                        ty: wgpu::BindingType::UniformBuffer { 
+                            dynamic: false,
+                            min_binding_size: None,
+                        },
+                        count: None,
                     },
                 ],
                 label: Some("UniformBinding::layout"),
@@ -146,13 +164,10 @@ impl UniformBinding {
         let bind_group = device.create_bind_group(
             &wgpu::BindGroupDescriptor {
                 layout: &layout,
-                bindings: &[
-                    wgpu::Binding {
+                entries: &[
+                    wgpu::BindGroupEntry {
                         binding: 0,
-                        resource: wgpu::BindingResource::Buffer {
-                            buffer: &uniforms.buffer,
-                            range: 0..std::mem::size_of_val(&uniforms.data) as _,
-                        },
+                        resource: wgpu::BindingResource::Buffer(uniforms.buffer.slice(..)),
                     },
                 ],
                 label: Some("UniformBinding::bind_group")
@@ -166,13 +181,10 @@ impl UniformBinding {
         self.bind_group = device.create_bind_group(
             &wgpu::BindGroupDescriptor {
                 layout: &self.layout,
-                bindings: &[
-                    wgpu::Binding {
+                entries: &[
+                    wgpu::BindGroupEntry {
                         binding: 0,
-                        resource: wgpu::BindingResource::Buffer {
-                            buffer: &uniforms.buffer,
-                            range: 0..std::mem::size_of_val(&uniforms) as wgpu::BufferAddress,
-                        },
+                        resource: wgpu::BindingResource::Buffer(uniforms.buffer.slice(..))
                     },
                 ],
                 label: Some("UniformBinding::bind_group")
