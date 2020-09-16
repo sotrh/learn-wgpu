@@ -12,7 +12,9 @@ unsafe impl bytemuck::Pod for LightData {}
 unsafe impl bytemuck::Zeroable for LightData {}
 
 pub struct Light {
+    #[allow(dead_code)]
     data: LightData,
+    #[allow(dead_code)]
     buffer: wgpu::Buffer,
 }
 

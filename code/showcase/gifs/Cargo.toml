@@ -4,15 +4,24 @@ version = "0.1.0"
 authors = ["Ben Hansen <bhbenjaminhansen@gmail.com>"]
 edition = "2018"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-image = "0.23"
-shaderc = "0.6"
-cgmath = "0.17.0"
-failure = "0.1"
-wgpu = "0.5"
+anyhow = "1.0"
+bytemuck = "1.4"
+cgmath = "0.17"
+env_logger = "0.7"
 futures = "0.3"
+image = "0.23"
+log = "0.4"
+tobj = "2.0"
+wgpu = "0.6"
+winit = "0.22"
 gif = "0.10.3"
 
-framework = { path = "../framework" }
+framework = { version = "0.1.0", path = "../framework" }
+
+[build-dependencies]
+anyhow = "1.0"
+fs_extra = "1.2"
+glob = "0.3"
+shaderc = "0.6"
