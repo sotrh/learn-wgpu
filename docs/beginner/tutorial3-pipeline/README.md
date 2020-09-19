@@ -139,7 +139,7 @@ let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescrip
 
 Two things to note here:
 1. Here you can specify which function inside of the shader should be called, which is known as the `entry_point`. I normally use `"main"` as that's what it would be in OpenGL, but feel free to use whatever name you like. Make sure you specify the same entry point when you're compiling your shaders as you do here where you're exposing them to your pipeline.
-2. The `fragment_stage` is technically optional, so you have to wrap it in `Some()`. I've never used a vertex shader without a fragment shader, but the option is available if you need it.
+2. The `fragment_stage` is technically optional, so you have to wrap it in `Some()`. I've never used a vertex shader without a fragment shader, but the option is available if you need it (e.g. when you just want to generate a depth map to use for shadow mapping, you only need a vertex stage).
 
 ```rust
     // continued ...
