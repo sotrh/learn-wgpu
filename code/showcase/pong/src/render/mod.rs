@@ -2,6 +2,7 @@ mod buffer;
 
 use winit::window::{Window};
 use winit::monitor::{VideoMode};
+use wgpu_glyph::{ab_glyph, Section, Text};
 
 use buffer::*;
 
@@ -14,7 +15,6 @@ pub struct Render {
     surface: wgpu::Surface,
     #[allow(dead_code)]
     adapter: wgpu::Adapter,
-
     device: wgpu::Device,
     queue: wgpu::Queue,
     sc_desc: wgpu::SwapChainDescriptor,
@@ -22,7 +22,8 @@ pub struct Render {
     pipeline: wgpu::RenderPipeline,
     vertex_buffer: wgpu::Buffer,
     index_buffer: wgpu::Buffer,
-    glyph_brush: wgpu_glyph::GlyphBrush<'static, ()>,
+    glyph_brush: wgpu_glyph::GlyphBrush<()>,
+    staging_belt: wgpu::util::StagingBelt,
 }
 
 impl Render {
@@ -36,20 +37,24 @@ impl Render {
     }
 
     pub async fn new(window: &Window, video_mode: &VideoMode) -> Self {
-        let surface = wgpu::Surface::create(window);
-
-        let adapter = wgpu::Adapter::request(
+        // The instance is a handle to our GPU
+        // BackendBit::PRIMARY => Vulkan + Metal + DX12 + Browser WebGPU
+        let instance = wgpu::Instance::new(wgpu::BackendBit::PRIMARY);
+        let surface = unsafe { instance.create_surface(window) };
+        let adapter = instance.request_adapter(
             &wgpu::RequestAdapterOptions {
                 power_preference: wgpu::PowerPreference::Default,
                 compatible_surface: Some(&surface),
-            },  
-            wgpu::BackendBit::PRIMARY,
+            },
         ).await.unwrap();
-
-        let (device, queue) = adapter.request_device(&wgpu::DeviceDescriptor {
-            extensions: Default::default(),
-            limits: Default::default(),
-        }).await;
+        let (device, queue) = adapter.request_device(
+            &wgpu::DeviceDescriptor {
+                features: wgpu::Features::empty(),
+                limits: wgpu::Limits::default(),
+                shader_validation: true,
+            },
+            None, // Trace path
+        ).await.unwrap();
 
         let size = video_mode.size();
         let sc_desc = wgpu::SwapChainDescriptor {
@@ -61,33 +66,40 @@ impl Render {
         };
         let swap_chain = device.create_swap_chain(&surface, &sc_desc);
 
-        let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-            bind_group_layouts: &[]
-        });
+        let pipeline_layout = device.create_pipeline_layout(
+            &wgpu::PipelineLayoutDescriptor {
+                bind_group_layouts: &[],
+                push_constant_ranges: &[],
+                label: Some("Pipeline Layout"),
+            }
+        );
         let pipeline = create_render_pipeline(
             &device, 
             &pipeline_layout, 
             sc_desc.format, 
             &[Vertex::DESC], 
-            include_str!("../../res/shaders/textured.vert"), 
-            include_str!("../../res/shaders/textured.frag"),
+            wgpu::include_spirv!("../../res/shaders/textured.vert.spv"), 
+            wgpu::include_spirv!("../../res/shaders/textured.frag.spv"),
         );
 
         let vertex_buffer = device.create_buffer(&wgpu::BufferDescriptor {
             label: None,
             size: Vertex::SIZE * 4 * 3,
             usage: wgpu::BufferUsage::VERTEX | wgpu::BufferUsage::COPY_DST,
+            mapped_at_creation: false,
         });
-
+        
         let index_buffer = device.create_buffer(&wgpu::BufferDescriptor {
             label: None,
             size: U32_SIZE * 6 * 3,
             usage: wgpu::BufferUsage::INDEX | wgpu::BufferUsage::COPY_DST,
+            mapped_at_creation: false,
         });
 
-        let font = wgpu_glyph::Font::from_bytes(FONT_BYTES).unwrap();
+        let font = ab_glyph::FontArc::try_from_slice(FONT_BYTES).unwrap();
         let glyph_brush = wgpu_glyph::GlyphBrushBuilder::using_font(font)
             .build(&device, sc_desc.format);
+        let staging_belt = wgpu::util::StagingBelt::new(1024);
 
         Self {
             surface,
@@ -100,6 +112,7 @@ impl Render {
             vertex_buffer,
             index_buffer,
             glyph_brush,
+            staging_belt,
         }
     }
 
@@ -125,64 +138,72 @@ impl Render {
             0
         };
         
-        let frame = self.swap_chain.get_next_texture().unwrap();
-
-        let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-            color_attachments: &[
-                wgpu::RenderPassColorAttachmentDescriptor {
-                    attachment: &frame.view,
-                    resolve_target: None,
-                    load_op: wgpu::LoadOp::Clear,
-                    store_op: wgpu::StoreOp::Store,
-                    clear_color: wgpu::Color::BLACK,
-                },
-            ],
-            depth_stencil_attachment: None,
-        });
-
-        if num_indices != 0 {
-            render_pass.set_vertex_buffer(0, &self.vertex_buffer, 0, 0);
-            render_pass.set_index_buffer(&self.index_buffer, 0, 0);
-            render_pass.set_pipeline(&self.pipeline);
-            render_pass.draw_indexed(0..num_indices, 0, 0..1);
+        match self.swap_chain.get_current_frame() {
+            Ok(frame) => {
+                let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                    color_attachments: &[
+                        wgpu::RenderPassColorAttachmentDescriptor {
+                            attachment: &frame.output.view,
+                            resolve_target: None,
+                            ops: wgpu::Operations::default(),
+                        },
+                    ],
+                    depth_stencil_attachment: None,
+                });
+        
+                if num_indices != 0 {
+                    render_pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
+                    render_pass.set_index_buffer(self.index_buffer.slice(..));
+                    render_pass.set_pipeline(&self.pipeline);
+                    render_pass.draw_indexed(0..num_indices, 0, 0..1);
+                }
+         
+                drop(render_pass);
+        
+                if state.title_text.visible {
+                    draw_text(&state.title_text, &mut self.glyph_brush);
+                }
+                if state.play_button.visible {
+                    draw_text(&state.play_button, &mut self.glyph_brush);
+                }
+                if state.quit_button.visible {
+                    draw_text(&state.quit_button, &mut self.glyph_brush);
+                }
+                if state.player1_score.visible {
+                    draw_text(&state.player1_score, &mut self.glyph_brush);
+                }
+                if state.player2_score.visible {
+                    draw_text(&state.player2_score, &mut self.glyph_brush);
+                }
+                if state.win_text.visible {
+                    draw_text(&state.win_text, &mut self.glyph_brush);
+                }
+        
+                self.glyph_brush.draw_queued(
+                    &self.device,
+                    &mut self.staging_belt,
+                    &mut encoder,
+                    &frame.output.view,
+                    self.sc_desc.width,
+                    self.sc_desc.height,
+                ).unwrap();
+        
+                self.staging_belt.finish();
+                self.queue.submit(Some(encoder.finish()));
+            }
+            Err(wgpu::SwapChainError::Outdated) => {
+                self.swap_chain = self.device.create_swap_chain(&self.surface, &self.sc_desc);
+            }
+            Err(e) => {
+                eprintln!("Error: {}", e);
+            }
         }
- 
-        drop(render_pass);
-
-        if state.title_text.visible {
-            draw_text(&state.title_text, &mut self.glyph_brush);
-        }
-        if state.play_button.visible {
-            draw_text(&state.play_button, &mut self.glyph_brush);
-        }
-        if state.quit_button.visible {
-            draw_text(&state.quit_button, &mut self.glyph_brush);
-        }
-        if state.player1_score.visible {
-            draw_text(&state.player1_score, &mut self.glyph_brush);
-        }
-        if state.player2_score.visible {
-            draw_text(&state.player2_score, &mut self.glyph_brush);
-        }
-        if state.win_text.visible {
-            draw_text(&state.win_text, &mut self.glyph_brush);
-        }
-
-        self.glyph_brush.draw_queued(
-            &self.device,
-            &mut encoder,
-            &frame.view,
-            self.sc_desc.width,
-            self.sc_desc.height,
-        ).unwrap();
-
-        self.queue.submit(&[encoder.finish()]);
     }
 }
 
 fn draw_text(
     text: &state::Text,
-    glyph_brush: &mut wgpu_glyph::GlyphBrush<'static, ()>,
+    glyph_brush: &mut wgpu_glyph::GlyphBrush<()>,
 ) {
     let layout = wgpu_glyph::Layout::default()
         .h_align(
@@ -192,22 +213,21 @@ fn draw_text(
                 wgpu_glyph::HorizontalAlign::Left
             }
         );
-    let scale = {
-        let mut size = text.size;
-        if text.focused {
-            size += 8.0;
-        }
-        wgpu_glyph::Scale::uniform(size)
-    };
-    let section = wgpu_glyph::Section {
-        text: &text.text,
-        screen_position: (text.position.x, text.position.y),
-        bounds: (text.bounds.x, text.bounds.y),
-        color: text.color.into(),
-        scale,
+    
+    let section = Section {
+        screen_position: text.position.into(),
+        bounds: text.bounds.into(),
         layout,
-        ..Default::default()
-    };
+        ..Section::default()
+    }.add_text(
+        Text::new(&text.text)
+            .with_color(text.color)
+            .with_scale(if text.focused {
+                text.size + 8.0
+            } else {
+                text.size
+            })
+    );
 
     glyph_brush.queue(section);
 }
@@ -217,19 +237,15 @@ fn create_render_pipeline(
     layout: &wgpu::PipelineLayout,
     color_format: wgpu::TextureFormat,
     vertex_descs: &[wgpu::VertexBufferDescriptor], 
-    vs_src: &str, 
-    fs_src: &str,
+    vs_src: wgpu::ShaderModuleSource, 
+    fs_src: wgpu::ShaderModuleSource,
 ) -> wgpu::RenderPipeline {
-    let mut compiler = shaderc::Compiler::new().unwrap();
-    let vs_spirv = compiler.compile_into_spirv(vs_src, shaderc::ShaderKind::Vertex, "vert", "main", None).unwrap();
-    let fs_spirv = compiler.compile_into_spirv(fs_src, shaderc::ShaderKind::Fragment, "frag", "main", None).unwrap();
-    let vs_data = wgpu::read_spirv(std::io::Cursor::new(vs_spirv.as_binary_u8())).unwrap();
-    let fs_data = wgpu::read_spirv(std::io::Cursor::new(fs_spirv.as_binary_u8())).unwrap();
-    let vs_module = device.create_shader_module(&vs_data);
-    let fs_module = device.create_shader_module(&fs_data);
+    let vs_module = device.create_shader_module(vs_src);
+    let fs_module = device.create_shader_module(fs_src);
 
     device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-        layout: &layout,
+        label: Some("Render Pipeline"),
+        layout: Some(&layout),
         vertex_stage: wgpu::ProgrammableStageDescriptor {
             module: &vs_module,
             entry_point: "main",
@@ -238,13 +254,7 @@ fn create_render_pipeline(
             module: &fs_module,
             entry_point: "main",
         }),
-        rasterization_state: Some(wgpu::RasterizationStateDescriptor {
-            front_face: wgpu::FrontFace::Ccw,
-            cull_mode: wgpu::CullMode::Back,
-            depth_bias: 0,
-            depth_bias_slope_scale: 0.0,
-            depth_bias_clamp: 0.0,
-        }),
+        rasterization_state: None,
         primitive_topology: wgpu::PrimitiveTopology::TriangleList,
         color_states: &[wgpu::ColorStateDescriptor {
             format: color_format,
