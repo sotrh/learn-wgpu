@@ -325,7 +325,7 @@ With that in place we need to write the actual shaders.
 
 layout(location=0) in vec3 a_position;
 
-layout(location=0) out vec4 v_color;
+layout(location=0) out vec3 v_color;
 
 layout(set=0, binding=0)
 uniform Uniforms {
@@ -345,7 +345,7 @@ void main() {
     vec3 v_position = a_position * scale + u_position;
     gl_Position = u_view_proj * vec4(v_position, 1);
 
-    v_color = vec4(u_color, 1.0);
+    v_color = u_color;
 }
 ```
 
@@ -418,8 +418,8 @@ where
         uniforms: &'b wgpu::BindGroup,
         light: &'b wgpu::BindGroup,
     ) {
-        self.set_vertex_buffer(0, &mesh.vertex_buffer, 0, 0);
-        self.set_index_buffer(&mesh.index_buffer, 0, 0);
+        self.set_vertex_buffer(0, mesh.vertex_buffer.slice(..));
+        self.set_index_buffer(mesh.index_buffer.slice(..));
         self.set_bind_group(0, uniforms, &[]);
         self.set_bind_group(1, light, &[]);
         self.draw_indexed(0..mesh.num_elements, 0, instances);

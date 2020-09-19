@@ -1,5 +1,6 @@
 use crate::util::size_of_slice;
 use crate::state;
+use wgpu::util::{BufferInitDescriptor, DeviceExt};
 
 pub const U32_SIZE: wgpu::BufferAddress = std::mem::size_of::<u32>() as wgpu::BufferAddress;
 
@@ -108,9 +109,12 @@ pub struct StagingBuffer {
 impl StagingBuffer {
     pub fn new<T: bytemuck::Pod + Sized>(device: &wgpu::Device, data: &[T]) -> StagingBuffer {
         StagingBuffer {
-            buffer: device.create_buffer_with_data(
-                bytemuck::cast_slice(data),
-                wgpu::BufferUsage::COPY_SRC,
+            buffer: device.create_buffer_init(
+                &BufferInitDescriptor {
+                    contents: bytemuck::cast_slice(data),
+                    usage: wgpu::BufferUsage::COPY_SRC,
+                    label: Some("Staging Buffer"),
+                }
             ),
             size: size_of_slice(data) as wgpu::BufferAddress
         }

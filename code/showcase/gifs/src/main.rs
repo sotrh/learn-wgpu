@@ -1,23 +1,21 @@
 extern crate framework;
 
+use anyhow::*;
 use std::mem;
-use std::sync::{Arc, Mutex};
 
 async fn run() {
-    let adapter = wgpu::Adapter::request(
-        &wgpu::RequestAdapterOptions {
-            power_preference: wgpu::PowerPreference::Default,
-            compatible_surface: None,
-        },
-        wgpu::BackendBit::PRIMARY, // Vulkan + Metal + DX12 + Browser WebGPU
+    let instance = wgpu::Instance::new(wgpu::BackendBit::PRIMARY);
+    let adapter = instance.request_adapter(
+        &wgpu::RequestAdapterOptions::default()
     ).await.unwrap();
-
-    let (device, queue) = adapter.request_device(&wgpu::DeviceDescriptor {
-        extensions: wgpu::Extensions {
-            anisotropic_filtering: false,
+    let (device, queue) = adapter.request_device(
+        &wgpu::DeviceDescriptor {
+            features: wgpu::Features::empty(),
+            limits: wgpu::Limits::default(),
+            shader_validation: true,
         },
-        limits: Default::default(),
-    }).await;
+        None, // Trace path
+    ).await.unwrap();
     
     let colors = [
         [0.0, 0.0, 0.0],
@@ -38,7 +36,6 @@ async fn run() {
             height: texture_size,
             depth: 1,
         },
-        array_layer_count: colors.len() as u32,
         mip_level_count: 1,
         sample_count: 1,
         dimension: wgpu::TextureDimension::D2,
@@ -49,21 +46,30 @@ async fn run() {
     };
     let render_target = framework::Texture::from_descriptor(&device, rt_desc);
 
-    // create a buffer to copy the texture to so we can get the data
+    // wgpu requires texture -> buffer copies to be aligned using
+    // wgpu::COPY_BYTES_PER_ROW_ALIGNMENT. Because of this we'll
+    // need to save both the padded_bytes_per_row as well as the
+    // unpadded_bytes_per_row
     let pixel_size = mem::size_of::<[u8;4]>() as u32;
-    let buffer_size = (pixel_size * texture_size * texture_size) as wgpu::BufferAddress;
+    let align = wgpu::COPY_BYTES_PER_ROW_ALIGNMENT;
+    let unpadded_bytes_per_row = pixel_size * texture_size;
+    let padding = (align - unpadded_bytes_per_row % align) % align;
+    let padded_bytes_per_row = unpadded_bytes_per_row + padding;
+
+    // create a buffer to copy the texture to so we can get the data
+    let buffer_size = (padded_bytes_per_row * texture_size) as wgpu::BufferAddress;
     let buffer_desc = wgpu::BufferDescriptor {
         size: buffer_size,
         usage: wgpu::BufferUsage::COPY_DST | wgpu::BufferUsage::MAP_READ,
-        label: None,
+        label: Some("Output Buffer"),
+        mapped_at_creation: false,
     };
     let output_buffer = device.create_buffer(&buffer_desc);
 
     // a simple render pipeline that draws a triangle
     let render_pipeline = create_render_pipeline(&device, &render_target);
 
-    // we need to store this in and arc-mutex so we can pass it to the mapping function
-    let frames = Arc::new(Mutex::new(Vec::new()));
+    let mut frames = Vec::new();
 
     for c in &colors {
         let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
@@ -75,15 +81,17 @@ async fn run() {
                 wgpu::RenderPassColorAttachmentDescriptor {
                     attachment: &render_target.view,
                     resolve_target: None,
-                    load_op: wgpu::LoadOp::Clear,
-                    store_op: wgpu::StoreOp::Store,
-                    // modify the clear color so the gif changes
-                    clear_color: wgpu::Color {
-                        r: c[0],
-                        g: c[1],
-                        b: c[2],
-                        a: 1.0,
-                    }
+                    ops: wgpu::Operations {
+                        load: wgpu::LoadOp::Clear(
+                            wgpu::Color {
+                                r: c[0],
+                                g: c[1],
+                                b: c[2],
+                                a: 1.0,
+                            }
+                        ),
+                        store: true,
+                    },
                 }
             ],
             depth_stencil_attachment: None,
@@ -98,48 +106,50 @@ async fn run() {
             wgpu::TextureCopyView {
                 texture: &render_target.texture,
                 mip_level: 0,
-                array_layer: 0,
                 origin: wgpu::Origin3d::ZERO,
             }, 
             wgpu::BufferCopyView {
                 buffer: &output_buffer,
-                offset: 0,
-                bytes_per_row: pixel_size * texture_size,
-                rows_per_image: texture_size,
+                layout: wgpu::TextureDataLayout {
+                    offset: 0,
+                    bytes_per_row: padded_bytes_per_row,
+                    rows_per_image: texture_size,
+                }
             },
             render_target.desc.size
         );
 
-        queue.submit(&[encoder.finish()]);
-
-        let frames_clone = frames.clone();
+        queue.submit(Some(encoder.finish()));
         
         // Create the map request
-        let request = output_buffer.map_read(0, buffer_size);
+        let buffer_slice = output_buffer.slice(..);
+        let request = buffer_slice.map_async(wgpu::MapMode::Read);
         // wait for the GPU to finish
         device.poll(wgpu::Maintain::Wait);
         let result = request.await;
         
         match result {
-            Ok(pixels) => {
-                let data = Vec::from(pixels.as_slice());
-                let mut f = frames_clone.lock().unwrap();
-                (*f).push(data);
+            Ok(()) => {
+                let padded_data = buffer_slice.get_mapped_range();
+                let data = padded_data
+                    .chunks(padded_bytes_per_row as _)
+                    .map(|chunk| { &chunk[..unpadded_bytes_per_row as _]})
+                    .flatten()
+                    .map(|x| { *x })
+                    .collect::<Vec<_>>();
+                drop(padded_data);
+                output_buffer.unmap();
+                frames.push(data);
             }
             _ => { eprintln!("Something went wrong") }
         }
 
     }
-    
-    let mut frames = Arc::try_unwrap(frames)
-        .unwrap()
-        .into_inner()
-        .unwrap();
 
     save_gif("output.gif", &mut frames, 10, texture_size as u16).unwrap();
 }
 
-fn save_gif(path: &str, frames: &mut Vec<Vec<u8>>, speed: i32, size: u16) -> Result<(), failure::Error> {
+fn save_gif(path: &str, frames: &mut Vec<Vec<u8>>, speed: i32, size: u16) -> Result<()> {
     use gif::{Frame, Encoder, Repeat, SetParameter};
     
     let mut image = std::fs::File::create(path)?;
@@ -155,22 +165,20 @@ fn save_gif(path: &str, frames: &mut Vec<Vec<u8>>, speed: i32, size: u16) -> Res
 
 
 fn create_render_pipeline(device: &wgpu::Device, target: &framework::Texture) -> wgpu::RenderPipeline {
-    let vs_src = include_str!("res/shader.vert");
-    let fs_src = include_str!("res/shader.frag");
-    let mut compiler = shaderc::Compiler::new().unwrap();
-    let vs_spirv = compiler.compile_into_spirv(vs_src, shaderc::ShaderKind::Vertex, "shader.vert", "main", None).unwrap();
-    let fs_spirv = compiler.compile_into_spirv(fs_src, shaderc::ShaderKind::Fragment, "shader.frag", "main", None).unwrap();
-    let vs_data = wgpu::read_spirv(std::io::Cursor::new(vs_spirv.as_binary_u8())).unwrap();
-    let fs_data = wgpu::read_spirv(std::io::Cursor::new(fs_spirv.as_binary_u8())).unwrap();
-    let vs_module = device.create_shader_module(&vs_data);
-    let fs_module = device.create_shader_module(&fs_data);
+    let vs_src = wgpu::include_spirv!("shader.vert.spv");
+    let fs_src = wgpu::include_spirv!("shader.frag.spv");
+    let vs_module = device.create_shader_module(vs_src);
+    let fs_module = device.create_shader_module(fs_src);
 
     let render_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+        label: Some("Render Pipeline Layout"),
         bind_group_layouts: &[],
+        push_constant_ranges: &[],
     });
 
     let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-        layout: &render_pipeline_layout,
+        layout: Some(&render_pipeline_layout),
+        label: Some("Render Pipeline"),
         vertex_stage: wgpu::ProgrammableStageDescriptor {
             module: &vs_module,
             entry_point: "main",
@@ -179,13 +187,7 @@ fn create_render_pipeline(device: &wgpu::Device, target: &framework::Texture) ->
             module: &fs_module,
             entry_point: "main",
         }),
-        rasterization_state: Some(wgpu::RasterizationStateDescriptor {
-            front_face: wgpu::FrontFace::Ccw,
-            cull_mode: wgpu::CullMode::Back,
-            depth_bias: 0,
-            depth_bias_slope_scale: 0.0,
-            depth_bias_clamp: 0.0,
-        }),
+        rasterization_state: None,
         primitive_topology: wgpu::PrimitiveTopology::TriangleList,
         color_states: &[
             wgpu::ColorStateDescriptor {

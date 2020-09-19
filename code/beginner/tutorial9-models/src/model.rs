@@ -1,5 +1,7 @@
+use anyhow::*;
 use std::ops::Range;
 use std::path::Path;
+use wgpu::util::DeviceExt;
 
 use crate::texture;
 
@@ -66,31 +68,29 @@ pub struct Model {
 impl Model {
     pub fn load<P: AsRef<Path>>(
         device: &wgpu::Device,
+        queue: &wgpu::Queue,
         layout: &wgpu::BindGroupLayout,
         path: P,
-    ) -> Result<(Self, Vec<wgpu::CommandBuffer>), failure::Error> {
-        let (obj_models, obj_materials) = tobj::load_obj(path.as_ref())?;
+    ) -> Result<Self> {
+        let (obj_models, obj_materials) = tobj::load_obj(path.as_ref(), true)?;
 
         // We're assuming that the texture files are stored with the obj file
-        let containing_folder = path.as_ref().parent().unwrap();
-
-        // Our `Texure` struct currently returns a `CommandBuffer` when it's created so we need to collect those and return them.
-        let mut command_buffers = Vec::new();
+        let containing_folder = path.as_ref().parent()
+            .context("Directory has no parent")?;
 
         let mut materials = Vec::new();
         for mat in obj_materials {
             let diffuse_path = mat.diffuse_texture;
-            let (diffuse_texture, cmds) =
-                texture::Texture::load(&device, containing_folder.join(diffuse_path))?;
+            let diffuse_texture = texture::Texture::load(device, queue, containing_folder.join(diffuse_path))?;
 
             let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
                 layout,
-                bindings: &[
-                    wgpu::Binding {
+                entries: &[
+                    wgpu::BindGroupEntry {
                         binding: 0,
                         resource: wgpu::BindingResource::TextureView(&diffuse_texture.view),
                     },
-                    wgpu::Binding {
+                    wgpu::BindGroupEntry {
                         binding: 1,
                         resource: wgpu::BindingResource::Sampler(&diffuse_texture.sampler),
                     },
@@ -103,7 +103,6 @@ impl Model {
                 diffuse_texture,
                 bind_group,
             });
-            command_buffers.push(cmds);
         }
 
         let mut meshes = Vec::new();
@@ -125,13 +124,19 @@ impl Model {
                 });
             }
 
-            let vertex_buffer = device.create_buffer_with_data(
-                bytemuck::cast_slice(&vertices),
-                wgpu::BufferUsage::VERTEX,
+            let vertex_buffer = device.create_buffer_init(
+                &wgpu::util::BufferInitDescriptor {
+                    label: Some(&format!("{:?} Vertex Buffer", path.as_ref())),
+                    contents: bytemuck::cast_slice(&vertices),
+                    usage: wgpu::BufferUsage::VERTEX,
+                }
             );
-            let index_buffer = device.create_buffer_with_data(
-                bytemuck::cast_slice(&m.mesh.indices),
-                wgpu::BufferUsage::INDEX,
+            let index_buffer = device.create_buffer_init(
+                &wgpu::util::BufferInitDescriptor {
+                    label: Some(&format!("{:?} Index Buffer", path.as_ref())),
+                    contents: bytemuck::cast_slice(&m.mesh.indices),
+                    usage: wgpu::BufferUsage::INDEX,
+                }
             );
 
             meshes.push(Mesh {
@@ -143,7 +148,7 @@ impl Model {
             });
         }
 
-        Ok((Self { meshes, materials }, command_buffers))
+        Ok(Self { meshes, materials })
     }
 }
 
@@ -184,8 +189,8 @@ where
         instances: Range<u32>,
         uniforms: &'b wgpu::BindGroup,
     ) {
-        self.set_vertex_buffer(0, &mesh.vertex_buffer, 0, 0);
-        self.set_index_buffer(&mesh.index_buffer, 0, 0);
+        self.set_vertex_buffer(0, mesh.vertex_buffer.slice(..));
+        self.set_index_buffer(mesh.index_buffer.slice(..));
         self.set_bind_group(0, &material.bind_group, &[]);
         self.set_bind_group(1, &uniforms, &[]);
         self.draw_indexed(0..mesh.num_elements, 0, instances);

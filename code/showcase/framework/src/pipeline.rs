@@ -3,8 +3,8 @@ use crate::model::Vertex;
 
 pub struct RenderPipelineBuilder<'a> {
     layout: Option<&'a wgpu::PipelineLayout>,
-    vertex_shader: Option<&'a [u8]>,
-    fragment_shader: Option<&'a [u8]>,
+    vertex_shader: Option<wgpu::ShaderModuleSource<'a>>,
+    fragment_shader: Option<wgpu::ShaderModuleSource<'a>>,
     front_face: wgpu::FrontFace,
     cull_mode: wgpu::CullMode,
     depth_bias: i32,
@@ -47,13 +47,13 @@ impl<'a> RenderPipelineBuilder<'a> {
         self
     }
 
-    pub fn vertex_shader(&mut self, spv: &'a [u8]) -> &mut Self {
-        self.vertex_shader = Some(spv);
+    pub fn vertex_shader(&mut self, src: wgpu::ShaderModuleSource<'a>) -> &mut Self {
+        self.vertex_shader = Some(src);
         self
     }
 
-    pub fn fragment_shader(&mut self, spv: &'a [u8]) -> &mut Self {
-        self.fragment_shader = Some(spv);
+    pub fn fragment_shader(&mut self, src: wgpu::ShaderModuleSource<'a>) -> &mut Self {
+        self.fragment_shader = Some(src);
         self
     }
 
@@ -128,10 +128,7 @@ impl<'a> RenderPipelineBuilder<'a> {
                 format,
                 depth_write_enabled,
                 depth_compare,
-                stencil_front: wgpu::StencilStateFaceDescriptor::IGNORE,
-                stencil_back: wgpu::StencilStateFaceDescriptor::IGNORE,
-                stencil_read_mask: 0,
-                stencil_write_mask: 0,
+                stencil: Default::default(),
             }
         )
     }
@@ -175,7 +172,7 @@ impl<'a> RenderPipelineBuilder<'a> {
         self
     }
 
-    pub fn build(&self, device: &wgpu::Device) -> Result<wgpu::RenderPipeline> {
+    pub fn build(&mut self, device: &wgpu::Device) -> Result<wgpu::RenderPipeline> {
         // We need a layout
         if self.layout.is_none() {
             bail!("No pipeline layout supplied!");
@@ -193,18 +190,19 @@ impl<'a> RenderPipelineBuilder<'a> {
         if self.vertex_shader.is_none() {
             bail!("No vertex shader supplied!")
         }
-        let vs = create_shader_module(device, self.vertex_shader.context("Please include a vertex shader")?);
+        let vs = create_shader_module(device, self.vertex_shader.take().context("Please include a vertex shader")?);
 
         // The fragment shader is optional (IDK why, but it is).
         // Having the shader be optional is giving me issues with
         // the borrow checker so I'm going to use a default shader
         // if the user doesn't supply one.
-        let fs_spv = self.fragment_shader.context("Please include a fragment shader")?;
+        let fs_spv = self.fragment_shader.take().context("Please include a fragment shader")?;
         let fs = create_shader_module(device, fs_spv);
 
         let pipeline = device.create_render_pipeline(
             &wgpu::RenderPipelineDescriptor {
-                layout: &layout,
+                label: Some("Render Pipeline"),
+                layout: Some(&layout),
                 vertex_stage: wgpu::ProgrammableStageDescriptor {
                     module: &vs,
                     entry_point: "main",
@@ -221,6 +219,7 @@ impl<'a> RenderPipelineBuilder<'a> {
                     depth_bias: self.depth_bias,
                     depth_bias_slope_scale: self.depth_bias_slope_scale,
                     depth_bias_clamp: self.depth_bias_clamp,
+                    clamp_depth: false,
                 }),
                 primitive_topology: self.primitive_topology,
                 color_states: &self.color_states,
@@ -239,12 +238,6 @@ impl<'a> RenderPipelineBuilder<'a> {
 }
 
 
-fn create_shader_module(device: &wgpu::Device, spirv: &[u8]) -> wgpu::ShaderModule {
-    device.create_shader_module(
-        &wgpu::read_spirv(
-            std::io::Cursor::new(
-                spirv
-            )
-        ).unwrap()
-    )
+fn create_shader_module(device: &wgpu::Device, spirv: wgpu::ShaderModuleSource) -> wgpu::ShaderModule {
+    device.create_shader_module(spirv)
 }

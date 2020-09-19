@@ -27,45 +27,60 @@ let size = wgpu::Extent3d {
     height: dimensions.1,
     depth: 1,
 };
-let diffuse_texture = device.create_texture(&wgpu::TextureDescriptor {
-    // All textures are stored as 3d, we represent our 2d texture
-    // by setting depth to 1.
-    size: wgpu::Extent3d {
-        width: dimensions.0,
-        height: dimensions.1,
-        depth: 1,
-    },
-    // You can store multiple textures of the same size in one
-    // Texture object
-    array_layer_count: 1,
-    mip_level_count: 1, // We'll talk about this a little later
-    sample_count: 1,
-    dimension: wgpu::TextureDimension::D2,
-    format: wgpu::TextureFormat::Rgba8UnormSrgb,
-    // SAMPLED tells wgpu that we want to use this texture in shaders
-    // COPY_DST means that we want to copy data to this texture
-    usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::COPY_DST,
-    label: Some("diffuse_texture"),
-});
+let diffuse_texture = device.create_texture(
+    &wgpu::TextureDescriptor {
+        // All textures are stored as 3d, we represent our 2d texture
+        // by setting depth to 1.
+        size: wgpu::Extent3d {
+            width: dimensions.0,
+            height: dimensions.1,
+            depth: 1,
+        },
+        mip_level_count: 1, // We'll talk about this a little later
+        sample_count: 1,
+        dimension: wgpu::TextureDimension::D2,
+        format: wgpu::TextureFormat::Rgba8UnormSrgb,
+        // SAMPLED tells wgpu that we want to use this texture in shaders
+        // COPY_DST means that we want to copy data to this texture
+        usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::COPY_DST,
+        label: Some("diffuse_texture"),
+    }
+);
 ```
 
 ## Getting data into a Texture
 
-The `Texture` struct has no methods to interact with the data directly. We actually need to load the data into a `Buffer` and copy it into the `Texture`. First we need to create a buffer big enough to hold our texture data. Luckily we have `diffuse_rgba`!
+The `Texture` struct has no methods to interact with the data directly. However we can use a method on the `queue` called `write_texture`. Let's take a look at how to use it.
+
+```rust
+queue.write_texture(
+    // Tells wgpu where to copy the pixel data
+    wgpu::TextureCopyView {
+        texture: &diffuse_texture,
+        mip_level: 0,
+        origin: wgpu::Origin3d::ZERO,
+    },
+    // The actual pixel data
+    diffuse_rgba,
+    // The layout of the texture
+    wgpu::TextureDataLayout {
+        offset: 0,
+        bytes_per_row: 4 * dimensions.0,
+        rows_per_image: dimensions.1,
+    },
+    size,
+);
+```
+
+<div class="note">
+
+The old way of writing data to a texture was to copy the pixel data to a buffer, and then copy it to the texture. Using `write_texture` is a bit more efficient as it uses one less buffer. I'll leave it here though in case you need it.
 
 ```rust
 let buffer = device.create_buffer_with_data(
     &diffuse_rgba,
     wgpu::BufferUsage::COPY_SRC,
 );
-```
-
-We specified our `diffuse_buffer` to be `COPY_SRC` so that we can copy it to our `diffuse_texture`. We preform the copy using a `CommandEncoder`.
-
-```rust
-let (device, queue) = // ...
-
-// ...
 
 let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
     label: Some("texture_buffer_copy_encoder"),
@@ -90,6 +105,8 @@ encoder.copy_buffer_to_texture(
 queue.submit(&[encoder.finish()]);
 ```
 
+</div>
+
 ## TextureViews and Samplers
 
 Now that our texture has data in it, we need a way to use it. This is where a `TextureView` and a `Sampler` come in. A `TextureView` offers us a *view* into our texture. A `Sampler` controls how the `Texture` is *sampled*. Sampling works similar to the eyedropper tool in Gimp/Photoshop. Our program supplies a coordinate on the texture (known as a texture coordinate), and the sampler then returns a color back based on it's internal parameters.
@@ -99,8 +116,7 @@ Let's define our `diffuse_texture_view` and `diffuse_sampler` now.
 ```rust
 // We don't need to configure the texture view much, so let's
 // let wgpu define it.
-let diffuse_texture_view = diffuse_texture.create_default_view();
-
+let diffuse_texture_view = diffuse_texture.create_view(&wgpu::TextureViewDescriptor::default());
 let diffuse_sampler = device.create_sampler(&wgpu::SamplerDescriptor {
     address_mode_u: wgpu::AddressMode::ClampToEdge,
     address_mode_v: wgpu::AddressMode::ClampToEdge,
@@ -108,9 +124,7 @@ let diffuse_sampler = device.create_sampler(&wgpu::SamplerDescriptor {
     mag_filter: wgpu::FilterMode::Linear,
     min_filter: wgpu::FilterMode::Nearest,
     mipmap_filter: wgpu::FilterMode::Nearest,
-    lod_min_clamp: -100.0,
-    lod_max_clamp: 100.0,
-    compare: wgpu::CompareFunction::Always,
+    ..Default::default()
 });
 ```
 
@@ -127,9 +141,7 @@ The `mag_filter` and `min_filter` options describe what to do when a fragment co
 
 Mipmaps are a complex topic, and will require [their own section](/todo). Suffice to say `mipmap_filter` functions similar to `(mag/min)_filter` as it tells the sampler how to blend between mipmaps.
 
-`lod_(min/max)_clamp` are also related to mipmapping, so will skip over them.
-
-The `compare` is often use in filtering. This is used in techniques such as [shadow mapping](/todo). We don't really care here, but the options are `Never`, `Less`, `Equal`, `LessEqual`, `Greater`, `NotEqual`, `GreaterEqual`, and `Always`.
+I'm using some defaults for the other fields. If you want to see what they are check [the docs](https://docs.rs/wgpu/0.6.0/wgpu/struct.SamplerDescriptor.html).
 
 All these different resources are nice and all, but they doesn't do us much good if we can't plug them in anywhere. This is where `BindGroup`s and `PipelineLayout`s come in.
 
@@ -138,48 +150,54 @@ All these different resources are nice and all, but they doesn't do us much good
 A `BindGroup` describes a set of resources and how they can be accessed by a shader. We create a `BindGroup` using a `BindGroupLayout`. Let's make one of those first.
 
 ```rust
-let texture_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-    bindings: &[
-        wgpu::BindGroupLayoutEntry {
-            binding: 0,
-            visibility: wgpu::ShaderStage::FRAGMENT,
-            ty: wgpu::BindingType::SampledTexture {
-                multisampled: false,
-                dimension: wgpu::TextureViewDimension::D2,
-                component_type: wgpu::TextureComponentType::Uint,
+let texture_bind_group_layout = device.create_bind_group_layout(
+    &wgpu::BindGroupLayoutDescriptor {
+        entries: &[
+            wgpu::BindGroupLayoutEntry {
+                binding: 0,
+                visibility: wgpu::ShaderStage::FRAGMENT,
+                ty: wgpu::BindingType::SampledTexture {
+                    multisampled: false,
+                    dimension: wgpu::TextureViewDimension::D2,
+                    component_type: wgpu::TextureComponentType::Uint,
+                },
+                count: None,
             },
-        },
-        wgpu::BindGroupLayoutEntry {
-            binding: 1,
-            visibility: wgpu::ShaderStage::FRAGMENT,
-            ty: wgpu::BindingType::Sampler {
-                comparison: false,
+            wgpu::BindGroupLayoutEntry {
+                binding: 1,
+                visibility: wgpu::ShaderStage::FRAGMENT,
+                ty: wgpu::BindingType::Sampler {
+                    comparison: false,
+                },
+                count: None,
             },
-        },
-    ],
-    label: Some("texture_bind_group_layout"),
-});
+        ],
+        label: Some("texture_bind_group_layout"),
+    }
+);
 ```
 
-Our `texture_bind_group_layout` has two bindings: one for a sampled texture at binding 0, and one for a sampler at binding 1. Both of these bindings are visible only to the fragment shader as specified by `FRAGMENT`. The possible values are any bit combination of `NONE`, `VERTEX`, `FRAGMENT`, or `COMPUTE`. Most of the time we'll only use `FRAGMENT` for textures and samplers, but it's good to know what's available.
+Our `texture_bind_group_layout` has two entries: one for a sampled texture at binding 0, and one for a sampler at binding 1. Both of these bindings are visible only to the fragment shader as specified by `FRAGMENT`. The possible values are any bit combination of `NONE`, `VERTEX`, `FRAGMENT`, or `COMPUTE`. Most of the time we'll only use `FRAGMENT` for textures and samplers, but it's good to know what's available.
 
 With `texture_bind_group_layout`, we can now create our `BindGroup`.
 
 ```rust
-let diffuse_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
-    layout: &texture_bind_group_layout,
-    bindings: &[
-        wgpu::Binding {
-            binding: 0,
-            resource: wgpu::BindingResource::TextureView(&diffuse_texture_view),
-        },
-        wgpu::Binding {
-            binding: 1,
-            resource: wgpu::BindingResource::Sampler(&diffuse_sampler),
-        }
-    ],
-    label: Some("diffuse_bind_group"),
-});
+let diffuse_bind_group = device.create_bind_group(
+    &wgpu::BindGroupDescriptor {
+        layout: &texture_bind_group_layout,
+        entries: &[
+            wgpu::BindGroupEntry {
+                binding: 0,
+                resource: wgpu::BindingResource::TextureView(&diffuse_texture.view),
+            },
+            wgpu::BindGroupEntry {
+                binding: 1,
+                resource: wgpu::BindingResource::Sampler(&diffuse_texture.sampler),
+            }
+        ],
+        label: Some("diffuse_bind_group"),
+    }
+);
 ```
 
 Looking at this you might get a bit of déjà vu. That's because a `BindGroup` is a more specific declaration of the `BindGroupLayout`. The reason why these are separate is to allow us to swap out `BindGroup`s on the fly, so long as they all share the same `BindGroupLayout`. For each texture and sampler we create, we need to create a `BindGroup`.
@@ -229,8 +247,8 @@ We actually use the bind group in the `render()` function.
 // render()
 render_pass.set_pipeline(&self.render_pipeline);
 render_pass.set_bind_group(0, &self.diffuse_bind_group, &[]); // NEW!
-render_pass.set_vertex_buffer(0, &self.vertex_buffer, 0, 0);
-render_pass.set_index_buffer(&self.index_buffer, 0, 0);
+render_pass.set_vertex_buffer(0, &self.vertex_buffer.slice(..));
+render_pass.set_index_buffer(&self.index_buffer.slice(..));
 render_pass.draw_indexed(0..self.num_indices, 0, 0..1);
 ```
 
@@ -241,9 +259,13 @@ The order of these statements is important. The pipeline needs to be set first, 
 Remember the `PipelineLayout` we created back in [the pipeline section](/beginner/tutorial3-pipeline#how-do-we-use-the-shaders)? This is finally the time when we get to actually use it. The `PipelineLayout` contains a list of `BindGroupLayout`s that the pipeline can use. Modify `render_pipeline_layout` to use our `texture_bind_group_layout`.
 
 ```rust
-let render_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-    bind_group_layouts: &[&texture_bind_group_layout],
-});
+let render_pipeline_layout = device.create_pipeline_layout(
+    &wgpu::PipelineLayoutDescriptor {
+        label: Some("Render Pipeline Layout"),
+        bind_group_layouts: &[&texture_bind_group_layout],
+        push_constant_ranges: &[],
+    }
+);
 ```
 
 ## A change to the VERTICES
@@ -263,10 +285,22 @@ We need to reflect these changes in the `VertexBufferDescriptor`.
 ```rust
 impl Vertex {
     fn desc<'a>() -> wgpu::VertexBufferDescriptor<'a> {
+        use std::mem;
         wgpu::VertexBufferDescriptor {
-            stride: std::mem::size_of::<Vertex>() as wgpu::BufferAddress,
+            stride: mem::size_of::<Vertex>() as wgpu::BufferAddress,
             step_mode: wgpu::InputStepMode::Vertex,
-            attributes: &wgpu::vertex_attr_array![0 => Float3, 1 => Float2],
+            attributes: &[
+                wgpu::VertexAttributeDescriptor {
+                    offset: 0,
+                    shader_location: 0,
+                    format: wgpu::VertexFormat::Float3,
+                },
+                wgpu::VertexAttributeDescriptor {
+                    offset: mem::size_of::<[f32; 3]>() as wgpu::BufferAddress,
+                    shader_location: 1,
+                    format: wgpu::VertexFormat::Float2,
+                },
+            ]
         }
     }
 }
@@ -372,6 +406,7 @@ For convenience sake, let's pull our texture code into its own file called `text
 
 ```rust
 use image::GenericImageView;
+use anyhow::*;
 
 pub struct Texture {
     pub texture: wgpu::Texture,
@@ -380,13 +415,22 @@ pub struct Texture {
 }
 
 impl Texture {
-    // 1.
-    pub fn from_bytes(device: &wgpu::Device, bytes: &[u8], label: &str) -> Result<(Self, wgpu::CommandBuffer), failure::Error> {
+    pub fn from_bytes(
+        device: &wgpu::Device,
+        queue: &wgpu::Queue,
+        bytes: &[u8], 
+        label: &str
+    ) -> Result<Self> {
         let img = image::load_from_memory(bytes)?;
-        Self::from_image(device, &img, Some(label))
+        Self::from_image(device, queue, &img, Some(label))
     }
 
-    pub fn from_image(device: &wgpu::Device, img: &image::DynamicImage, label: Option<&str>) -> Result<(Self, wgpu::CommandBuffer), failure::Error> {
+    pub fn from_image(
+        device: &wgpu::Device,
+        queue: &wgpu::Queue,
+        img: &image::DynamicImage,
+        label: Option<&str>
+    ) -> Result<Self> {
         let rgba = img.as_rgba8().unwrap();
         let dimensions = img.dimensions();
 
@@ -395,63 +439,52 @@ impl Texture {
             height: dimensions.1,
             depth: 1,
         };
-        let texture = device.create_texture(&wgpu::TextureDescriptor {
-            size,
-            array_layer_count: 1,
-            mip_level_count: 1,
-            sample_count: 1,
-            dimension: wgpu::TextureDimension::D2,
-            format: wgpu::TextureFormat::Rgba8UnormSrgb,
-            usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::COPY_DST,
-            label: Some("texture"),
-        });
-
-        let buffer = device.create_buffer_with_data(
-            &rgba,
-            wgpu::BufferUsage::COPY_SRC,
+        let texture = device.create_texture(
+            &wgpu::TextureDescriptor {
+                label,
+                size,
+                mip_level_count: 1,
+                sample_count: 1,
+                dimension: wgpu::TextureDimension::D2,
+                format: wgpu::TextureFormat::Rgba8UnormSrgb,
+                usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::COPY_DST,
+            }
         );
 
-        let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
-            label: Some("texture_buffer_copy_encoder"),
-        });
-
-        encoder.copy_buffer_to_texture(
-            wgpu::BufferCopyView {
-                buffer: &buffer,
+        queue.write_texture(
+            wgpu::TextureCopyView {
+                texture: &texture,
+                mip_level: 0,
+                origin: wgpu::Origin3d::ZERO,
+            },
+            rgba,
+            wgpu::TextureDataLayout {
                 offset: 0,
                 bytes_per_row: 4 * dimensions.0,
                 rows_per_image: dimensions.1,
             },
-            wgpu::TextureCopyView {
-                texture: &texture,
-                mip_level: 0,
-                array_layer: 0,
-                origin: wgpu::Origin3d::ZERO,
-            },
             size,
         );
 
-        let cmd_buffer = encoder.finish(); // 2.
-
-        let view = texture.create_default_view();
-        let sampler = device.create_sampler(&wgpu::SamplerDescriptor {
-            address_mode_u: wgpu::AddressMode::ClampToEdge,
-            address_mode_v: wgpu::AddressMode::ClampToEdge,
-            address_mode_w: wgpu::AddressMode::ClampToEdge,
-            mag_filter: wgpu::FilterMode::Linear,
-            min_filter: wgpu::FilterMode::Nearest,
-            mipmap_filter: wgpu::FilterMode::Nearest,
-            lod_min_clamp: -100.0,
-            lod_max_clamp: 100.0,
-            compare: wgpu::CompareFunction::Always,
-        });
-
-        Ok((Self { texture, view, sampler }, cmd_buffer))
+        let view = texture.create_view(&wgpu::TextureViewDescriptor::default());
+        let sampler = device.create_sampler(
+            &wgpu::SamplerDescriptor {
+                address_mode_u: wgpu::AddressMode::ClampToEdge,
+                address_mode_v: wgpu::AddressMode::ClampToEdge,
+                address_mode_w: wgpu::AddressMode::ClampToEdge,
+                mag_filter: wgpu::FilterMode::Linear,
+                min_filter: wgpu::FilterMode::Nearest,
+                mipmap_filter: wgpu::FilterMode::Nearest,
+                ..Default::default()
+            }
+        );
+        
+        Ok(Self { texture, view, sampler })
     }
 }
 ```
 
-1. We're using the [failure](https://docs.rs/failure/0.1.6/failure/) crate to simplify error handling.
+1. We're using the [anyhow](https://docs.rs/anyhow/) crate to simplify error handling.
 2. We're returning a `CommandBuffer` with our texture. This means we could load multiple textures at the same time, and then submit all there command buffers at once.
 
 We need to import `texture.rs` as a module, so somewhere at the top of `main.rs` add the following.
@@ -475,28 +508,28 @@ The texture creation code in `new()` gets a lot simpler.
 
 ```rust
 let diffuse_bytes = include_bytes!("happy-tree.png");
-let (diffuse_texture, cmd_buffer) = texture::Texture::from_bytes(&device, diffuse_bytes, "happy-tree.png").unwrap();
-
-queue.submit(&[cmd_buffer]);
+let diffuse_texture = texture::Texture::from_bytes(&device, diffuse_bytes, "happy-tree.png").unwrap();
 ```
 
 Creating the `diffuse_bind_group` changes slightly to use the `view` and `sampler` fields of our `diffuse_texture`.
 
 ```rust
-let diffuse_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
-    layout: &texture_bind_group_layout,
-    bindings: &[
-        wgpu::Binding {
-            binding: 0,
-            resource: wgpu::BindingResource::TextureView(&diffuse_texture.view),
-        },
-        wgpu::Binding {
-            binding: 1,
-            resource: wgpu::BindingResource::Sampler(&diffuse_texture.sampler),
-        }
-    ],
-    label: Some("diffuse_bind_group"),
-});
+let diffuse_bind_group = device.create_bind_group(
+    &wgpu::BindGroupDescriptor {
+        layout: &texture_bind_group_layout,
+        entries: &[
+            wgpu::BindGroupEntry {
+                binding: 0,
+                resource: wgpu::BindingResource::TextureView(&diffuse_texture.view),
+            },
+            wgpu::BindGroupEntry {
+                binding: 1,
+                resource: wgpu::BindingResource::Sampler(&diffuse_texture.sampler),
+            }
+        ],
+        label: Some("diffuse_bind_group"),
+    }
+);
 ```
 
 The code should be working the same as it was before, but now have an easier way to create textures.

@@ -41,23 +41,26 @@ impl Texture {
             dimension: wgpu::TextureDimension::D2,
             format: Self::DEPTH_FORMAT,
             usage: wgpu::TextureUsage::OUTPUT_ATTACHMENT // 3.
-                | wgpu::TextureUsage::SAMPLED 
-                | wgpu::TextureUsage::COPY_SRC,
+                | wgpu::TextureUsage::SAMPLED,
         };
         let texture = device.create_texture(&desc);
 
-        let view = texture.create_default_view();
-        let sampler = device.create_sampler(&wgpu::SamplerDescriptor { // 4.
-            address_mode_u: wgpu::AddressMode::ClampToEdge,
-            address_mode_v: wgpu::AddressMode::ClampToEdge,
-            address_mode_w: wgpu::AddressMode::ClampToEdge,
-            mag_filter: wgpu::FilterMode::Linear,
-            min_filter: wgpu::FilterMode::Nearest,
-            mipmap_filter: wgpu::FilterMode::Nearest,
-            lod_min_clamp: -100.0,
-            lod_max_clamp: 100.0,
-            compare: wgpu::CompareFunction::LessEqual, // 5.
-        });
+        let texture = device.create_texture(&desc);
+        let view = texture.create_view(&wgpu::TextureViewDescriptor::default());
+        let sampler = device.create_sampler(
+            &wgpu::SamplerDescriptor { // 4.
+                address_mode_u: wgpu::AddressMode::ClampToEdge,
+                address_mode_v: wgpu::AddressMode::ClampToEdge,
+                address_mode_w: wgpu::AddressMode::ClampToEdge,
+                mag_filter: wgpu::FilterMode::Linear,
+                min_filter: wgpu::FilterMode::Linear,
+                mipmap_filter: wgpu::FilterMode::Nearest,
+                compare: Some(wgpu::CompareFunction::LessEqual), // 5.
+                lod_min_clamp: -100.0,
+                lod_max_clamp: 100.0,
+                ..Default::default()
+            }
+        );
 
         Self { texture, view, sampler }
     }
@@ -67,7 +70,7 @@ impl Texture {
 1. We need the DEPTH_FORMAT for when we create the depth stage of the `render_pipeline` and creating the depth texture itself.
 2. Our depth texture needs to be the same size as our screen if we want things to render correctly. We can use our `sc_desc` to make sure that our depth texture is the same size as our swap chain images.
 3. Since we are rendering to this texture, we need to add the `OUTPUT_ATTACHMENT` flag to it.
-4. We technically don't *need* a sampler for a depth texture, but our `Texture` struct requires it, and we need one if we ever want to render it.
+4. We technically don't *need* a sampler for a depth texture, but our `Texture` struct requires it, and we need one if we ever want to sample it.
 5. If we do decide to render our depth texture, we need to use `CompareFunction::LessEqual`. This is due to how the `samplerShadow` and `sampler2DShadow()` interacts with the `texture()` function in GLSL.
 
 We create our `depth_texture` in `State::new()`.
@@ -85,10 +88,7 @@ let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescrip
         format: texture::Texture::DEPTH_FORMAT,
         depth_write_enabled: true,
         depth_compare: wgpu::CompareFunction::Less, // 1.
-        stencil_front: wgpu::StencilStateFaceDescriptor::IGNORE, // 2.
-        stencil_back: wgpu::StencilStateFaceDescriptor::IGNORE,
-        stencil_read_mask: 0,
-        stencil_write_mask: 0,
+        stencil: wgpu::StencilStateDescriptor::default(), // 2.
     }),
     // ...
 });
@@ -113,7 +113,7 @@ pub enum CompareFunction {
 }
 ```
 
-2. There's another type of buffer called a stencil buffer. It's common practice to store the stencil buffer and depth buffer in the same texture. This fields control values for stencil testing. Since we aren't using a stencil buffer, we'll just set all these to falsy values. We'll cover stencil buffers [later](../../todo).
+2. There's another type of buffer called a stencil buffer. It's common practice to store the stencil buffer and depth buffer in the same texture. This fields control values for stencil testing. Since we aren't using a stencil buffer, we'll use default values. We'll cover stencil buffers [later](../../todo).
 
 Don't forget to store the `depth_texture` in `State`.
 
@@ -145,12 +145,11 @@ let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
     /// ...
     depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachmentDescriptor {
         attachment: &self.depth_texture.view,
-        depth_load_op: wgpu::LoadOp::Clear,
-        depth_store_op: wgpu::StoreOp::Store,
-        clear_depth: 1.0,
-        stencil_load_op: wgpu::LoadOp::Clear,
-        stencil_store_op: wgpu::StoreOp::Store,
-        clear_stencil: 0,
+        depth_ops: Some(wgpu::Operations {
+            load: wgpu::LoadOp::Clear(1.0),
+            store: true,
+        }),
+        stencil_ops: None,
     }),
 });
 ```

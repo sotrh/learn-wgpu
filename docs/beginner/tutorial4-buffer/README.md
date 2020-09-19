@@ -62,10 +62,10 @@ let vertex_buffer = device.create_buffer_with_data(
 You'll note that we're using [bytemuck](https://docs.rs/bytemuck/1.2.0/bytemuck/) to cast our `VERTICES`. The `create_buffer_with_data()` method expects a `&[u8]`, and `bytemuck::cast_slice` does that for us. Add the following to your `Cargo.toml`.
 
 ```toml
-bytemuck = "1.2.0"
+bytemuck = "1.4"
 ```
 
-We're also going to need to implement two traits to get `bytemuck` to work. These are [bytemuck::Pod](https://docs.rs/bytemuck/1.2.0/bytemuck/trait.Pod.html) and [bytemuck::Zeroable](https://docs.rs/bytemuck/1.2.0/bytemuck/trait.Zeroable.html). `Pod` indicates that our `Vertex` is "Plain Old Data", and thus can be interpretted as a `&[u8]`. `Zeroable` indicates that we can use `std::mem::zeroed()`. These traits don't require us to implement any methods, so we just need to use the following to get our code to work.
+We're also going to need to implement two traits to get `bytemuck` to work. These are [bytemuck::Pod](https://docs.rs/bytemuck/1.3.0/bytemuck/trait.Pod.html) and [bytemuck::Zeroable](https://docs.rs/bytemuck/1.3.0/bytemuck/trait.Zeroable.html). `Pod` indicates that our `Vertex` is "Plain Old Data", and thus can be interpretted as a `&[u8]`. `Zeroable` indicates that we can use `std::mem::zeroed()`. These traits don't require us to implement any methods, so we just need to use the following to get our code to work.
 
 ```rust
 unsafe impl bytemuck::Pod for Vertex {}
@@ -93,9 +93,8 @@ We need to tell the `render_pipeline` to use this buffer when we are drawing, bu
 A `VertexBufferDescriptor` defines how a buffer is layed out in memory. Without this, the render_pipeline has no idea how to map the buffer in the shader. Here's what the descriptor for a buffer full of `Vertex` would look like.
 
 ```rust
-use std::mem;
 wgpu::VertexBufferDescriptor {
-    stride: mem::size_of::<Vertex>() as wgpu::BufferAddress, // 1.
+    stride: std::mem::size_of::<Vertex>() as wgpu::BufferAddress, // 1.
     step_mode: wgpu::InputStepMode::Vertex, // 2.
     attributes: &[ // 3.
         wgpu::VertexAttributeDescriptor {
@@ -104,7 +103,7 @@ wgpu::VertexBufferDescriptor {
             format: wgpu::VertexFormat::Float3, // 6.
         },
         wgpu::VertexAttributeDescriptor {
-            offset: mem::size_of::<[f32; 3]>() as wgpu::BufferAddress,
+            offset: std::mem::size_of::<[f32; 3]>() as wgpu::BufferAddress,
             shader_location: 1,
             format: wgpu::VertexFormat::Float3,
         }
@@ -123,20 +122,49 @@ For you visually learners, our vertex buffer looks like this.
 
 ![A figure of the VertexBufferDescriptor](./vb_desc.png)
 
-Let's create a static method on `Vertex` that returns this descriptor. Thankfully, wgpu provides us with a convenient macro for doing this! `vertex_attr_array!` expands into an array of descriptors with automatically calculated offsets.
+Let's create a static method on `Vertex` that returns this descriptor.
 
 ```rust
 // main.rs
 impl Vertex {
     fn desc<'a>() -> wgpu::VertexBufferDescriptor<'a> {
         wgpu::VertexBufferDescriptor {
-            stride: std::mem::size_of::<Vertex>() as wgpu::BufferAddress,
-            step_mode: wgpu::InputStepMode::Vertex,
-            attributes: &wgpu::vertex_attr_array![0 => Float3, 1 => Float3],
+            stride: std::mem::size_of::<Vertex>() as wgpu::BufferAddress, // 1.
+            step_mode: wgpu::InputStepMode::Vertex, // 2.
+            attributes: &[ // 3.
+                wgpu::VertexAttributeDescriptor {
+                    offset: 0, // 4.
+                    shader_location: 0, // 5.
+                    format: wgpu::VertexFormat::Float3, // 6.
+                },
+                wgpu::VertexAttributeDescriptor {
+                    offset: std::mem::size_of::<[f32; 3]>() as wgpu::BufferAddress,
+                    shader_location: 1,
+                    format: wgpu::VertexFormat::Float3,
+                }
+            ]
         }
     }
 }
 ```
+
+<div class="note">
+
+Specifying the attributes as we are now is quite verbose. We could use the `vertex_attr_array` macro provided by wgpu to clean things up a bit. With it our `VertexBufferDescriptor` becomes
+
+```rust
+wgpu::VertexBufferDescriptor {
+    stride: std::mem::size_of::<Vertex>() as wgpu::BufferAddress,
+    step_mode: wgpu::InputStepMode::Vertex,
+    attributes: &wgpu::vertex_attr_array[0 => Float3, 1 => Float3],
+}
+```
+
+While this is definitely nice, we would have to change the lifetime on `wgpu::VertexBufferDescriptor` to `'static` as rust wouldn't compile the code because the result of `vertex_attr_array` is a temporary value, which we can't return from a function.
+
+Beyond that, I feel it's good to show how the data gets mapped, so I'll forgo using this macro for now.
+
+</div>
 
 Now we can use it when we create the `render_pipeline`.
 
@@ -159,9 +187,13 @@ One more thing: we need to actually set the vertex buffer in the render method o
 // render()
 render_pass.set_pipeline(&self.render_pipeline);
 // NEW!
-render_pass.set_vertex_buffer(0, &self.vertex_buffer, 0, 0);
+render_pass.set_vertex_buffer(0, &self.vertex_buffer.slice(..));
 render_pass.draw(0..3, 0..1);
 ```
+
+`set_vertex_buffer` takes two parameters. The first is what buffer slot to use for this vertex buffer. You can have multiple vertex buffers set at a time. 
+
+The second parameter is the slice of the buffer to use. You can store as many objects in a buffer as your hardware allows, so `slice` allows us to specify which portion of the buffer to use. We use `..` to specify the entire buffer.
 
 Before we continue, we should change the `render_pass.draw()` call to use the number of vertices specified by `VERTICES`. Add a `num_vertices` to `State`, and set it to be equal to `VERTICES.len()`.
 
@@ -285,19 +317,25 @@ Now with this setup our `VERTICES` take up about 120 bytes and `INDICES` is just
 There's a couple of things we need to change in order to use indexing. The first is we need to create a buffer to store the indices. In `State`'s `new()` method create the `index_buffer` after you create the `vertex_buffer`. Also change `num_vertices` to `num_indices` and set it equal to `INDICES.len()`.
 
 ```rust
-let vertex_buffer = device.create_buffer_with_data(
-    bytemuck::cast_slice(VERTICES),
-    wgpu::BufferUsage::VERTEX,
+let vertex_buffer = device.create_buffer_init(
+    &wgpu::util::BufferInitDescriptor {
+        label: Some("Vertex Buffer"),
+        contents: bytemuck::cast_slice(VERTICES),
+        usage: wgpu::BufferUsage::VERTEX,
+    }
 );
 // NEW!
-let index_buffer = device.create_buffer_with_data(
-    bytemuck::cast_slice(INDICES),
-    wgpu::BufferUsage::INDEX,
+let index_buffer = device.create_buffer_init(
+    &wgpu::util::BufferInitDescriptor {
+        label: Some("Index Buffer"),
+        contents: bytemuck::cast_slice(INDICES),
+        usage: wgpu::BufferUsage::INDEX,
+    }
 );
 let num_indices = INDICES.len() as u32;
 ```
 
-We don't need to implement `Pod` and `Zeroable` for our indices, because `bytemuck` has already done that for us. That means we can just add `index_buffer` and `num_indices` to `State`.
+We don't need to implement `Pod` and `Zeroable` for our indices, because `bytemuck` has already implemented them for basic types such as `u16`. That means we can just add `index_buffer` and `num_indices` to `State`.
 
 ```rust
 Self {
@@ -307,11 +345,11 @@ Self {
     sc_desc,
     swap_chain,
     render_pipeline,
+    size,
     vertex_buffer,
     // NEW!
     index_buffer,
     num_indices,
-    size,
 }
 ```
 
@@ -319,14 +357,15 @@ All we have to do now is update the `render()` method to use the `index_buffer`.
 
 ```rust
 // render()
-render_pass.set_vertex_buffer(0, &self.vertex_buffer, 0, 0);
-render_pass.set_index_buffer(&self.index_buffer, 0, 0); // 1.
+render_pass.set_pipeline(&self.render_pipeline);
+render_pass.set_vertex_buffer(0, &self.vertex_buffer(..));
+render_pass.set_index_buffer(&self.index_buffer.slice(..)); // 1.
 render_pass.draw_indexed(0..self.num_indices, 0, 0..1); // 2.
 ```
 
 A couple things to note:
 1. The method name is `set_index_buffer` not `set_index_buffers`. You can only have one index buffer set at a time.
-2. When using an index buffer, you need to use `draw_indexed`. The `draw` method ignores the index buffer. Also make sure you use the number of indices (`num_indices`), not vertices as you model will either draw wrong, or the method will `panic` because there are not enough indices. Last thing to note about this method is that the second parameter specifies what index to start at in the buffer. This could allow you to store multiple sets of indices in one buffer. The last parameter is the size of the buffer. Passing 0 tells wgpu to use the entire buffer.
+2. When using an index buffer, you need to use `draw_indexed`. The `draw` method ignores the index buffer. Also make sure you use the number of indices (`num_indices`), not vertices as you model will either draw wrong, or the method will `panic` because there are not enough indices.
 
 With all that you should have a garishly magenta pentagon in your window.
 

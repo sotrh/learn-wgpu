@@ -1,4 +1,5 @@
 use cgmath::*;
+use wgpu::util::{BufferInitDescriptor, DeviceExt};
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -11,7 +12,9 @@ unsafe impl bytemuck::Pod for LightData {}
 unsafe impl bytemuck::Zeroable for LightData {}
 
 pub struct Light {
+    #[allow(dead_code)]
     data: LightData,
+    #[allow(dead_code)]
     buffer: wgpu::Buffer,
 }
 
@@ -21,9 +24,12 @@ impl Light {
             position: Vector4::new(position.x, position.y, position.z, 1.0),
             color: Vector4::new(color.x, color.y, color.z, 1.0),
         };
-        let buffer = device.create_buffer_with_data(
-            bytemuck::cast_slice(&[data]),
-            wgpu::BufferUsage::COPY_DST | wgpu::BufferUsage::UNIFORM,
+        let buffer = device.create_buffer_init(
+            &BufferInitDescriptor {
+                contents: bytemuck::cast_slice(&[data]),
+                usage: wgpu::BufferUsage::COPY_DST | wgpu::BufferUsage::UNIFORM,
+                label: Some("Light Buffer"),
+            }
         );
 
         Self { data, buffer }
