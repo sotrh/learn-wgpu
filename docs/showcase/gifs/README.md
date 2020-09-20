@@ -140,7 +140,7 @@ for c in &colors {
         render_target.desc.size
     );
 
-    queue.submit(Some(encoder.finish()));
+    queue.submit(std::iter::once(encoder.finish()));
     
     // Create the map request
     let buffer_slice = output_buffer.slice(..);

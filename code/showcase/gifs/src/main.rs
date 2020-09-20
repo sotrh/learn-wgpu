@@ -1,7 +1,7 @@
 extern crate framework;
 
 use anyhow::*;
-use std::mem;
+use std::{iter, mem};
 
 async fn run() {
     let instance = wgpu::Instance::new(wgpu::BackendBit::PRIMARY);
@@ -119,7 +119,7 @@ async fn run() {
             render_target.desc.size
         );
 
-        queue.submit(Some(encoder.finish()));
+        queue.submit(iter::once(encoder.finish()));
         
         // Create the map request
         let buffer_slice = output_buffer.slice(..);

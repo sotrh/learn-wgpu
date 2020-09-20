@@ -1,3 +1,5 @@
+use std::iter;
+
 use cgmath::prelude::*;
 use winit::{
     event::*,
@@ -631,7 +633,7 @@ impl State {
             );
         }
 
-        self.queue.submit(Some(encoder.finish()));
+        self.queue.submit(iter::once(encoder.finish()));
     }
 }
 
