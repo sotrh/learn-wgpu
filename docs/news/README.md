@@ -2,7 +2,7 @@
 
 ## 0.6
 
-This took me way to long. The changes weren't difficult, but I had to do a lot of copy pasting. The main changes are using `queue.write_buffer()` and `queue.read_buffer()` everywhere. I won't get into the nitty gritty, but you can checkout the [pull request](https://github.com/sotrh/learn-wgpu/pull/90) if you're interested.
+This took me way to long. The changes weren't difficult, but I had to do a lot of copy pasting. The main changes are using `queue.write_buffer()` and `queue.write_texture()` everywhere. I won't get into the nitty gritty, but you can checkout the [pull request](https://github.com/sotrh/learn-wgpu/pull/90) if you're interested.
 
 ## Added Pong Showcase
 
