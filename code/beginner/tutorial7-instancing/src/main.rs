@@ -1,3 +1,5 @@
+use std::iter;
+
 use cgmath::prelude::*;
 use winit::{
     event::*,
@@ -573,7 +575,7 @@ impl State {
             render_pass.draw_indexed(0..self.num_indices, 0, 0..self.instances.len() as _);
         }
 
-        self.queue.submit(Some(encoder.finish()));
+        self.queue.submit(iter::once(encoder.finish()));
     }
 }
 

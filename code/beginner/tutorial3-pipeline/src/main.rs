@@ -1,3 +1,5 @@
+use std::iter;
+
 use winit::{
     event::*,
     event_loop::{EventLoop, ControlFlow},
@@ -164,7 +166,7 @@ impl State {
             render_pass.draw(0..3, 0..1);
         }
 
-        self.queue.submit(Some(encoder.finish()));
+        self.queue.submit(iter::once(encoder.finish()));
     }
 }
 

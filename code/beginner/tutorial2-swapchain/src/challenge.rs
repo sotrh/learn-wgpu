@@ -1,3 +1,5 @@
+use std::iter;
+
 use winit::{
     event::*,
     event_loop::{EventLoop, ControlFlow},
@@ -117,7 +119,7 @@ impl State {
             });
         }
 
-        self.queue.submit(Some(encoder.finish()));
+        self.queue.submit(iter::once(encoder.finish()));
     }
 }
 

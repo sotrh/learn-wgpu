@@ -1,5 +1,7 @@
 mod buffer;
 
+use std::iter;
+
 use winit::window::{Window};
 use winit::monitor::{VideoMode};
 use wgpu_glyph::{ab_glyph, Section, Text};
@@ -189,7 +191,7 @@ impl Render {
                 ).unwrap();
         
                 self.staging_belt.finish();
-                self.queue.submit(Some(encoder.finish()));
+                self.queue.submit(iter::once(encoder.finish()));
             }
             Err(wgpu::SwapChainError::Outdated) => {
                 self.swap_chain = self.device.create_swap_chain(&self.surface, &self.sc_desc);

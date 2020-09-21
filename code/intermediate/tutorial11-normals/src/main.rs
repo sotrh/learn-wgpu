@@ -1,3 +1,5 @@
+use std::iter;
+
 use cgmath::prelude::*;
 use winit::{
     event::*,
@@ -658,7 +660,7 @@ impl State {
                 &self.light_bind_group,
             );
         }
-        self.queue.submit(Some(encoder.finish()));
+        self.queue.submit(iter::once(encoder.finish()));
     }
 }
 

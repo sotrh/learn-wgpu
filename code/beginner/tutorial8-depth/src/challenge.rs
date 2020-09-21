@@ -1,3 +1,5 @@
+use std::iter;
+
 use winit::{
     event::*,
     event_loop::{EventLoop, ControlFlow},
@@ -785,7 +787,7 @@ impl State {
 
         self.depth_pass.render(&frame, &mut encoder);
 
-        self.queue.submit(Some(encoder.finish()));
+        self.queue.submit(iter::once(encoder.finish()));
     }
 }
 

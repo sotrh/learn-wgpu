@@ -1,3 +1,5 @@
+use std::iter;
+
 use winit::{
     event::*,
     event_loop::{EventLoop, ControlFlow},
@@ -104,7 +106,7 @@ impl State {
         }
 
         // submit will accept anything that implements IntoIter
-        self.queue.submit(Some(encoder.finish()));
+        self.queue.submit(iter::once(encoder.finish()));
     }
 }
 
