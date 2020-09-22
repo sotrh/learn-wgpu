@@ -402,7 +402,7 @@ We're going to use option number 3.
 fn update(&mut self) {
     self.camera_controller.update_camera(&mut self.camera);
     self.uniforms.update_view_proj(&self.camera);
-    self.queue.write_buffer(&self.uniform_buffer, 0, &bytemuck::cast_slice(&[self.uniforms]));
+    self.queue.write_buffer(&self.uniform_buffer, 0, bytemuck::cast_slice(&[self.uniforms]));
 }
 ```
 

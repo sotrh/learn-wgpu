@@ -59,7 +59,6 @@ impl State {
                 compatible_surface: Some(&surface),
             },
         ).await.unwrap();
-        let size = window.inner_size();
 ```
 
 The `surface` is used to create the `swap_chain`. Our `window` needs to implement [raw-window-handle](https://crates.io/crates/raw-window-handle)'s `HasRawWindowHandle` trait to access the native window implementation for `wgpu` to properly create the graphics backend. Fortunately, winit's `Window` fits the bill. We also need it to request our `adapter`.
@@ -136,7 +135,6 @@ At the end of the method, we simply return the resulting struct.
 ```rust
         Self {
             surface,
-            adapter,
             device,
             queue,
             sc_desc,

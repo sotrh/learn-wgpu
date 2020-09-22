@@ -480,7 +480,7 @@ impl State {
         self.camera_controller.update_camera(&mut self.uniform_staging.camera);
         self.uniform_staging.model_rotation += cgmath::Deg(2.0);
         self.uniform_staging.update_uniforms(&mut self.uniforms);
-        self.queue.write_buffer(&self.uniform_buffer, 0, &bytemuck::cast_slice(&[self.uniforms]));
+        self.queue.write_buffer(&self.uniform_buffer, 0, bytemuck::cast_slice(&[self.uniforms]));
     }
 
     fn render(&mut self) {

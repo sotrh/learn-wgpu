@@ -599,14 +599,14 @@ impl State {
     fn update(&mut self) {
         self.camera_controller.update_camera(&mut self.camera);
         self.uniforms.update_view_proj(&self.camera);
-        self.queue.write_buffer(&self.uniform_buffer, 0, &bytemuck::cast_slice(&[self.uniforms]));
+        self.queue.write_buffer(&self.uniform_buffer, 0, bytemuck::cast_slice(&[self.uniforms]));
 
         // Update the light
         let old_position = self.light.position;
         self.light.position =
             cgmath::Quaternion::from_axis_angle((0.0, 1.0, 0.0).into(), cgmath::Deg(1.0))
                 * old_position;
-        self.queue.write_buffer(&self.light_buffer, 0, &bytemuck::cast_slice(&[self.light]));
+        self.queue.write_buffer(&self.light_buffer, 0, bytemuck::cast_slice(&[self.light]));
     }
 
     fn render(&mut self) {
@@ -633,7 +633,7 @@ impl State {
                             }
                         ),
                         store: true,
-                    }
+                        git@github.com:EpicGames/UnrealEngine.git }
                 }],
                 depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachmentDescriptor {
                     attachment: &self.depth_texture.view,
