@@ -633,7 +633,7 @@ impl State {
                             }
                         ),
                         store: true,
-                        git@github.com:EpicGames/UnrealEngine.git }
+                    }
                 }],
                 depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachmentDescriptor {
                     attachment: &self.depth_texture.view,
