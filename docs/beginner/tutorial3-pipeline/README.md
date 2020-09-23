@@ -126,7 +126,8 @@ Finally we have all we need to create the `render_pipeline`.
 
 ```rust
 let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-    layout: &render_pipeline_layout,
+    label: Some("Render Pipeline"),
+    layout: Some(&render_pipeline_layout),
     vertex_stage: wgpu::ProgrammableStageDescriptor {
         module: &vs_module,
         entry_point: "main", // 1.
@@ -143,13 +144,16 @@ Two things to note here:
 
 ```rust
     // continued ...
-    rasterization_state: Some(wgpu::RasterizationStateDescriptor {
-        front_face: wgpu::FrontFace::Ccw,
-        cull_mode: wgpu::CullMode::Back,
-        depth_bias: 0,
-        depth_bias_slope_scale: 0.0,
-        depth_bias_clamp: 0.0,
-    }),
+    rasterization_state: Some(
+        wgpu::RasterizationStateDescriptor {
+            front_face: wgpu::FrontFace::Ccw,
+            cull_mode: wgpu::CullMode::Back,
+            depth_bias: 0,
+            depth_bias_slope_scale: 0.0,
+            depth_bias_clamp: 0.0,
+            clamp_depth: false,
+        }
+    ),
 ```
 
 `rasterization_state` describes how to process primitives (in our case triangles) before they are sent to the fragment shader (or the next stage in the pipeline if there is none). Primitives that don't meet the criteria are *culled* (aka not rendered). Culling helps speed up the rendering process by not rendering things that should not be visible anyway.
@@ -202,11 +206,11 @@ Self {
     surface,
     device,
     queue,
+    size,
     sc_desc,
     swap_chain,
     // NEW!
     render_pipeline,
-    size,
 }
 ```
 ## Using a pipeline
@@ -224,14 +228,17 @@ If you run your program now, it'll take a little longer to start, but it will st
             wgpu::RenderPassColorAttachmentDescriptor {
                 attachment: &frame.view,
                 resolve_target: None,
-                load_op: wgpu::LoadOp::Clear,
-                store_op: wgpu::StoreOp::Store,
-                clear_color: wgpu::Color {
-                    r: 0.1,
-                    g: 0.2,
-                    b: 0.3,
-                    a: 1.0,
-                },
+                ops: wgpu::Operations {
+                    load: wgpu::LoadOp::Clear(
+                        wgpu::Color {
+                            r: 0.1,
+                            g: 0.2,
+                            b: 0.3,
+                            a: 1.0,
+                        }
+                    ),
+                    store: true,
+                }
             }
         ],
         depth_stencil_attachment: None,
@@ -286,7 +293,7 @@ Now we can put some code in our `build.rs`.
 
 ```rust
 use glob::glob;
-use failure::bail;
+use anyhow::*;
 use std::fs::{read_to_string, write};
 use std::path::{PathBuf};
 
@@ -298,8 +305,11 @@ struct ShaderData {
 }
 
 impl ShaderData {
-    pub fn load(src_path: PathBuf) -> Result<Self, failure::Error> {
-        let extension = src_path.extension().unwrap().to_str().unwrap();
+    pub fn load(src_path: PathBuf) -> Result<Self> {
+        let extension = src_path.extension()
+            .context("File has no extension")?
+            .to_str()
+            .context("Extension cannot be converted to &str")?;
         let kind = match extension {
             "vert" => shaderc::ShaderKind::Vertex,
             "frag" => shaderc::ShaderKind::Fragment,
@@ -314,42 +324,47 @@ impl ShaderData {
     }
 }
 
-fn main() {
+fn main() -> Result<()> {
     // This tells cargo to rerun this script if something in /src/ changes.
     println!("cargo:rerun-if-changed=src/*");
     
     // Collect all shaders recursively within /src/
     let mut shader_paths = [
-        glob("./src/**/*.vert").unwrap(),
-        glob("./src/**/*.frag").unwrap(),
-        glob("./src/**/*.comp").unwrap(),
+        glob("./src/**/*.vert")?,
+        glob("./src/**/*.frag")?,
+        glob("./src/**/*.comp")?,
     ];
     
     // This could be parallelized
     let shaders = shader_paths.iter_mut()
         .flatten()
         .map(|glob_result| {
-            ShaderData::load(glob_result.unwrap()).unwrap()
+            ShaderData::load(glob_result?)
         })
-        .collect::<Vec<ShaderData>>();
+        .collect::<Vec<Result<_>>>()
+        .into_iter()
+        .collect::<Result<Vec<_>>>();
 
-    let mut compiler = shaderc::Compiler::new().unwrap();
+    let mut compiler = shaderc::Compiler::new()
+        .context("Unable to create shader compiler")?;
 
     // This can't be parallelized. The [shaderc::Compiler] is not
     // thread safe. Also, it creates a lot of resources. You could
     // spawn multiple processes to handle this, but it would probably
     // be better just to only compile shaders that have been changed
     // recently.
-    for shader in shaders {
+    for shader in shaders? {
         let compiled = compiler.compile_into_spirv(
             &shader.src, 
             shader.kind, 
             &shader.src_path.to_str().unwrap(), 
             "main", 
             None
-        ).unwrap();
-        write(shader.spv_path, compiled.as_binary_u8()).unwrap();
+        )?;
+        write(shader.spv_path, compiled.as_binary_u8())?;
     }
+
+    Ok(())
 }
 ```
 

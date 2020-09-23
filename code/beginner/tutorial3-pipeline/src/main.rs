@@ -107,10 +107,10 @@ impl State {
             surface,
             device,
             queue,
+            size,
             sc_desc,
             swap_chain,
             render_pipeline,
-            size,
         }
     }
 
