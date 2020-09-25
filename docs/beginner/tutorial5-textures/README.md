@@ -102,8 +102,10 @@ encoder.copy_buffer_to_texture(
     size,
 );
 
-queue.submit(&[encoder.finish()]);
+queue.submit(std::iter::once(encoder.finish()));
 ```
+
+They `bytes_per_row` field needs some consideration. This value needs to be a multiple of 256. Check out [the gif tutorial](../../showcase/gifs/#how-do-we-make-the-frames) for more details.
 
 </div>
 
