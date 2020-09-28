@@ -45,9 +45,12 @@ let light = Light {
 };
 
  // We'll want to update our lights position, so we use COPY_DST
-let light_buffer = device.create_buffer_with_data(
-    bytemuck::cast_slice(&[light]),
-    wgpu::BufferUsage::UNIFORM | wgpu::BufferUsage::COPY_DST,
+let light_buffer = device.create_buffer_init(
+    &wgpu::util::BufferInitDescriptor {
+        label: Some("Light VB"),
+        contents: bytemuck::cast_slice(&[light]),
+        usage: wgpu::BufferUsage::UNIFORM | wgpu::BufferUsage::COPY_DST,
+    }
 );
 ```
 
@@ -94,13 +97,10 @@ Let's also update the lights position in the `update()` method, so we can see wh
 ```rust
 // Update the light
 let old_position = self.light.position;
-self.light.position = cgmath::Quaternion::from_axis_angle((0.0, 1.0, 0.0).into(), cgmath::Deg(1.0)) * old_position;
-
-let staging_buffer = self.device.create_buffer_with_data(
-    bytemuck::cast_slice(&[self.light]),
-    wgpu::BufferUsage::COPY_SRC,
-);
-encoder.copy_buffer_to_buffer(&staging_buffer, 0, &self.light_buffer, 0, std::mem::size_of::<Light>() as wgpu::BufferAddress);
+self.light.position =
+    cgmath::Quaternion::from_axis_angle((0.0, 1.0, 0.0).into(), cgmath::Deg(1.0))
+        * old_position;
+self.queue.write_buffer(&self.light_buffer, 0, bytemuck::cast_slice(&[self.light]));
 ```
 
 This will have the light rotate around the origin one degree every frame.

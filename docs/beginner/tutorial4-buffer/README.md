@@ -53,13 +53,16 @@ Now let's create the buffer in `new()`.
 
 ```rust
 // new()
-let vertex_buffer = device.create_buffer_with_data(
-    bytemuck::cast_slice(VERTICES),
-    wgpu::BufferUsage::VERTEX,
+let vertex_buffer = device.create_buffer_init(
+    &wgpu::util::BufferInitDescriptor {
+        label: Some("Vertex Buffer"),
+        contents: bytemuck::cast_slice(VERTICES),
+        usage: wgpu::BufferUsage::VERTEX,
+    }
 );
 ```
 
-You'll note that we're using [bytemuck](https://docs.rs/bytemuck/1.2.0/bytemuck/) to cast our `VERTICES`. The `create_buffer_with_data()` method expects a `&[u8]`, and `bytemuck::cast_slice` does that for us. Add the following to your `Cargo.toml`.
+You'll note that we're using [bytemuck](https://docs.rs/bytemuck/1.2.0/bytemuck/) to cast our `VERTICES`. The `create_buffer_init()` method expects a `&[u8]`, and `bytemuck::cast_slice` does that for us. Add the following to your `Cargo.toml`.
 
 ```toml
 bytemuck = "1.4"

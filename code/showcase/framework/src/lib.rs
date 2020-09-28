@@ -22,7 +22,6 @@ use winit::event_loop::{ControlFlow, EventLoop};
 use winit::window::{Window, WindowBuilder};
 
 pub struct Display {
-    _adapter: wgpu::Adapter,
     surface: wgpu::Surface,
     pub sc_desc: wgpu::SwapChainDescriptor,
     pub swap_chain: wgpu::SwapChain,
@@ -35,13 +34,13 @@ impl Display {
         let size = window.inner_size();
         let instance = wgpu::Instance::new(wgpu::BackendBit::PRIMARY);
         let surface = unsafe { instance.create_surface(window) };
-        let _adapter = instance.request_adapter(
+        let adapter = instance.request_adapter(
             &wgpu::RequestAdapterOptions {
                 power_preference: wgpu::PowerPreference::Default,
                 compatible_surface: Some(&surface),
             },
         ).await.unwrap();
-        let (device, queue) = _adapter.request_device(
+        let (device, queue) = adapter.request_device(
             &wgpu::DeviceDescriptor {
                 features: wgpu::Features::empty(),
                 limits: wgpu::Limits::default(),
@@ -59,7 +58,6 @@ impl Display {
         let swap_chain = device.create_swap_chain(&surface, &sc_desc);
 
         Ok(Self {
-            _adapter,
             surface,
             sc_desc,
             swap_chain,
