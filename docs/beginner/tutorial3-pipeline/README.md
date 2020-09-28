@@ -117,9 +117,12 @@ let fs_module = device.create_shader_module(wgpu::util::make_spirv(&fs_spirv.as_
 One more thing, we need to create a `PipelineLayout`. We'll get more into this after we cover `Buffer`s.
 
 ```rust
-let render_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-    bind_group_layouts: &[],
-});
+let render_pipeline_layout =
+    device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+        label: Some("Render Pipeline Layout"),
+        bind_group_layouts: &[],
+        push_constant_ranges: &[],
+    });
 ```
 
 Finally we have all we need to create the `render_pipeline`.
@@ -136,6 +139,7 @@ let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescrip
         module: &fs_module,
         entry_point: "main",
     }),
+    // continued ...
 ```
 
 Two things to note here:
@@ -143,7 +147,6 @@ Two things to note here:
 2. The `fragment_stage` is technically optional, so you have to wrap it in `Some()`. I've never used a vertex shader without a fragment shader, but the option is available if you need it.
 
 ```rust
-    // continued ...
     rasterization_state: Some(
         wgpu::RasterizationStateDescriptor {
             front_face: wgpu::FrontFace::Ccw,
@@ -154,6 +157,7 @@ Two things to note here:
             clamp_depth: false,
         }
     ),
+    // continued ...
 ```
 
 `rasterization_state` describes how to process primitives (in our case triangles) before they are sent to the fragment shader (or the next stage in the pipeline if there is none). Primitives that don't meet the criteria are *culled* (aka not rendered). Culling helps speed up the rendering process by not rendering things that should not be visible anyway.
@@ -161,7 +165,6 @@ Two things to note here:
 We'll cover culling a bit more when we cover `Buffer`s.
 
 ```rust
-    // continued ...
     color_states: &[
         wgpu::ColorStateDescriptor {
             format: sc_desc.format,
@@ -170,11 +173,11 @@ We'll cover culling a bit more when we cover `Buffer`s.
             write_mask: wgpu::ColorWrite::ALL,
         },
     ],
+    // continued ...
 ```
 A `color_state` describes how colors are stored and processed throughout the pipeline. You can have multiple color states, but we only need one as we're just drawing to the screen. We use the `swap_chain`'s format so that copying to it is easy, and we specify that the blending should just replace old pixel data with new data. We also tell `wgpu` to write to all colors: red, blue, green, and alpha. *We'll talk more about*`color_state` *when we talk about textures.*
 
 ```rust
-    // continued ...
     primitive_topology: wgpu::PrimitiveTopology::TriangleList, // 1.
     depth_stencil_state: None, // 2.
     vertex_state: wgpu::VertexStateDescriptor {
@@ -327,14 +330,14 @@ impl ShaderData {
 fn main() -> Result<()> {
     // This tells cargo to rerun this script if something in /src/ changes.
     println!("cargo:rerun-if-changed=src/*");
-    
+
     // Collect all shaders recursively within /src/
     let mut shader_paths = [
         glob("./src/**/*.vert")?,
         glob("./src/**/*.frag")?,
         glob("./src/**/*.comp")?,
     ];
-    
+
     // This could be parallelized
     let shaders = shader_paths.iter_mut()
         .flatten()
@@ -355,10 +358,10 @@ fn main() -> Result<()> {
     // recently.
     for shader in shaders? {
         let compiled = compiler.compile_into_spirv(
-            &shader.src, 
-            shader.kind, 
-            &shader.src_path.to_str().unwrap(), 
-            "main", 
+            &shader.src,
+            shader.kind,
+            &shader.src_path.to_str().unwrap(),
+            "main",
             None
         )?;
         write(shader.spv_path, compiled.as_binary_u8())?;
@@ -382,6 +385,6 @@ I'm glossing over the code in the build script as this guide is focused on wgpu 
 </div>
 
 ## Challenge
-Create a second pipeline that uses the triangle's position data to create a color that it then sends to the fragment shader to use for `f_color`. Have the app swap between these when you press the spacebar. *Hint: use*`in`*and*`out`*variables in a separate shader.*
+Create a second pipeline that uses the triangle's position data to create a color that it then sends to the fragment shader to use for `f_color`. Have the app swap between these when you press the spacebar. *Hint: use* `in` *and* `out` *variables in a separate shader.*
 
 <AutoGithubLink/>

@@ -2,7 +2,7 @@
 
 ## 0.6
 
-This took me way to long. The changes weren't difficult, but I had to do a lot of copy pasting. The main changes are using `queue.write_buffer()` and `queue.write_texture()` everywhere. I won't get into the nitty gritty, but you can checkout the [pull request](https://github.com/sotrh/learn-wgpu/pull/90) if you're interested.
+This took me way too long. The changes weren't difficult, but I had to do a lot of copy pasting. The main changes are using `queue.write_buffer()` and `queue.write_texture()` everywhere. I won't get into the nitty gritty, but you can checkout the [pull request](https://github.com/sotrh/learn-wgpu/pull/90) if you're interested.
 
 ## Added Pong Showcase
 
@@ -16,7 +16,7 @@ My perfectionism got in my way a bit with this one. I wasn't sure that what I wa
 
 ## 0.5!
 
-To many things changed to make note of them here. Check out [the 0.5 pull request](https://github.com/sotrh/learn-wgpu/pull/29) if you're curious about specifics. That being said, 2 things are worth mentioning directly: the y-axis now points up like with DirectX and Metal, and requesting an adapter and creating a device now use `Future`s. The tutorials have been updated as well as the code.
+Too many things changed to make note of them here. Check out [the 0.5 pull request](https://github.com/sotrh/learn-wgpu/pull/29) if you're curious about specifics. That being said, 2 things are worth mentioning directly: the y-axis now points up like with DirectX and Metal, and requesting an adapter and creating a device now use `Future`s. The tutorials have been updated as well as the code.
 
 ## Reworked lighting tutorial
 
@@ -72,4 +72,3 @@ I don't know if this is a change from 0.4, but you use `wgpu = "0.4"` line in de
 
 ## New/Recent Articles
 <RecentArticles/>
-
