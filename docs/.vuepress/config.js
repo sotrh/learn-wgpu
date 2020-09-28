@@ -39,6 +39,7 @@ module.exports = {
                     '/intermediate/tutorial10-lighting/',
                     '/intermediate/tutorial11-normals/',
                     '/intermediate/tutorial12-camera/',
+                    '/intermediate/tutorial13-threading/',
                 ],
             },
             {
