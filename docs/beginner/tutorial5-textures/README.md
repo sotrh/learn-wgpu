@@ -77,9 +77,12 @@ queue.write_texture(
 The old way of writing data to a texture was to copy the pixel data to a buffer, and then copy it to the texture. Using `write_texture` is a bit more efficient as it uses one less buffer. I'll leave it here though in case you need it.
 
 ```rust
-let buffer = device.create_buffer_with_data(
-    &diffuse_rgba,
-    wgpu::BufferUsage::COPY_SRC,
+let buffer = device.create_buffer_init(
+    &wgpu::util::BufferInitDescriptor {
+        label: Some("Temp Buffer"),
+        &diffuse_rgba,
+        wgpu::BufferUsage::COPY_SRC,
+    }
 );
 
 let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
