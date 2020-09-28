@@ -1,6 +1,6 @@
-use std::iter;
-
 use cgmath::prelude::*;
+use rayon::prelude::*;
+use std::iter;
 use winit::{
     dpi::PhysicalPosition,
     event::*,
@@ -85,9 +85,9 @@ struct State {
     swap_chain: wgpu::SwapChain,
     render_pipeline: wgpu::RenderPipeline,
     obj_model: model::Model,
-    camera: camera::Camera, // UPDATED!
-    projection: camera::Projection, // NEW!
-    camera_controller: camera::CameraController, // UPDATED!
+    camera: camera::Camera,
+    projection: camera::Projection,
+    camera_controller: camera::CameraController,
     uniforms: Uniforms,
     uniform_buffer: wgpu::Buffer,
     uniform_bind_group: wgpu::BindGroup,
@@ -102,7 +102,6 @@ struct State {
     light_render_pipeline: wgpu::RenderPipeline,
     #[allow(dead_code)]
     debug_material: model::Material,
-    // NEW!
     last_mouse_pos: PhysicalPosition<f64>,
     mouse_pressed: bool,
 }
@@ -255,8 +254,10 @@ impl State {
 
         const SPACE_BETWEEN: f32 = 3.0;
         let instances = (0..NUM_INSTANCES_PER_ROW)
+            .into_par_iter() // NEW!
             .flat_map(|z| {
-                (0..NUM_INSTANCES_PER_ROW).map(move |x| {
+                // UPDATED!
+                (0..NUM_INSTANCES_PER_ROW).into_par_iter().map(move |x| {
                     let x = SPACE_BETWEEN * (x as f32 - NUM_INSTANCES_PER_ROW as f32 / 2.0);
                     let z = SPACE_BETWEEN * (z as f32 - NUM_INSTANCES_PER_ROW as f32 / 2.0);
 
@@ -299,14 +300,11 @@ impl State {
                     },
                     count: None,
                 },
-                // NEW!
                 wgpu::BindGroupLayoutEntry {
                     binding: 1,
                     visibility: wgpu::ShaderStage::VERTEX,
                     ty: wgpu::BindingType::StorageBuffer {
-                        // We don't plan on changing the size of this buffer
                         dynamic: false,
-                        // The shader is not allowed to modify it's contents
                         readonly: true,
                         min_binding_size: None,
                     },
@@ -323,7 +321,6 @@ impl State {
                     binding: 0,
                     resource: wgpu::BindingResource::Buffer(uniform_buffer.slice(..))
                 },
-                // NEW!
                 wgpu::BindGroupEntry {
                     binding: 1,
                     resource: wgpu::BindingResource::Buffer(instance_buffer.slice(..))
@@ -457,7 +454,6 @@ impl State {
             light_render_pipeline,
             #[allow(dead_code)]
             debug_material,
-            // NEW!
             last_mouse_pos: (0.0, 0.0).into(),
             mouse_pressed: false,
         }
@@ -465,7 +461,6 @@ impl State {
     }
 
     fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
-        // UPDATED!
         self.projection.resize(new_size.width, new_size.height);
         self.size = new_size;
         self.sc_desc.width = new_size.width;
@@ -474,7 +469,6 @@ impl State {
         self.depth_texture = texture::Texture::create_depth_texture(&self.device, &self.sc_desc, "depth_texture");
     }
 
-    // UPDATED!
     fn input(&mut self, event: &WindowEvent) -> bool {
         match event {
             WindowEvent::KeyboardInput {
@@ -517,7 +511,6 @@ impl State {
     }
 
     fn update(&mut self, dt: std::time::Duration) {
-        // UPDATED!
         self.camera_controller.update_camera(&mut self.camera, dt);
         self.uniforms.update_view_proj(&self.camera, &self.projection);
         self.queue.write_buffer(&self.uniform_buffer, 0, bytemuck::cast_slice(&[self.uniforms]));
@@ -628,7 +621,6 @@ fn main() {
                     }
                 }
             }
-            // UPDATED!
             Event::RedrawRequested(_) => {
                 let now = std::time::Instant::now();
                 let dt = now - last_render_time;

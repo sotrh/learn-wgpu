@@ -136,11 +136,18 @@ impl Model {
 
         // UPDATED!
         let materials = obj_materials.par_iter().map(|mat| {
-            let diffuse_path = &mat.diffuse_texture;
-            let diffuse_texture = texture::Texture::load(device, queue, containing_folder.join(diffuse_path), false)?;
+            // We can also parallelize loading the textures!
+            let mut textures = [
+                (containing_folder.join(&mat.diffuse_texture), false),
+                (containing_folder.join(&mat.normal_texture), true),
+            ].par_iter().map(|(texture_path, is_normal_map)| {
+                //
+                texture::Texture::load(device, queue, texture_path, *is_normal_map)
+            }).collect::<Result<Vec<_>>>()?;
             
-            let normal_path = &mat.normal_texture;
-            let normal_texture = texture::Texture::load(device, queue, containing_folder.join(normal_path), true)?;
+            // Pop removes from the end of the list.
+            let normal_texture = textures.pop().unwrap();
+            let diffuse_texture = textures.pop().unwrap();
 
             Ok(Material::new(
                 device,
@@ -153,9 +160,8 @@ impl Model {
 
         // UPDATED!
         let meshes = obj_models.par_iter().map(|m| {
-            let mut vertices = Vec::new();
-            for i in 0..m.mesh.positions.len() / 3 {
-                vertices.push(ModelVertex {
+            let mut vertices = (0..m.mesh.positions.len() / 3).into_par_iter().map(|i| {
+                ModelVertex {
                     position: [
                         m.mesh.positions[i * 3],
                         m.mesh.positions[i * 3 + 1],
@@ -173,8 +179,8 @@ impl Model {
                     // We'll calculate these later
                     tangent: [0.0; 3].into(),
                     bitangent: [0.0; 3].into(),
-                });
-            }
+                }
+            }).collect::<Vec<_>>();
 
             let indices = &m.mesh.indices;
 
