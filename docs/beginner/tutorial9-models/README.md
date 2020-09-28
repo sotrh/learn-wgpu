@@ -20,7 +20,7 @@ pub struct ModelVertex {
 
 impl Vertex for ModelVertex {
     fn desc<'a>() -> wgpu::VertexBufferDescriptor<'a> {
-        unimplemented!();
+        todo!();
     }
 }
 ```
@@ -469,7 +469,7 @@ The code in `main.rs` will change accordingly.
 
 ```rust
 render_pass.set_pipeline(&self.render_pipeline);
-render_pass.draw_model_instanced(&self.obj_model, 0..self.instances.len() as u32, &self.uniform_bind_group); 
+render_pass.draw_model_instanced(&self.obj_model, 0..self.instances.len() as u32, &self.uniform_bind_group);
 ```
 
 <AutoGithubLink/>
