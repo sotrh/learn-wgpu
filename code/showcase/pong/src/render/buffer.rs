@@ -1,5 +1,5 @@
-use crate::util::size_of_slice;
 use crate::state;
+use crate::util::size_of_slice;
 use wgpu::util::{BufferInitDescriptor, DeviceExt};
 
 pub const U32_SIZE: wgpu::BufferAddress = std::mem::size_of::<u32>() as wgpu::BufferAddress;
@@ -45,7 +45,7 @@ impl QuadBufferBuilder {
             let min_y = ball.position.y - ball.radius;
             let max_x = ball.position.x + ball.radius;
             let max_y = ball.position.y + ball.radius;
-    
+
             self.push_quad(min_x, min_y, max_x, max_y)
         } else {
             self
@@ -55,10 +55,10 @@ impl QuadBufferBuilder {
     pub fn push_player(self, player: &state::Player) -> Self {
         if player.visible {
             self.push_quad(
-                player.position.x - player.size.x * 0.5, 
-                player.position.y - player.size.y * 0.5, 
+                player.position.x - player.size.x * 0.5,
+                player.position.y - player.size.y * 0.5,
                 player.position.x + player.size.x * 0.5,
-                player.position.y + player.size.y * 0.5, 
+                player.position.y + player.size.y * 0.5,
             )
         } else {
             self
@@ -109,14 +109,12 @@ pub struct StagingBuffer {
 impl StagingBuffer {
     pub fn new<T: bytemuck::Pod + Sized>(device: &wgpu::Device, data: &[T]) -> StagingBuffer {
         StagingBuffer {
-            buffer: device.create_buffer_init(
-                &BufferInitDescriptor {
-                    contents: bytemuck::cast_slice(data),
-                    usage: wgpu::BufferUsage::COPY_SRC,
-                    label: Some("Staging Buffer"),
-                }
-            ),
-            size: size_of_slice(data) as wgpu::BufferAddress
+            buffer: device.create_buffer_init(&BufferInitDescriptor {
+                contents: bytemuck::cast_slice(data),
+                usage: wgpu::BufferUsage::COPY_SRC,
+                label: Some("Staging Buffer"),
+            }),
+            size: size_of_slice(data) as wgpu::BufferAddress,
         }
     }
 

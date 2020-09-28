@@ -1,7 +1,6 @@
 use cgmath::*;
 use std::mem::size_of;
 
-
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct Vertex {
@@ -43,18 +42,12 @@ impl Mesh {
             vertex(0.0, 1000.0, 0.0),
             vertex(0.0, 0.0, 1000.0),
         ];
-        let axes_indices: &[u16] = &[
-            0, 1,
-            0, 2,
-            0, 3,
-        ];
+        let axes_indices: &[u16] = &[0, 1, 0, 2, 0, 3];
         let index_count = axes_indices.len() as u32;
-        let index_buffer = device.create_buffer_with_data(
-            bytemuck::cast_slice(axes_indices), 
-            wgpu::BufferUsage::INDEX,
-        );
+        let index_buffer = device
+            .create_buffer_with_data(bytemuck::cast_slice(axes_indices), wgpu::BufferUsage::INDEX);
         let vertex_buffer = device.create_buffer_with_data(
-            bytemuck::cast_slice(axes_vertices), 
+            bytemuck::cast_slice(axes_vertices),
             wgpu::BufferUsage::VERTEX,
         );
         Self {

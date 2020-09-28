@@ -1,4 +1,3 @@
-
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub enum GameState {
     MainMenu,
@@ -50,10 +49,7 @@ impl Player {
         let b_min = ball.position - b_radii;
         let b_max = ball.position + b_radii;
 
-        min.x < b_max.x 
-        && max.x > b_min.x
-        && min.y < b_max.y 
-        && max.y > b_min.y
+        min.x < b_max.x && max.x > b_min.x && min.y < b_max.y && max.y > b_min.y
     }
 }
 

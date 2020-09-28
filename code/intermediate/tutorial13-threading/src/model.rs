@@ -70,8 +70,8 @@ pub struct Material {
 
 impl Material {
     pub fn new(
-        device: &wgpu::Device, 
-        name: &str, 
+        device: &wgpu::Device,
+        name: &str,
         diffuse_texture: texture::Texture,
         normal_texture: texture::Texture,
         layout: &wgpu::BindGroupLayout,
@@ -99,7 +99,7 @@ impl Material {
             label: Some(name),
         });
 
-        Self { 
+        Self {
             name: String::from(name),
             diffuse_texture,
             normal_texture,
@@ -131,127 +131,134 @@ impl Model {
         let (obj_models, obj_materials) = tobj::load_obj(path.as_ref(), true)?;
 
         // We're assuming that the texture files are stored with the obj file
-        let containing_folder = path.as_ref().parent()
-            .context("Directory has no parent")?;
+        let containing_folder = path.as_ref().parent().context("Directory has no parent")?;
 
         // UPDATED!
-        let materials = obj_materials.par_iter().map(|mat| {
-            // We can also parallelize loading the textures!
-            let mut textures = [
-                (containing_folder.join(&mat.diffuse_texture), false),
-                (containing_folder.join(&mat.normal_texture), true),
-            ].par_iter().map(|(texture_path, is_normal_map)| {
-                //
-                texture::Texture::load(device, queue, texture_path, *is_normal_map)
-            }).collect::<Result<Vec<_>>>()?;
-            
-            // Pop removes from the end of the list.
-            let normal_texture = textures.pop().unwrap();
-            let diffuse_texture = textures.pop().unwrap();
+        let materials = obj_materials
+            .par_iter()
+            .map(|mat| {
+                // We can also parallelize loading the textures!
+                let mut textures = [
+                    (containing_folder.join(&mat.diffuse_texture), false),
+                    (containing_folder.join(&mat.normal_texture), true),
+                ]
+                .par_iter()
+                .map(|(texture_path, is_normal_map)| {
+                    //
+                    texture::Texture::load(device, queue, texture_path, *is_normal_map)
+                })
+                .collect::<Result<Vec<_>>>()?;
 
-            Ok(Material::new(
-                device,
-                &mat.name,
-                diffuse_texture,
-                normal_texture,
-                layout,
-            ))
-        }).collect::<Result<Vec<Material>>>()?;
+                // Pop removes from the end of the list.
+                let normal_texture = textures.pop().unwrap();
+                let diffuse_texture = textures.pop().unwrap();
+
+                Ok(Material::new(
+                    device,
+                    &mat.name,
+                    diffuse_texture,
+                    normal_texture,
+                    layout,
+                ))
+            })
+            .collect::<Result<Vec<Material>>>()?;
 
         // UPDATED!
-        let meshes = obj_models.par_iter().map(|m| {
-            let mut vertices = (0..m.mesh.positions.len() / 3).into_par_iter().map(|i| {
-                ModelVertex {
-                    position: [
-                        m.mesh.positions[i * 3],
-                        m.mesh.positions[i * 3 + 1],
-                        m.mesh.positions[i * 3 + 2],
-                    ].into(),
-                    tex_coords: [
-                        m.mesh.texcoords[i * 2], 
-                        m.mesh.texcoords[i * 2 + 1]
-                    ].into(),
-                    normal: [
-                        m.mesh.normals[i * 3],
-                        m.mesh.normals[i * 3 + 1],
-                        m.mesh.normals[i * 3 + 2],
-                    ].into(),
-                    // We'll calculate these later
-                    tangent: [0.0; 3].into(),
-                    bitangent: [0.0; 3].into(),
+        let meshes = obj_models
+            .par_iter()
+            .map(|m| {
+                let mut vertices = (0..m.mesh.positions.len() / 3)
+                    .into_par_iter()
+                    .map(|i| {
+                        ModelVertex {
+                            position: [
+                                m.mesh.positions[i * 3],
+                                m.mesh.positions[i * 3 + 1],
+                                m.mesh.positions[i * 3 + 2],
+                            ]
+                            .into(),
+                            tex_coords: [m.mesh.texcoords[i * 2], m.mesh.texcoords[i * 2 + 1]]
+                                .into(),
+                            normal: [
+                                m.mesh.normals[i * 3],
+                                m.mesh.normals[i * 3 + 1],
+                                m.mesh.normals[i * 3 + 2],
+                            ]
+                            .into(),
+                            // We'll calculate these later
+                            tangent: [0.0; 3].into(),
+                            bitangent: [0.0; 3].into(),
+                        }
+                    })
+                    .collect::<Vec<_>>();
+
+                let indices = &m.mesh.indices;
+
+                // Calculate tangents and bitangets. We're going to
+                // use the triangles, so we need to loop through the
+                // indices in chunks of 3
+                for c in indices.chunks(3) {
+                    let v0 = vertices[c[0] as usize];
+                    let v1 = vertices[c[1] as usize];
+                    let v2 = vertices[c[2] as usize];
+
+                    let pos0 = v0.position;
+                    let pos1 = v1.position;
+                    let pos2 = v2.position;
+
+                    let uv0 = v0.tex_coords;
+                    let uv1 = v1.tex_coords;
+                    let uv2 = v2.tex_coords;
+
+                    // Calculate the edges of the triangle
+                    let delta_pos1 = pos1 - pos0;
+                    let delta_pos2 = pos2 - pos0;
+
+                    // This will give us a direction to calculate the
+                    // tangent and bitangent
+                    let delta_uv1 = uv1 - uv0;
+                    let delta_uv2 = uv2 - uv0;
+
+                    // Solving the following system of equations will
+                    // give us the tangent and bitangent.
+                    //     delta_pos1 = delta_uv1.x * T + delta_u.y * B
+                    //     delta_pos2 = delta_uv2.x * T + delta_uv2.y * B
+                    // Luckily, the place I found this equation provided
+                    // the solution!
+                    let r = 1.0 / (delta_uv1.x * delta_uv2.y - delta_uv1.y * delta_uv2.x);
+                    let tangent = (delta_pos1 * delta_uv2.y - delta_pos2 * delta_uv1.y) * r;
+                    let bitangent = (delta_pos2 * delta_uv1.x - delta_pos1 * delta_uv2.x) * r;
+
+                    // We'll use the same tangent/bitangent for each vertex in the triangle
+                    vertices[c[0] as usize].tangent = tangent;
+                    vertices[c[1] as usize].tangent = tangent;
+                    vertices[c[2] as usize].tangent = tangent;
+
+                    vertices[c[0] as usize].bitangent = bitangent;
+                    vertices[c[1] as usize].bitangent = bitangent;
+                    vertices[c[2] as usize].bitangent = bitangent;
                 }
-            }).collect::<Vec<_>>();
 
-            let indices = &m.mesh.indices;
-
-            // Calculate tangents and bitangets. We're going to
-            // use the triangles, so we need to loop through the
-            // indices in chunks of 3
-            for c in indices.chunks(3) {
-                let v0 = vertices[c[0] as usize];
-                let v1 = vertices[c[1] as usize];
-                let v2 = vertices[c[2] as usize];
-
-                let pos0 = v0.position;
-                let pos1 = v1.position;
-                let pos2 = v2.position;
-
-                let uv0 = v0.tex_coords;
-                let uv1 = v1.tex_coords;
-                let uv2 = v2.tex_coords;
-
-                // Calculate the edges of the triangle
-                let delta_pos1 = pos1 - pos0;
-                let delta_pos2 = pos2 - pos0;
-
-                // This will give us a direction to calculate the
-                // tangent and bitangent
-                let delta_uv1 = uv1 - uv0;
-                let delta_uv2 = uv2 - uv0;
-
-                // Solving the following system of equations will
-                // give us the tangent and bitangent.
-                //     delta_pos1 = delta_uv1.x * T + delta_u.y * B
-                //     delta_pos2 = delta_uv2.x * T + delta_uv2.y * B
-                // Luckily, the place I found this equation provided 
-                // the solution!
-                let r = 1.0 / (delta_uv1 .x * delta_uv2.y - delta_uv1.y * delta_uv2.x);
-                let tangent = (delta_pos1 * delta_uv2.y - delta_pos2 * delta_uv1.y) * r;
-                let bitangent = (delta_pos2 * delta_uv1.x - delta_pos1 * delta_uv2.x) * r;
-                
-                // We'll use the same tangent/bitangent for each vertex in the triangle
-                vertices[c[0] as usize].tangent = tangent;
-                vertices[c[1] as usize].tangent = tangent;
-                vertices[c[2] as usize].tangent = tangent;
-
-                vertices[c[0] as usize].bitangent = bitangent;
-                vertices[c[1] as usize].bitangent = bitangent;
-                vertices[c[2] as usize].bitangent = bitangent;
-            };
-
-            let vertex_buffer = device.create_buffer_init(
-                &wgpu::util::BufferInitDescriptor {
+                let vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
                     label: Some(&format!("{:?} Vertex Buffer", m.name)),
                     contents: bytemuck::cast_slice(&vertices),
                     usage: wgpu::BufferUsage::VERTEX,
-                }
-            );
-            let index_buffer = device.create_buffer_init(
-                &wgpu::util::BufferInitDescriptor {
+                });
+                let index_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
                     label: Some(&format!("{:?} Index Buffer", m.name)),
                     contents: bytemuck::cast_slice(&m.mesh.indices),
                     usage: wgpu::BufferUsage::INDEX,
-                }
-            );
+                });
 
-            Ok(Mesh {
-                name: m.name.clone(),
-                vertex_buffer,
-                index_buffer,
-                num_elements: m.mesh.indices.len() as u32,
-                material: m.mesh.material_id.unwrap_or(0),
+                Ok(Mesh {
+                    name: m.name.clone(),
+                    vertex_buffer,
+                    index_buffer,
+                    num_elements: m.mesh.indices.len() as u32,
+                    material: m.mesh.material_id.unwrap_or(0),
+                })
             })
-        }).collect::<Result<Vec<_>>>()?;
+            .collect::<Result<Vec<_>>>()?;
 
         Ok(Self { meshes, materials })
     }

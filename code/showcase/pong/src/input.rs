@@ -1,4 +1,4 @@
-use winit::event::{VirtualKeyCode, ElementState};
+use winit::event::{ElementState, VirtualKeyCode};
 
 #[derive(Debug, Default)]
 pub struct Input {
@@ -37,7 +37,7 @@ impl Input {
                 self.enter_pressed = pressed;
                 true
             }
-            _ => false
+            _ => false,
         }
     }
 

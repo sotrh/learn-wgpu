@@ -68,7 +68,6 @@ impl<'a> RenderPipelineBuilder<'a> {
         self
     }
 
-
     #[allow(dead_code)]
     pub fn depth_bias(&mut self, db: i32) -> &mut Self {
         self.depth_bias = db;
@@ -100,14 +99,12 @@ impl<'a> RenderPipelineBuilder<'a> {
 
     /// Helper method for [RenderPipelineBuilder::color_state]
     pub fn color_solid(&mut self, format: wgpu::TextureFormat) -> &mut Self {
-        self.color_state(
-            wgpu::ColorStateDescriptor {
-                format,
-                alpha_blend: wgpu::BlendDescriptor::REPLACE,
-                color_blend: wgpu::BlendDescriptor::REPLACE,
-                write_mask: wgpu::ColorWrite::ALL,
-            }
-        )
+        self.color_state(wgpu::ColorStateDescriptor {
+            format,
+            alpha_blend: wgpu::BlendDescriptor::REPLACE,
+            color_blend: wgpu::BlendDescriptor::REPLACE,
+            write_mask: wgpu::ColorWrite::ALL,
+        })
     }
 
     pub fn depth_stencil_state(&mut self, dss: wgpu::DepthStencilStateDescriptor) -> &mut Self {
@@ -122,17 +119,15 @@ impl<'a> RenderPipelineBuilder<'a> {
         depth_write_enabled: bool,
         depth_compare: wgpu::CompareFunction,
     ) -> &mut Self {
-        self.depth_stencil_state(
-            wgpu::DepthStencilStateDescriptor {
-                format,
-                depth_write_enabled,
-                depth_compare,
-                stencil_front: wgpu::StencilStateFaceDescriptor::IGNORE,
-                stencil_back: wgpu::StencilStateFaceDescriptor::IGNORE,
-                stencil_read_mask: 0,
-                stencil_write_mask: 0,
-            }
-        )
+        self.depth_stencil_state(wgpu::DepthStencilStateDescriptor {
+            format,
+            depth_write_enabled,
+            depth_compare,
+            stencil_front: wgpu::StencilStateFaceDescriptor::IGNORE,
+            stencil_back: wgpu::StencilStateFaceDescriptor::IGNORE,
+            stencil_read_mask: 0,
+            stencil_write_mask: 0,
+        })
     }
 
     /// Helper method for [RenderPipelineBuilder::depth_no_stencil]
@@ -177,7 +172,7 @@ impl<'a> RenderPipelineBuilder<'a> {
         let layout = self.layout.unwrap();
 
         // Render pipelines always have a vertex shader, but due
-        // to the way the builder pattern works, we can't 
+        // to the way the builder pattern works, we can't
         // guarantee that the user will specify one, so we'll
         // just return an error if they forgot.
         //
@@ -193,52 +188,43 @@ impl<'a> RenderPipelineBuilder<'a> {
         // Having the shader be optional is giving me issues with
         // the borrow checker so I'm going to use a default shader
         // if the user doesn't supply one.
-        let fs_spv = self.fragment_shader.unwrap_or(include_bytes!("default.frag.spv"));
+        let fs_spv = self
+            .fragment_shader
+            .unwrap_or(include_bytes!("default.frag.spv"));
         let fs = create_shader_module(device, fs_spv);
 
-        let pipeline = device.create_render_pipeline(
-            &wgpu::RenderPipelineDescriptor {
-                layout: &layout,
-                vertex_stage: wgpu::ProgrammableStageDescriptor {
-                    module: &vs,
-                    entry_point: "main",
-                },
-                fragment_stage: Some(
-                    wgpu::ProgrammableStageDescriptor {
-                        module: &fs,
-                        entry_point: "main",
-                    } 
-                ),
-                rasterization_state: Some(wgpu::RasterizationStateDescriptor {
-                    front_face: self.front_face,
-                    cull_mode: self.cull_mode,
-                    depth_bias: self.depth_bias,
-                    depth_bias_slope_scale: self.depth_bias_slope_scale,
-                    depth_bias_clamp: self.depth_bias_clamp,
-                }),
-                primitive_topology: self.primitive_topology,
-                color_states: &self.color_states,
-                depth_stencil_state: self.depth_stencil_state.clone(),
-                vertex_state: wgpu::VertexStateDescriptor {
-                    index_format: self.index_format,
-                    vertex_buffers: &self.vertex_buffers,
-                },
-                sample_count: self.sample_count,
-                sample_mask: self.sample_mask,
-                alpha_to_coverage_enabled: self.alpha_to_coverage_enabled,
-            }
-        );
+        let pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+            layout: &layout,
+            vertex_stage: wgpu::ProgrammableStageDescriptor {
+                module: &vs,
+                entry_point: "main",
+            },
+            fragment_stage: Some(wgpu::ProgrammableStageDescriptor {
+                module: &fs,
+                entry_point: "main",
+            }),
+            rasterization_state: Some(wgpu::RasterizationStateDescriptor {
+                front_face: self.front_face,
+                cull_mode: self.cull_mode,
+                depth_bias: self.depth_bias,
+                depth_bias_slope_scale: self.depth_bias_slope_scale,
+                depth_bias_clamp: self.depth_bias_clamp,
+            }),
+            primitive_topology: self.primitive_topology,
+            color_states: &self.color_states,
+            depth_stencil_state: self.depth_stencil_state.clone(),
+            vertex_state: wgpu::VertexStateDescriptor {
+                index_format: self.index_format,
+                vertex_buffers: &self.vertex_buffers,
+            },
+            sample_count: self.sample_count,
+            sample_mask: self.sample_mask,
+            alpha_to_coverage_enabled: self.alpha_to_coverage_enabled,
+        });
         Ok(pipeline)
     }
 }
 
-
 fn create_shader_module(device: &wgpu::Device, spirv: &[u8]) -> wgpu::ShaderModule {
-    device.create_shader_module(
-        &wgpu::read_spirv(
-            std::io::Cursor::new(
-                spirv
-            )
-        ).unwrap()
-    )
+    device.create_shader_module(&wgpu::read_spirv(std::io::Cursor::new(spirv)).unwrap())
 }

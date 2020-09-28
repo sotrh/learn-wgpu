@@ -67,9 +67,9 @@ pub struct Material {
 
 impl Material {
     pub fn new(
-        device: &wgpu::Device, 
-        name: &str, 
-        diffuse_texture: texture::Texture, 
+        device: &wgpu::Device,
+        name: &str,
+        diffuse_texture: texture::Texture,
         normal_texture: texture::Texture,
         layout: &wgpu::BindGroupLayout,
     ) -> Self {
@@ -96,7 +96,7 @@ impl Material {
             label: Some(name),
         });
 
-        Self { 
+        Self {
             name: String::from(name),
             diffuse_texture,
             normal_texture,
@@ -135,14 +135,16 @@ impl Model {
         let mut materials = Vec::new();
         for mat in obj_materials {
             let diffuse_path = mat.diffuse_texture;
-            let (diffuse_texture, cmds) = texture::Texture::load(device, containing_folder.join(diffuse_path), false)?;
+            let (diffuse_texture, cmds) =
+                texture::Texture::load(device, containing_folder.join(diffuse_path), false)?;
             command_buffers.push(cmds);
-            
+
             let normal_path = match mat.unknown_param.get("map_Bump") {
                 Some(v) => Ok(v),
-                None => Err(failure::err_msg("Unable to find normal map"))
+                None => Err(failure::err_msg("Unable to find normal map")),
             };
-            let (normal_texture, cmds) = texture::Texture::load(device, containing_folder.join(normal_path?), true)?;
+            let (normal_texture, cmds) =
+                texture::Texture::load(device, containing_folder.join(normal_path?), true)?;
             command_buffers.push(cmds);
 
             materials.push(Material::new(
@@ -163,16 +165,15 @@ impl Model {
                         m.mesh.positions[i * 3],
                         m.mesh.positions[i * 3 + 1],
                         m.mesh.positions[i * 3 + 2],
-                    ].into(),
-                    tex_coords: [
-                        m.mesh.texcoords[i * 2], 
-                        m.mesh.texcoords[i * 2 + 1]
-                    ].into(),
+                    ]
+                    .into(),
+                    tex_coords: [m.mesh.texcoords[i * 2], m.mesh.texcoords[i * 2 + 1]].into(),
                     normal: [
                         m.mesh.normals[i * 3],
                         m.mesh.normals[i * 3 + 1],
                         m.mesh.normals[i * 3 + 2],
-                    ].into(),
+                    ]
+                    .into(),
                     // We'll calculate these later
                     tangent: [0.0; 3].into(),
                     bitangent: [0.0; 3].into(),
@@ -210,12 +211,12 @@ impl Model {
                 // give us the tangent and bitangent.
                 //     delta_pos1 = delta_uv1.x * T + delta_u.y * B
                 //     delta_pos2 = delta_uv2.x * T + delta_uv2.y * B
-                // Luckily, the place I found this equation provided 
+                // Luckily, the place I found this equation provided
                 // the solution!
-                let r = 1.0 / (delta_uv1 .x * delta_uv2.y - delta_uv1.y * delta_uv2.x);
+                let r = 1.0 / (delta_uv1.x * delta_uv2.y - delta_uv1.y * delta_uv2.x);
                 let tangent = (delta_pos1 * delta_uv2.y - delta_pos2 * delta_uv1.y) * r;
                 let bitangent = (delta_pos2 * delta_uv1.x - delta_pos1 * delta_uv2.x) * r;
-                
+
                 // We'll use the same tangent/bitangent for each vertex in the triangle
                 vertices[c[0] as usize].tangent = tangent;
                 vertices[c[1] as usize].tangent = tangent;
@@ -231,10 +232,8 @@ impl Model {
                 wgpu::BufferUsage::VERTEX,
             );
 
-            let index_buffer = device.create_buffer_with_data(
-                bytemuck::cast_slice(indices),
-                wgpu::BufferUsage::INDEX,
-            );
+            let index_buffer = device
+                .create_buffer_with_data(bytemuck::cast_slice(indices), wgpu::BufferUsage::INDEX);
 
             meshes.push(Mesh {
                 name: m.name,

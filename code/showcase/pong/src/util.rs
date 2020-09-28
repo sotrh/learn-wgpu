@@ -29,7 +29,6 @@ macro_rules! any {
     };
 }
 
-
 #[cfg(test)]
 mod test {
     #[allow(unused_imports)]

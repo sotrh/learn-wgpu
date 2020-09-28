@@ -1,34 +1,35 @@
 use std::mem;
-use wgpu::util::{DeviceExt, BufferInitDescriptor};
+use wgpu::util::{BufferInitDescriptor, DeviceExt};
 
 pub trait ToRaw {
     type Output;
     fn to_raw(&self) -> Self::Output;
 }
 
-pub struct RawBuffer<R> 
-    where R: Copy + bytemuck::Pod + bytemuck::Zeroable
+pub struct RawBuffer<R>
+where
+    R: Copy + bytemuck::Pod + bytemuck::Zeroable,
 {
     pub buffer: wgpu::Buffer,
     pub data: Vec<R>,
 }
 
 impl<R: Copy + bytemuck::Pod + bytemuck::Zeroable> RawBuffer<R> {
-
-    pub fn from_slice<T: ToRaw<Output=R>>(device: &wgpu::Device, data: &[T], usage: wgpu::BufferUsage) -> Self {
+    pub fn from_slice<T: ToRaw<Output = R>>(
+        device: &wgpu::Device,
+        data: &[T],
+        usage: wgpu::BufferUsage,
+    ) -> Self {
         let raw_data = data.iter().map(ToRaw::to_raw).collect::<Vec<R>>();
         Self::from_vec(device, raw_data, usage)
     }
 
-
     pub fn from_vec(device: &wgpu::Device, data: Vec<R>, usage: wgpu::BufferUsage) -> Self {
-        let buffer = device.create_buffer_init(
-            &BufferInitDescriptor {
-                contents: bytemuck::cast_slice(&data), 
-                usage,
-                label: None,
-            }
-        );
+        let buffer = device.create_buffer_init(&BufferInitDescriptor {
+            contents: bytemuck::cast_slice(&data),
+            usage,
+            label: None,
+        });
         Self::from_parts(buffer, data, usage)
     }
 
@@ -41,13 +42,13 @@ impl<R: Copy + bytemuck::Pod + bytemuck::Zeroable> RawBuffer<R> {
     }
 }
 
-pub struct Buffer<U: ToRaw<Output=R>, R: Copy + bytemuck::Pod + bytemuck::Zeroable> {
+pub struct Buffer<U: ToRaw<Output = R>, R: Copy + bytemuck::Pod + bytemuck::Zeroable> {
     pub data: Vec<U>,
     pub raw_buffer: RawBuffer<R>,
     pub usage: wgpu::BufferUsage,
 }
 
-impl<U: ToRaw<Output=R>, R: Copy + bytemuck::Pod + bytemuck::Zeroable> Buffer<U, R> {
+impl<U: ToRaw<Output = R>, R: Copy + bytemuck::Pod + bytemuck::Zeroable> Buffer<U, R> {
     pub fn uniform(device: &wgpu::Device, datum: U) -> Self {
         let data = vec![datum];
         let usage = wgpu::BufferUsage::UNIFORM | wgpu::BufferUsage::COPY_DST;
@@ -61,7 +62,9 @@ impl<U: ToRaw<Output=R>, R: Copy + bytemuck::Pod + bytemuck::Zeroable> Buffer<U,
 
     pub fn staging(device: &wgpu::Device, other: &Self) -> Self {
         let buffer_size = other.raw_buffer.buffer_size();
-        let usage = wgpu::BufferUsage::COPY_SRC | wgpu::BufferUsage::MAP_READ | wgpu::BufferUsage::MAP_WRITE;
+        let usage = wgpu::BufferUsage::COPY_SRC
+            | wgpu::BufferUsage::MAP_READ
+            | wgpu::BufferUsage::MAP_WRITE;
         let buffer = device.create_buffer(&wgpu::BufferDescriptor {
             size: buffer_size,
             usage,
@@ -78,6 +81,10 @@ impl<U: ToRaw<Output=R>, R: Copy + bytemuck::Pod + bytemuck::Zeroable> Buffer<U,
     }
 
     pub fn from_parts(data: Vec<U>, raw_buffer: RawBuffer<R>, usage: wgpu::BufferUsage) -> Self {
-        Self { data, raw_buffer, usage }
+        Self {
+            data,
+            raw_buffer,
+            usage,
+        }
     }
 }

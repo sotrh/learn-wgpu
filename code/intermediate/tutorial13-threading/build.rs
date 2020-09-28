@@ -5,7 +5,7 @@ use glob::glob;
 use rayon::prelude::*;
 use std::env;
 use std::fs::{read_to_string, write};
-use std::path::{PathBuf};
+use std::path::PathBuf;
 
 struct ShaderData {
     src: String,
@@ -16,7 +16,8 @@ struct ShaderData {
 
 impl ShaderData {
     pub fn load(src_path: PathBuf) -> Result<Self> {
-        let extension = src_path.extension()
+        let extension = src_path
+            .extension()
             .context("File has no extension")?
             .to_str()
             .context("Extension cannot be converted to &str")?;
@@ -30,15 +31,19 @@ impl ShaderData {
         let src = read_to_string(src_path.clone())?;
         let spv_path = src_path.with_extension(format!("{}.spv", extension));
 
-        Ok(Self { src, src_path, spv_path, kind })
+        Ok(Self {
+            src,
+            src_path,
+            spv_path,
+            kind,
+        })
     }
 }
 
 fn main() -> Result<()> {
     // This tells cargo to rerun this script if something in /src/ changes.
     println!("cargo:rerun-if-changed=src/*");
-    
-    
+
     // Collect all shaders recursively within /src/
     // UDPATED!
     let mut shader_paths = Vec::new();
@@ -48,16 +53,14 @@ fn main() -> Result<()> {
 
     // UPDATED!
     // This is parallelized
-    let shaders = shader_paths.into_par_iter()
-        .map(|glob_result| {
-            ShaderData::load(glob_result?)
-        })
+    let shaders = shader_paths
+        .into_par_iter()
+        .map(|glob_result| ShaderData::load(glob_result?))
         .collect::<Vec<Result<_>>>()
         .into_iter()
         .collect::<Result<Vec<_>>>();
 
-    let mut compiler = shaderc::Compiler::new()
-        .context("Unable to create shader compiler")?;
+    let mut compiler = shaderc::Compiler::new().context("Unable to create shader compiler")?;
 
     // This can't be parallelized. The [shaderc::Compiler] is not
     // thread safe. Also, it creates a lot of resources. You could
@@ -66,11 +69,11 @@ fn main() -> Result<()> {
     // recently.
     for shader in shaders? {
         let compiled = compiler.compile_into_spirv(
-            &shader.src, 
-            shader.kind, 
-            &shader.src_path.to_str().unwrap(), 
-            "main", 
-            None
+            &shader.src,
+            shader.kind,
+            &shader.src_path.to_str().unwrap(),
+            "main",
+            None,
         )?;
         write(shader.spv_path, compiled.as_binary_u8())?;
     }

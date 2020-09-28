@@ -1,14 +1,14 @@
-use crate::state::{self, GameState};
 use crate::input;
+use crate::state::{self, GameState};
 use crate::util;
 
 pub trait System {
     #[allow(unused_variables)]
     fn start(&mut self, state: &mut state::State) {}
     fn update_state(
-        &self, 
-        input: &input::Input, 
-        state: &mut state::State, 
+        &self,
+        input: &input::Input,
+        state: &mut state::State,
         events: &mut Vec<state::Event>,
     );
 }
@@ -16,14 +16,19 @@ pub trait System {
 pub struct VisibilitySystem;
 impl System for VisibilitySystem {
     fn update_state(
-        &self, 
-        _input: &input::Input, 
-        state: &mut state::State, 
+        &self,
+        _input: &input::Input,
+        state: &mut state::State,
         _events: &mut Vec<state::Event>,
     ) {
         let gs = state.game_state;
 
-        let is_in_game = any!(gs, GameState::Serving, GameState::Playing, GameState::GameOver);
+        let is_in_game = any!(
+            gs,
+            GameState::Serving,
+            GameState::Playing,
+            GameState::GameOver
+        );
         state.ball.visible = is_in_game && gs != GameState::GameOver;
         state.player1.visible = is_in_game;
         state.player1_score.visible = is_in_game;
@@ -52,12 +57,11 @@ impl System for MenuSystem {
     }
 
     fn update_state(
-        &self, 
+        &self,
         input: &input::Input,
-        state: &mut state::State, 
-        events: &mut Vec<state::Event>
+        state: &mut state::State,
+        events: &mut Vec<state::Event>,
     ) {
-
         if state.play_button.focused && input.ui_down_pressed() {
             events.push(state::Event::FocusChanged);
             state.play_button.focused = false;
@@ -80,12 +84,11 @@ impl System for MenuSystem {
 
 pub struct PlaySystem;
 impl System for PlaySystem {
-
     fn update_state(
-        &self, 
+        &self,
         input: &input::Input,
         state: &mut state::State,
-         _events: &mut Vec<state::Event>,
+        _events: &mut Vec<state::Event>,
     ) {
         // move the players
         if input.p1_up_pressed {
@@ -119,14 +122,13 @@ impl System for PlaySystem {
     }
 }
 
-
 pub struct BallSystem;
 
 impl System for BallSystem {
     fn update_state(
-        &self, 
+        &self,
         _input: &input::Input,
-        state: &mut state::State, 
+        state: &mut state::State,
         events: &mut Vec<state::Event>,
     ) {
         // bounce the ball off the players
@@ -164,7 +166,6 @@ impl System for BallSystem {
     }
 }
 
-
 pub struct ServingSystem {
     last_time: std::time::Instant,
 }
@@ -190,7 +191,7 @@ impl System for ServingSystem {
     fn update_state(
         &self,
         _input: &input::Input,
-        state: &mut state::State, 
+        state: &mut state::State,
         _events: &mut Vec<state::Event>,
     ) {
         let current_time = std::time::Instant::now();
@@ -207,7 +208,7 @@ pub struct GameOverSystem {
 
 impl GameOverSystem {
     pub fn new() -> Self {
-        Self { 
+        Self {
             last_time: std::time::Instant::now(),
         }
     }
@@ -219,7 +220,7 @@ impl System for GameOverSystem {
 
         state.player1_score.text = format!("{}", state.player1.score);
         state.player2_score.text = format!("{}", state.player2.score);
-        
+
         state.win_text.text = if state.player1.score > state.player2.score {
             String::from("Player 1 wins!")
         } else {
@@ -227,7 +228,8 @@ impl System for GameOverSystem {
         };
     }
 
-    fn update_state(&self,
+    fn update_state(
+        &self,
         _input: &input::Input,
         state: &mut state::State,
         _events: &mut Vec<state::Event>,

@@ -1,15 +1,15 @@
 use cgmath::prelude::*;
+use futures::executor::block_on;
+use std::path::Path;
+use std::time::{Duration, Instant};
 use winit::{
     event::*,
     event_loop::{ControlFlow, EventLoop},
     window::Window,
 };
-use futures::executor::block_on;
-use std::path::Path;
-use std::time::{Duration, Instant};
 
-mod pipeline;
 mod model;
+mod pipeline;
 mod texture;
 
 use model::{DrawLight, DrawModel, Vertex};
@@ -41,7 +41,6 @@ impl Camera {
         proj * view
     }
 }
-
 
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -155,8 +154,8 @@ impl CameraController {
         let forward_mag = forward.magnitude();
 
         if self.is_right_pressed {
-            // Rescale the distance between the target and eye so 
-            // that it doesn't change. The eye therefore still 
+            // Rescale the distance between the target and eye so
+            // that it doesn't change. The eye therefore still
             // lies on the circle made by the target and eye.
             camera.eye = camera.target - (forward + right * self.speed).normalize() * forward_mag;
         }
@@ -174,7 +173,8 @@ struct Instance {
 impl Instance {
     fn to_raw(&self) -> InstanceRaw {
         InstanceRaw {
-            model: cgmath::Matrix4::from_translation(self.position) * cgmath::Matrix4::from(self.rotation),
+            model: cgmath::Matrix4::from_translation(self.position)
+                * cgmath::Matrix4::from(self.rotation),
         }
     }
 }
@@ -226,7 +226,6 @@ struct State {
     debug_material: model::Material,
 }
 
-
 impl State {
     async fn new(window: &Window) -> Self {
         let size = window.inner_size();
@@ -239,15 +238,18 @@ impl State {
                 compatible_surface: Some(&surface),
             },
             wgpu::BackendBit::PRIMARY, // Vulkan + Metal + DX12 + Browser WebGPU
-        ).await.unwrap();
+        )
+        .await
+        .unwrap();
 
-        let (device, queue) = adapter.request_device(&wgpu::DeviceDescriptor {
-            extensions: wgpu::Extensions {
-                anisotropic_filtering: false,
-            },
-            limits: Default::default(),
-        }).await;
-
+        let (device, queue) = adapter
+            .request_device(&wgpu::DeviceDescriptor {
+                extensions: wgpu::Extensions {
+                    anisotropic_filtering: false,
+                },
+                limits: Default::default(),
+            })
+            .await;
 
         let sc_desc = wgpu::SwapChainDescriptor {
             usage: wgpu::TextureUsage::OUTPUT_ATTACHMENT,
@@ -259,7 +261,8 @@ impl State {
 
         let swap_chain = device.create_swap_chain(&surface, &sc_desc);
 
-        let texture_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+        let texture_bind_group_layout =
+            device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
                 bindings: &[
                     wgpu::BindGroupLayoutEntry {
                         binding: 0,
@@ -340,10 +343,7 @@ impl State {
             })
             .collect::<Vec<_>>();
 
-        let instance_data = instances
-            .iter()
-            .map(Instance::to_raw)
-            .collect::<Vec<_>>();
+        let instance_data = instances.iter().map(Instance::to_raw).collect::<Vec<_>>();
 
         let instance_buffer_size =
             instance_data.len() * std::mem::size_of::<cgmath::Matrix4<f32>>();
@@ -395,10 +395,11 @@ impl State {
 
         let res_dir = Path::new(env!("OUT_DIR")).join("res");
         let (obj_model, cmds) = model::Model::load(
-            &device, 
-            &texture_bind_group_layout, 
+            &device,
+            &texture_bind_group_layout,
             res_dir.join("cube.obj"),
-        ).unwrap();
+        )
+        .unwrap();
 
         queue.submit(&cmds);
 
@@ -435,7 +436,8 @@ impl State {
             label: None,
         });
 
-        let depth_texture = texture::Texture::create_depth_texture(&device, &sc_desc, "depth_texture");
+        let depth_texture =
+            texture::Texture::create_depth_texture(&device, &sc_desc, "depth_texture");
 
         let render_pipeline_layout =
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
@@ -453,7 +455,8 @@ impl State {
             .vertex_buffer(model::ModelVertex::desc())
             .vertex_shader(include_bytes!("shader.vert.spv"))
             .fragment_shader(include_bytes!("shader.frag.spv"))
-            .build(&device).unwrap();
+            .build(&device)
+            .unwrap();
 
         let light_render_pipeline = {
             let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
@@ -467,7 +470,8 @@ impl State {
                 .vertex_buffer(model::ModelVertex::desc())
                 .vertex_shader(include_bytes!("light.vert.spv"))
                 .fragment_shader(include_bytes!("light.frag.spv"))
-                .build(&device).unwrap()
+                .build(&device)
+                .unwrap()
         };
 
         let debug_material = {
@@ -475,13 +479,23 @@ impl State {
             let normal_bytes = include_bytes!("../res/cobble-normal.png");
 
             let mut command_buffers = vec![];
-            let (diffuse_texture, cmds) = texture::Texture::from_bytes(&device, diffuse_bytes, "res/alt-diffuse.png", false).unwrap();
+            let (diffuse_texture, cmds) =
+                texture::Texture::from_bytes(&device, diffuse_bytes, "res/alt-diffuse.png", false)
+                    .unwrap();
             command_buffers.push(cmds);
-            let (normal_texture, cmds) = texture::Texture::from_bytes(&device, normal_bytes, "res/alt-normal.png", true).unwrap();
+            let (normal_texture, cmds) =
+                texture::Texture::from_bytes(&device, normal_bytes, "res/alt-normal.png", true)
+                    .unwrap();
             command_buffers.push(cmds);
             queue.submit(&command_buffers);
-            
-            model::Material::new(&device, "alt-material", diffuse_texture, normal_texture, &texture_bind_group_layout)
+
+            model::Material::new(
+                &device,
+                "alt-material",
+                diffuse_texture,
+                normal_texture,
+                &texture_bind_group_layout,
+            )
         };
 
         Self {
@@ -508,7 +522,6 @@ impl State {
             #[allow(dead_code)]
             debug_material,
         }
-
     }
 
     fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
@@ -517,7 +530,8 @@ impl State {
         self.sc_desc.width = new_size.width;
         self.sc_desc.height = new_size.height;
         self.swap_chain = self.device.create_swap_chain(&self.surface, &self.sc_desc);
-        self.depth_texture = texture::Texture::create_depth_texture(&self.device, &self.sc_desc, "depth_texture");
+        self.depth_texture =
+            texture::Texture::create_depth_texture(&self.device, &self.sc_desc, "depth_texture");
     }
 
     fn input(&mut self, event: &WindowEvent) -> bool {
@@ -528,8 +542,9 @@ impl State {
         self.camera_controller.update_camera(&mut self.camera);
         self.uniforms.update_view_proj(&self.camera);
 
-        let mut encoder =
-            self.device.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
+        let mut encoder = self
+            .device
+            .create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
 
         let staging_buffer = self.device.create_buffer_with_data(
             bytemuck::cast_slice(&[self.uniforms]),
@@ -546,11 +561,10 @@ impl State {
 
         // Update the light
         let old_position = self.light.position;
-        self.light.position =
-            cgmath::Quaternion::from_axis_angle(
-                (0.0, 1.0, 0.0).into(), 
-                cgmath::Deg(45.0) * dt.as_secs_f32()
-            ) * old_position;
+        self.light.position = cgmath::Quaternion::from_axis_angle(
+            (0.0, 1.0, 0.0).into(),
+            cgmath::Deg(45.0) * dt.as_secs_f32(),
+        ) * old_position;
 
         let staging_buffer = self.device.create_buffer_with_data(
             bytemuck::cast_slice(&[self.light]),
@@ -568,11 +582,13 @@ impl State {
     }
 
     fn render(&mut self) {
-        let frame = self.swap_chain.get_next_texture()
+        let frame = self
+            .swap_chain
+            .get_next_texture()
             .expect("Timeout getting texture");
-        let mut encoder = self.device.create_command_encoder(&wgpu::CommandEncoderDescriptor { 
-            label: None
-        });
+        let mut encoder = self
+            .device
+            .create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
 
         {
             let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
@@ -598,7 +614,7 @@ impl State {
                     clear_stencil: 0,
                 }),
             });
-            
+
             render_pass.set_pipeline(&self.light_render_pipeline);
             render_pass.draw_light_model(
                 &self.obj_model,
@@ -637,8 +653,10 @@ fn main() {
             ControlFlow::Wait
         };
         match event {
-            Event::MainEventsCleared => if is_focused {
-                window.request_redraw();
+            Event::MainEventsCleared => {
+                if is_focused {
+                    window.request_redraw();
+                }
             }
             Event::WindowEvent {
                 ref event,

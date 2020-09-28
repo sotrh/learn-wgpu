@@ -1,18 +1,17 @@
-mod render;
-mod state;
-mod util;
-mod system;
-mod sound;
 mod input;
+mod render;
+mod sound;
+mod state;
+mod system;
+mod util;
 
-use system::System;
 use input::Input;
+use system::System;
 
-use winit::event::*;
-use winit::window::{WindowBuilder, Fullscreen};
-use winit::event_loop::{EventLoop, ControlFlow};
 use futures::executor::block_on;
-
+use winit::event::*;
+use winit::event_loop::{ControlFlow, EventLoop};
+use winit::window::{Fullscreen, WindowBuilder};
 
 fn main() {
     let event_loop = EventLoop::new();
@@ -22,7 +21,8 @@ fn main() {
         .with_visible(false)
         .with_title("Pong")
         .with_fullscreen(Some(Fullscreen::Exclusive(video_mode.clone())))
-        .build(&event_loop).unwrap();
+        .build(&event_loop)
+        .unwrap();
     window.set_cursor_visible(false);
 
     let mut render = block_on(render::Render::new(&window, &video_mode));
@@ -124,14 +124,16 @@ fn main() {
                 state.game_state = state::GameState::Quiting;
             }
             Event::WindowEvent {
-                event: WindowEvent::KeyboardInput {
-                    input: KeyboardInput {
-                        state: element_state,
-                        virtual_keycode: Some(key),
+                event:
+                    WindowEvent::KeyboardInput {
+                        input:
+                            KeyboardInput {
+                                state: element_state,
+                                virtual_keycode: Some(key),
+                                ..
+                            },
                         ..
                     },
-                    ..
-                },
                 ..
             } => {
                 let input_handled = match state.game_state {
@@ -145,8 +147,7 @@ fn main() {
             Event::RedrawRequested(_) => {
                 for event in &events {
                     match event {
-                        state::Event::FocusChanged 
-                        | state::Event::ButtonPressed => {
+                        state::Event::FocusChanged | state::Event::ButtonPressed => {
                             sound_system.queue(sound_pack.bounce());
                         }
                         state::Event::BallBounce(_pos) => {
@@ -154,8 +155,7 @@ fn main() {
                         }
                         state::Event::Score(_) => {
                             sound_system.queue(sound_pack.bounce());
-                        }
-                        // _ => {}
+                        } // _ => {}
                     }
                 }
                 events.clear();
@@ -167,14 +167,14 @@ fn main() {
                         if state.game_state == state::GameState::Serving {
                             serving_system.start(&mut state);
                         }
-                    },
+                    }
                     state::GameState::Serving => {
                         serving_system.update_state(&input, &mut state, &mut events);
                         play_system.update_state(&input, &mut state, &mut events);
                         if state.game_state == state::GameState::Playing {
                             play_system.start(&mut state);
                         }
-                    },
+                    }
                     state::GameState::Playing => {
                         ball_system.update_state(&input, &mut state, &mut events);
                         play_system.update_state(&input, &mut state, &mut events);
@@ -183,14 +183,14 @@ fn main() {
                         } else if state.game_state == state::GameState::GameOver {
                             game_over_system.start(&mut state);
                         }
-                    },
+                    }
                     state::GameState::GameOver => {
                         game_over_system.update_state(&input, &mut state, &mut events);
                         if state.game_state == state::GameState::MainMenu {
                             menu_system.start(&mut state);
                         }
-                    },
-                    state::GameState::Quiting => {},
+                    }
+                    state::GameState::Quiting => {}
                 }
 
                 render.render_state(&state);
@@ -203,11 +203,10 @@ fn main() {
     });
 }
 
-
 fn process_input(
     element_state: ElementState,
     keycode: VirtualKeyCode,
-    control_flow: &mut ControlFlow, 
+    control_flow: &mut ControlFlow,
 ) {
     match (keycode, element_state) {
         (VirtualKeyCode::Escape, ElementState::Pressed) => {

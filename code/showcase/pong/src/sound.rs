@@ -15,12 +15,8 @@ impl SoundSystem {
         let sink = rodio::Sink::new(&device);
         sink.set_volume(0.5);
 
-        let spatial_sink = rodio::SpatialSink::new(
-            &device, 
-            [0.0, 0.0, 0.0],
-            [-1.0, 0.0, 0.0],
-            [1.0, 0.0, 0.0],
-        );
+        let spatial_sink =
+            rodio::SpatialSink::new(&device, [0.0, 0.0, 0.0], [-1.0, 0.0, 0.0], [1.0, 0.0, 0.0]);
 
         Self {
             device,
@@ -30,8 +26,8 @@ impl SoundSystem {
     }
 
     #[inline]
-    pub fn queue<S>(&self, sound: S) 
-    where 
+    pub fn queue<S>(&self, sound: S)
+    where
         S: rodio::Source + Send + 'static,
         S::Item: rodio::Sample,
         S::Item: Send,

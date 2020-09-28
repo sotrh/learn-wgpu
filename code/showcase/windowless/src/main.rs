@@ -5,7 +5,9 @@ async fn run() {
             compatible_surface: None,
         },
         wgpu::BackendBit::PRIMARY,
-    ).await.unwrap();
+    )
+    .await
+    .unwrap();
     let (device, queue) = adapter.request_device(&Default::default()).await;
 
     let texture_size = 256u32;
@@ -20,9 +22,7 @@ async fn run() {
         sample_count: 1,
         dimension: wgpu::TextureDimension::D2,
         format: wgpu::TextureFormat::Rgba8UnormSrgb,
-        usage: wgpu::TextureUsage::COPY_SRC
-            | wgpu::TextureUsage::OUTPUT_ATTACHMENT
-            ,
+        usage: wgpu::TextureUsage::COPY_SRC | wgpu::TextureUsage::OUTPUT_ATTACHMENT,
         label: None,
     };
     let texture = device.create_texture(&texture_desc);
@@ -44,8 +44,24 @@ async fn run() {
     let vs_src = include_str!("shader.vert");
     let fs_src = include_str!("shader.frag");
     let mut compiler = shaderc::Compiler::new().unwrap();
-    let vs_spirv = compiler.compile_into_spirv(vs_src, shaderc::ShaderKind::Vertex, "shader.vert", "main", None).unwrap();
-    let fs_spirv = compiler.compile_into_spirv(fs_src, shaderc::ShaderKind::Fragment, "shader.frag", "main", None).unwrap();
+    let vs_spirv = compiler
+        .compile_into_spirv(
+            vs_src,
+            shaderc::ShaderKind::Vertex,
+            "shader.vert",
+            "main",
+            None,
+        )
+        .unwrap();
+    let fs_spirv = compiler
+        .compile_into_spirv(
+            fs_src,
+            shaderc::ShaderKind::Fragment,
+            "shader.frag",
+            "main",
+            None,
+        )
+        .unwrap();
     let vs_data = wgpu::read_spirv(std::io::Cursor::new(vs_spirv.as_binary_u8())).unwrap();
     let fs_data = wgpu::read_spirv(std::io::Cursor::new(fs_spirv.as_binary_u8())).unwrap();
     let vs_module = device.create_shader_module(&vs_data);
@@ -73,14 +89,12 @@ async fn run() {
             depth_bias_clamp: 0.0,
         }),
         primitive_topology: wgpu::PrimitiveTopology::TriangleList,
-        color_states: &[
-            wgpu::ColorStateDescriptor {
-                format: texture_desc.format,
-                color_blend: wgpu::BlendDescriptor::REPLACE,
-                alpha_blend: wgpu::BlendDescriptor::REPLACE,
-                write_mask: wgpu::ColorWrite::ALL,
-            },
-        ],
+        color_states: &[wgpu::ColorStateDescriptor {
+            format: texture_desc.format,
+            color_blend: wgpu::BlendDescriptor::REPLACE,
+            alpha_blend: wgpu::BlendDescriptor::REPLACE,
+            write_mask: wgpu::ColorWrite::ALL,
+        }],
         depth_stencil_state: None,
         vertex_state: wgpu::VertexStateDescriptor {
             index_format: wgpu::IndexFormat::Uint16,
@@ -91,26 +105,23 @@ async fn run() {
         alpha_to_coverage_enabled: false,
     });
 
-    let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
-        label: None,
-    });
+    let mut encoder =
+        device.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
 
     {
         let render_pass_desc = wgpu::RenderPassDescriptor {
-            color_attachments: &[
-                wgpu::RenderPassColorAttachmentDescriptor {
-                    attachment: &texture_view,
-                    resolve_target: None,
-                    load_op: wgpu::LoadOp::Clear,
-                    store_op: wgpu::StoreOp::Store,
-                    clear_color: wgpu::Color {
-                        r: 0.1,
-                        g: 0.2,
-                        b: 0.3,
-                        a: 1.0,
-                    },
-                }
-            ],
+            color_attachments: &[wgpu::RenderPassColorAttachmentDescriptor {
+                attachment: &texture_view,
+                resolve_target: None,
+                load_op: wgpu::LoadOp::Clear,
+                store_op: wgpu::StoreOp::Store,
+                clear_color: wgpu::Color {
+                    r: 0.1,
+                    g: 0.2,
+                    b: 0.3,
+                    a: 1.0,
+                },
+            }],
             depth_stencil_attachment: None,
         };
         let mut render_pass = encoder.begin_render_pass(&render_pass_desc);
@@ -141,16 +152,12 @@ async fn run() {
     // the application will freeze.
     let mapping = output_buffer.map_read(0, output_buffer_size);
     device.poll(wgpu::Maintain::Wait);
-    
+
     let result = mapping.await.unwrap();
     let data = result.as_slice();
 
     use image::{ImageBuffer, Rgba};
-    let buffer = ImageBuffer::<Rgba<u8>, _>::from_raw(
-        texture_size,
-        texture_size,
-        data,
-    ).unwrap();
+    let buffer = ImageBuffer::<Rgba<u8>, _>::from_raw(texture_size, texture_size, data).unwrap();
 
     buffer.save("image.png").unwrap();
 }

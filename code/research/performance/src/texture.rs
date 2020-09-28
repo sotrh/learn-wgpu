@@ -23,12 +23,16 @@ impl Texture {
         // The label currently can only be 64 characters, so we'll need
         // to use just the file name for the label.
         let label = path_copy.file_name().unwrap().to_str();
-        
+
         let img = image::open(path)?;
         Self::from_image(device, &img, label, is_normal_map)
     }
 
-    pub fn create_depth_texture(device: &wgpu::Device, sc_desc: &wgpu::SwapChainDescriptor, label: &str) -> Self {
+    pub fn create_depth_texture(
+        device: &wgpu::Device,
+        sc_desc: &wgpu::SwapChainDescriptor,
+        label: &str,
+    ) -> Self {
         let size = wgpu::Extent3d {
             width: sc_desc.width,
             height: sc_desc.height,
@@ -43,7 +47,7 @@ impl Texture {
             dimension: wgpu::TextureDimension::D2,
             format: Self::DEPTH_FORMAT,
             usage: wgpu::TextureUsage::OUTPUT_ATTACHMENT
-                | wgpu::TextureUsage::SAMPLED 
+                | wgpu::TextureUsage::SAMPLED
                 | wgpu::TextureUsage::COPY_SRC,
         };
         let texture = device.create_texture(&desc);
@@ -61,14 +65,18 @@ impl Texture {
             compare: wgpu::CompareFunction::LessEqual,
         });
 
-        Self { texture, view, sampler }
+        Self {
+            texture,
+            view,
+            sampler,
+        }
     }
 
     #[allow(dead_code)]
     pub fn from_bytes(
-        device: &wgpu::Device, 
-        bytes: &[u8], 
-        label: &str, 
+        device: &wgpu::Device,
+        bytes: &[u8],
+        label: &str,
         is_normal_map: bool,
     ) -> Result<(Self, wgpu::CommandBuffer), failure::Error> {
         let img = image::load_from_memory(bytes)?;
@@ -86,7 +94,7 @@ impl Texture {
 
         if dimensions.0 == 0 || dimensions.1 == 0 {
             bail!(
-                "Image {} has invalid dimensions! {:?}", 
+                "Image {} has invalid dimensions! {:?}",
                 label.unwrap_or("UNAMED_IMAGE"),
                 dimensions
             )
@@ -119,16 +127,11 @@ impl Texture {
         };
         let texture = device.create_texture(&texture_desc);
 
-        let buffer = device.create_buffer_with_data(
-            &rgba, 
-            wgpu::BufferUsage::COPY_SRC,
-        );
+        let buffer = device.create_buffer_with_data(&rgba, wgpu::BufferUsage::COPY_SRC);
 
-        let mut encoder = device.create_command_encoder(
-            &wgpu::CommandEncoderDescriptor {
-                label: Some("texture_buffer_copy_encoder"),
-            }
-        );
+        let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
+            label: Some("texture_buffer_copy_encoder"),
+        });
 
         encoder.copy_buffer_to_texture(
             wgpu::BufferCopyView {
@@ -136,24 +139,24 @@ impl Texture {
                 offset: 0,
                 bytes_per_row: 4 * dimensions.0,
                 rows_per_image: dimensions.1,
-            }, 
+            },
             wgpu::TextureCopyView {
                 texture: &texture,
                 mip_level: 0,
                 array_layer: 0,
                 origin: wgpu::Origin3d::ZERO,
-            }, 
+            },
             size,
         );
 
         // Make sure to do this after you've copied the buffer
         // to the texture, other wise your mipmaps will be black.
         Self::generate_mipmaps(
-            &mut encoder, 
-            &device, 
-            &texture, 
-            &texture_desc, 
-            mip_level_count
+            &mut encoder,
+            &device,
+            &texture,
+            &texture_desc,
+            mip_level_count,
         );
 
         let cmd_buffer = encoder.finish();
@@ -170,8 +173,15 @@ impl Texture {
             lod_max_clamp: 100.0,
             compare: wgpu::CompareFunction::LessEqual,
         });
-        
-        Ok((Self { texture, view, sampler }, cmd_buffer))
+
+        Ok((
+            Self {
+                texture,
+                view,
+                sampler,
+            },
+            cmd_buffer,
+        ))
     }
 
     pub fn generate_mipmaps(
@@ -181,34 +191,28 @@ impl Texture {
         texture_desc: &wgpu::TextureDescriptor,
         mip_count: u32,
     ) {
-        let bind_group_layout = device.create_bind_group_layout(
-            &wgpu::BindGroupLayoutDescriptor {
-                bindings: &[
-                    wgpu::BindGroupLayoutEntry {
-                        binding: 0,
-                        visibility: wgpu::ShaderStage::FRAGMENT,
-                        ty: wgpu::BindingType::SampledTexture {
-                            multisampled: false,
-                            component_type: wgpu::TextureComponentType::Float,
-                            dimension: wgpu::TextureViewDimension::D2,
-                        }
+        let bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+            bindings: &[
+                wgpu::BindGroupLayoutEntry {
+                    binding: 0,
+                    visibility: wgpu::ShaderStage::FRAGMENT,
+                    ty: wgpu::BindingType::SampledTexture {
+                        multisampled: false,
+                        component_type: wgpu::TextureComponentType::Float,
+                        dimension: wgpu::TextureViewDimension::D2,
                     },
-                    wgpu::BindGroupLayoutEntry {
-                        binding: 1,
-                        visibility: wgpu::ShaderStage::FRAGMENT,
-                        ty: wgpu::BindingType::Sampler {
-                            comparison: false,
-                        }
-                    }
-                ],
-                label: None,
-            }
-        );
-        let pipeline_layout = device.create_pipeline_layout(
-            &wgpu::PipelineLayoutDescriptor {
-                bind_group_layouts: &[&bind_group_layout],
-            },
-        );
+                },
+                wgpu::BindGroupLayoutEntry {
+                    binding: 1,
+                    visibility: wgpu::ShaderStage::FRAGMENT,
+                    ty: wgpu::BindingType::Sampler { comparison: false },
+                },
+            ],
+            label: None,
+        });
+        let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+            bind_group_layouts: &[&bind_group_layout],
+        });
 
         // This pipeline will render out a texture to another texture.
         // We create the mipmaps by rendering to increasingly smaller
@@ -220,30 +224,29 @@ impl Texture {
             .fragment_shader(include_bytes!("blit.frag.spv"))
             // Using wgpu::TriangleStrip makes our lives easier in the shader.
             .primitive_topology(wgpu::PrimitiveTopology::TriangleStrip)
-            .build(device).unwrap();
+            .build(device)
+            .unwrap();
 
         // This sampler ensures that the smaller textures get the right
         // color data.
-        let sampler = device.create_sampler(
-            &wgpu::SamplerDescriptor {
-                address_mode_u: wgpu::AddressMode::ClampToEdge,
-                address_mode_v: wgpu::AddressMode::ClampToEdge,
-                address_mode_w: wgpu::AddressMode::ClampToEdge,
-                mag_filter: wgpu::FilterMode::Linear,
-                min_filter: wgpu::FilterMode::Nearest,
-                mipmap_filter: wgpu::FilterMode::Nearest,
-                // Since we are using this sampler to generate mipmaps,
-                // we don't need it the use level of detail values.
-                lod_min_clamp: 0.0,
-                lod_max_clamp: 0.0,
-                compare: wgpu::CompareFunction::Always,
-            }
-        );
+        let sampler = device.create_sampler(&wgpu::SamplerDescriptor {
+            address_mode_u: wgpu::AddressMode::ClampToEdge,
+            address_mode_v: wgpu::AddressMode::ClampToEdge,
+            address_mode_w: wgpu::AddressMode::ClampToEdge,
+            mag_filter: wgpu::FilterMode::Linear,
+            min_filter: wgpu::FilterMode::Nearest,
+            mipmap_filter: wgpu::FilterMode::Nearest,
+            // Since we are using this sampler to generate mipmaps,
+            // we don't need it the use level of detail values.
+            lod_min_clamp: 0.0,
+            lod_max_clamp: 0.0,
+            compare: wgpu::CompareFunction::Always,
+        });
 
         // Create a view for every mip level.
-        let views = (0..mip_count).map(|mip| {
-            texture.create_view(
-                &wgpu::TextureViewDescriptor {
+        let views = (0..mip_count)
+            .map(|mip| {
+                texture.create_view(&wgpu::TextureViewDescriptor {
                     format: texture_desc.format,
                     dimension: wgpu::TextureViewDimension::D2,
                     aspect: wgpu::TextureAspect::All,
@@ -251,44 +254,38 @@ impl Texture {
                     level_count: 1,
                     base_array_layer: 0,
                     array_layer_count: 1,
-                }
-            )
-        }).collect::<Vec<_>>();
+                })
+            })
+            .collect::<Vec<_>>();
 
         // Skip the first view, as that is the base one
         for target_mip in 1..mip_count as usize {
-            let bind_group = device.create_bind_group(
-                &wgpu::BindGroupDescriptor {
-                    layout: &bind_group_layout,
-                    bindings: &[
-                        wgpu::Binding {
-                            binding: 0,
-                            // Bind to the view before this one
-                            resource: wgpu::BindingResource::TextureView(&views[target_mip - 1]),
-                        },
-                        wgpu::Binding {
-                            binding: 1,
-                            resource: wgpu::BindingResource::Sampler(&sampler),
-                        }
-                    ],
-                    label: None,
-                },
-            );
+            let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+                layout: &bind_group_layout,
+                bindings: &[
+                    wgpu::Binding {
+                        binding: 0,
+                        // Bind to the view before this one
+                        resource: wgpu::BindingResource::TextureView(&views[target_mip - 1]),
+                    },
+                    wgpu::Binding {
+                        binding: 1,
+                        resource: wgpu::BindingResource::Sampler(&sampler),
+                    },
+                ],
+                label: None,
+            });
 
-            let mut pass = encoder.begin_render_pass(
-                &wgpu::RenderPassDescriptor {
-                    color_attachments: &[
-                        wgpu::RenderPassColorAttachmentDescriptor {
-                            attachment: &views[target_mip],
-                            resolve_target: None,
-                            clear_color: wgpu::Color::WHITE,
-                            load_op: wgpu::LoadOp::Clear,
-                            store_op: wgpu::StoreOp::Store,
-                        }
-                    ],
-                    depth_stencil_attachment: None,
-                },
-            );
+            let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                color_attachments: &[wgpu::RenderPassColorAttachmentDescriptor {
+                    attachment: &views[target_mip],
+                    resolve_target: None,
+                    clear_color: wgpu::Color::WHITE,
+                    load_op: wgpu::LoadOp::Clear,
+                    store_op: wgpu::StoreOp::Store,
+                }],
+                depth_stencil_attachment: None,
+            });
 
             pass.set_pipeline(&blit_pipeline);
             pass.set_bind_group(0, &bind_group, &[]);

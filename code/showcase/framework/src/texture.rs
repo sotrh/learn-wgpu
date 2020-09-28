@@ -1,10 +1,9 @@
-use image::GenericImageView;
-use std::path::Path;
-use std::mem;
 use anyhow::*;
+use image::GenericImageView;
+use std::mem;
+use std::path::Path;
 
 use crate::buffer;
-
 
 pub struct Texture<'a> {
     pub texture: wgpu::Texture,
@@ -28,10 +27,7 @@ impl<'a> Texture<'a> {
         Self::from_image(device, queue, &img, Some(label), is_normal_map)
     }
 
-    pub fn from_descriptor(
-        device: &wgpu::Device,
-        desc: wgpu::TextureDescriptor<'a>
-    ) -> Self {
+    pub fn from_descriptor(device: &wgpu::Device, desc: wgpu::TextureDescriptor<'a>) -> Self {
         let texture = device.create_texture(&desc);
 
         let view = texture.create_view(&wgpu::TextureViewDescriptor::default());
@@ -48,7 +44,12 @@ impl<'a> Texture<'a> {
             ..Default::default()
         });
 
-        Self { texture, view, sampler, desc }
+        Self {
+            texture,
+            view,
+            sampler,
+            desc,
+        }
     }
 
     pub fn from_bytes(
@@ -59,7 +60,7 @@ impl<'a> Texture<'a> {
         bytes: &[u8],
     ) -> Result<Self> {
         let img = image::load_from_memory(bytes)?;
-        Self::from_image(device, queue, &img, label,  is_normal_map)
+        Self::from_image(device, queue, &img, label, is_normal_map)
     }
 
     pub fn from_image(
@@ -120,11 +121,19 @@ impl<'a> Texture<'a> {
             compare: Some(wgpu::CompareFunction::Always),
             ..Default::default()
         });
-        
-        Ok(Self { texture, view, sampler, desc })
+
+        Ok(Self {
+            texture,
+            view,
+            sampler,
+            desc,
+        })
     }
 
-    pub fn create_depth_texture(device: &wgpu::Device, sc_desc: &wgpu::SwapChainDescriptor) -> Self {
+    pub fn create_depth_texture(
+        device: &wgpu::Device,
+        sc_desc: &wgpu::SwapChainDescriptor,
+    ) -> Self {
         let desc = wgpu::TextureDescriptor {
             label: None,
             size: wgpu::Extent3d {
@@ -141,10 +150,10 @@ impl<'a> Texture<'a> {
         Self::from_descriptor(device, desc)
     }
 
-    pub fn prepare_buffer_rgba(&self, device: &wgpu::Device) -> buffer::RawBuffer<[f32;4]> {
+    pub fn prepare_buffer_rgba(&self, device: &wgpu::Device) -> buffer::RawBuffer<[f32; 4]> {
         let num_pixels = self.desc.size.width * self.desc.size.height * self.desc.size.depth;
 
-        let buffer_size = num_pixels * mem::size_of::<[f32;4]>() as u32;
+        let buffer_size = num_pixels * mem::size_of::<[f32; 4]>() as u32;
         let buffer_usage = wgpu::BufferUsage::COPY_DST | wgpu::BufferUsage::MAP_READ;
         let buffer_desc = wgpu::BufferDescriptor {
             size: buffer_size as wgpu::BufferAddress,

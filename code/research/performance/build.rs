@@ -1,10 +1,10 @@
-use glob::glob;
 use failure::bail;
 use fs_extra::copy_items;
 use fs_extra::dir::CopyOptions;
+use glob::glob;
 use std::env;
 use std::fs::{read_to_string, write};
-use std::path::{PathBuf};
+use std::path::PathBuf;
 
 fn main() {
     copy_res();
@@ -26,20 +26,19 @@ fn copy_res() {
 fn compile_shaders() {
     // This tells cargo to rerun this script if something in /src/ changes.
     println!("cargo:rerun-if-changed=src/*");
-    
+
     // Collect all shaders recursively within /src/
     let mut shader_paths = [
         glob("./src/**/*.vert").unwrap(),
         glob("./src/**/*.frag").unwrap(),
         glob("./src/**/*.comp").unwrap(),
     ];
-    
+
     // This could be parallelized
-    let shaders = shader_paths.iter_mut()
+    let shaders = shader_paths
+        .iter_mut()
         .flatten()
-        .map(|glob_result| {
-            ShaderData::load(glob_result.unwrap()).unwrap()
-        })
+        .map(|glob_result| ShaderData::load(glob_result.unwrap()).unwrap())
         .collect::<Vec<ShaderData>>();
 
     let mut compiler = shaderc::Compiler::new().unwrap();
@@ -50,13 +49,15 @@ fn compile_shaders() {
     // be better just to only compile shaders that have been changed
     // recently.
     for shader in shaders {
-        let compiled = compiler.compile_into_spirv(
-            &shader.src, 
-            shader.kind, 
-            &shader.src_path.to_str().unwrap(), 
-            "main", 
-            None
-        ).unwrap();
+        let compiled = compiler
+            .compile_into_spirv(
+                &shader.src,
+                shader.kind,
+                &shader.src_path.to_str().unwrap(),
+                "main",
+                None,
+            )
+            .unwrap();
         write(shader.spv_path, compiled.as_binary_u8()).unwrap();
     }
 
@@ -83,6 +84,11 @@ impl ShaderData {
         let src = read_to_string(src_path.clone())?;
         let spv_path = src_path.with_extension(format!("{}.spv", extension));
 
-        Ok(Self { src, src_path, spv_path, kind })
+        Ok(Self {
+            src,
+            src_path,
+            spv_path,
+            kind,
+        })
     }
 }
