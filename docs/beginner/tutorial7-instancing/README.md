@@ -2,7 +2,7 @@
 
 Our scene right now is very simple: we have one object centered at (0,0,0). What if we wanted more objects? This is were instancing comes in. 
 
-Instancing allows use to draw the same object multiple times with different properties (position, orientation, size, color, etc.). There are multiple ways of doing instancing. One way would be to modify the uniform buffer to include these properties and then update it before we draw each instance of our object.
+Instancing allows us to draw the same object multiple times with different properties (position, orientation, size, color, etc.). There are multiple ways of doing instancing. One way would be to modify the uniform buffer to include these properties and then update it before we draw each instance of our object.
 
 We don't want to use this method for performance reasons. Updating the uniform buffer for each instance would require multiple buffer copies each frame. On top of that, our method to update the uniform buffer currently requires use to create a new buffer to store the updated data. That's a lot of time wasted between draw calls.
 
@@ -17,9 +17,9 @@ pub fn draw_indexed(
 )
 ```
 
-The `instances` parameter takes a `Range<u32>`. This parameter tells the GPU how many copies, or instances, of our model we want to draw. Currently we are specifying `0..1`, which the GPU will draw our model once, and then it will stop. If we used `0..5`, our code would draw 5 instances.
+The `instances` parameter takes a `Range<u32>`. This parameter tells the GPU how many copies, or instances, of our model we want to draw. Currently we are specifying `0..1`, which instructs the GPU to draw our model once, and then stop. If we used `0..5`, our code would draw 5 instances.
 
-The fact that `instances` is a `Range<u32>` may seem weird as using `1..2` for instances would still draw 1 instance of our object. Seems like it would be simpler to just use a `u32` right? The reason it's a range is because sometimes we don't want to draw **all** of our objects. Sometimes we want to draw a selection of them, because others are not in frame, our we are debugging and want to look at a particular set of instances.
+The fact that `instances` is a `Range<u32>` may seem weird as using `1..2` for instances would still draw 1 instance of our object. Seems like it would be simpler to just use a `u32` right? The reason it's a range is because sometimes we don't want to draw **all** of our objects. Sometimes we want to draw a selection of them, because others are not in frame, or we are debugging and want to look at a particular set of instances.
 
 Ok, now we know how to draw multiple instances of an object, how do we tell wgpu what particular instance to draw? We are going to use something known as an instance buffer.
 
@@ -58,7 +58,7 @@ unsafe impl bytemuck::Pod for InstanceRaw {}
 unsafe impl bytemuck::Zeroable for InstanceRaw {}
 ```
 
-This is the data to will go into the `wgpu::Buffer`. We keep these separate so that we can update the `Instance` as much as we want without needing to mess with matrices. We only need to update the raw data before we draw.
+This is the data that will go into the `wgpu::Buffer`. We keep these separate so that we can update the `Instance` as much as we want without needing to mess with matrices. We only need to update the raw data before we draw.
 
 Let's create a method on `Instance` to convert to `InstanceRaw`.
 
@@ -180,7 +180,7 @@ Self {
 }
 ```
 
-The last change we need to make is in the `render()` method. We need to change the range we're using in `draw_indexed()` to include use the number of instances.
+The last change we need to make is in the `render()` method. We need to change the range we're using in `draw_indexed()` to include the number of instances.
 
 ```rust
 render_pass.set_pipeline(&self.render_pipeline);
@@ -194,7 +194,7 @@ render_pass.draw_indexed(0..self.num_indices, 0, 0..self.instances.len() as _);
 
 <div class="warning">
 
-Make sure if you add new instances to the `Vec` that you recreate the `instance_buffer` and as well as `uniform_bind_group`, otherwise you're new instances won't show up correctly.
+Make sure if you add new instances to the `Vec` that you recreate the `instance_buffer` and as well as `uniform_bind_group`, otherwise your new instances won't show up correctly.
 
 </div>
 
@@ -213,7 +213,7 @@ We declare a storage buffer in a very similar way to how we declare a uniform bl
 
 ## gl_InstanceIndex
 
-This GLSL variable let's use specify what instance we want to use. We can use the `gl_InstanceIndex` to index our `s_models` buffer to get the matrix for the current model.
+This GLSL variable lets us specify what instance we want to use. We can use the `gl_InstanceIndex` to index our `s_models` buffer to get the matrix for the current model.
 
 ```glsl
 void main() {
