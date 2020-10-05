@@ -30,7 +30,7 @@ To enable the Vulkan backend, add this new section to `Cargo.toml`, and do not f
 ``` toml
 [dependencies.wgpu]
 version = "0.6"
-features = ["vulkan"]
+features = ["vulkan-portability"]
 ```
 
 - This may not be necessary because normally `wgpu-rs` validation will catch problems. In fact that is one of it's
