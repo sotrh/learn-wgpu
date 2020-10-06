@@ -62,6 +62,14 @@ let vertex_buffer = device.create_buffer_init(
 );
 ```
 
+To access the `create_buffer_init` method on `wgpu::Device` we'll have to import the [DeviceExt](https://docs.rs/wgpu/0.6.0/wgpu/util/trait.DeviceExt.html#tymethod.create_buffer_init) extension trait. For more information on extension traits, check out [this article](http://xion.io/post/code/rust-extension-traits.html). 
+
+To import the extension trait, this line somewhere near the top of `main.rs`.
+
+```rust
+use wgpu::DeviceExt;
+```
+
 You'll note that we're using [bytemuck](https://docs.rs/bytemuck/1.2.0/bytemuck/) to cast our `VERTICES`. The `create_buffer_init()` method expects a `&[u8]`, and `bytemuck::cast_slice` does that for us. Add the following to your `Cargo.toml`.
 
 ```toml
