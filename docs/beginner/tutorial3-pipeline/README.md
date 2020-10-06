@@ -11,7 +11,7 @@ A vertex is a point in 3d space (can also be 2d). These vertices are then bundle
 
 <img src="./tutorial3-pipeline-vertices.png" />
 
-Most modern rendering uses triangles to make all shapes, from simple (such as cubes) to complex (such as people).
+Most modern rendering uses triangles to make all shapes, from simple (such as cubes), to complex (such as people).
 
 <!-- Todo: Find/make an image to put here -->
 
