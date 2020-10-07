@@ -375,7 +375,7 @@ The `ops` field takes a `wpgu::Operations` object. This tells wgpu what to do wi
 
 <div class="note">
 
-It's not uncommon to not clear the screen if the screen is going to be completely covered up with objects. If you're scene doesn't cover the entire screen however you'll end up with something like this.
+It's not uncommon to not clear the screen if the screen is going to be completely covered up with objects. If your scene doesn't cover the entire screen however you'll end up with something like this.
 
 ![./no-clear.png](./no-clear.png)
 
