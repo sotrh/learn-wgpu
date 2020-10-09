@@ -513,7 +513,7 @@ The texture creation code in `new()` gets a lot simpler.
 
 ```rust
 let diffuse_bytes = include_bytes!("happy-tree.png");
-let diffuse_texture = texture::Texture::from_bytes(&device, diffuse_bytes, "happy-tree.png").unwrap();
+let diffuse_texture = texture::Texture::from_bytes(&device, &queue, diffuse_bytes, "happy-tree.png").unwrap();
 ```
 
 Creating the `diffuse_bind_group` changes slightly to use the `view` and `sampler` fields of our `diffuse_texture`.
