@@ -20,7 +20,7 @@ We use a vertex shader to manipulate a list of vertices, in order to transform t
 You can think of a fragment as the beginnings of a pixel in the resulting image. Each fragment has a color that will be copied to its corresponding pixel. The fragment shader decides what color the fragment will be.
 
 ## GLSL and SPIR-V
-Shaders in `wgpu` are written with a binary language called [SPIR-V](https://www.khronos.org/registry/spir-v/). SPIR-V is designed for computers to read, not people, so we're going to use a language called GLSL to write our code, and then convert that to SPIR-V.
+Shaders in `wgpu` are written with a binary language called [SPIR-V](https://www.khronos.org/registry/spir-v/). SPIR-V is designed for computers to read, not people, so we're going to use a language called GLSL (specifically, with `wgpu` we need to use the [Vulkan flavor of GLSL](https://github.com/KhronosGroup/GLSL/blob/master/extensions/khr/GL_KHR_vulkan_glsl.txt)) to write our code, and then convert that to SPIR-V.
 
 In order to do that, we're going to need something to do the conversion. Add the following crate to your dependencies.
 
