@@ -198,7 +198,7 @@ One more thing: we need to actually set the vertex buffer in the render method o
 // render()
 render_pass.set_pipeline(&self.render_pipeline);
 // NEW!
-render_pass.set_vertex_buffer(0, &self.vertex_buffer.slice(..));
+render_pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
 render_pass.draw(0..3, 0..1);
 ```
 
@@ -369,8 +369,8 @@ All we have to do now is update the `render()` method to use the `index_buffer`.
 ```rust
 // render()
 render_pass.set_pipeline(&self.render_pipeline);
-render_pass.set_vertex_buffer(0, &self.vertex_buffer(..));
-render_pass.set_index_buffer(&self.index_buffer.slice(..)); // 1.
+render_pass.set_vertex_buffer(0, self.vertex_buffer(..));
+render_pass.set_index_buffer(self.index_buffer.slice(..)); // 1.
 render_pass.draw_indexed(0..self.num_indices, 0, 0..1); // 2.
 ```
 
