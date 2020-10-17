@@ -295,10 +295,10 @@ We've removed shaderc from our dependencies and added a new `[build-depencies]` 
 Now we can put some code in our `build.rs`.
 
 ```rust
-use glob::glob;
 use anyhow::*;
+use glob::glob;
 use std::fs::{read_to_string, write};
-use std::path::{PathBuf};
+use std::path::PathBuf;
 
 struct ShaderData {
     src: String,
@@ -309,7 +309,8 @@ struct ShaderData {
 
 impl ShaderData {
     pub fn load(src_path: PathBuf) -> Result<Self> {
-        let extension = src_path.extension()
+        let extension = src_path
+            .extension()
             .context("File has no extension")?
             .to_str()
             .context("Extension cannot be converted to &str")?;
@@ -323,14 +324,16 @@ impl ShaderData {
         let src = read_to_string(src_path.clone())?;
         let spv_path = src_path.with_extension(format!("{}.spv", extension));
 
-        Ok(Self { src, src_path, spv_path, kind })
+        Ok(Self {
+            src,
+            src_path,
+            spv_path,
+            kind,
+        })
     }
 }
 
 fn main() -> Result<()> {
-    // This tells cargo to rerun this script if something in /src/ changes.
-    println!("cargo:rerun-if-changed=src/*");
-
     // Collect all shaders recursively within /src/
     let mut shader_paths = [
         glob("./src/**/*.vert")?,
@@ -339,30 +342,31 @@ fn main() -> Result<()> {
     ];
 
     // This could be parallelized
-    let shaders = shader_paths.iter_mut()
+    let shaders = shader_paths
+        .iter_mut()
         .flatten()
-        .map(|glob_result| {
-            ShaderData::load(glob_result?)
-        })
+        .map(|glob_result| ShaderData::load(glob_result?))
         .collect::<Vec<Result<_>>>()
         .into_iter()
-        .collect::<Result<Vec<_>>>();
+        .collect::<Result<Vec<_>>>()?;
 
-    let mut compiler = shaderc::Compiler::new()
-        .context("Unable to create shader compiler")?;
+    let mut compiler = shaderc::Compiler::new().context("Unable to create shader compiler")?;
 
     // This can't be parallelized. The [shaderc::Compiler] is not
     // thread safe. Also, it creates a lot of resources. You could
     // spawn multiple processes to handle this, but it would probably
     // be better just to only compile shaders that have been changed
     // recently.
-    for shader in shaders? {
+    for shader in shaders {
+        // This tells cargo to rerun this script if something in /src/ changes.
+        println!("cargo:rerun-if-changed={:?}", shader.src_path);
+        
         let compiled = compiler.compile_into_spirv(
             &shader.src,
             shader.kind,
             &shader.src_path.to_str().unwrap(),
             "main",
-            None
+            None,
         )?;
         write(shader.spv_path, compiled.as_binary_u8())?;
     }

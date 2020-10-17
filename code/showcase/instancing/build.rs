@@ -1,68 +1,10 @@
-use failure::bail;
+use anyhow::*;
 use fs_extra::copy_items;
 use fs_extra::dir::CopyOptions;
 use glob::glob;
 use std::env;
 use std::fs::{read_to_string, write};
 use std::path::PathBuf;
-
-fn main() {
-    copy_res();
-    compile_shaders();
-}
-
-fn copy_res() {
-    // This tells cargo to rerun this script if something in /res/ changes.
-    println!("cargo:rerun-if-changed=res/*");
-
-    let out_dir = env::var("OUT_DIR").unwrap();
-    let mut copy_options = CopyOptions::new();
-    copy_options.overwrite = true;
-    let mut paths_to_copy = Vec::new();
-    paths_to_copy.push("res/");
-    copy_items(&paths_to_copy, out_dir, &copy_options).unwrap();
-}
-
-fn compile_shaders() {
-    // This tells cargo to rerun this script if something in /src/ changes.
-    println!("cargo:rerun-if-changed=src/*");
-
-    // Collect all shaders recursively within /src/
-    let mut shader_paths = [
-        glob("./src/**/*.vert").unwrap(),
-        glob("./src/**/*.frag").unwrap(),
-        glob("./src/**/*.comp").unwrap(),
-    ];
-
-    // This could be parallelized
-    let shaders = shader_paths
-        .iter_mut()
-        .flatten()
-        .map(|glob_result| ShaderData::load(glob_result.unwrap()).unwrap())
-        .collect::<Vec<ShaderData>>();
-
-    let mut compiler = shaderc::Compiler::new().unwrap();
-
-    // This can't be parallelized. The [shaderc::Compiler] is not
-    // thread safe. Also, it creates a lot of resources. You could
-    // spawn multiple processes to handle this, but it would probably
-    // be better just to only compile shaders that have been changed
-    // recently.
-    for shader in shaders {
-        let compiled = compiler
-            .compile_into_spirv(
-                &shader.src,
-                shader.kind,
-                &shader.src_path.to_str().unwrap(),
-                "main",
-                None,
-            )
-            .unwrap();
-        write(shader.spv_path, compiled.as_binary_u8()).unwrap();
-    }
-
-    // panic!("Debugging...");
-}
 
 struct ShaderData {
     src: String,
@@ -72,8 +14,12 @@ struct ShaderData {
 }
 
 impl ShaderData {
-    pub fn load(src_path: PathBuf) -> Result<Self, failure::Error> {
-        let extension = src_path.extension().unwrap().to_str().unwrap();
+    pub fn load(src_path: PathBuf) -> Result<Self> {
+        let extension = src_path
+            .extension()
+            .context("File has no extension")?
+            .to_str()
+            .context("Extension cannot be converted to &str")?;
         let kind = match extension {
             "vert" => shaderc::ShaderKind::Vertex,
             "frag" => shaderc::ShaderKind::Fragment,
@@ -91,4 +37,58 @@ impl ShaderData {
             kind,
         })
     }
+}
+
+fn main() -> Result<()> {
+    // Collect all shaders recursively within /src/
+    let mut shader_paths = [
+        glob("./src/**/*.vert")?,
+        glob("./src/**/*.frag")?,
+        glob("./src/**/*.comp")?,
+    ];
+
+    // This could be parallelized
+    let shaders = shader_paths
+        .iter_mut()
+        .flatten()
+        .map(|glob_result| ShaderData::load(glob_result?))
+        .collect::<Vec<Result<_>>>()
+        .into_iter()
+        .collect::<Result<Vec<_>>>()?;
+
+    let mut compiler = shaderc::Compiler::new().context("Unable to create shader compiler")?;
+
+    // This can't be parallelized. The [shaderc::Compiler] is not
+    // thread safe. Also, it creates a lot of resources. You could
+    // spawn multiple processes to handle this, but it would probably
+    // be better just to only compile shaders that have been changed
+    // recently.
+    for shader in shaders {
+        // This tells cargo to rerun this script if something in /src/ changes.
+        println!("cargo:rerun-if-changed={:?}", shader.src_path);
+
+        let compiled = compiler.compile_into_spirv(
+            &shader.src,
+            shader.kind,
+            &shader.src_path.to_str().unwrap(),
+            "main",
+            None,
+        )?;
+        write(shader.spv_path, compiled.as_binary_u8())?;
+    }
+
+    // This tells cargo to rerun this script if something in /res/ changes.
+    println!("cargo:rerun-if-changed=res/*");
+
+    let out_dir = env::var("OUT_DIR")?;
+    let mut copy_options = CopyOptions::new();
+    copy_options.overwrite = true;
+    let mut paths_to_copy = Vec::new();
+    paths_to_copy.push("res/");
+    match copy_items(&paths_to_copy, out_dir, &copy_options) {
+        Ok(_) => {}
+        Err(e) => eprintln!("{}", e),
+    }
+
+    Ok(())
 }
