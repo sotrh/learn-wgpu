@@ -7,7 +7,7 @@ I've been putting this off for a while. Implementing a camera isn't specifically
 ```rust
 use cgmath::*;
 use winit::event::*;
-use winit::dpi::LogicalPosition;
+use winit::dpi::PhysicalPosition;
 use std::time::Duration;
 use std::f32::consts::FRAC_PI_2;
 
@@ -184,7 +184,7 @@ impl CameraController {
         self.scroll = -match delta {
             // I'm assuming a line is about 100 pixels
             MouseScrollDelta::LineDelta(_, scroll) => scroll * 100.0,
-            MouseScrollDelta::PixelDelta(LogicalPosition {
+            MouseScrollDelta::PixelDelta(PhysicalPosition {
                 y: scroll,
                 ..
             }) => *scroll as f32,
