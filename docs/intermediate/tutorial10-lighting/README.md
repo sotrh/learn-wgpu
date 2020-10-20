@@ -59,10 +59,14 @@ Don't forget to add the `light` and `light_buffer` to `State`. After that we nee
 ```rust
 let light_bind_group_layout =
     device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-        bindings: &[wgpu::BindGroupLayoutEntry {
-            binding: 0,
+        entries: &[wgpu::BindGroupLayoutEntry {
+        binding: 0,
             visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
-            ty: wgpu::BindingType::UniformBuffer { dynamic: false },
+            ty: wgpu::BindingType::UniformBuffer {
+                dynamic: false,
+                min_binding_size: None,
+            },
+            count: None,
         }],
         label: None,
     });
