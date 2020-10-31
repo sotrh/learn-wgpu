@@ -193,11 +193,11 @@ let diffuse_bind_group = device.create_bind_group(
         entries: &[
             wgpu::BindGroupEntry {
                 binding: 0,
-                resource: wgpu::BindingResource::TextureView(&diffuse_texture.view),
+                resource: wgpu::BindingResource::TextureView(&diffuse_texture_view),
             },
             wgpu::BindGroupEntry {
                 binding: 1,
-                resource: wgpu::BindingResource::Sampler(&diffuse_texture.sampler),
+                resource: wgpu::BindingResource::Sampler(&diffuse_sampler),
             }
         ],
         label: Some("diffuse_bind_group"),
