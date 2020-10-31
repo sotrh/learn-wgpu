@@ -3,7 +3,6 @@ use std::iter;
 use cgmath::prelude::*;
 use wgpu::util::DeviceExt;
 use winit::{
-    dpi::PhysicalPosition,
     event::*,
     event_loop::{ControlFlow, EventLoop},
     window::Window,
@@ -103,7 +102,6 @@ struct State {
     #[allow(dead_code)]
     debug_material: model::Material,
     // NEW!
-    last_mouse_pos: PhysicalPosition<f64>,
     mouse_pressed: bool,
 }
 
@@ -474,7 +472,6 @@ impl State {
             #[allow(dead_code)]
             debug_material,
             // NEW!
-            last_mouse_pos: (0.0, 0.0).into(),
             mouse_pressed: false,
         }
     }
@@ -512,15 +509,6 @@ impl State {
                 ..
             } => {
                 self.mouse_pressed = *state == ElementState::Pressed;
-                true
-            }
-            WindowEvent::CursorMoved { position, .. } => {
-                let mouse_dx = position.x - self.last_mouse_pos.x;
-                let mouse_dy = position.y - self.last_mouse_pos.y;
-                self.last_mouse_pos = *position;
-                if self.mouse_pressed {
-                    self.camera_controller.process_mouse(mouse_dx, mouse_dy);
-                }
                 true
             }
             _ => false,
@@ -619,6 +607,15 @@ fn main() {
         *control_flow = ControlFlow::Poll;
         match event {
             Event::MainEventsCleared => window.request_redraw(),
+            Event::DeviceEvent { event, .. } => match event {
+              DeviceEvent::MouseMotion { delta } => {
+                  let (x, y) = delta;
+                  if state.mouse_pressed {
+                      state.camera_controller.process_mouse(x, y);
+                  }
+              }
+              _ => {}
+            },
             Event::WindowEvent {
                 ref event,
                 window_id,
