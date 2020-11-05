@@ -35,11 +35,12 @@ To make *uniform buffers* portable they have to be std140 and not std430.
 
 ## std140 (since GLSL 1.4, OpenGL 3.1)
 
-Array
+Array:
 
 - determine the alignment of the member type and lets name it `align_member`
 - the alignment of the array is maximum(`align_member`, 16)
-Struct
+
+Struct:
 
 - determine the member with the largest alignment and lets name it `max_member_align`
 - the alignment of the array is maximum(`max_member_align`, 16)

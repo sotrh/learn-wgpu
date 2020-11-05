@@ -1,0 +1,8 @@
+[package]
+name = "alignment"
+version = "0.1.0"
+authors = ["Benedikt Mandelkow <benedikt.mandelkow@rwth-aachen.de>"]
+edition = "2018"
+
+[dependencies]
+# TODO when crevice gets support for deriving Std430/ Std140 use those in the examples as well
