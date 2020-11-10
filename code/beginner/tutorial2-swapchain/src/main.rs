@@ -107,7 +107,6 @@ impl State {
             });
         }
 
-        // submit will accept anything that implements IntoIter
         self.queue.submit(iter::once(encoder.finish()));
 
         Ok(())

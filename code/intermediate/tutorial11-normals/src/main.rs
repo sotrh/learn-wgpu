@@ -629,11 +629,10 @@ impl State {
             .write_buffer(&self.light_buffer, 0, bytemuck::cast_slice(&[self.light]));
     }
 
-    fn render(&mut self) {
+    fn render(&mut self) -> Result<(), wgpu::SwapChainError> {
         let frame = self
             .swap_chain
-            .get_current_frame()
-            .expect("Timeout getting texture")
+            .get_current_frame()?
             .output;
 
         let mut encoder = self
@@ -683,6 +682,8 @@ impl State {
             );
         }
         self.queue.submit(iter::once(encoder.finish()));
+
+        Ok(())
     }
 }
 
@@ -729,7 +730,15 @@ fn main() {
             }
             Event::RedrawRequested(_) => {
                 state.update();
-                state.render();
+                match state.render() {
+                    Ok(_) => {}
+                    // Recreate the swap_chain if lost
+                    Err(wgpu::SwapChainError::Lost) => state.resize(state.size),
+                    // The systems out of memory, we should probably quit
+                    Err(wgpu::SwapChainError::OutOfMemory) => *control_flow = ControlFlow::Exit,
+                    // All other errors (Outdated, Timeout) should be resolved by the next frame
+                    Err(e) => eprintln!("{:?}", e),
+                }
             }
             _ => {}
         }

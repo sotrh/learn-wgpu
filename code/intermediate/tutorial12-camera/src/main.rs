@@ -547,11 +547,10 @@ impl State {
             .write_buffer(&self.light_buffer, 0, bytemuck::cast_slice(&[self.light]));
     }
 
-    fn render(&mut self) {
+    fn render(&mut self) -> Result<(), wgpu::SwapChainError> {
         let frame = self
             .swap_chain
-            .get_current_frame()
-            .expect("Timeout getting texture")
+            .get_current_frame()?
             .output;
 
         let mut encoder = self
@@ -601,6 +600,8 @@ impl State {
             );
         }
         self.queue.submit(iter::once(encoder.finish()));
+
+        Ok(())
     }
 }
 
