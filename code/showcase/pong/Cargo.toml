@@ -8,7 +8,7 @@ edition = "2018"
 winit = "0.22"
 shaderc = "0.6"
 anyhow = "1.0"
-bytemuck = "1.4"
+bytemuck = { version = "1.4", features = [ "derive" ] }
 cgmath = "0.17"
 futures = "0.3"
 wgpu = "0.6"

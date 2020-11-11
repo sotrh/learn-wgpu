@@ -70,18 +70,33 @@ To import the extension trait, this line somewhere near the top of `main.rs`.
 use wgpu::util::DeviceExt;
 ```
 
-You'll note that we're using [bytemuck](https://docs.rs/bytemuck/1.2.0/bytemuck/) to cast our `VERTICES`. The `create_buffer_init()` method expects a `&[u8]`, and `bytemuck::cast_slice` does that for us. Add the following to your `Cargo.toml`.
+You'll note that we're using [bytemuck](https://docs.rs/bytemuck/1.2.0/bytemuck/) to cast our `VERTICES` as a `&[u8]`. The `create_buffer_init()` method expects a `&[u8]`, and `bytemuck::cast_slice` does that for us. Add the following to your `Cargo.toml`.
 
 ```toml
-bytemuck = "1.4"
+bytemuck = { version = "1.4", features = [ "derive" ] }
 ```
 
-We're also going to need to implement two traits to get `bytemuck` to work. These are [bytemuck::Pod](https://docs.rs/bytemuck/1.3.0/bytemuck/trait.Pod.html) and [bytemuck::Zeroable](https://docs.rs/bytemuck/1.3.0/bytemuck/trait.Zeroable.html). `Pod` indicates that our `Vertex` is "Plain Old Data", and thus can be interpretted as a `&[u8]`. `Zeroable` indicates that we can use `std::mem::zeroed()`. These traits don't require us to implement any methods, so we just need to use the following to get our code to work.
+We're also going to need to implement two traits to get `bytemuck` to work. These are [bytemuck::Pod](https://docs.rs/bytemuck/1.3.0/bytemuck/trait.Pod.html) and [bytemuck::Zeroable](https://docs.rs/bytemuck/1.3.0/bytemuck/trait.Zeroable.html). `Pod` indicates that our `Vertex` is "Plain Old Data", and thus can be interpretted as a `&[u8]`. `Zeroable` indicates that we can use `std::mem::zeroed()`. We can modify our `Vertex` struct to derive these methods.
+
+```rust
+#[repr(C)]
+#[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
+struct Vertex {
+    position: [f32; 3],
+    color: [f32; 3],
+}
+```
+
+<div class="note">
+
+If you're struct includes types that don't implement `Pod` and `Zeroable`, you'll need to implement these traits manually. These traits don't require us to implement any methods, so we just need to use the following to get our code to work.
 
 ```rust
 unsafe impl bytemuck::Pod for Vertex {}
 unsafe impl bytemuck::Zeroable for Vertex {}
 ```
+
+</div>
 
 Finally we can add our `vertex_buffer` to our `State` struct.
 
@@ -167,7 +182,7 @@ Specifying the attributes as we are now is quite verbose. We could use the `vert
 wgpu::VertexBufferDescriptor {
     stride: std::mem::size_of::<Vertex>() as wgpu::BufferAddress,
     step_mode: wgpu::InputStepMode::Vertex,
-    attributes: &wgpu::vertex_attr_array[0 => Float3, 1 => Float3],
+    attributes: &wgpu::vertex_attr_array![0 => Float3, 1 => Float3],
 }
 ```
 

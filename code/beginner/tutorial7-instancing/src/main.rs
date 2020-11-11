@@ -18,14 +18,12 @@ const INSTANCE_DISPLACEMENT: cgmath::Vector3<f32> = cgmath::Vector3::new(
 );
 
 #[repr(C)]
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
 struct Vertex {
     position: [f32; 3],
     tex_coords: [f32; 2],
 }
 
-unsafe impl bytemuck::Pod for Vertex {}
-unsafe impl bytemuck::Zeroable for Vertex {}
 
 impl Vertex {
     fn desc<'a>() -> wgpu::VertexBufferDescriptor<'a> {

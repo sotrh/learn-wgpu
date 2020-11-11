@@ -8,14 +8,11 @@ use winit::{
 };
 
 #[repr(C)]
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
 struct Vertex {
     position: [f32; 3],
     color: [f32; 3],
 }
-
-unsafe impl bytemuck::Pod for Vertex {}
-unsafe impl bytemuck::Zeroable for Vertex {}
 
 impl Vertex {
     fn desc<'a>() -> wgpu::VertexBufferDescriptor<'a> {
