@@ -384,7 +384,7 @@ We still need to calculate `dt`. Let's do that in the `main` function.
 
 ```rust
 fn main() {
-    // ..
+    // ...
     let mut state = block_on(State::new(&window));
     let mut last_render_time = std::time::Instant::now();
     event_loop.run(move |event, _, control_flow| {
@@ -397,7 +397,7 @@ fn main() {
                 let dt = now - last_render_time;
                 last_render_time = now;
                 state.update(dt);
-                state.render();
+                // ...
             }
             _ => {}
         }
