@@ -103,26 +103,23 @@ impl UniformStaging {
         }
     }
     fn update_uniforms(&self, uniforms: &mut Uniforms) {
-        uniforms.model_view_proj = OPENGL_TO_WGPU_MATRIX
+        uniforms.model_view_proj = (OPENGL_TO_WGPU_MATRIX
             * self.camera.build_view_projection_matrix()
-            * cgmath::Matrix4::from_angle_z(self.model_rotation);
+            * cgmath::Matrix4::from_angle_z(self.model_rotation)).into();
     }
 }
 
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
 struct Uniforms {
-    model_view_proj: cgmath::Matrix4<f32>,
+    model_view_proj: [[f32; 4]; 4],
 }
-
-unsafe impl bytemuck::Pod for Uniforms {}
-unsafe impl bytemuck::Zeroable for Uniforms {}
 
 impl Uniforms {
     fn new() -> Self {
         use cgmath::SquareMatrix;
         Self {
-            model_view_proj: cgmath::Matrix4::identity(),
+            model_view_proj: cgmath::Matrix4::identity().into(),
         }
     }
 }

@@ -632,10 +632,10 @@ We're going to need to update the `Uniforms` struct as well.
 ```rust
 // main.rs
 #[repr(C)]
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
 struct Uniforms {
-    view_position: cgmath::Vector4<f32>,
-    view_proj: cgmath::Matrix4<f32>,
+    view_position: [f32; 4],
+    view_proj: [[f32; 4]; 4],
 }
 //If we want to use bytemuck, we must first implement these two traits
 unsafe impl bytemuck::Zeroable for Uniforms {}

@@ -42,17 +42,17 @@ impl Camera {
 }
 
 #[repr(C)]
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
 struct Uniforms {
-    view_position: cgmath::Vector4<f32>,
-    view_proj: cgmath::Matrix4<f32>,
+    view_position: [f32; 4],
+    view_proj: [[f32; 4]; 4],
 }
 
 impl Uniforms {
     fn new() -> Self {
         Self {
-            view_position: Zero::zero(),
-            view_proj: cgmath::Matrix4::identity(),
+            view_position: [0.0; 4],
+            view_proj: cgmath::Matrix4::identity().into(),
         }
     }
 
@@ -61,13 +61,12 @@ impl Uniforms {
         // a vec3 in the shader. We're using Point3 for the camera.eye, and this is
         // the easiest way to convert to Vector4. We're using Vector4 because of
         // the uniforms 16 byte spacing requirement
-        self.view_position = camera.eye.to_homogeneous();
+        self.view_position = camera.eye.to_homogeneous().into();
         // self.view_proj = OPENGL_TO_WGPU_MATRIX * camera.build_view_projection_matrix();
-        self.view_proj = camera.build_view_projection_matrix();
+        self.view_proj = camera.build_view_projection_matrix().into();
     }
 }
-unsafe impl bytemuck::Zeroable for Uniforms {}
-unsafe impl bytemuck::Pod for Uniforms {}
+
 struct CameraController {
     speed: f32,
     is_up_pressed: bool,

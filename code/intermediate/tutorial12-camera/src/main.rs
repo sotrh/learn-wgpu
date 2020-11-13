@@ -18,29 +18,27 @@ use model::{DrawLight, DrawModel, Vertex};
 const NUM_INSTANCES_PER_ROW: u32 = 10;
 
 #[repr(C)]
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
 struct Uniforms {
-    view_position: cgmath::Vector4<f32>,
-    view_proj: cgmath::Matrix4<f32>,
+    view_position: [f32; 4],
+    view_proj: [[f32; 4]; 4],
 }
 
 impl Uniforms {
     fn new() -> Self {
         Self {
-            view_position: Zero::zero(),
-            view_proj: cgmath::Matrix4::identity(),
+            view_position: [0.0; 4],
+            view_proj: cgmath::Matrix4::identity().into(),
         }
     }
 
     // UPDATED!
     fn update_view_proj(&mut self, camera: &camera::Camera, projection: &camera::Projection) {
-        self.view_position = camera.position.to_homogeneous();
-        self.view_proj = projection.calc_matrix() * camera.calc_matrix()
+        self.view_position = camera.position.to_homogeneous().into();
+        self.view_proj = (projection.calc_matrix() * camera.calc_matrix()).into()
     }
 }
 
-unsafe impl bytemuck::Zeroable for Uniforms {}
-unsafe impl bytemuck::Pod for Uniforms {}
 
 struct Instance {
     position: cgmath::Vector3<f32>,

@@ -43,10 +43,10 @@ impl Camera {
 }
 
 #[repr(C)]
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
 struct Uniforms {
-    view_position: cgmath::Vector4<f32>,
-    view_proj: cgmath::Matrix4<f32>,
+    view_position: [f32; 4],
+    view_proj: [[f32; 4]; 4],
 }
 
 impl Uniforms {
