@@ -64,16 +64,13 @@ unsafe impl bytemuck::Pod for InstanceRaw {}
 unsafe impl bytemuck::Zeroable for InstanceRaw {}
 
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
 struct Light {
-    position: cgmath::Vector3<f32>,
+    position: [f32; 3],
     // Due to uniforms requiring 16 byte (4 float) spacing, we need to use a padding field here
     _padding: u32,
-    color: cgmath::Vector3<f32>,
+    color: [f32; 3],
 }
-
-unsafe impl bytemuck::Zeroable for Light {}
-unsafe impl bytemuck::Pod for Light {}
 
 struct State {
     surface: wgpu::Surface,
@@ -336,9 +333,9 @@ impl State {
         .unwrap();
 
         let light = Light {
-            position: (2.0, 2.0, 2.0).into(),
+            position: [2.0, 2.0, 2.0],
             _padding: 0,
-            color: (1.0, 1.0, 1.0).into(),
+            color: [1.0, 1.0, 1.0],
         };
 
         let light_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
@@ -528,10 +525,10 @@ impl State {
         );
 
         // Update the light
-        let old_position = self.light.position;
+        let old_position: cgmath::Vector3<_> = self.light.position.into();
         self.light.position =
-            cgmath::Quaternion::from_axis_angle((0.0, 1.0, 0.0).into(), cgmath::Deg(1.0))
-                * old_position;
+            (cgmath::Quaternion::from_axis_angle((0.0, 1.0, 0.0).into(), cgmath::Deg(1.0))
+                * old_position).into();
         self.queue
             .write_buffer(&self.light_buffer, 0, bytemuck::cast_slice(&[self.light]));
     }

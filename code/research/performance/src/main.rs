@@ -52,19 +52,17 @@ struct Uniforms {
 impl Uniforms {
     fn new() -> Self {
         Self {
-            view_position: Zero::zero(),
-            view_proj: cgmath::Matrix4::identity(),
+            view_position: [0.0; 4],
+            view_proj: cgmath::Matrix4::identity().into(),
         }
     }
 
     fn update_view_proj(&mut self, camera: &Camera) {
-        self.view_position = camera.eye.to_homogeneous();
-        self.view_proj = OPENGL_TO_WGPU_MATRIX * camera.build_view_projection_matrix();
+        self.view_position = camera.eye.to_homogeneous().into();
+        self.view_proj = (OPENGL_TO_WGPU_MATRIX * camera.build_view_projection_matrix()).into();
     }
 }
 
-unsafe impl bytemuck::Zeroable for Uniforms {}
-unsafe impl bytemuck::Pod for Uniforms {}
 
 struct CameraController {
     speed: f32,
@@ -189,16 +187,13 @@ unsafe impl bytemuck::Pod for InstanceRaw {}
 unsafe impl bytemuck::Zeroable for InstanceRaw {}
 
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
 struct Light {
-    position: cgmath::Vector3<f32>,
+    position: [f32; 3],
     // Due to uniforms requiring 16 byte (4 float) spacing, we need to use a padding field here
     _padding: u32,
-    color: cgmath::Vector3<f32>,
+    color: [f32; 3],
 }
-
-unsafe impl bytemuck::Zeroable for Light {}
-unsafe impl bytemuck::Pod for Light {}
 
 struct State {
     surface: wgpu::Surface,
@@ -404,9 +399,9 @@ impl State {
         queue.submit(&cmds);
 
         let light = Light {
-            position: (2.0, 2.0, 2.0).into(),
+            position: [2.0, 2.0, 2.0],
             _padding: 0,
-            color: (1.0, 1.0, 1.0).into(),
+            color: [1.0, 1.0, 1.0],
         };
 
         let light_buffer = device.create_buffer_with_data(
@@ -560,11 +555,11 @@ impl State {
         );
 
         // Update the light
-        let old_position = self.light.position;
-        self.light.position = cgmath::Quaternion::from_axis_angle(
+        let old_position: cgmath::Vector3<_> = self.light.position.into();
+        self.light.position = (cgmath::Quaternion::from_axis_angle(
             (0.0, 1.0, 0.0).into(),
             cgmath::Deg(45.0) * dt.as_secs_f32(),
-        ) * old_position;
+        ) * old_position).into();
 
         let staging_buffer = self.device.create_buffer_with_data(
             bytemuck::cast_slice(&[self.light]),
