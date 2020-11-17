@@ -346,7 +346,25 @@ let index_buffer = device.create_buffer_init(
 let num_indices = INDICES.len() as u32;
 ```
 
-We don't need to implement `Pod` and `Zeroable` for our indices, because `bytemuck` has already implemented them for basic types such as `u16`. That means we can just add `index_buffer` and `num_indices` to `State`.
+We don't need to implement `Pod` and `Zeroable` for our indices, because `bytemuck` has already implemented them for basic types such as `u16`. That means we can just add `index_buffer` and `num_indices` to the `State` struct.
+
+```rust
+struct State {
+    surface: wgpu::Surface,
+    device: wgpu::Device,
+    queue: wgpu::Queue,
+    sc_desc: wgpu::SwapChainDescriptor,
+    swap_chain: wgpu::SwapChain,
+    size: winit::dpi::PhysicalSize<u32>,
+    render_pipeline: wgpu::RenderPipeline,
+    vertex_buffer: wgpu::Buffer,
+    // NEW!
+    index_buffer: wgpu::Buffer, 
+    num_indicies: u32,
+}
+```
+
+And then populate these fields in the constructor:
 
 ```rust
 Self {
