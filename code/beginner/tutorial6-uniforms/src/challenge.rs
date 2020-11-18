@@ -16,7 +16,6 @@ struct Vertex {
     tex_coords: [f32; 2],
 }
 
-
 impl Vertex {
     fn desc<'a>() -> wgpu::VertexBufferDescriptor<'a> {
         use std::mem;
@@ -105,7 +104,8 @@ impl UniformStaging {
     fn update_uniforms(&self, uniforms: &mut Uniforms) {
         uniforms.model_view_proj = (OPENGL_TO_WGPU_MATRIX
             * self.camera.build_view_projection_matrix()
-            * cgmath::Matrix4::from_angle_z(self.model_rotation)).into();
+            * cgmath::Matrix4::from_angle_z(self.model_rotation))
+        .into();
     }
 }
 

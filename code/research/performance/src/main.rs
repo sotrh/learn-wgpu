@@ -63,7 +63,6 @@ impl Uniforms {
     }
 }
 
-
 struct CameraController {
     speed: f32,
     is_up_pressed: bool,
@@ -172,7 +171,8 @@ impl Instance {
     fn to_raw(&self) -> InstanceRaw {
         InstanceRaw {
             model: (cgmath::Matrix4::from_translation(self.position)
-                * cgmath::Matrix4::from(self.rotation)).into(),
+                * cgmath::Matrix4::from(self.rotation))
+            .into(),
         }
     }
 }
@@ -557,7 +557,8 @@ impl State {
         self.light.position = (cgmath::Quaternion::from_axis_angle(
             (0.0, 1.0, 0.0).into(),
             cgmath::Deg(45.0) * dt.as_secs_f32(),
-        ) * old_position).into();
+        ) * old_position)
+            .into();
 
         let staging_buffer = self.device.create_buffer_with_data(
             bytemuck::cast_slice(&[self.light]),

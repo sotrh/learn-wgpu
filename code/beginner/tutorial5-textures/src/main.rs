@@ -16,7 +16,6 @@ struct Vertex {
     tex_coords: [f32; 2],
 }
 
-
 impl Vertex {
     fn desc<'a>() -> wgpu::VertexBufferDescriptor<'a> {
         use std::mem;

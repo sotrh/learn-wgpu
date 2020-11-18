@@ -20,7 +20,6 @@ pub struct ModelVertex {
     bitangent: [f32; 3],
 }
 
-
 impl Vertex for ModelVertex {
     fn desc<'a>() -> wgpu::VertexBufferDescriptor<'a> {
         use std::mem;
