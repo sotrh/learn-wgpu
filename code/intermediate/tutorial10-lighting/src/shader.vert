@@ -14,15 +14,10 @@ uniform Uniforms {
     mat4 u_view_proj;
 };
 
-layout(set=1, binding=1) 
-buffer Instances {
-    mat4 s_models[];
-};
+layout(location=5) in mat4 model_matrix;
 
 void main() {
     v_tex_coords = a_tex_coords;
-
-    mat4 model_matrix = s_models[gl_InstanceIndex];
     mat3 normal_matrix = mat3(transpose(inverse(model_matrix)));
     v_normal = normal_matrix * a_normal;
 

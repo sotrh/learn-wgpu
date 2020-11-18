@@ -19,7 +19,7 @@ uniform Uniforms {
 
 layout(set=2, binding=0) 
 buffer Instances {
-    mat4 s_models[];
+    mat4 model_matrix[];
 };
 
 // NEW!
@@ -30,8 +30,6 @@ layout(set=1, binding=0) uniform Light {
 
 void main() {
     v_tex_coords = a_tex_coords;
-
-    mat4 model_matrix = s_models[gl_InstanceIndex];
 
     mat3 normal_matrix = mat3(transpose(inverse(model_matrix)));
     vec3 normal = normalize(normal_matrix * a_normal);

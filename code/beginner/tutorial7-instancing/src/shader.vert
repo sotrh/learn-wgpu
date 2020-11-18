@@ -11,13 +11,9 @@ uniform Uniforms {
 };
 
 // NEW!
-layout(set=1, binding=1) 
-buffer Instances {
-    mat4 s_models[];
-};
+layout(location=5) in mat4 model_matrix;
 
 void main() {
-    v_tex_coords = a_tex_coords;
-    // UPDATED!
-    gl_Position = u_view_proj * s_models[gl_InstanceIndex] * vec4(a_position, 1.0);
+    v_tex_coords = a_tex_coords;    // UPDATED!
+    gl_Position = u_view_proj * model_matrix * vec4(a_position, 1.0);
 }

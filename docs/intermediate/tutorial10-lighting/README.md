@@ -514,9 +514,8 @@ For now let's just pass the normal directly as is. This is wrong, but we'll fix 
 
 ```glsl
 void main() {
-    v_tex_coords = a_tex_coords;
-    v_normal = a_normal; // NEW!
-    vec4 model_space = s_models[gl_InstanceIndex] * vec4(a_position, 1.0); // NEW!
+    v_tex_coords = a_tex_coords;    v_normal = a_normal; // NEW!
+    vec4 model_space = model_matrix * vec4(a_position, 1.0); // NEW!
     v_position = model_space.xyz; // NEW!
     gl_Position = u_view_proj * model_space; // UPDATED!
 }
@@ -579,7 +578,7 @@ We need to use the model matrix to transform the normals to be in the right dire
 
 ```glsl
 // shader.vert
-mat4 model_matrix = s_models[gl_InstanceIndex];
+mat4 model_matrix = model_matrix;
 mat3 normal_matrix = mat3(transpose(inverse(model_matrix)));
 v_normal = normal_matrix * a_normal;
 ```

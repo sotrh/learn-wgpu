@@ -239,8 +239,7 @@ uniform Uniforms {
 };
 
 void main() {
-    v_tex_coords = a_tex_coords;
-    // UPDATED!
+    v_tex_coords = a_tex_coords;    // UPDATED!
     gl_Position = u_view_proj * vec4(a_position, 1.0); // 3.
 }
 ```

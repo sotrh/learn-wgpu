@@ -49,13 +49,10 @@ Using these values directly in the shader would be a pain as quaternions don't h
 ```rust
 // NEW!
 #[repr(C)]
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
 struct InstanceRaw {
-    model: cgmath::Matrix4<f32>,
+    model: [[f32; 4]; 4],
 }
-
-unsafe impl bytemuck::Pod for InstanceRaw {}
-unsafe impl bytemuck::Zeroable for InstanceRaw {}
 ```
 
 This is the data that will go into the `wgpu::Buffer`. We keep these separate so that we can update the `Instance` as much as we want without needing to mess with matrices. We only need to update the raw data before we draw.
@@ -203,23 +200,19 @@ Make sure if you add new instances to the `Vec` that you recreate the `instance_
 When we modified `uniform_bind_group_layout`, we specified that our `instance_buffer` would be of type `wgpu::BindingType::StorageBuffer`. A storage buffer functions like an array that persists between shader invocations. Let's take a look at what it looks like in `shader.vert`.
 
 ```glsl
-layout(set=1, binding=1) 
-buffer Instances {
-    mat4 s_models[];
-};
+layout(location=5) in mat4 model_matrix;
 ```
 
-We declare a storage buffer in a very similar way to how we declare a uniform block. The only real difference is that we use the `buffer` keyword. We can then use `s_models` to position our models in the scene. But how do we know what instance to use?
+We declare a storage buffer in a very similar way to how we declare a uniform block. The only real difference is that we use the `buffer` keyword. We can then use `model_matrix` to position our models in the scene. But how do we know what instance to use?
 
 ## gl_InstanceIndex
 
-This GLSL variable lets us specify what instance we want to use. We can use the `gl_InstanceIndex` to index our `s_models` buffer to get the matrix for the current model.
+This GLSL variable lets us specify what instance we want to use. We can use the `gl_InstanceIndex` to index our `model_matrix` buffer to get the matrix for the current model.
 
 ```glsl
 void main() {
-    v_tex_coords = a_tex_coords;
-    // UPDATED!
-    gl_Position = u_view_proj * s_models[gl_InstanceIndex] * vec4(a_position, 1.0);
+    v_tex_coords = a_tex_coords;    // UPDATED!
+    gl_Position = u_view_proj * model_matrix * vec4(a_position, 1.0);
 }
 ```
 

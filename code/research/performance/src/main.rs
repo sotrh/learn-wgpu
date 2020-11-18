@@ -171,20 +171,18 @@ struct Instance {
 impl Instance {
     fn to_raw(&self) -> InstanceRaw {
         InstanceRaw {
-            model: cgmath::Matrix4::from_translation(self.position)
-                * cgmath::Matrix4::from(self.rotation),
+            model: (cgmath::Matrix4::from_translation(self.position)
+                * cgmath::Matrix4::from(self.rotation)).into(),
         }
     }
 }
 
-#[derive(Copy, Clone)]
+#[repr(C)]
+#[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
 struct InstanceRaw {
     #[allow(dead_code)]
-    model: cgmath::Matrix4<f32>,
+    model: [[f32; 4]; 4],
 }
-
-unsafe impl bytemuck::Pod for InstanceRaw {}
-unsafe impl bytemuck::Zeroable for InstanceRaw {}
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
