@@ -1,0 +1,172 @@
+#version 450
+
+#define VERTICES_PER_TRIANGLE 3
+layout(local_size_x = VERTICES_PER_TRIANGLE) in;
+
+
+// Marches the ModelVertex struct in model.rs
+struct ModelVertex {
+    float x; float y; float z;
+    float uv; float uw;
+    float nx; float ny; float nz;
+    float tx; float ty; float tz;
+    float bx; float by; float bz;
+};
+
+layout(std430, set=0, binding=0) buffer SrcVertexBuffer {
+    ModelVertex srcVertices[];
+};
+layout(std430, set=0, binding=1) buffer DstVertexBuffer {
+    ModelVertex dstVertices[];
+};
+layout(std430, set=0, binding=2) buffer IndexBuffer {
+    uint indices[];
+};
+
+layout(set=0, binding=3) uniform ComputeInfo {
+    uint numVertices;
+    uint numIndices;
+};
+
+// Helper Methods
+vec3 getPos(ModelVertex v) {
+    return vec3(v.x, v.y, v.z);
+}
+vec2 getUV(ModelVertex v) {
+    return vec2(v.uv, v.uw);
+}
+vec3 getNormal(ModelVertex v) {
+    return vec3(v.nx, v.ny, v.nz);
+}
+
+ModelVertex calcTangentBitangent(uint vertexIndex) {
+    ModelVertex v = srcVertices[vertexIndex];
+
+    // Find the triangles that use v
+    //  * Loop over every triangle (i + 3)
+    vec3 tangent = vec3(0);
+    vec3 bitangent = vec3(0);
+    uint trianglesIncluded = 0;
+    for (uint i = 0; i < numIndices; i += 3) {
+        uint index0 = indices[i];
+        uint index1 = indices[i+1];
+        uint index2 = indices[i+2];
+
+        if (index0 == vertexIndex || index1 == vertexIndex || index2 == vertexIndex) {
+            ModelVertex v0 = srcVertices[index0];
+            ModelVertex v1 = srcVertices[index1];
+            ModelVertex v2 = srcVertices[index2];
+
+            vec3 pos0 = getPos(v0);
+            vec3 pos1 = getPos(v1);
+            vec3 pos2 = getPos(v2);
+
+            vec2 uv0 = getUV(v0);
+            vec2 uv1 = getUV(v1);
+            vec2 uv2 = getUV(v2);
+
+            vec3 delta_pos1 = pos1 - pos0;
+            vec3 delta_pos2 = pos2 - pos0;
+
+            vec2 delta_uv1 = uv1 - uv0;
+            vec2 delta_uv2 = uv2 - uv0;
+
+            float r = 1.0 / (delta_uv1.x * delta_uv2.y - delta_uv1.y * delta_uv2.x);
+            tangent += (delta_pos1 * delta_uv2.y - delta_pos2 * delta_uv1.y) * r;
+            bitangent += (delta_pos2 * delta_uv1.x - delta_pos1 * delta_uv2.x) * r; 
+            trianglesIncluded += 1;
+        }
+        
+    }
+
+    // Average the tangent and bitangents
+    if (trianglesIncluded > 0) {
+        tangent /= trianglesIncluded;
+        bitangent /= trianglesIncluded;
+        tangent = normalize(tangent);
+        bitangent = normalize(bitangent);
+    }
+
+    // Save the results
+    v.tx = tangent.x;
+    v.ty = tangent.y;
+    v.tz = tangent.z;
+    v.bx = bitangent.x;
+    v.by = bitangent.y;
+    v.bz = bitangent.z;
+
+    return v;
+}
+
+void main() {
+    uint vertexIndex = gl_GlobalInvocationID.x;
+    ModelVertex result = calcTangentBitangent(vertexIndex);
+    dstVertices[vertexIndex] = result;
+}
+
+
+void old_main() {
+    uint index = gl_GlobalInvocationID.x;
+
+    // Grab the indices for the triangle
+    // Because we're indexing a float array, we'll need to use STRIDE to
+    // make sure we're pointing at the right data.
+    uint i0 = indices[index];
+    uint i1 = indices[index + 1];
+    uint i2 = indices[index + 2];
+
+    // Get the position data from the vertex buffer
+    // vec3 pos0 = srcVertices[i0].position;
+    // vec3 pos1 = srcVertices[i1].position;
+    // vec3 pos2 = srcVertices[i2].position;
+    vec3 pos0 = vec3(srcVertices[i0].x, srcVertices[i0].y, srcVertices[i0].z);
+    vec3 pos1 = vec3(srcVertices[i1].x, srcVertices[i1].y, srcVertices[i1].z);
+    vec3 pos2 = vec3(srcVertices[i2].x, srcVertices[i2].y, srcVertices[i2].z);
+
+    // Get the tex_coord data. We only need x and y.
+    // vec2 uv0 = srcVertices[i0].tex_coords.xy;
+    // vec2 uv1 = srcVertices[i1].tex_coords.xy;
+    // vec2 uv2 = srcVertices[i2].tex_coords.xy;
+    vec2 uv0 = vec2(srcVertices[i0].uv, srcVertices[i0].uw);
+    vec2 uv1 = vec2(srcVertices[i1].uv, srcVertices[i1].uw);
+    vec2 uv2 = vec2(srcVertices[i2].uv, srcVertices[i2].uw);
+
+    // Calculate the edges of the triangle
+    vec3 delta_pos1 = pos1 - pos0;
+    vec3 delta_pos2 = pos2 - pos0;
+
+    // This will give us a direction to calculate the
+    // tangent and bitangent
+    vec2 delta_uv1 = uv1 - uv0;
+    vec2 delta_uv2 = uv2 - uv0;
+
+    // Solving the following system of equations will
+    // give us the tangent and bitangent.
+    //     delta_pos1 = delta_uv1.x * T + delta_u.y * B
+    //     delta_pos2 = delta_uv2.x * T + delta_uv2.y * B
+    // Luckily, the place I found this equation provided
+    // the solution!
+    float r = 1.0 / (delta_uv1.x * delta_uv2.y - delta_uv1.y * delta_uv2.x);
+    vec3 tangent = (delta_pos1 * delta_uv2.y - delta_pos2 * delta_uv1.y) * r;
+    vec3 bitangent = (delta_pos2 * delta_uv1.x - delta_pos1 * delta_uv2.x) * r;
+
+    // We'll use the same tangent/bitangent for each vertex in the triangle
+    dstVertices[i0].tx = tangent.x;
+    dstVertices[i0].ty = tangent.y;
+    dstVertices[i0].tz = tangent.z;
+    dstVertices[i1].tx = tangent.x;
+    dstVertices[i1].ty = tangent.y;
+    dstVertices[i1].tz = tangent.z;
+    dstVertices[i2].tx = tangent.x;
+    dstVertices[i2].ty = tangent.y;
+    dstVertices[i2].tz = tangent.z;
+    dstVertices[i0].bx = bitangent.x;
+    dstVertices[i0].by = bitangent.y;
+    dstVertices[i0].bz = bitangent.z;
+    dstVertices[i1].bx = bitangent.x;
+    dstVertices[i1].by = bitangent.y;
+    dstVertices[i1].bz = bitangent.z;
+    dstVertices[i2].bx = bitangent.x;
+    dstVertices[i2].by = bitangent.y;
+    dstVertices[i2].bz = bitangent.z;
+}
