@@ -1,16 +1,23 @@
 # Textures and bind groups
 
-Up to this point we have been drawing super simple shapes. While we can make a game with just triangles, but trying to draw highly detailed objects would massively limit what devices could even run our game. We can get around this problem with textures. Textures are images overlayed over a triangle mesh to make the mesh seem more detailed. There are multiple types of textures such as normal maps, bump maps, specular maps, and diffuse maps. We're going to talk about diffuse maps, or in laymens terms, the color texture.
+Up to this point we have been drawing super simple shapes. While we can make a game with just triangles, trying to draw highly detailed objects would massively limit what devices could even run our game. However, we can get around this problem with **textures**.
+
+Textures are images overlayed on a triangle mesh to make it seem more detailed. There are multiple types of textures such as normal maps, bump maps, specular maps and diffuse maps. We're going to talk about diffuse maps, or more simply, the color texture.
 
 ## Loading an image from a file
 
-If we want to map an image to our mesh, we first need an image. Let's use this happy little tree.
+If we want to map an image to our mesh, we first need an image. Let's use this happy little tree:
 
 ![a happy tree](./happy-tree.png)
 
-We'll use the [image crate](https://crates.io/crates/image) to load our tree. In `State`'s `new()` method add the following just after creating the `swap_chain`:
+We'll use the [image crate](https://crates.io/crates/image) to load our tree. We already added to our dependencies in the first section, so all we have to do is use it.
+
+In `State`'s `new()` method add the following just after creating the `swap_chain`:
 
 ```rust
+let swap_chain = device.create_swap_chain(&surface, &sc_desc);
+// NEW!
+
 let diffuse_bytes = include_bytes!("happy-tree.png");
 let diffuse_image = image::load_from_memory(diffuse_bytes).unwrap();
 let diffuse_rgba = diffuse_image.as_rgba8().unwrap();
@@ -19,23 +26,21 @@ use image::GenericImageView;
 let dimensions = diffuse_image.dimensions();
 ```
 
-Here we just grab the bytes from our image file, and load them into an image, which we then convert into a `Vec` of rgba bytes. We also save the image's dimensions for when we create the actual `Texture`. Speaking of creating the actual `Texture`.
+Here we grab the bytes from our image file and load them into an image which is then converted into a `Vec` of rgba bytes. We also save the image's dimensions for when we create the actual `Texture`. 
+
+Now, let's create the `Texture`:
 
 ```rust
-let size = wgpu::Extent3d {
+let texture_size = wgpu::Extent3d {
     width: dimensions.0,
     height: dimensions.1,
     depth: 1,
 };
 let diffuse_texture = device.create_texture(
     &wgpu::TextureDescriptor {
-        // All textures are stored as 3d, we represent our 2d texture
+        // All textures are stored as 3D, we represent our 2D texture
         // by setting depth to 1.
-        size: wgpu::Extent3d {
-            width: dimensions.0,
-            height: dimensions.1,
-            depth: 1,
-        },
+        size: texture_size,
         mip_level_count: 1, // We'll talk about this a little later
         sample_count: 1,
         dimension: wgpu::TextureDimension::D2,
@@ -50,7 +55,7 @@ let diffuse_texture = device.create_texture(
 
 ## Getting data into a Texture
 
-The `Texture` struct has no methods to interact with the data directly. However we can use a method on the `queue` called `write_texture`. Let's take a look at how to use it.
+The `Texture` struct has no methods to interact with the data directly. However, we can use a method on the `queue` we created earlier called `write_texture` to load the texture in. Let's take a look at how we do that:
 
 ```rust
 queue.write_texture(
@@ -68,13 +73,13 @@ queue.write_texture(
         bytes_per_row: 4 * dimensions.0,
         rows_per_image: dimensions.1,
     },
-    size,
+    texture_size,
 );
 ```
 
 <div class="note">
 
-The old way of writing data to a texture was to copy the pixel data to a buffer, and then copy it to the texture. Using `write_texture` is a bit more efficient as it uses one less buffer. I'll leave it here though in case you need it.
+The old way of writing data to a texture was to copy the pixel data to a buffer and then copy it to the texture. Using `write_texture` is a bit more efficient as it uses one less buffer - I'll leave it here though in case you need it.
 
 ```rust
 let buffer = device.create_buffer_init(
@@ -108,15 +113,15 @@ encoder.copy_buffer_to_texture(
 queue.submit(std::iter::once(encoder.finish()));
 ```
 
-They `bytes_per_row` field needs some consideration. This value needs to be a multiple of 256. Check out [the gif tutorial](../../showcase/gifs/#how-do-we-make-the-frames) for more details.
+The `bytes_per_row` field needs some consideration. This value needs to be a multiple of 256. Check out [the gif tutorial](../../showcase/gifs/#how-do-we-make-the-frames) for more details.
 
 </div>
 
 ## TextureViews and Samplers
 
-Now that our texture has data in it, we need a way to use it. This is where a `TextureView` and a `Sampler` come in. A `TextureView` offers us a *view* into our texture. A `Sampler` controls how the `Texture` is *sampled*. Sampling works similar to the eyedropper tool in Gimp/Photoshop. Our program supplies a coordinate on the texture (known as a texture coordinate), and the sampler then returns a color back based on it's internal parameters.
+Now that our texture has data in it, we need a way to use it. This is where a `TextureView` and a `Sampler` come in. A `TextureView` offers us a *view* into our texture. A `Sampler` controls how the `Texture` is *sampled*. Sampling works similar to the eyedropper tool in GIMP/Photoshop. Our program supplies a coordinate on the texture (known as a *texture coordinate*), and the sampler then returns the corresponding color based on the texture and some internal parameters.
 
-Let's define our `diffuse_texture_view` and `diffuse_sampler` now.
+Let's define our `diffuse_texture_view` and `diffuse_sampler` now:
 
 ```rust
 // We don't need to configure the texture view much, so let's
@@ -133,22 +138,25 @@ let diffuse_sampler = device.create_sampler(&wgpu::SamplerDescriptor {
 });
 ```
 
-The `address_mode_*` parameter's determine what to do if the sampler get's a texture coordinate that's outside of the texture. There's a few that we can use.
+The `address_mode_*` parameters determine what to do if the sampler gets a texture coordinate that's outside of the texture itself. We have a few options to choose from:
+
 * `ClampToEdge`: Any texture coordinates outside the texture will return the color of the nearest pixel on the edges of the texture.
 * `Repeat`: The texture will repeat as texture coordinates exceed the textures dimensions.
 * `MirrorRepeat`: Similar to `Repeat`, but the image will flip when going over boundaries.
 
 ![address_mode.png](./address_mode.png)
 
-The `mag_filter` and `min_filter` options describe what to do when a fragment covers multiple pixels, or there are multiple fragments for one pixel respectively. This often comes into play when viewing a surface from up close, or far away. There are 2 options:
-* `Linear`: This option will attempt to blend the in-between fragments so that they seem to flow together.
-* `Nearest`: In-between fragments will use the color of the nearest pixel. This creates an image that's crisper from far away, but pixelated when view from close up. This can be desirable however if your textures are designed to be pixelated such is in pixel art games, or voxel games like Minecraft.
+The `mag_filter` and `min_filter` options describe what to do when a fragment covers multiple pixels, or there are multiple fragments for a single pixel. This often comes into play when viewing a surface from up close, or from far away. 
 
-Mipmaps are a complex topic, and will require [their own section](/todo). Suffice to say `mipmap_filter` functions similar to `(mag/min)_filter` as it tells the sampler how to blend between mipmaps.
+There are 2 options:
+* `Linear`: Attempt to blend the in-between fragments so that they seem to flow together.
+* `Nearest`: In-between fragments will use the color of the nearest pixel. This creates an image that's crisper from far away, but pixelated upc close. This can be desirable, however, if your textures are designed to be pixelated, like in pixel art games, or voxel games like Minecraft.
 
-I'm using some defaults for the other fields. If you want to see what they are check [the docs](https://docs.rs/wgpu/0.6.0/wgpu/struct.SamplerDescriptor.html).
+Mipmaps are a complex topic, and will require [their own section in the future](/todo). For now, we can say that `mipmap_filter` functions similar to `(mag/min)_filter` as it tells the sampler how to blend between mipmaps.
 
-All these different resources are nice and all, but they doesn't do us much good if we can't plug them in anywhere. This is where `BindGroup`s and `PipelineLayout`s come in.
+I'm using some defaults for the other fields. If you want to see what they are, check [the wgpu docs](https://docs.rs/wgpu/0.6.0/wgpu/struct.SamplerDescriptor.html).
+
+All these different resources are nice and all, but they don't do us much good if we can't plug them in anywhere. This is where `BindGroup`s and `PipelineLayout`s come in.
 
 ## The BindGroup
 
@@ -182,9 +190,9 @@ let texture_bind_group_layout = device.create_bind_group_layout(
 );
 ```
 
-Our `texture_bind_group_layout` has two entries: one for a sampled texture at binding 0, and one for a sampler at binding 1. Both of these bindings are visible only to the fragment shader as specified by `FRAGMENT`. The possible values are any bit combination of `NONE`, `VERTEX`, `FRAGMENT`, or `COMPUTE`. Most of the time we'll only use `FRAGMENT` for textures and samplers, but it's good to know what's available.
+Our `texture_bind_group_layout` has two entries: one for a sampled texture at binding 0, and one for a sampler at binding 1. Both of these bindings are visible only to the fragment shader as specified by `FRAGMENT`. The possible values for this field are any bitwise combination of `NONE`, `VERTEX`, `FRAGMENT`, or `COMPUTE`. Most of the time we'll only use `FRAGMENT` for textures and samplers, but it's good to know what else is available.
 
-With `texture_bind_group_layout`, we can now create our `BindGroup`.
+With `texture_bind_group_layout`, we can now create our `BindGroup`:
 
 ```rust
 let diffuse_bind_group = device.create_bind_group(
@@ -205,21 +213,21 @@ let diffuse_bind_group = device.create_bind_group(
 );
 ```
 
-Looking at this you might get a bit of déjà vu. That's because a `BindGroup` is a more specific declaration of the `BindGroupLayout`. The reason why these are separate is to allow us to swap out `BindGroup`s on the fly, so long as they all share the same `BindGroupLayout`. For each texture and sampler we create, we need to create a `BindGroup`.
+Looking at this you might get a bit of déjà vu! That's because a `BindGroup` is a more specific declaration of the `BindGroupLayout`. The reason why they're separate is it allows us to swap out `BindGroup`s on the fly, so long as they all share the same `BindGroupLayout`. For each texture and sampler we create, we need to create its own `BindGroup`.
 
-Now that we have our `diffuse_bind_group`, let's add our texture information to the `State` struct.
+Now that we have our `diffuse_bind_group`, let's add our texture information to the `State` struct:
 
 ```rust
 struct State {
     // ...
-
+    // NEW!
     diffuse_texture: wgpu::Texture,
     diffuse_texture_view: wgpu::TextureView,
     diffuse_sampler: wgpu::Sampler,
     diffuse_bind_group: wgpu::BindGroup,
-
-    // ...
 }
+
+And make sure we return these fields in the `new` method:
 
 // ...
 impl State {
@@ -231,25 +239,27 @@ impl State {
             queue,
             sc_desc,
             swap_chain,
+            size,
             render_pipeline,
             vertex_buffer,
             index_buffer,
             num_indices,
+            // NEW!
             diffuse_texture,
             diffuse_texture_view,
             diffuse_sampler,
             diffuse_bind_group,
-            size,
         }
     }
 }
 
 ```
 
-We actually use the bind group in the `render()` function.
+Now that we've got our `BindGroup`, we can use it in our `render()` function.
 
 ```rust
 // render()
+// ...
 render_pass.set_pipeline(&self.render_pipeline);
 render_pass.set_bind_group(0, &self.diffuse_bind_group, &[]); // NEW!
 render_pass.set_vertex_buffer(0, &self.vertex_buffer.slice(..));
@@ -259,31 +269,44 @@ render_pass.draw_indexed(0..self.num_indices, 0, 0..1);
 
 ## PipelineLayout
 
-Remember the `PipelineLayout` we created back in [the pipeline section](/beginner/tutorial3-pipeline#how-do-we-use-the-shaders)? This is finally the time when we get to actually use it. The `PipelineLayout` contains a list of `BindGroupLayout`s that the pipeline can use. Modify `render_pipeline_layout` to use our `texture_bind_group_layout`.
+Remember the `PipelineLayout` we created back in [the pipeline section](/beginner/tutorial3-pipeline#how-do-we-use-the-shaders)? Now we finally get to use it! The `PipelineLayout` contains a list of `BindGroupLayout`s that the pipeline can use. Modify `render_pipeline_layout` to use our `texture_bind_group_layout`.
 
 ```rust
-let render_pipeline_layout = device.create_pipeline_layout(
-    &wgpu::PipelineLayoutDescriptor {
-        label: Some("Render Pipeline Layout"),
-        bind_group_layouts: &[&texture_bind_group_layout],
-        push_constant_ranges: &[],
-    }
-);
+fn create_pipeline(
+    device: &wgpu::Device,
+    sc_desc: &wgpu::SwapChainDescriptor,
+    vs_module: wgpu::ShaderModule,
+    fs_module: wgpu::ShaderModule,
+    texture_bind_group_layout: wgpu::BindGroupLayout, // NEW!
+) -> wgpu::RenderPipeline {
+    let render_pipeline_layout = device.create_pipeline_layout(
+        &wgpu::PipelineLayoutDescriptor {
+            label: Some("Render Pipeline Layout"), // NEW!
+            bind_group_layouts: &[&texture_bind_group_layout], // NEW!
+            push_constant_ranges: &[],
+        }
+    );
+    // ...
+}
 ```
 
 ## A change to the VERTICES
-There's a few things we need to change about our `Vertex` definition. Up to now we've been using a `color` attribute to dictate the color of our mesh. Now that we're using a texture we want to replace our `color` with `tex_coords`, which is only two floats instead of three.
+There's a few things we need to change about our `Vertex` definition. Up to now we've been using a `color` attribute to set the color of our mesh. Now that we're using a texture, we want to replace our `color` with `tex_coords`. These coordinates will then be passed to the `Sampler` to retrieve the appropriate color.
+
+Since our `tex_coords` are two dimensional, we'll change the field to take two floats instead of three.
+
+First, we'll change the `Vertex` struct:
 
 ```rust
 #[repr(C)]
 #[derive(Copy, Clone, Debug)]
 struct Vertex {
     position: [f32; 3],
-    tex_coords: [f32; 2],
+    tex_coords: [f32; 2], // NEW!
 }
 ```
 
-We need to reflect these changes in the `VertexBufferDescriptor`.
+And then reflect these changes in the `VertexBufferDescriptor`:
 
 ```rust
 impl Vertex {
@@ -301,7 +324,7 @@ impl Vertex {
                 wgpu::VertexAttributeDescriptor {
                     offset: mem::size_of::<[f32; 3]>() as wgpu::BufferAddress,
                     shader_location: 1,
-                    format: wgpu::VertexFormat::Float2,
+                    format: wgpu::VertexFormat::Float2, // NEW!
                 },
             ]
         }
@@ -309,9 +332,10 @@ impl Vertex {
 }
 ```
 
-Lastly we need to change `VERTICES` itself.
+Lastly we need to change `VERTICES` itself. Replace the existing definition with the following:
 
 ```rust
+// Changed
 const VERTICES: &[Vertex] = &[
     Vertex { position: [-0.0868241, 0.49240386, 0.0], tex_coords: [0.4131759, 0.99240386], }, // A
     Vertex { position: [-0.49513406, 0.06958647, 0.0], tex_coords: [0.0048659444, 0.56958646], }, // B
@@ -323,7 +347,7 @@ const VERTICES: &[Vertex] = &[
 
 ## Shader time
 
-Our shaders will need to change inorder to support textures as well. We'll also need to remove any reference to the `color` attribute we used to have. Let's start with the vertex shader.
+With our new `Vertex` structure in place it's time to update our shaders. We'll first need to pass our `tex_coords` into the vertex shader and then use them over to our fragment shader to get the final color from the `Sampler`. Let's start with the vertex shader:
 
 ```glsl
 // shader.vert
@@ -343,7 +367,7 @@ void main() {
 }
 ```
 
-We need to change the fragment shader to take in `v_tex_coords`. We also need to add a reference to our texture and sampler.
+Now that we have our vertex shader outputting our `tex_cords`, we need to change the fragment shader to take them in. With these coordinates, we'll finally be able to use our sampler to get a color from our texture.
 
 ```glsl
 // shader.frag
@@ -353,7 +377,7 @@ We need to change the fragment shader to take in `v_tex_coords`. We also need to
 layout(location=0) in vec2 v_tex_coords;
 layout(location=0) out vec4 f_color;
 
-// New
+// NEW!
 layout(set = 0, binding = 0) uniform texture2D t_diffuse;
 layout(set = 0, binding = 1) uniform sampler s_diffuse;
 
@@ -363,11 +387,13 @@ void main() {
 }
 ```
 
-You'll notice that `t_diffuse` and `s_diffuse` are defined with the `uniform` keyword, they don't have `in` nor `out`, and the layout definition uses `set` and `binding` instead of `location`. This is because `t_diffuse` and `s_diffuse` are what we call uniforms. We won't go too deep into what a uniform is, until we talk about uniform buffers in the [cameras section](/beginner/tutorial6-uniforms/). What we need to know, for now, is that `set = 0` corresponds to the 1st parameter in `set_bind_group()`, `binding = 0` relates the the `binding` specified when we create the `BindGroupLayout` and `BindGroup`.
+You'll notice that `t_diffuse` and `s_diffuse` are defined with the `uniform` keyword, they don't have `in` nor `out`, and the layout definition uses `set` and `binding` instead of `location`. This is because `t_diffuse` and `s_diffuse` are what's known as *uniforms*. We won't go too deep into what a uniform is, until we talk about uniform buffers in the [cameras section](/beginner/tutorial6-uniforms/). 
+
+For now, all we need to know is that `set = 0` corresponds to the 1st parameter in `set_bind_group()` and `binding = 0` relates the the `binding` specified when we create the `BindGroupLayout` and `BindGroup`.
 
 ## The results
 
-If we run our program now we should get the following result.
+If we run our program now we should get the following result:
 
 ![an upside down tree on a hexagon](./upside-down.png)
 
@@ -375,22 +401,11 @@ That's weird, our tree is upside down! This is because wgpu's world coordinates 
 
 ![happy-tree-uv-coords.png](./happy-tree-uv-coords.png)
 
-We can get our triangle right-side up by inverting the y coord of each texture coord.
+We can get our triangle right-side up by inverting the y coordinate of each texture coordinate:
 
 ```rust
 const VERTICES: &[Vertex] = &[
-    Vertex { position: [-0.0868241, 0.49240386, 0.0], tex_coords: [0.4131759, 1.0 - 0.99240386], }, // A
-    Vertex { position: [-0.49513406, 0.06958647, 0.0], tex_coords: [0.0048659444, 1.0 - 0.56958646], }, // B
-    Vertex { position: [-0.21918549, -0.44939706, 0.0], tex_coords: [0.28081453, 1.0 - 0.050602943], }, // C
-    Vertex { position: [0.35966998, -0.3473291, 0.0], tex_coords: [0.85967, 1.0 - 0.15267089], }, // D
-    Vertex { position: [0.44147372, 0.2347359, 0.0], tex_coords: [0.9414737, 1.0 - 0.7347359], }, // E
-];
-```
-
-Simplifying that gives us.
-
-```rust
-const VERTICES: &[Vertex] = &[
+    // Changed
     Vertex { position: [-0.0868241, 0.49240386, 0.0], tex_coords: [0.4131759, 0.00759614], }, // A
     Vertex { position: [-0.49513406, 0.06958647, 0.0], tex_coords: [0.0048659444, 0.43041354], }, // B
     Vertex { position: [-0.21918549, -0.44939706, 0.0], tex_coords: [0.28081453, 0.949397057], }, // C
@@ -399,13 +414,13 @@ const VERTICES: &[Vertex] = &[
 ];
 ```
 
-With that in place we now have our tree subscribed right-side up on our hexagon.
+With that in place, we now have our tree right-side up on our hexagon:
 
 ![our happy tree as it should be](./rightside-up.png)
 
 ## Cleaning things up
 
-For convenience sake, let's pull our texture code into its own file called `texture.rs`.
+For convenience sake, let's pull our texture code into its own file called `texture.rs`:
 
 ```rust
 use image::GenericImageView;
@@ -505,9 +520,9 @@ struct State {
 }
 ```
 
-We're storing the bind group separately so that `Texture` doesn't need know how the `BindGroup` is layed out.
+We're storing the bind group separately so that `Texture` doesn't need know how the `BindGroup` is laid out.
 
-The texture creation code in `new()` gets a lot simpler.
+The texture creation code in `new()` now gets a lot simpler:
 
 ```rust
 let diffuse_bytes = include_bytes!("happy-tree.png");
@@ -535,7 +550,9 @@ let diffuse_bind_group = device.create_bind_group(
 );
 ```
 
-The code should be working the same as it was before, but now have an easier way to create textures.
+Phew! 
+
+With these changes in place, the code should be working the same as it was before, but we now have a much easier way to create textures.
 
 ## Challenge
 
