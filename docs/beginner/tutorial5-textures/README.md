@@ -215,15 +215,12 @@ let diffuse_bind_group = device.create_bind_group(
 
 Looking at this you might get a bit of déjà vu! That's because a `BindGroup` is a more specific declaration of the `BindGroupLayout`. The reason why they're separate is it allows us to swap out `BindGroup`s on the fly, so long as they all share the same `BindGroupLayout`. For each texture and sampler we create, we need to create its own `BindGroup`.
 
-Now that we have our `diffuse_bind_group`, let's add our texture information to the `State` struct:
+Now that we have our `diffuse_bind_group`, let's add it to the `State` struct:
 
 ```rust
 struct State {
     // ...
     // NEW!
-    diffuse_texture: wgpu::Texture,
-    diffuse_texture_view: wgpu::TextureView,
-    diffuse_sampler: wgpu::Sampler,
     diffuse_bind_group: wgpu::BindGroup,
 }
 
@@ -245,9 +242,6 @@ impl State {
             index_buffer,
             num_indices,
             // NEW!
-            diffuse_texture,
-            diffuse_texture_view,
-            diffuse_sampler,
             diffuse_bind_group,
         }
     }
@@ -420,7 +414,22 @@ With that in place, we now have our tree right-side up on our hexagon:
 
 ## Cleaning things up
 
-For convenience sake, let's pull our texture code into its own file called `texture.rs`:
+For convenience sake, let's pull our texture code into its module. We'll first need to add the [anyhow](https://docs.rs/anyhow/) crate to our `Cargo.toml` file to simplify error handling;
+
+```toml
+[dependencies]
+image = "0.23"
+winit = "0.22"
+cgmath = "0.17"
+env_logger = "0.7"
+log = "0.4"
+futures = "0.3"
+wgpu ="0.6"
+bytemuck = "1.4"
+anyhow = "1.0" // NEW!
+```
+
+Then, in a new file called `src/texture.rs`, add the following:
 
 ```rust
 use image::GenericImageView;
@@ -502,8 +511,7 @@ impl Texture {
 }
 ```
 
-1. We're using the [anyhow](https://docs.rs/anyhow/) crate to simplify error handling.
-2. We're returning a `CommandBuffer` with our texture. This means we could load multiple textures at the same time, and then submit all there command buffers at once.
+Note that we're returning a `CommandBuffer` with our texture. This means we can load multiple textures at the same time, and then submit all their command buffers at once.
 
 We need to import `texture.rs` as a module, so somewhere at the top of `main.rs` add the following.
 
@@ -511,25 +519,18 @@ We need to import `texture.rs` as a module, so somewhere at the top of `main.rs`
 mod texture;
 ```
 
-Then we need to change `State` to use the `Texture` struct.
-
-```rust
-struct State {
-    diffuse_texture: texture::Texture,
-    diffuse_bind_group: wgpu::BindGroup,
-}
-```
-
-We're storing the bind group separately so that `Texture` doesn't need know how the `BindGroup` is laid out.
 
 The texture creation code in `new()` now gets a lot simpler:
 
 ```rust
-let diffuse_bytes = include_bytes!("happy-tree.png");
-let diffuse_texture = texture::Texture::from_bytes(&device, &queue, diffuse_bytes, "happy-tree.png").unwrap();
+let swap_chain = device.create_swap_chain(&surface, &sc_desc);
+let diffuse_bytes = include_bytes!("happy-tree.png"); // CHANGED!
+let diffuse_texture = texture::Texture::from_bytes(&device, &queue, diffuse_bytes, "happy-tree.png").unwrap(); // CHANGED!
+
+// Everything up until `let texture_bind_group_layout = ...` can now be removed.
 ```
 
-Creating the `diffuse_bind_group` changes slightly to use the `view` and `sampler` fields of our `diffuse_texture`.
+We still need to store the bind group separately so that `Texture` doesn't need know how the `BindGroup` is laid out. Creating the `diffuse_bind_group` changes slightly to use the `view` and `sampler` fields of our `diffuse_texture`:
 
 ```rust
 let diffuse_bind_group = device.create_bind_group(
@@ -538,11 +539,11 @@ let diffuse_bind_group = device.create_bind_group(
         entries: &[
             wgpu::BindGroupEntry {
                 binding: 0,
-                resource: wgpu::BindingResource::TextureView(&diffuse_texture.view),
+                resource: wgpu::BindingResource::TextureView(&diffuse_texture.view), // CHANGED!
             },
             wgpu::BindGroupEntry {
                 binding: 1,
-                resource: wgpu::BindingResource::Sampler(&diffuse_texture.sampler),
+                resource: wgpu::BindingResource::Sampler(&diffuse_texture.sampler), // CHANGED!
             }
         ],
         label: Some("diffuse_bind_group"),
