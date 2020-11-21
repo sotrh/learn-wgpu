@@ -354,7 +354,7 @@ impl ModelLoader {
                     let mut pass = encoder.begin_compute_pass();
                     pass.set_pipeline(&self.pipeline);
                     pass.set_bind_group(0, &calc_bind_group, &[]);
-                    pass.dispatch(binding.compute_info.num_indices as u32 / 3, 1, 1);
+                    pass.dispatch(binding.compute_info.num_vertices as u32, 1, 1);
                 }
                 queue.submit(std::iter::once(encoder.finish()));
                 device.poll(wgpu::Maintain::Wait);

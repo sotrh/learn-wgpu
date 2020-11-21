@@ -50,6 +50,8 @@ module.exports = {
                     '/showcase/windowless/',
                     '/showcase/gifs/',
                     '/showcase/pong/',
+                    '/showcase/compute/',
+                    '/showcase/alignment/',
                 ]
             },
             '/news/'

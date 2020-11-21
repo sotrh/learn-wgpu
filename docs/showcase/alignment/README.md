@@ -6,7 +6,7 @@ The address of the position of an instance in memory has to a multiple of its al
 
 Normally alignment is the same as size. Exceptions are vec3, structs and arrays.
 
-A vec3 ist padded to be a vec4 which means it behaves as if it was a vec4 just that the last entry is not used.
+A vec3 is padded to be a vec4 which means it behaves as if it was a vec4 just that the last entry is not used.
 
 `{i,u,b}vec` is shorthand for `ivec`, `uvec`, `bvec` so a vector of `int` or `uint` or `bool`. A `vec` is a vec of `float`.
 
