@@ -80,8 +80,8 @@ The old way of writing data to a texture was to copy the pixel data to a buffer,
 let buffer = device.create_buffer_init(
     &wgpu::util::BufferInitDescriptor {
         label: Some("Temp Buffer"),
-        &diffuse_rgba,
-        wgpu::BufferUsage::COPY_SRC,
+        contents: &diffuse_rgba,
+        usage: wgpu::BufferUsage::COPY_SRC,
     }
 );
 
