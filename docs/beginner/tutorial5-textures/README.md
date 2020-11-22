@@ -215,18 +215,28 @@ let diffuse_bind_group = device.create_bind_group(
 
 Looking at this you might get a bit of déjà vu! That's because a `BindGroup` is a more specific declaration of the `BindGroupLayout`. The reason why they're separate is it allows us to swap out `BindGroup`s on the fly, so long as they all share the same `BindGroupLayout`. For each texture and sampler we create, we need to create its own `BindGroup`.
 
-Now that we have our `diffuse_bind_group`, let's add it to the `State` struct:
+Now that we have our `diffuse_bind_group`, let's add it to our `State` struct:
 
 ```rust
 struct State {
-    // ...
-    // NEW!
-    diffuse_bind_group: wgpu::BindGroup,
+    surface: wgpu::Surface,
+    device: wgpu::Device,
+    queue: wgpu::Queue,
+    sc_desc: wgpu::SwapChainDescriptor,
+    swap_chain: wgpu::SwapChain,
+    size: winit::dpi::PhysicalSize<u32>,
+    colour: wgpu::Color,
+    render_pipeline: wgpu::RenderPipeline,
+    vertex_buffer: wgpu::Buffer,
+    index_buffer: wgpu::Buffer,
+    num_indicies: u32,
+    diffuse_bind_group: wgpu::BindGroup, // NEW!
 }
+```
 
 And make sure we return these fields in the `new` method:
 
-// ...
+```rust
 impl State {
     async fn new() -> Self {
         // ...
@@ -246,7 +256,6 @@ impl State {
         }
     }
 }
-
 ```
 
 Now that we've got our `BindGroup`, we can use it in our `render()` function.
@@ -519,7 +528,6 @@ We need to import `texture.rs` as a module, so somewhere at the top of `main.rs`
 mod texture;
 ```
 
-
 The texture creation code in `new()` now gets a lot simpler:
 
 ```rust
@@ -549,6 +557,30 @@ let diffuse_bind_group = device.create_bind_group(
         label: Some("diffuse_bind_group"),
     }
 );
+```
+
+Finally, let's update our `State` field to use our shiny new `Texture` struct, as we'll need it in future tutorials.
+
+```rust
+struct State {
+    // ...
+    diffuse_bind_group: wgpu::BindGroup,
+    diffuse_texture: texture::Texture, // NEW
+}
+```
+
+```rust
+impl State {
+    async fn new() -> Self {
+        // ...
+        Self {
+            // ...
+            num_indices,
+            diffuse_bind_group,
+            diffuse_texture, // NEW
+        }
+    }
+}
 ```
 
 Phew! 
