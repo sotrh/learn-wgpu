@@ -808,7 +808,7 @@ dependencies = [
  "thiserror 1.0.20 (registry+https://github.com/rust-lang/crates.io-index)",
  "tobj 2.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "wgpu 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "winit 0.22.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "winit 0.23.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -1349,15 +1349,6 @@ dependencies = [
 
 [[package]]
 name = "imgui"
-version = "0.1.0"
-dependencies = [
- "framework 0.1.0",
- "imgui-wgpu 0.12.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "wgpu 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
-name = "imgui"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
@@ -1376,6 +1367,19 @@ dependencies = [
  "imgui-sys 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "lazy_static 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "parking_lot 0.11.0 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "imgui-demo"
+version = "0.1.0"
+dependencies = [
+ "anyhow 1.0.32 (registry+https://github.com/rust-lang/crates.io-index)",
+ "framework 0.1.0",
+ "futures 0.3.5 (registry+https://github.com/rust-lang/crates.io-index)",
+ "imgui 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "imgui-wgpu 0.12.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "imgui-winit-support 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "wgpu 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -1414,6 +1418,15 @@ dependencies = [
  "log 0.4.11 (registry+https://github.com/rust-lang/crates.io-index)",
  "smallvec 1.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "wgpu 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "imgui-winit-support"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "imgui 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "winit 0.23.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -3751,6 +3764,7 @@ dependencies = [
 "checksum imgui-sys 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)" = "0522b693da8a64322afbb32c63c04f39d9b9435cc75199d630207eee48886fc1"
 "checksum imgui-wgpu 0.12.0 (registry+https://github.com/rust-lang/crates.io-index)" = "8017f74f8880049c1c3fc055868486a610178ab93ad18eadaf5b0bb52f738365"
 "checksum imgui-wgpu 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)" = "b641250a21c77c91144566ee4f98d81c853e89c99bb718796344da87e8804345"
+"checksum imgui-winit-support 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)" = "5e0fc247afc385ed9cd26860cdb7fae988d5c7e2ad1d70c70aef728ce9b78e85"
 "checksum inflate 0.4.5 (registry+https://github.com/rust-lang/crates.io-index)" = "1cdb29978cc5797bd8dcc8e5bf7de604891df2a8dc576973d71a281e916db2ff"
 "checksum inplace_it 0.3.2 (registry+https://github.com/rust-lang/crates.io-index)" = "dd01a2a73f2f399df96b22dc88ea687ef4d76226284e7531ae3c7ee1dc5cb534"
 "checksum instant 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)" = "5b141fdc7836c525d4d594027d318c84161ca17aaf8113ab1f81ab93ae897485"

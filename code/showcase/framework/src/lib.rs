@@ -25,6 +25,7 @@ use winit::window::{Window, WindowBuilder};
 
 pub struct Display {
     surface: wgpu::Surface,
+    pub window: Window,
     pub sc_desc: wgpu::SwapChainDescriptor,
     pub swap_chain: wgpu::SwapChain,
     pub device: wgpu::Device,
@@ -32,10 +33,10 @@ pub struct Display {
 }
 
 impl Display {
-    pub async fn new(window: &Window) -> Result<Self, Error> {
+    pub async fn new(window: Window) -> Result<Self, Error> {
         let size = window.inner_size();
         let instance = wgpu::Instance::new(wgpu::BackendBit::PRIMARY);
-        let surface = unsafe { instance.create_surface(window) };
+        let surface = unsafe { instance.create_surface(&window) };
         let adapter = instance
             .request_adapter(&wgpu::RequestAdapterOptions {
                 power_preference: wgpu::PowerPreference::Default,
@@ -65,6 +66,7 @@ impl Display {
 
         Ok(Self {
             surface,
+            window,
             sc_desc,
             swap_chain,
             device,
@@ -193,11 +195,12 @@ pub async fn run<D: Demo>() -> Result<(), Error> {
     let window = WindowBuilder::new()
         .with_title(env!("CARGO_PKG_NAME"))
         .build(&event_loop)?;
-    let mut display = Display::new(&window).await?;
+    let mut display = Display::new(window).await?;
     let mut demo = D::init(&mut display)?;
     let mut last_update = Instant::now();
     let mut is_resumed = true;
     let mut is_focused = true;
+    let mut is_redraw_requested = true;
 
     event_loop.run(move |event, _, control_flow| {
         *control_flow = if is_resumed && is_focused {
@@ -210,18 +213,20 @@ pub async fn run<D: Demo>() -> Result<(), Error> {
             Event::Resumed => is_resumed = true,
             Event::Suspended => is_resumed = false,
             Event::RedrawRequested(wid) => {
-                if wid == window.id() {
+                if wid == display.window.id() {
                     let now = Instant::now();
                     let dt = now - last_update;
                     last_update = now;
 
                     demo.update(&mut display, dt);
                     demo.render(&mut display);
+                    is_redraw_requested = false;
                 }
             }
             Event::MainEventsCleared => {
-                if is_focused && is_resumed {
-                    window.request_redraw();
+                if is_focused && is_resumed && !is_redraw_requested {
+                    display.window.request_redraw();
+                    is_redraw_requested = true;
                 } else {
                     // Freeze time while the demo is not in the foreground
                     last_update = Instant::now();
@@ -230,7 +235,7 @@ pub async fn run<D: Demo>() -> Result<(), Error> {
             Event::WindowEvent {
                 event, window_id, ..
             } => {
-                if window_id == window.id() {
+                if window_id == display.window.id() {
                     match event {
                         WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
                         WindowEvent::Focused(f) => is_focused = f,

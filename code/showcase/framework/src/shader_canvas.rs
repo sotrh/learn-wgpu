@@ -12,11 +12,11 @@ use wgpu::util::{DeviceExt, BufferInitDescriptor};
 #[repr(C)]
 #[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
 struct SimulationData {
+    clear_color: [f32; 4],
+    canvas_size: [f32; 2],
+    mouse_pos: [f32; 2],
     time: f32,
     delta_time: f32,
-    mouse_pos: [f32; 2],
-    canvas_size: [f32; 2],
-    clear_color: [f32; 4],
 }
 
 #[derive(Error, Debug)]
@@ -43,6 +43,11 @@ impl ShaderCanvas {
     pub fn input(&mut self, mouse_x: f32, mouse_y: f32) {
         self.simulation_data.mouse_pos[0] = mouse_x;
         self.simulation_data.mouse_pos[1] = mouse_y;
+    }
+
+    pub fn delta_input(&mut self, dx: f32, dy: f32) {
+        self.simulation_data.mouse_pos[0] += dx;
+        self.simulation_data.mouse_pos[1] += dy;
     }
 
     pub fn render(
@@ -138,7 +143,7 @@ impl<'a> ShaderCanvasBuilder<'a> {
     pub fn build(&mut self, device: &wgpu::Device) -> Result<ShaderCanvas, ShaderBuildError> {
         let display_format = self.display_format.ok_or(ShaderBuildError::InvalidDisplayFormat)?;
         let frag_code = self.frag_code.take().ok_or(ShaderBuildError::InvalidFragmentShader)?;
-        let vert_code = self.frag_code.take().ok_or(ShaderBuildError::InvalidVertexShader)?;
+        let vert_code = self.vert_code.take().ok_or(ShaderBuildError::InvalidVertexShader)?;
 
         let simulation_data = SimulationData {
             time: 0.0,
@@ -150,7 +155,7 @@ impl<'a> ShaderCanvasBuilder<'a> {
         let simulation_data_buffer = device.create_buffer_init(&BufferInitDescriptor {
             label: self.label,
             contents: bytemuck::cast_slice(&[simulation_data]),
-            usage: wgpu::BufferUsage::UNIFORM,
+            usage: wgpu::BufferUsage::UNIFORM | wgpu::BufferUsage::COPY_DST,
         });
 
         let simulation_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
