@@ -10,17 +10,14 @@ pub trait Vertex {
 }
 
 #[repr(C)]
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct ModelVertex {
-    position: cgmath::Vector3<f32>,
-    tex_coords: cgmath::Vector2<f32>,
-    normal: cgmath::Vector3<f32>,
-    tangent: cgmath::Vector3<f32>,
-    bitangent: cgmath::Vector3<f32>,
+    position: [f32; 3],
+    tex_coords: [f32; 2],
+    normal: [f32; 3],
+    tangent: [f32; 3],
+    bitangent: [f32; 3],
 }
-
-unsafe impl bytemuck::Zeroable for ModelVertex {}
-unsafe impl bytemuck::Pod for ModelVertex {}
 
 impl Vertex for ModelVertex {
     fn desc<'a>() -> wgpu::VertexBufferDescriptor<'a> {
@@ -185,13 +182,13 @@ impl Model {
                 let v1 = vertices[c[1] as usize];
                 let v2 = vertices[c[2] as usize];
 
-                let pos0 = v0.position;
-                let pos1 = v1.position;
-                let pos2 = v2.position;
+                let pos0: cgmath::Vector3<_> = v0.position.into();
+                let pos1: cgmath::Vector3<_> = v1.position.into();
+                let pos2: cgmath::Vector3<_> = v2.position.into();
 
-                let uv0 = v0.tex_coords;
-                let uv1 = v1.tex_coords;
-                let uv2 = v2.tex_coords;
+                let uv0: cgmath::Vector2<_> = v0.tex_coords.into();
+                let uv1: cgmath::Vector2<_> = v1.tex_coords.into();
+                let uv2: cgmath::Vector2<_> = v2.tex_coords.into();
 
                 // Calculate the edges of the triangle
                 let delta_pos1 = pos1 - pos0;
@@ -213,13 +210,13 @@ impl Model {
                 let bitangent = (delta_pos2 * delta_uv1.x - delta_pos1 * delta_uv2.x) * r;
 
                 // We'll use the same tangent/bitangent for each vertex in the triangle
-                vertices[c[0] as usize].tangent = tangent;
-                vertices[c[1] as usize].tangent = tangent;
-                vertices[c[2] as usize].tangent = tangent;
+                vertices[c[0] as usize].tangent = tangent.into();
+                vertices[c[1] as usize].tangent = tangent.into();
+                vertices[c[2] as usize].tangent = tangent.into();
 
-                vertices[c[0] as usize].bitangent = bitangent;
-                vertices[c[1] as usize].bitangent = bitangent;
-                vertices[c[2] as usize].bitangent = bitangent;
+                vertices[c[0] as usize].bitangent = bitangent.into();
+                vertices[c[1] as usize].bitangent = bitangent.into();
+                vertices[c[2] as usize].bitangent = bitangent.into();
             }
 
             let vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {

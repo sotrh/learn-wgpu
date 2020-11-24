@@ -10,14 +10,11 @@ use winit::{
 mod texture;
 
 #[repr(C)]
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
 struct Vertex {
     position: [f32; 3],
     tex_coords: [f32; 2],
 }
-
-unsafe impl bytemuck::Pod for Vertex {}
-unsafe impl bytemuck::Zeroable for Vertex {}
 
 impl Vertex {
     fn desc<'a>() -> wgpu::VertexBufferDescriptor<'a> {
@@ -93,24 +90,21 @@ impl Camera {
 }
 
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
 struct Uniforms {
-    view_proj: cgmath::Matrix4<f32>,
+    view_proj: [[f32; 4]; 4],
 }
-
-unsafe impl bytemuck::Pod for Uniforms {}
-unsafe impl bytemuck::Zeroable for Uniforms {}
 
 impl Uniforms {
     fn new() -> Self {
         use cgmath::SquareMatrix;
         Self {
-            view_proj: cgmath::Matrix4::identity(),
+            view_proj: cgmath::Matrix4::identity().into(),
         }
     }
 
     fn update_view_proj(&mut self, camera: &Camera) {
-        self.view_proj = OPENGL_TO_WGPU_MATRIX * camera.build_view_projection_matrix();
+        self.view_proj = (OPENGL_TO_WGPU_MATRIX * camera.build_view_projection_matrix()).into();
     }
 }
 
@@ -459,12 +453,8 @@ impl State {
         );
     }
 
-    fn render(&mut self) {
-        let frame = self
-            .swap_chain
-            .get_current_frame()
-            .expect("Timeout getting texture")
-            .output;
+    fn render(&mut self) -> Result<(), wgpu::SwapChainError> {
+        let frame = self.swap_chain.get_current_frame()?.output;
 
         let mut encoder = self
             .device
@@ -499,6 +489,8 @@ impl State {
         }
 
         self.queue.submit(iter::once(encoder.finish()));
+
+        Ok(())
     }
 }
 
@@ -542,7 +534,15 @@ fn main() {
             }
             Event::RedrawRequested(_) => {
                 state.update();
-                state.render();
+                match state.render() {
+                    Ok(_) => {}
+                    // Recreate the swap_chain if lost
+                    Err(wgpu::SwapChainError::Lost) => state.resize(state.size),
+                    // The system is out of memory, we should probably quit
+                    Err(wgpu::SwapChainError::OutOfMemory) => *control_flow = ControlFlow::Exit,
+                    // All other errors (Outdated, Timeout) should be resolved by the next frame
+                    Err(e) => eprintln!("{:?}", e),
+                }
             }
             Event::MainEventsCleared => {
                 // RedrawRequested will only trigger once, unless we manually

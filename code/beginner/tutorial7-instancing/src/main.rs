@@ -18,14 +18,11 @@ const INSTANCE_DISPLACEMENT: cgmath::Vector3<f32> = cgmath::Vector3::new(
 );
 
 #[repr(C)]
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
 struct Vertex {
     position: [f32; 3],
     tex_coords: [f32; 2],
 }
-
-unsafe impl bytemuck::Pod for Vertex {}
-unsafe impl bytemuck::Zeroable for Vertex {}
 
 impl Vertex {
     fn desc<'a>() -> wgpu::VertexBufferDescriptor<'a> {
@@ -101,23 +98,20 @@ impl Camera {
 }
 
 #[repr(C)]
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
 struct Uniforms {
-    view_proj: cgmath::Matrix4<f32>,
+    view_proj: [[f32; 4]; 4],
 }
-
-unsafe impl bytemuck::Pod for Uniforms {}
-unsafe impl bytemuck::Zeroable for Uniforms {}
 
 impl Uniforms {
     fn new() -> Self {
         Self {
-            view_proj: cgmath::Matrix4::identity(),
+            view_proj: cgmath::Matrix4::identity().into(),
         }
     }
 
     fn update_view_proj(&mut self, camera: &Camera) {
-        self.view_proj = OPENGL_TO_WGPU_MATRIX * camera.build_view_projection_matrix();
+        self.view_proj = (OPENGL_TO_WGPU_MATRIX * camera.build_view_projection_matrix()).into();
     }
 }
 
@@ -219,21 +213,58 @@ struct Instance {
 impl Instance {
     fn to_raw(&self) -> InstanceRaw {
         InstanceRaw {
-            model: cgmath::Matrix4::from_translation(self.position)
-                * cgmath::Matrix4::from(self.rotation),
+            model: (cgmath::Matrix4::from_translation(self.position)
+                * cgmath::Matrix4::from(self.rotation))
+            .into(),
         }
     }
 }
 
 // NEW!
 #[repr(C)]
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
 struct InstanceRaw {
-    model: cgmath::Matrix4<f32>,
+    model: [[f32; 4]; 4],
 }
 
-unsafe impl bytemuck::Pod for InstanceRaw {}
-unsafe impl bytemuck::Zeroable for InstanceRaw {}
+impl InstanceRaw {
+    fn desc<'a>() -> wgpu::VertexBufferDescriptor<'a> {
+        use std::mem;
+        wgpu::VertexBufferDescriptor {
+            stride: mem::size_of::<InstanceRaw>() as wgpu::BufferAddress,
+            // We need to switch from using a step mode of Vertex to Instance
+            // This means that our shaders will only change to use the next
+            // instance when the shader starts processing a new instance
+            step_mode: wgpu::InputStepMode::Instance,
+            attributes: &[
+                wgpu::VertexAttributeDescriptor {
+                    offset: 0,
+                    // While our vertex shader only uses locations 0, and 1 now, in later tutorials we'll
+                    // be using 2, 3, and 4, for Vertex. We'll start at slot 5 not conflict with them later
+                    shader_location: 5,
+                    format: wgpu::VertexFormat::Float4,
+                },
+                // A mat4 takes up 4 vertex slots as it is technically 4 vec4s. We need to define a slot
+                // for each vec4. We don't have to do this in code though.
+                wgpu::VertexAttributeDescriptor {
+                    offset: mem::size_of::<[f32; 4]>() as wgpu::BufferAddress,
+                    shader_location: 6,
+                    format: wgpu::VertexFormat::Float4,
+                },
+                wgpu::VertexAttributeDescriptor {
+                    offset: mem::size_of::<[f32; 8]>() as wgpu::BufferAddress,
+                    shader_location: 7,
+                    format: wgpu::VertexFormat::Float4,
+                },
+                wgpu::VertexAttributeDescriptor {
+                    offset: mem::size_of::<[f32; 12]>() as wgpu::BufferAddress,
+                    shader_location: 8,
+                    format: wgpu::VertexFormat::Float4,
+                },
+            ],
+        }
+    }
+}
 
 struct State {
     surface: wgpu::Surface,
@@ -390,51 +421,29 @@ impl State {
         let instance_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("Instance Buffer"),
             contents: bytemuck::cast_slice(&instance_data),
-            usage: wgpu::BufferUsage::STORAGE,
+            usage: wgpu::BufferUsage::VERTEX,
         });
 
         let uniform_bind_group_layout =
             device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-                entries: &[
-                    wgpu::BindGroupLayoutEntry {
-                        binding: 0,
-                        visibility: wgpu::ShaderStage::VERTEX,
-                        ty: wgpu::BindingType::UniformBuffer {
-                            dynamic: false,
-                            min_binding_size: None,
-                        },
-                        count: None,
+                entries: &[wgpu::BindGroupLayoutEntry {
+                    binding: 0,
+                    visibility: wgpu::ShaderStage::VERTEX,
+                    ty: wgpu::BindingType::UniformBuffer {
+                        dynamic: false,
+                        min_binding_size: None,
                     },
-                    // NEW!
-                    wgpu::BindGroupLayoutEntry {
-                        binding: 1,
-                        visibility: wgpu::ShaderStage::VERTEX,
-                        ty: wgpu::BindingType::StorageBuffer {
-                            // We don't plan on changing the size of this buffer
-                            dynamic: false,
-                            // The shader is not allowed to modify it's contents
-                            readonly: true,
-                            min_binding_size: None,
-                        },
-                        count: None,
-                    },
-                ],
+                    count: None,
+                }],
                 label: Some("uniform_bind_group_layout"),
             });
 
         let uniform_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
             layout: &uniform_bind_group_layout,
-            entries: &[
-                wgpu::BindGroupEntry {
-                    binding: 0,
-                    resource: wgpu::BindingResource::Buffer(uniform_buffer.slice(..)),
-                },
-                // NEW!
-                wgpu::BindGroupEntry {
-                    binding: 1,
-                    resource: wgpu::BindingResource::Buffer(instance_buffer.slice(..)),
-                },
-            ],
+            entries: &[wgpu::BindGroupEntry {
+                binding: 0,
+                resource: wgpu::BindingResource::Buffer(uniform_buffer.slice(..)),
+            }],
             label: Some("uniform_bind_group"),
         });
 
@@ -477,7 +486,8 @@ impl State {
             depth_stencil_state: None,
             vertex_state: wgpu::VertexStateDescriptor {
                 index_format: wgpu::IndexFormat::Uint16,
-                vertex_buffers: &[Vertex::desc()],
+                // UPDATED!
+                vertex_buffers: &[Vertex::desc(), InstanceRaw::desc()],
             },
             sample_count: 1,
             sample_mask: !0,
@@ -543,12 +553,8 @@ impl State {
         );
     }
 
-    fn render(&mut self) {
-        let frame = self
-            .swap_chain
-            .get_current_frame()
-            .expect("Timeout getting texture")
-            .output;
+    fn render(&mut self) -> Result<(), wgpu::SwapChainError> {
+        let frame = self.swap_chain.get_current_frame()?.output;
 
         let mut encoder = self
             .device
@@ -578,12 +584,15 @@ impl State {
             render_pass.set_bind_group(0, &self.diffuse_bind_group, &[]);
             render_pass.set_bind_group(1, &self.uniform_bind_group, &[]);
             render_pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
+            render_pass.set_vertex_buffer(1, self.instance_buffer.slice(..));
             render_pass.set_index_buffer(self.index_buffer.slice(..));
             // UPDATED!
             render_pass.draw_indexed(0..self.num_indices, 0, 0..self.instances.len() as _);
         }
 
         self.queue.submit(iter::once(encoder.finish()));
+
+        Ok(())
     }
 }
 
@@ -627,7 +636,15 @@ fn main() {
             }
             Event::RedrawRequested(_) => {
                 state.update();
-                state.render();
+                match state.render() {
+                    Ok(_) => {}
+                    // Recreate the swap_chain if lost
+                    Err(wgpu::SwapChainError::Lost) => state.resize(state.size),
+                    // The system is out of memory, we should probably quit
+                    Err(wgpu::SwapChainError::OutOfMemory) => *control_flow = ControlFlow::Exit,
+                    // All other errors (Outdated, Timeout) should be resolved by the next frame
+                    Err(e) => eprintln!("{:?}", e),
+                }
             }
             Event::MainEventsCleared => {
                 // RedrawRequested will only trigger once, unless we manually

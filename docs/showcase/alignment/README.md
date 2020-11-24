@@ -6,7 +6,7 @@ The address of the position of an instance in memory has to a multiple of its al
 
 Normally alignment is the same as size. Exceptions are vec3, structs and arrays.
 
-A vec3 ist padded to be a vec4 which means it behaves as if it was a vec4 just that the last entry is not used.
+A vec3 is padded to be a vec4 which means it behaves as if it was a vec4 just that the last entry is not used.
 
 `{i,u,b}vec` is shorthand for `ivec`, `uvec`, `bvec` so a vector of `int` or `uint` or `bool`. A `vec` is a vec of `float`.
 
@@ -31,7 +31,7 @@ To make *uniform buffers* portable they have to be std140 and not std430.
 *Uniform structs* have to be std140.
 *Storage structs* have to be std430.
 
-*Storage buffers* for compute shaders can be std140 oder std430.
+*Storage buffers* for compute shaders can be std140 or std430.
 
 ## std140 (since GLSL 1.4, OpenGL 3.1)
 
@@ -45,7 +45,7 @@ Struct:
 - determine the member with the largest alignment and lets name it `max_member_align`
 - the alignment of the array is maximum(`max_member_align`, 16)
 
-### crates to make yuor struct compatible with std140
+### crates to make your struct compatible with std140
 
 [glsl_layout](https://github.com/rustgd/glsl-layout)
 [crevice](https://github.com/LPGhatguy/crevice)
@@ -69,6 +69,6 @@ Struct
 
 ----
 
-## memory qualifiers
+<!-- ## memory qualifiers
 
-TODO readonly, writeonly, restrict
+TODO readonly, writeonly, restrict -->

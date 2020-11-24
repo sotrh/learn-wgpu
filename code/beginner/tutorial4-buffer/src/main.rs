@@ -8,14 +8,11 @@ use winit::{
 };
 
 #[repr(C)]
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
 struct Vertex {
     position: [f32; 3],
     color: [f32; 3],
 }
-
-unsafe impl bytemuck::Pod for Vertex {}
-unsafe impl bytemuck::Zeroable for Vertex {}
 
 impl Vertex {
     fn desc<'a>() -> wgpu::VertexBufferDescriptor<'a> {
@@ -200,12 +197,8 @@ impl State {
 
     fn update(&mut self) {}
 
-    fn render(&mut self) {
-        let frame = self
-            .swap_chain
-            .get_current_frame()
-            .expect("Timeout getting texture")
-            .output;
+    fn render(&mut self) -> Result<(), wgpu::SwapChainError> {
+        let frame = self.swap_chain.get_current_frame()?.output;
 
         let mut encoder = self
             .device
@@ -238,6 +231,8 @@ impl State {
         }
 
         self.queue.submit(iter::once(encoder.finish()));
+
+        Ok(())
     }
 }
 
@@ -281,7 +276,15 @@ fn main() {
             }
             Event::RedrawRequested(_) => {
                 state.update();
-                state.render();
+                match state.render() {
+                    Ok(_) => {}
+                    // Recreate the swap_chain if lost
+                    Err(wgpu::SwapChainError::Lost) => state.resize(state.size),
+                    // The system is out of memory, we should probably quit
+                    Err(wgpu::SwapChainError::OutOfMemory) => *control_flow = ControlFlow::Exit,
+                    // All other errors (Outdated, Timeout) should be resolved by the next frame
+                    Err(e) => eprintln!("{:?}", e),
+                }
             }
             Event::MainEventsCleared => {
                 // RedrawRequested will only trigger once, unless we manually

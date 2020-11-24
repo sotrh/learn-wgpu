@@ -21,16 +21,13 @@ Before we can get into that though, we need to add a light to our scene.
 ```rust
 // main.rs
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
 struct Light {
-    position: cgmath::Vector3<f32>,
+    position: [f32; 3],
     // Due to uniforms requiring 16 byte (4 float) spacing, we need to use a padding field here
     _padding: u32,
-    color: cgmath::Vector3<f32>,
+    color: [f32; 3],
 }
-
-unsafe impl bytemuck::Zeroable for Light {}
-unsafe impl bytemuck::Pod for Light {}
 ```
 
 Our `Light` represents a colored point in space. We're just going to use pure white light, but it's good to allow different colors of light.
@@ -100,7 +97,7 @@ Let's also update the lights position in the `update()` method, so we can see wh
 
 ```rust
 // Update the light
-let old_position = self.light.position;
+let old_position: cgmath::Vector3<_> = self.light.position.into();
 self.light.position =
     cgmath::Quaternion::from_axis_angle((0.0, 1.0, 0.0).into(), cgmath::Deg(1.0))
         * old_position;
@@ -517,9 +514,8 @@ For now let's just pass the normal directly as is. This is wrong, but we'll fix 
 
 ```glsl
 void main() {
-    v_tex_coords = a_tex_coords;
-    v_normal = a_normal; // NEW!
-    vec4 model_space = s_models[gl_InstanceIndex] * vec4(a_position, 1.0); // NEW!
+    v_tex_coords = a_tex_coords;    v_normal = a_normal; // NEW!
+    vec4 model_space = model_matrix * vec4(a_position, 1.0); // NEW!
     v_position = model_space.xyz; // NEW!
     gl_Position = u_view_proj * model_space; // UPDATED!
 }
@@ -582,7 +578,7 @@ We need to use the model matrix to transform the normals to be in the right dire
 
 ```glsl
 // shader.vert
-mat4 model_matrix = s_models[gl_InstanceIndex];
+mat4 model_matrix = model_matrix;
 mat3 normal_matrix = mat3(transpose(inverse(model_matrix)));
 v_normal = normal_matrix * a_normal;
 ```
@@ -632,14 +628,12 @@ We're going to need to update the `Uniforms` struct as well.
 ```rust
 // main.rs
 #[repr(C)]
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
 struct Uniforms {
-    view_position: cgmath::Vector4<f32>,
-    view_proj: cgmath::Matrix4<f32>,
+    view_position: [f32; 4],
+    view_proj: [[f32; 4]; 4],
 }
-//If we want to use bytemuck, we must first implement these two traits
-unsafe impl bytemuck::Zeroable for Uniforms {}
-unsafe impl bytemuck::Pod for Uniforms {}
+
 impl Uniforms {
     fn new() -> Self {
         Self {

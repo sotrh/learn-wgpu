@@ -49,13 +49,10 @@ Using these values directly in the shader would be a pain as quaternions don't h
 ```rust
 // NEW!
 #[repr(C)]
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
 struct InstanceRaw {
-    model: cgmath::Matrix4<f32>,
+    model: [[f32; 4]; 4],
 }
-
-unsafe impl bytemuck::Pod for InstanceRaw {}
-unsafe impl bytemuck::Zeroable for InstanceRaw {}
 ```
 
 This is the data that will go into the `wgpu::Buffer`. We keep these separate so that we can update the `Instance` as much as we want without needing to mess with matrices. We only need to update the raw data before we draw.
@@ -67,7 +64,7 @@ Let's create a method on `Instance` to convert to `InstanceRaw`.
 impl Instance {
     fn to_raw(&self) -> InstanceRaw {
         InstanceRaw {
-            model: cgmath::Matrix4::from_translation(self.position) * cgmath::Matrix4::from(self.rotation),
+            model: (cgmath::Matrix4::from_translation(self.position) * cgmath::Matrix4::from(self.rotation)).into(),
         }
     }
 }
@@ -78,7 +75,6 @@ Now we need to add 2 fields to `State`: `instances`, and `instance_buffer`.
 ```rust
 struct State {
     instances: Vec<Instance>,
-    #[allow(dead_code)]
     instance_buffer: wgpu::Buffer,
 }
 ```
@@ -127,45 +123,65 @@ let instance_buffer = device.create_buffer_init(
     &wgpu::util::BufferInitDescriptor {
         label: Some("Instance Buffer"),
         contents: bytemuck::cast_slice(&instance_data),
-        usage: wgpu::BufferUsage::STORAGE,
+        usage: wgpu::BufferUsage::VERTEX,
     }
 );
 ```
 
-We need a way to bind our new instance buffer so we can use it in the vertex shader. We could create a new bind group (and we probably should), but for simplicity, I'm going to add a binding to the `uniform_bind_group` that references our `instance_buffer`.
+We're going to need to create a new `VertexBufferDescriptor` for `InstanceRaw`.
 
 ```rust
-let uniform_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-    entries: &[
-        // ...
-        // NEW!
-        wgpu::BindGroupLayoutEntry {
-            binding: 1,
-            visibility: wgpu::ShaderStage::VERTEX,
-            ty: wgpu::BindingType::StorageBuffer {
-                // We don't plan on changing the size of this buffer
-                dynamic: false,
-                // The shader is not allowed to modify it's contents
-                readonly: true,
-                min_binding_size: None,
-            },
-            count: None,
-        },
-    ],
-    label: Some("uniform_bind_group_layout"),
-});
+impl InstanceRaw {
+    fn desc<'a>() -> wgpu::VertexBufferDescriptor<'a> {
+        use std::mem;
+        wgpu::VertexBufferDescriptor {
+            stride: mem::size_of::<InstanceRaw>() as wgpu::BufferAddress,
+            // We need to switch from using a step mode of Vertex to Instance
+            // This means that our shaders will only change to use the next
+            // instance when the shader starts processing a new instance
+            step_mode: wgpu::InputStepMode::Instance,
+            attributes: &[
+                wgpu::VertexAttributeDescriptor {
+                    offset: 0,
+                    // While our vertex shader only uses locations 0, and 1 now, in later tutorials we'll
+                    // be using 2, 3, and 4, for Vertex. We'll start at slot 5 not conflict with them later
+                    shader_location: 5,
+                    format: wgpu::VertexFormat::Float4,
+                },
+                // A mat4 takes up 4 vertex slots as it is technically 4 vec4s. We need to define a slot
+                // for each vec4. We don't have to do this in code though.
+                wgpu::VertexAttributeDescriptor {
+                    offset: mem::size_of::<[f32; 4]>() as wgpu::BufferAddress,
+                    shader_location: 6,
+                    format: wgpu::VertexFormat::Float4,
+                },
+                wgpu::VertexAttributeDescriptor {
+                    offset: mem::size_of::<[f32; 8]>() as wgpu::BufferAddress,
+                    shader_location: 7,
+                    format: wgpu::VertexFormat::Float4,
+                },
+                wgpu::VertexAttributeDescriptor {
+                    offset: mem::size_of::<[f32; 12]>() as wgpu::BufferAddress,
+                    shader_location: 8,
+                    format: wgpu::VertexFormat::Float4,
+                },
+            ],
+        }
+    }
+}
+```
 
-let uniform_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
-    layout: &uniform_bind_group_layout,
-    entries: &[
-        // ...
-        // NEW!
-        wgpu::BindGroupEntry {
-            binding: 1,
-            resource: wgpu::BindingResource::Buffer(instance_buffer.slice(..))
-        },
-    ],
-    label: Some("uniform_bind_group"),
+We need to add this descriptor to the render pipeline so that we can use it when we render.
+
+```rust
+let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+    // ...
+    vertex_state: wgpu::VertexStateDescriptor {
+        index_format: wgpu::IndexFormat::Uint16,
+        // UPDATED!
+        vertex_buffers: &[Vertex::desc(), InstanceRaw::desc()],
+    },
+    // ...
 });
 ```
 
@@ -180,13 +196,15 @@ Self {
 }
 ```
 
-The last change we need to make is in the `render()` method. We need to change the range we're using in `draw_indexed()` to include the number of instances.
+The last change we need to make is in the `render()` method. We need to bind our `instance_buffer` and we need to change the range we're using in `draw_indexed()` to include the number of instances.
 
 ```rust
 render_pass.set_pipeline(&self.render_pipeline);
 render_pass.set_bind_group(0, &self.diffuse_bind_group, &[]);
 render_pass.set_bind_group(1, &self.uniform_bind_group, &[]);
 render_pass.set_vertex_buffer(0, &self.vertex_buffer.slice(..));
+// NEW!
+render_pass.set_vertex_buffer(1, self.instance_buffer.slice(..));
 render_pass.set_index_buffer(&self.index_buffer.slice(..));
 // UPDATED!
 render_pass.draw_indexed(0..self.num_indices, 0, 0..self.instances.len() as _);
@@ -194,40 +212,25 @@ render_pass.draw_indexed(0..self.num_indices, 0, 0..self.instances.len() as _);
 
 <div class="warning">
 
-Make sure if you add new instances to the `Vec` that you recreate the `instance_buffer` and as well as `uniform_bind_group`, otherwise your new instances won't show up correctly.
+Make sure if you add new instances to the `Vec`, that you recreate the `instance_buffer` and as well as `uniform_bind_group`, otherwise your new instances won't show up correctly.
 
 </div>
 
-## Storage Buffers
-
-When we modified `uniform_bind_group_layout`, we specified that our `instance_buffer` would be of type `wgpu::BindingType::StorageBuffer`. A storage buffer functions like an array that persists between shader invocations. Let's take a look at what it looks like in `shader.vert`.
+We need to reference our new matrix in `shader.vert` so that we can use it for our instances. Add the following to the top of `shader.vert`.
 
 ```glsl
-layout(set=1, binding=1) 
-buffer Instances {
-    mat4 s_models[];
-};
+layout(location=5) in mat4 model_matrix;
 ```
 
-We declare a storage buffer in a very similar way to how we declare a uniform block. The only real difference is that we use the `buffer` keyword. We can then use `s_models` to position our models in the scene. But how do we know what instance to use?
-
-## gl_InstanceIndex
-
-This GLSL variable lets us specify what instance we want to use. We can use the `gl_InstanceIndex` to index our `s_models` buffer to get the matrix for the current model.
+We'll apply the `model_matrix` before we apply `u_view_proj`. We do this because the `u_view_proj` changes the coordinate system from `world space` to `camera space`. Our `model_matrix` is a `world space` transformation, so we don't want to be in `camera space` when using it.
 
 ```glsl
 void main() {
     v_tex_coords = a_tex_coords;
     // UPDATED!
-    gl_Position = u_view_proj * s_models[gl_InstanceIndex] * vec4(a_position, 1.0);
+    gl_Position = u_view_proj * model_matrix * vec4(a_position, 1.0);
 }
 ```
-
-<div class="note">
-
-The value of `gl_InstanceIndex` is based on the range passed to the `instances` parameter of `draw_indexed`. Using `3..instances.len() as _` would mean that the 1st-3rd instances would be skipped.
-
-</div>
 
 With all that done, we should have a forest of trees!
 

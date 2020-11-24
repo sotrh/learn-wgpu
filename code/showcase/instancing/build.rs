@@ -65,7 +65,10 @@ fn main() -> Result<()> {
     // recently.
     for shader in shaders {
         // This tells cargo to rerun this script if something in /src/ changes.
-        println!("cargo:rerun-if-changed={:?}", shader.src_path);
+        println!(
+            "cargo:rerun-if-changed={}",
+            shader.src_path.as_os_str().to_str().unwrap()
+        );
 
         let compiled = compiler.compile_into_spirv(
             &shader.src,
@@ -87,7 +90,7 @@ fn main() -> Result<()> {
     paths_to_copy.push("res/");
     match copy_items(&paths_to_copy, out_dir, &copy_options) {
         Ok(_) => {}
-        Err(e) => eprintln!("{}", e),
+        Err(e) => println!("{}", e),
     }
 
     Ok(())

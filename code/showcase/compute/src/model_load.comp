@@ -1,0 +1,106 @@
+#version 450
+
+layout(local_size_x = 64) in;
+
+struct ModelVertex {
+    float x; float y; float z;
+    float uv; float uw;
+    float nx; float ny; float nz;
+    float tx; float ty; float tz;
+    float bx; float by; float bz;
+};
+
+layout(std430, set=0, binding=0) buffer SrcVertexBuffer {
+    ModelVertex srcVertices[];
+};
+layout(std430, set=0, binding=1) buffer DstVertexBuffer {
+    ModelVertex dstVertices[];
+};
+layout(std430, set=0, binding=2) buffer IndexBuffer {
+    uint indices[];
+};
+
+layout(set=0, binding=3) uniform ComputeInfo {
+    uint numVertices;
+    uint numIndices;
+};
+
+// Helper Methods
+vec3 getPos(ModelVertex v) {
+    return vec3(v.x, v.y, v.z);
+}
+vec2 getUV(ModelVertex v) {
+    return vec2(v.uv, v.uw);
+}
+vec3 getNormal(ModelVertex v) {
+    return vec3(v.nx, v.ny, v.nz);
+}
+
+ModelVertex calcTangentBitangent(uint vertexIndex) {
+    ModelVertex v = srcVertices[vertexIndex];
+
+    vec3 tangent = vec3(0);
+    vec3 bitangent = vec3(0);
+    uint trianglesIncluded = 0;
+
+    // Find the triangles that use v
+    //  * Loop over every triangle (i + 3)
+    for (uint i = 0; i < numIndices; i += 3) {
+        uint index0 = indices[i];
+        uint index1 = indices[i+1];
+        uint index2 = indices[i+2];
+
+        // Only perform the calculation if one of the indices
+        // matches our vertexIndex
+        if (index0 == vertexIndex || index1 == vertexIndex || index2 == vertexIndex) {
+            ModelVertex v0 = srcVertices[index0];
+            ModelVertex v1 = srcVertices[index1];
+            ModelVertex v2 = srcVertices[index2];
+
+            vec3 pos0 = getPos(v0);
+            vec3 pos1 = getPos(v1);
+            vec3 pos2 = getPos(v2);
+
+            vec2 uv0 = getUV(v0);
+            vec2 uv1 = getUV(v1);
+            vec2 uv2 = getUV(v2);
+
+            vec3 delta_pos1 = pos1 - pos0;
+            vec3 delta_pos2 = pos2 - pos0;
+
+            vec2 delta_uv1 = uv1 - uv0;
+            vec2 delta_uv2 = uv2 - uv0;
+
+            float r = 1.0 / (delta_uv1.x * delta_uv2.y - delta_uv1.y * delta_uv2.x);
+
+            tangent += (delta_pos1 * delta_uv2.y - delta_pos2 * delta_uv1.y) * r;
+            bitangent += (delta_pos2 * delta_uv1.x - delta_pos1 * delta_uv2.x) * r;
+            trianglesIncluded += 1;
+        }
+        
+    }
+
+    // Average the tangent and bitangents
+    if (trianglesIncluded > 0) {
+        tangent /= trianglesIncluded;
+        bitangent /= trianglesIncluded;
+        tangent = normalize(tangent);
+        bitangent = normalize(bitangent);
+    }
+
+    // Save the results
+    v.tx = tangent.x;
+    v.ty = tangent.y;
+    v.tz = tangent.z;
+    v.bx = bitangent.x;
+    v.by = bitangent.y;
+    v.bz = bitangent.z;
+
+    return v;
+}
+
+void main() {
+    uint vertexIndex = gl_GlobalInvocationID.x;
+    ModelVertex result = calcTangentBitangent(vertexIndex);
+    dstVertices[vertexIndex] = result;
+}

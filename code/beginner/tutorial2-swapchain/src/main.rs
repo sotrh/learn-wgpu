@@ -76,12 +76,8 @@ impl State {
 
     fn update(&mut self) {}
 
-    fn render(&mut self) {
-        let frame = self
-            .swap_chain
-            .get_current_frame()
-            .expect("Timeout getting texture")
-            .output;
+    fn render(&mut self) -> Result<(), wgpu::SwapChainError> {
+        let frame = self.swap_chain.get_current_frame()?.output;
 
         let mut encoder = self
             .device
@@ -108,8 +104,9 @@ impl State {
             });
         }
 
-        // submit will accept anything that implements IntoIter
         self.queue.submit(iter::once(encoder.finish()));
+
+        Ok(())
     }
 }
 
@@ -121,7 +118,7 @@ fn main() {
     use futures::executor::block_on;
 
     // Since main can't be async, we're going to need to block
-    let mut state = block_on(State::new(&window));
+    let mut state: State = block_on(State::new(&window));
 
     event_loop.run(move |event, _, control_flow| {
         match event {
@@ -154,7 +151,15 @@ fn main() {
             }
             Event::RedrawRequested(_) => {
                 state.update();
-                state.render();
+                match state.render() {
+                    Ok(_) => {}
+                    // Recreate the swap_chain if lost
+                    Err(wgpu::SwapChainError::Lost) => state.resize(state.size),
+                    // The system is out of memory, we should probably quit
+                    Err(wgpu::SwapChainError::OutOfMemory) => *control_flow = ControlFlow::Exit,
+                    // All other errors (Outdated, Timeout) should be resolved by the next frame
+                    Err(e) => eprintln!("{:?}", e),
+                }
             }
             Event::MainEventsCleared => {
                 // RedrawRequested will only trigger once, unless we manually
