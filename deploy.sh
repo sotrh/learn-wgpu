@@ -22,4 +22,7 @@ git commit -m 'deploy'
 # if you are deploying to https://<USERNAME>.github.io/<REPO>
 git push -f git@github.com:sotrh/learn-wgpu.git master:gh-pages
 
+# cleanup
+rm -rf ./.git
+
 cd -
