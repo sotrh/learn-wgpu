@@ -17,10 +17,7 @@ uniform Uniforms {
     mat4 u_view_proj;
 };
 
-layout(set=2, binding=0) 
-buffer Instances {
-    mat4 model_matrix[];
-};
+layout(location=5) in mat4 model_matrix;
 
 // NEW!
 layout(set=1, binding=0) uniform Light {

@@ -2,6 +2,7 @@ use anyhow::*;
 use fs_extra::copy_items;
 use fs_extra::dir::CopyOptions;
 use glob::glob;
+use rayon::prelude::*;
 use std::env;
 use std::fs::{read_to_string, write};
 use std::path::PathBuf;
@@ -40,21 +41,24 @@ impl ShaderData {
 }
 
 fn main() -> Result<()> {
-    // Collect all shaders recursively within /src/
-    let mut shader_paths = [
-        glob("./src/**/*.vert")?,
-        glob("./src/**/*.frag")?,
-        glob("./src/**/*.comp")?,
-    ];
+    // This tells cargo to rerun this script if something in /src/ changes.
+    println!("cargo:rerun-if-changed=src/*");
 
-    // This could be parallelized
+    // Collect all shaders recursively within /src/
+    // UDPATED!
+    let mut shader_paths = Vec::new();
+    shader_paths.extend(glob("./src/**/*.vert")?);
+    shader_paths.extend(glob("./src/**/*.frag")?);
+    shader_paths.extend(glob("./src/**/*.comp")?);
+
+    // UPDATED!
+    // This is parallelized
     let shaders = shader_paths
-        .iter_mut()
-        .flatten()
+        .into_par_iter()
         .map(|glob_result| ShaderData::load(glob_result?))
         .collect::<Vec<Result<_>>>()
         .into_iter()
-        .collect::<Result<Vec<_>>>()?;
+        .collect::<Result<Vec<_>>>();
 
     let mut compiler = shaderc::Compiler::new().context("Unable to create shader compiler")?;
 
@@ -63,13 +67,7 @@ fn main() -> Result<()> {
     // spawn multiple processes to handle this, but it would probably
     // be better just to only compile shaders that have been changed
     // recently.
-    for shader in shaders {
-        // This tells cargo to rerun this script if something in /src/ changes.
-        println!(
-            "cargo:rerun-if-changed={}",
-            shader.src_path.as_os_str().to_str().unwrap()
-        );
-
+    for shader in shaders? {
         let compiled = compiler.compile_into_spirv(
             &shader.src,
             shader.kind,
@@ -81,17 +79,14 @@ fn main() -> Result<()> {
     }
 
     // This tells cargo to rerun this script if something in /res/ changes.
-    println!("cargo:rerun-if-changed=res/*");
+    // println!("cargo:rerun-if-changed=res/*");
 
-    let out_dir = env::var("OUT_DIR")?;
-    let mut copy_options = CopyOptions::new();
-    copy_options.overwrite = true;
-    let mut paths_to_copy = Vec::new();
-    paths_to_copy.push("res/");
-    match copy_items(&paths_to_copy, out_dir, &copy_options) {
-        Ok(_) => {}
-        Err(e) => println!("{}", e),
-    }
+    // let out_dir = env::var("OUT_DIR")?;
+    // let mut copy_options = CopyOptions::new();
+    // copy_options.overwrite = true;
+    // let mut paths_to_copy = Vec::new();
+    // paths_to_copy.push("res/");
+    // copy_items(&paths_to_copy, out_dir, &copy_options)?;
 
     Ok(())
 }
