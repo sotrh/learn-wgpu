@@ -7,7 +7,7 @@
 
 use std::time::Instant;
 use thiserror::Error;
-use wgpu::util::{DeviceExt, BufferInitDescriptor};
+use wgpu::util::{BufferInitDescriptor, DeviceExt};
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
@@ -28,7 +28,6 @@ pub enum ShaderBuildError {
     #[error("Please supply a valid display format")]
     InvalidDisplayFormat,
 }
-
 
 pub struct ShaderCanvas {
     pipeline: wgpu::RenderPipeline,
@@ -51,8 +50,8 @@ impl ShaderCanvas {
     }
 
     pub fn render(
-        &mut self, 
-        queue: &wgpu::Queue, 
+        &mut self,
+        queue: &wgpu::Queue,
         encoder: &mut wgpu::CommandEncoder,
         frame: &wgpu::TextureView,
         width: f32,
@@ -65,7 +64,7 @@ impl ShaderCanvas {
                 let t = current_time;
                 self.start_time = Some(t);
                 t
-            },
+            }
         };
         let last_time = self.last_time.unwrap_or(current_time);
         self.last_time = Some(current_time);
@@ -73,19 +72,21 @@ impl ShaderCanvas {
         self.simulation_data.delta_time = (current_time - last_time).as_secs_f32();
         self.simulation_data.canvas_size[0] = width;
         self.simulation_data.canvas_size[1] = height;
-        queue.write_buffer(&self.simulation_data_buffer, 0, bytemuck::cast_slice(&[self.simulation_data]));
+        queue.write_buffer(
+            &self.simulation_data_buffer,
+            0,
+            bytemuck::cast_slice(&[self.simulation_data]),
+        );
 
         let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-            color_attachments: &[
-                wgpu::RenderPassColorAttachmentDescriptor {
-                    attachment: frame,
-                    resolve_target: None,
-                    ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Load,
-                        store: true,
-                    }  
+            color_attachments: &[wgpu::RenderPassColorAttachmentDescriptor {
+                attachment: frame,
+                resolve_target: None,
+                ops: wgpu::Operations {
+                    load: wgpu::LoadOp::Load,
+                    store: true,
                 },
-            ],
+            }],
             depth_stencil_attachment: None,
         });
         pass.set_bind_group(0, &self.simulation_bind_group, &[]);
@@ -141,9 +142,17 @@ impl<'a> ShaderCanvasBuilder<'a> {
     }
 
     pub fn build(&mut self, device: &wgpu::Device) -> Result<ShaderCanvas, ShaderBuildError> {
-        let display_format = self.display_format.ok_or(ShaderBuildError::InvalidDisplayFormat)?;
-        let frag_code = self.frag_code.take().ok_or(ShaderBuildError::InvalidFragmentShader)?;
-        let vert_code = self.vert_code.take().ok_or(ShaderBuildError::InvalidVertexShader)?;
+        let display_format = self
+            .display_format
+            .ok_or(ShaderBuildError::InvalidDisplayFormat)?;
+        let frag_code = self
+            .frag_code
+            .take()
+            .ok_or(ShaderBuildError::InvalidFragmentShader)?;
+        let vert_code = self
+            .vert_code
+            .take()
+            .ok_or(ShaderBuildError::InvalidVertexShader)?;
 
         let simulation_data = SimulationData {
             time: 0.0,
@@ -158,30 +167,29 @@ impl<'a> ShaderCanvasBuilder<'a> {
             usage: wgpu::BufferUsage::UNIFORM | wgpu::BufferUsage::COPY_DST,
         });
 
-        let simulation_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-            label: self.label,
-            entries: &[
-                // SimulationData
-                wgpu::BindGroupLayoutEntry {
-                    binding: 0,
-                    visibility: wgpu::ShaderStage::FRAGMENT,
-                    count: None,
-                    ty: wgpu::BindingType::UniformBuffer {
-                        dynamic: false,
-                        min_binding_size: None,
-                    }
-                }
-            ],
-        });
+        let simulation_bind_group_layout =
+            device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+                label: self.label,
+                entries: &[
+                    // SimulationData
+                    wgpu::BindGroupLayoutEntry {
+                        binding: 0,
+                        visibility: wgpu::ShaderStage::FRAGMENT,
+                        count: None,
+                        ty: wgpu::BindingType::UniformBuffer {
+                            dynamic: false,
+                            min_binding_size: None,
+                        },
+                    },
+                ],
+            });
         let simulation_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
             layout: &simulation_bind_group_layout,
             label: self.label,
-            entries: &[
-                wgpu::BindGroupEntry {
-                    binding: 0,
-                    resource: wgpu::BindingResource::Buffer(simulation_data_buffer.slice(..))
-                }
-            ]
+            entries: &[wgpu::BindGroupEntry {
+                binding: 0,
+                resource: wgpu::BindingResource::Buffer(simulation_data_buffer.slice(..)),
+            }],
         });
 
         let vert_module = device.create_shader_module(vert_code);

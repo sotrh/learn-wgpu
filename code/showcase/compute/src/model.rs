@@ -4,8 +4,8 @@ use std::ops::Range;
 use std::path::Path;
 use wgpu::util::DeviceExt;
 
-use crate::texture;
 use crate::pipeline;
+use crate::texture;
 
 pub trait Vertex {
     fn desc<'a>() -> wgpu::VertexBufferDescriptor<'a>;
@@ -20,7 +20,6 @@ pub struct ModelVertex {
     tangent: [f32; 3],
     bitangent: [f32; 3],
 }
-
 
 impl Vertex for ModelVertex {
     fn desc<'a>() -> wgpu::VertexBufferDescriptor<'a> {
@@ -182,7 +181,7 @@ impl pipeline::Bindable for BitangentComputeBinding {
                     min_binding_size: None,
                 },
                 count: None,
-            }
+            },
         ]
     }
 
@@ -207,7 +206,7 @@ impl pipeline::Bindable for BitangentComputeBinding {
             wgpu::BindGroupEntry {
                 binding: 3,
                 resource: wgpu::BindingResource::Buffer(self.info_buffer.slice(..)),
-            }
+            },
         ]
     }
 }
@@ -224,12 +223,16 @@ pub struct ModelLoader {
 
 // UPDATED!
 impl ModelLoader {
-
     // NEW!
     pub fn new(device: &wgpu::Device) -> Self {
         let binder = pipeline::Binder::new(device, Some("ModelLoader Binder"));
         let shader_src = wgpu::include_spirv!("model_load.comp.spv");
-        let pipeline = pipeline::create_compute_pipeline(device, &[&binder.layout], shader_src, Some("ModelLoader ComputePipeline"));
+        let pipeline = pipeline::create_compute_pipeline(
+            device,
+            &[&binder.layout],
+            shader_src,
+            Some("ModelLoader ComputePipeline"),
+        );
         Self { binder, pipeline }
     }
 
@@ -303,18 +306,20 @@ impl ModelLoader {
                     })
                     .collect::<Vec<_>>();
 
-                let src_vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-                    label: Some(&format!("{:?} Vertex Buffer", m.name)),
-                    contents: bytemuck::cast_slice(&vertices),
-                    // UPDATED!
-                    usage: wgpu::BufferUsage::STORAGE,
-                });
-                let dst_vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-                    label: Some(&format!("{:?} Vertex Buffer", m.name)),
-                    contents: bytemuck::cast_slice(&vertices),
-                    // UPDATED!
-                    usage: wgpu::BufferUsage::VERTEX | wgpu::BufferUsage::STORAGE,
-                });
+                let src_vertex_buffer =
+                    device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                        label: Some(&format!("{:?} Vertex Buffer", m.name)),
+                        contents: bytemuck::cast_slice(&vertices),
+                        // UPDATED!
+                        usage: wgpu::BufferUsage::STORAGE,
+                    });
+                let dst_vertex_buffer =
+                    device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                        label: Some(&format!("{:?} Vertex Buffer", m.name)),
+                        contents: bytemuck::cast_slice(&vertices),
+                        // UPDATED!
+                        usage: wgpu::BufferUsage::VERTEX | wgpu::BufferUsage::STORAGE,
+                    });
                 let index_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
                     label: Some(&format!("{:?} Index Buffer", m.name)),
                     contents: bytemuck::cast_slice(&m.mesh.indices),
@@ -342,11 +347,9 @@ impl ModelLoader {
                 };
 
                 // Calculate the tangents and bitangents
-                let calc_bind_group = self.binder.create_bind_group(
-                    &binding, 
-                    device, 
-                    Some("Mesh BindGroup")
-                );
+                let calc_bind_group =
+                    self.binder
+                        .create_bind_group(&binding, device, Some("Mesh BindGroup"));
                 let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
                     label: Some("Tangent and Bitangent Calc"),
                 });

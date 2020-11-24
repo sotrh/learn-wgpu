@@ -15,7 +15,7 @@ mod pipeline; // NEW!
 mod texture;
 
 use model::{DrawLight, DrawModel, Vertex};
-use pipeline::{create_render_pipeline};
+use pipeline::create_render_pipeline;
 
 const NUM_INSTANCES_PER_ROW: u32 = 10;
 
@@ -50,7 +50,8 @@ impl Instance {
     fn to_raw(&self) -> InstanceRaw {
         InstanceRaw {
             model: (cgmath::Matrix4::from_translation(self.position)
-                * cgmath::Matrix4::from(self.rotation)).into(),
+                * cgmath::Matrix4::from(self.rotation))
+            .into(),
         }
     }
 }
@@ -138,7 +139,6 @@ struct State {
     last_mouse_pos: PhysicalPosition<f64>,
     mouse_pressed: bool,
 }
-
 
 impl State {
     async fn new(window: &Window) -> Self {
@@ -270,28 +270,24 @@ impl State {
 
         let uniform_bind_group_layout =
             device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-                entries: &[
-                    wgpu::BindGroupLayoutEntry {
-                        binding: 0,
-                        visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
-                        ty: wgpu::BindingType::UniformBuffer {
-                            dynamic: false,
-                            min_binding_size: None,
-                        },
-                        count: None,
+                entries: &[wgpu::BindGroupLayoutEntry {
+                    binding: 0,
+                    visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+                    ty: wgpu::BindingType::UniformBuffer {
+                        dynamic: false,
+                        min_binding_size: None,
                     },
-                ],
+                    count: None,
+                }],
                 label: Some("uniform_bind_group_layout"),
             });
 
         let uniform_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
             layout: &uniform_bind_group_layout,
-            entries: &[
-                wgpu::BindGroupEntry {
-                    binding: 0,
-                    resource: wgpu::BindingResource::Buffer(uniform_buffer.slice(..)),
-                },
-            ],
+            entries: &[wgpu::BindGroupEntry {
+                binding: 0,
+                resource: wgpu::BindingResource::Buffer(uniform_buffer.slice(..)),
+            }],
             label: Some("uniform_bind_group"),
         });
 
@@ -299,13 +295,14 @@ impl State {
         let model_loader = model::ModelLoader::new(&device);
 
         // UPDATED!
-        let obj_model = model_loader.load(
-            &device,
-            &queue,
-            &texture_bind_group_layout,
-            res_dir.join("cube.obj"),
-        )
-        .unwrap();
+        let obj_model = model_loader
+            .load(
+                &device,
+                &queue,
+                &texture_bind_group_layout,
+                res_dir.join("cube.obj"),
+            )
+            .unwrap();
 
         let light = Light {
             position: [2.0, 2.0, 2.0],
@@ -503,25 +500,24 @@ impl State {
         let old_position: cgmath::Vector3<_> = self.light.position.into();
         self.light.position =
             (cgmath::Quaternion::from_axis_angle((0.0, 1.0, 0.0).into(), cgmath::Deg(1.0))
-                * old_position).into();
+                * old_position)
+                .into();
         self.queue
             .write_buffer(&self.light_buffer, 0, bytemuck::cast_slice(&[self.light]));
     }
 
     fn render(&mut self) {
-        let frame = self
-            .swap_chain
-            .get_current_frame();
-        
+        let frame = self.swap_chain.get_current_frame();
+
         match frame {
             Ok(frame) => {
                 let frame = frame.output;
-                let mut encoder = self
-                    .device
-                    .create_command_encoder(&wgpu::CommandEncoderDescriptor {
-                        label: Some("Render Encoder"),
-                    });
-        
+                let mut encoder =
+                    self.device
+                        .create_command_encoder(&wgpu::CommandEncoderDescriptor {
+                            label: Some("Render Encoder"),
+                        });
+
                 {
                     let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                         color_attachments: &[wgpu::RenderPassColorAttachmentDescriptor {
@@ -537,16 +533,18 @@ impl State {
                                 store: true,
                             },
                         }],
-                        depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachmentDescriptor {
-                            attachment: &self.depth_texture.view,
-                            depth_ops: Some(wgpu::Operations {
-                                load: wgpu::LoadOp::Clear(1.0),
-                                store: true,
-                            }),
-                            stencil_ops: None,
-                        }),
+                        depth_stencil_attachment: Some(
+                            wgpu::RenderPassDepthStencilAttachmentDescriptor {
+                                attachment: &self.depth_texture.view,
+                                depth_ops: Some(wgpu::Operations {
+                                    load: wgpu::LoadOp::Clear(1.0),
+                                    store: true,
+                                }),
+                                stencil_ops: None,
+                            },
+                        ),
                     });
-        
+
                     render_pass.set_vertex_buffer(1, self.instance_buffer.slice(..));
                     render_pass.set_pipeline(&self.light_render_pipeline);
                     render_pass.draw_light_model(
@@ -554,7 +552,7 @@ impl State {
                         &self.uniform_bind_group,
                         &self.light_bind_group,
                     );
-        
+
                     render_pass.set_pipeline(&self.render_pipeline);
                     render_pass.draw_model_instanced(
                         &self.obj_model,
@@ -570,7 +568,6 @@ impl State {
             }
         }
     }
-
 }
 
 fn main() {

@@ -10,4 +10,10 @@ Wgpu actually has C bindings to allow you to write C/C++ code with it, as well a
 
 You should be fairly familiar with Rust before using this tutorial as I won't go into much detail on Rust syntax. If you're not super comfortable with Rust you can review the [Rust tutorial](https://www.rust-lang.org/learn). You should also be familiar about [Cargo](https://doc.rust-lang.org/cargo/).
 
-I'm using this project as a way to learn wgpu myself, so I might miss some important details, or explain things wrong. I'm always open to constructive feedback. That being said, let's get started!
+I'm using this project as a way to learn wgpu myself, so I might miss some important details, or explain things wrong. I'm always open to constructive feedback.
+
+## Contribution and Support
+
+* I accept pull requests for fixing issues with this tutorial such as typos, incorrect information, and other inconsistencies.
+* Due to wgpu's rapidly changing api, I'm not accepting any new pull requests for showcase demos.
+* If you want to support me directly, check out my [patreon](https://www.patreon.com/sotrh)!

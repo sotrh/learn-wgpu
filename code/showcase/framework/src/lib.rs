@@ -4,16 +4,16 @@ mod light;
 mod model;
 mod pipeline;
 pub mod prelude;
-mod texture;
 mod shader_canvas;
+mod texture;
 
 pub use buffer::*;
 pub use camera::*;
 pub use light::*;
 pub use model::*;
 pub use pipeline::*;
-pub use texture::*;
 pub use shader_canvas::*;
+pub use texture::*;
 
 use anyhow::*;
 use cgmath::*;

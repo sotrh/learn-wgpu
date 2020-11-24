@@ -20,7 +20,12 @@ impl<T: Bindable> Binder<T> {
         }
     }
 
-    pub fn create_bind_group(&self, data: &T, device: &wgpu::Device, label: Option<&str>) -> wgpu::BindGroup {
+    pub fn create_bind_group(
+        &self,
+        data: &T,
+        device: &wgpu::Device,
+        label: Option<&str>,
+    ) -> wgpu::BindGroup {
         device.create_bind_group(&wgpu::BindGroupDescriptor {
             label,
             layout: &self.layout,
@@ -84,10 +89,10 @@ pub fn create_render_pipeline(
 }
 
 pub fn create_compute_pipeline(
-    device: &wgpu::Device, 
-    bind_group_layouts: &[&wgpu::BindGroupLayout], 
-    shader_src: wgpu::ShaderModuleSource, 
-    label: Option<&str>
+    device: &wgpu::Device,
+    bind_group_layouts: &[&wgpu::BindGroupLayout],
+    shader_src: wgpu::ShaderModuleSource,
+    label: Option<&str>,
 ) -> wgpu::ComputePipeline {
     let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
         label,
@@ -99,7 +104,7 @@ pub fn create_compute_pipeline(
         layout: Some(&layout),
         compute_stage: wgpu::ProgrammableStageDescriptor {
             module: &device.create_shader_module(shader_src),
-            entry_point: "main"
+            entry_point: "main",
         },
     });
     pipeline

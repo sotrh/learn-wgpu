@@ -1,7 +1,7 @@
 use anyhow::*;
+use futures::executor::block_on;
 use imgui::*;
 use imgui_wgpu::{Renderer, RendererConfig};
-use futures::executor::block_on;
 use std::time::Duration;
 
 struct ImguiDemo {
@@ -21,7 +21,7 @@ impl framework::Demo for ImguiDemo {
         let mut imgui = imgui::Context::create();
         let mut platform = imgui_winit_support::WinitPlatform::init(&mut imgui);
         platform.attach_window(
-            imgui.io_mut(), 
+            imgui.io_mut(),
             &display.window,
             imgui_winit_support::HiDpiMode::Default,
         );
@@ -37,15 +37,21 @@ impl framework::Demo for ImguiDemo {
                 size_pixels: font_size,
                 ..Default::default()
             }),
-        }]);        
+        }]);
 
         let renderer_config = RendererConfig {
             texture_format: display.sc_desc.format,
             ..Default::default()
         };
         let renderer = Renderer::new(&mut imgui, &display.device, &display.queue, renderer_config);
-        
-        Ok(Self { canvas, imgui, platform, renderer, last_cursor: None })
+
+        Ok(Self {
+            canvas,
+            imgui,
+            platform,
+            renderer,
+            last_cursor: None,
+        })
     }
 
     fn process_mouse(&mut self, dx: f64, dy: f64) {
@@ -89,15 +95,16 @@ impl framework::Demo for ImguiDemo {
                 eprintln!("Error getting frame: {:?}", e);
                 return;
             }
-        }.output;
+        }
+        .output;
 
         // Render the scene
         self.canvas.render(
-            &display.queue, 
-            &mut encoder, 
-            &output.view, 
-            display.sc_desc.width as f32, 
-            display.sc_desc.height as f32
+            &display.queue,
+            &mut encoder,
+            &output.view,
+            display.sc_desc.width as f32,
+            display.sc_desc.height as f32,
         );
 
         // Render the UI

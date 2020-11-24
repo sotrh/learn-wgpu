@@ -52,6 +52,7 @@ module.exports = {
                     '/showcase/pong/',
                     '/showcase/compute/',
                     '/showcase/alignment/',
+                    '/showcase/imgui-demo/',
                 ]
             },
             '/news/'
