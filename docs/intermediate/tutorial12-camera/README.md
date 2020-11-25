@@ -259,7 +259,7 @@ impl Uniforms {
 }
 ```
 
-We need to change our `State` to use our `Camera`, `CameraProjection` and `Projection` as well. We'll also add two fields for later: `last_mouse_pos`, and `mouse_pressed`.
+We need to change our `State` to use our `Camera`, `CameraProjection` and `Projection` as well. We'll also add a `mouse_pressed` field to store whether the mouse was pressed.
 
 ```rust
 struct State {
@@ -269,7 +269,6 @@ struct State {
     camera_controller: camera::CameraController, // UPDATED!
     // ...
     // NEW!
-    last_mouse_pos: PhysicalPosition<f64>,
     mouse_pressed: bool,
 }
 ```
@@ -297,7 +296,6 @@ impl State {
             camera_controller,
             // ...
             // NEW!
-            last_mouse_pos: (0.0, 0.0).into(),
             mouse_pressed: false,
         }
     }
@@ -314,49 +312,86 @@ fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
 }
 ```
 
-`input` will need to be updated as well.
+`input()` will need to be updated as well. Up to this point we have been using `WindowEvent`s for our camera controls. While this works, it's not the best solution. The [winit docs](https://docs.rs/winit/0.23.0/winit/event/enum.WindowEvent.html?search=#variant.CursorMoved) inform us that OS will often transform the data for the `CursorMoved` event to allow effects such as cursor acceleration. Because of this, we're going to change our `input()` function to use `DeviceEvent` instead of `WindowEvent`.
 
 ```rust
 // UPDATED!
-fn input(&mut self, event: &WindowEvent) -> bool {
+fn input(&mut self, event: &DeviceEvent) -> bool {
     match event {
-        WindowEvent::KeyboardInput {
-            input: KeyboardInput {
+        DeviceEvent::Key(
+            KeyboardInput {
                 virtual_keycode: Some(key),
                 state,
                 ..
-            },
-            ..
-        } => self.camera_controller.process_keyboard(*key, *state),
-        WindowEvent::MouseWheel {
-            delta,
-            ..
-        } => {
+            }
+        ) => self.camera_controller.process_keyboard(*key, *state),
+        DeviceEvent::MouseWheel { delta, .. } => {
             self.camera_controller.process_scroll(delta);
             true
         }
-        WindowEvent::MouseInput {
-            button: MouseButton::Left,
+        DeviceEvent::Button {
+            button: 1, // Left Mouse Button
             state,
-            ..
         } => {
             self.mouse_pressed = *state == ElementState::Pressed;
             true
         }
-        WindowEvent::CursorMoved {
-            position,
-            ..
-        } => {
-            let mouse_dx = position.x - self.last_mouse_pos.x;
-            let mouse_dy = position.y - self.last_mouse_pos.y;
-            self.last_mouse_pos = *position;
+        DeviceEvent::MouseMotion { delta } => {
             if self.mouse_pressed {
-                self.camera_controller.process_mouse(mouse_dx, mouse_dy);
+                self.camera_controller.process_mouse(delta.0, delta.1);
             }
             true
         }
         _ => false,
     }
+}
+```
+
+This change means will have to modify the event loop in `main()` as well.
+
+```rust
+fn main() {
+    // ...
+    event_loop.run(move |event, _, control_flow| {
+        *control_flow = ControlFlow::Poll;
+        match event {
+            // ...
+            // NEW!
+            Event::DeviceEvent {
+                ref event,
+                .. // We're not using device_id currently
+            } => {
+                state.input(event);
+            }
+            // UPDATED!
+            Event::WindowEvent {
+                ref event,
+                window_id,
+            } if window_id == window.id() => {
+                match event {
+                    WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
+                    WindowEvent::KeyboardInput { input, .. } => match input {
+                        KeyboardInput {
+                            state: ElementState::Pressed,
+                            virtual_keycode: Some(VirtualKeyCode::Escape),
+                            ..
+                        } => {
+                            *control_flow = ControlFlow::Exit;
+                        }
+                        _ => {}
+                    },
+                    WindowEvent::Resized(physical_size) => {
+                        state.resize(*physical_size);
+                    }
+                    WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
+                        state.resize(**new_inner_size);
+                    }
+                    _ => {}
+                }
+            }
+            // ...
+        }
+    });
 }
 ```
 
