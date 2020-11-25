@@ -135,7 +135,6 @@ struct State {
     #[allow(dead_code)]
     debug_material: model::Material,
     // NEW!
-    last_mouse_pos: PhysicalPosition<f64>,
     mouse_pressed: bool,
 }
 
@@ -484,7 +483,6 @@ impl State {
             #[allow(dead_code)]
             debug_material,
             // NEW!
-            last_mouse_pos: (0.0, 0.0).into(),
             mouse_pressed: false,
         }
     }
@@ -501,35 +499,29 @@ impl State {
     }
 
     // UPDATED!
-    fn input(&mut self, event: &WindowEvent) -> bool {
+    fn input(&mut self, event: &DeviceEvent) -> bool {
         match event {
-            WindowEvent::KeyboardInput {
-                input:
-                    KeyboardInput {
-                        virtual_keycode: Some(key),
-                        state,
-                        ..
-                    },
-                ..
-            } => self.camera_controller.process_keyboard(*key, *state),
-            WindowEvent::MouseWheel { delta, .. } => {
+            DeviceEvent::Key(
+                KeyboardInput {
+                    virtual_keycode: Some(key),
+                    state,
+                    ..
+                }
+            ) => self.camera_controller.process_keyboard(*key, *state),
+            DeviceEvent::MouseWheel { delta, .. } => {
                 self.camera_controller.process_scroll(delta);
                 true
             }
-            WindowEvent::MouseInput {
-                button: MouseButton::Left,
+            DeviceEvent::Button {
+                button: 1, // Left Mouse Button
                 state,
-                ..
             } => {
                 self.mouse_pressed = *state == ElementState::Pressed;
                 true
             }
-            WindowEvent::CursorMoved { position, .. } => {
-                let mouse_dx = position.x - self.last_mouse_pos.x;
-                let mouse_dy = position.y - self.last_mouse_pos.y;
-                self.last_mouse_pos = *position;
+            DeviceEvent::MouseMotion { delta } => {
                 if self.mouse_pressed {
-                    self.camera_controller.process_mouse(mouse_dx, mouse_dy);
+                    self.camera_controller.process_mouse(delta.0, delta.1);
                 }
                 true
             }
@@ -629,31 +621,36 @@ fn main() {
         *control_flow = ControlFlow::Poll;
         match event {
             Event::MainEventsCleared => window.request_redraw(),
+            Event::DeviceEvent {
+                ref event,
+                .. // We're not using device_id currently
+            } => {
+                state.input(event);
+            }
+            // UPDATED!
             Event::WindowEvent {
                 ref event,
                 window_id,
             } if window_id == window.id() => {
-                if !state.input(event) {
-                    match event {
-                        WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
-                        WindowEvent::KeyboardInput { input, .. } => match input {
-                            KeyboardInput {
-                                state: ElementState::Pressed,
-                                virtual_keycode: Some(VirtualKeyCode::Escape),
-                                ..
-                            } => {
-                                *control_flow = ControlFlow::Exit;
-                            }
-                            _ => {}
-                        },
-                        WindowEvent::Resized(physical_size) => {
-                            state.resize(*physical_size);
-                        }
-                        WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
-                            state.resize(**new_inner_size);
+                match event {
+                    WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
+                    WindowEvent::KeyboardInput { input, .. } => match input {
+                        KeyboardInput {
+                            state: ElementState::Pressed,
+                            virtual_keycode: Some(VirtualKeyCode::Escape),
+                            ..
+                        } => {
+                            *control_flow = ControlFlow::Exit;
                         }
                         _ => {}
+                    },
+                    WindowEvent::Resized(physical_size) => {
+                        state.resize(*physical_size);
                     }
+                    WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
+                        state.resize(**new_inner_size);
+                    }
+                    _ => {}
                 }
             }
             // UPDATED!

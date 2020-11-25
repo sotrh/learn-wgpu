@@ -192,7 +192,7 @@ pub trait Demo: 'static + Sized {
 
 pub async fn run<D: Demo>() -> Result<(), Error> {
     wgpu_subscriber::initialize_default_subscriber(None);
-    
+
     let event_loop = EventLoop::new();
     let window = WindowBuilder::new()
         .with_title(env!("CARGO_PKG_NAME"))

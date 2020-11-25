@@ -4,27 +4,13 @@ use std::time::Duration;
 use winit::dpi::PhysicalPosition;
 use winit::event::*;
 
-#[cfg_attr(rustfmt, rustfmt_skip)]
+#[rustfmt::skip]
 pub const OPENGL_TO_WGPU_MATRIX: cgmath::Matrix4<f32> = cgmath::Matrix4::new(
     1.0, 0.0, 0.0, 0.0,
     0.0, 1.0, 0.0, 0.0,
     0.0, 0.0, 0.5, 0.0,
     0.0, 0.0, 0.5, 1.0,
 );
-
-pub fn camera_setup<V: Into<Point3<f32>>, Y: Into<Rad<f32>>, P: Into<Rad<f32>>>(
-    position: V,
-    yaw: Y,
-    pitch: P,
-    width: u32,
-    height: u32,
-) -> (Camera, Projection, CameraController) {
-    (
-        Camera::new(position, yaw, pitch),
-        Projection::new(width, height, Deg(45.0), 0.1, 100.0),
-        CameraController::new(4.0, 0.4),
-    )
-}
 
 #[derive(Debug)]
 pub struct Camera {
@@ -154,10 +140,10 @@ impl CameraController {
     }
 
     pub fn process_scroll(&mut self, delta: &MouseScrollDelta) {
-        self.scroll = -match delta {
+        self.scroll = match delta {
             // I'm assuming a line is about 100 pixels
-            MouseScrollDelta::LineDelta(_, scroll) => scroll * 100.0,
-            MouseScrollDelta::PixelDelta(PhysicalPosition { y: scroll, .. }) => *scroll as f32,
+            MouseScrollDelta::LineDelta(_, scroll) => -scroll * 0.5,
+            MouseScrollDelta::PixelDelta(PhysicalPosition { y: scroll, .. }) => -*scroll as f32,
         };
     }
 
@@ -179,6 +165,7 @@ impl CameraController {
         let scrollward =
             Vector3::new(pitch_cos * yaw_cos, pitch_sin, pitch_cos * yaw_sin).normalize();
         camera.position += scrollward * self.scroll * self.speed * self.sensitivity * dt;
+        self.scroll = 0.0;
 
         // Move up/down. Since we don't use roll, we can just
         // modify the y coordinate directly.
