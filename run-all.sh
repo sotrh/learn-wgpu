@@ -1,6 +1,4 @@
 #!/bin/bash
-# todo: figure out how to do this asynchronously
-
 
 cargo run --bin tutorial1-window &
 cargo run --bin tutorial2-swapchain &
