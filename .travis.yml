@@ -1,15 +1,28 @@
-language: node_js
-node_js:
-  - lts/*
-install:
-  - npm ci # yarn install
-script:
-  - npm run docs:build # yarn docs:build
-deploy:
-  provider: pages
-  skip_cleanup: true
-  local_dir: docs/.vuepress/dist
-  github_token: $GITHUB_TOKEN # A token generated on GitHub allowing Travis to push code on you repository. Set in the Travis settings page of your repository, as a secure variable
-  keep_history: true
-  on:
-    branch: master
+matrix:
+  include:
+    - language: rust
+      rust:
+        - stable
+        - beta
+        - nightly
+      jobs:
+        allow_failures:
+          - rust: nightly
+        fast_finish: true
+      scripts:
+        - cargo build --verbose
+    - language: node_js
+      node_js:
+        - lts/*
+      install:
+        - npm ci
+      script:
+        - npm run build
+      deploy:
+        provider: pages
+        skip_cleanup: true
+        local_dir: docs/.vuepress/dist
+        github_token: $GITHUB_TOKEN # A token generated on GitHub allowing Travis to push code on you repository. Set in the Travis settings page of your repository, as a secure variable
+        keep_history: true
+        on:
+          branch: master
