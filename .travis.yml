@@ -3,11 +3,11 @@ matrix:
     - language: rust
       rust:
         - stable
-        - beta
-        - nightly
+        # - beta
+        # - nightly
       jobs:
-        allow_failures:
-          - rust: nightly
+        # allow_failures:
+        #   - rust: nightly
         fast_finish: true
       scripts:
         - cargo build --verbose
