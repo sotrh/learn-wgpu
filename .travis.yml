@@ -4,7 +4,7 @@ matrix:
       addons:
         apt:
           packages:
-          - libalsa-dev
+          - libasound2-dev
       rust:
         - stable
         # - beta
