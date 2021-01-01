@@ -384,7 +384,7 @@ let fs_module = device.create_shader_module(wgpu::include_spirv!("shader.frag.sp
 
 <div class="note">
 
-I'm glossing over the code in the build script as this guide is focused on wgpu related topics. Designing build scripts is a topic in and of itself, and going into it in detail would be quite a long tangent.
+I'm glossing over the code in the build script as this guide is focused on wgpu related topics. Designing build scripts is a topic in and of itself, and going into it in detail would be quite a long tangent. You can learn more about build scripts in [The Cargo Book](https://doc.rust-lang.org/cargo/reference/build-scripts.html).
 
 </div>
 
