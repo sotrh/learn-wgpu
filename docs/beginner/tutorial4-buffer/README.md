@@ -89,7 +89,7 @@ struct Vertex {
 
 <div class="note">
 
-If you're struct includes types that don't implement `Pod` and `Zeroable`, you'll need to implement these traits manually. These traits don't require us to implement any methods, so we just need to use the following to get our code to work.
+If your struct includes types that don't implement `Pod` and `Zeroable`, you'll need to implement these traits manually. These traits don't require us to implement any methods, so we just need to use the following to get our code to work.
 
 ```rust
 unsafe impl bytemuck::Pod for Vertex {}
@@ -138,8 +138,8 @@ wgpu::VertexBufferDescriptor {
 ```
 
 1. The `stride` defines how wide a vertex is. When the shader goes to read the next vertex, it will skip over `stride` number of bytes. In our case, stride will probably be 24 bytes.
-2. `step_mode` tells the pipeline how often it should move to the next vertex. This seems redundant in our case, but we can specify `wgpu::InputStepMode::Instance` if we only want the change vertices when we start drawing a new instance. We'll cover instancing in a later tutorial.
-3. Vertex attributes describe the individual parts of the vertex. Generally this is a 1:1 mapping with a structs fields which it is in our case.
+2. `step_mode` tells the pipeline how often it should move to the next vertex. This seems redundant in our case, but we can specify `wgpu::InputStepMode::Instance` if we only want to change vertices when we start drawing a new instance. We'll cover instancing in a later tutorial.
+3. Vertex attributes describe the individual parts of the vertex. Generally this is a 1:1 mapping with a struct's fields, which it is in our case.
 4. This defines the `offset` in bytes that this attribute starts. The first attribute is usually zero, and any future attributes are the collective `size_of` the previous attributes data.
 5. This tells the shader what location to store this attribute at. For example `layout(location=0) in vec3 x` in the vertex shader would correspond to the position field of the struct, while `layout(location=1) in vec3 x` would be the color field.
 6. `format` tells the shader the shape of the attribute. `Float3` corresponds to `vec3` in shader code. The max value we can store in an attribute is `Float4` (`Uint4`, and `Int4` work as well). We'll keep this in mind for when we have to store things that are bigger than `Float4`.
@@ -176,7 +176,7 @@ impl Vertex {
 
 <div class="note">
 
-Specifying the attributes as we are now is quite verbose. We could use the `vertex_attr_array` macro provided by wgpu to clean things up a bit. With it our `VertexBufferDescriptor` becomes
+Specifying the attributes as we did now is quite verbose. We could use the `vertex_attr_array` macro provided by wgpu to clean things up a bit. With it our `VertexBufferDescriptor` becomes
 
 ```rust
 wgpu::VertexBufferDescriptor {
