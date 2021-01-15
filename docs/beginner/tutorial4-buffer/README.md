@@ -107,9 +107,9 @@ Self {
     queue,
     sc_desc,
     swap_chain,
+    size,
     render_pipeline,
     vertex_buffer,
-    size,
 }
 ```
 
@@ -388,8 +388,8 @@ Self {
     queue,
     sc_desc,
     swap_chain,
-    render_pipeline,
     size,
+    render_pipeline,
     vertex_buffer,
     // NEW!
     index_buffer,

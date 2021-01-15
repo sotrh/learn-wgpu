@@ -69,8 +69,8 @@ struct State {
     queue: wgpu::Queue,
     sc_desc: wgpu::SwapChainDescriptor,
     swap_chain: wgpu::SwapChain,
-    render_pipeline: wgpu::RenderPipeline,
     size: winit::dpi::PhysicalSize<u32>,
+    render_pipeline: wgpu::RenderPipeline,
     vertex_buffer: wgpu::Buffer,
     index_buffer: wgpu::Buffer,
     num_indices: u32,
@@ -222,13 +222,13 @@ impl State {
             queue,
             sc_desc,
             swap_chain,
+            size,
             render_pipeline,
             vertex_buffer,
             index_buffer,
             num_indices,
             diffuse_texture,
             diffuse_bind_group,
-            size,
         }
     }
 
