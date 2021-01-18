@@ -209,9 +209,9 @@ Self {
     surface,
     device,
     queue,
-    size,
     sc_desc,
     swap_chain,
+    size,
     // NEW!
     render_pipeline,
 }

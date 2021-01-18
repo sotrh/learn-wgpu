@@ -225,6 +225,7 @@ struct State {
     queue: wgpu::Queue,
     sc_desc: wgpu::SwapChainDescriptor,
     swap_chain: wgpu::SwapChain,
+    size: winit::dpi::PhysicalSize<u32>,
     render_pipeline: wgpu::RenderPipeline,
     obj_model: model::Model,
     camera: Camera,
@@ -236,7 +237,6 @@ struct State {
     #[allow(dead_code)]
     instance_buffer: wgpu::Buffer,
     depth_texture: texture::Texture,
-    size: winit::dpi::PhysicalSize<u32>,
 }
 
 impl State {
@@ -444,6 +444,7 @@ impl State {
             queue,
             sc_desc,
             swap_chain,
+            size,
             render_pipeline,
             obj_model,
             camera,
@@ -454,7 +455,6 @@ impl State {
             instances,
             instance_buffer,
             depth_texture,
-            size,
         }
     }
 
