@@ -512,6 +512,7 @@ impl State {
             queue,
             sc_desc,
             swap_chain,
+            size,
             render_pipeline,
             vertex_buffer,
             index_buffer,
@@ -523,7 +524,6 @@ impl State {
             uniform_buffer,
             uniform_bind_group,
             uniforms,
-            size,
             // NEW!
             instances,
             instance_buffer,

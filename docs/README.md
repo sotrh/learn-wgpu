@@ -17,3 +17,13 @@ I'm using this project as a way to learn wgpu myself, so I might miss some impor
 * I accept pull requests for fixing issues with this tutorial such as typos, incorrect information, and other inconsistencies.
 * Due to wgpu's rapidly changing api, I'm not accepting any new pull requests for showcase demos.
 * If you want to support me directly, check out my [patreon](https://www.patreon.com/sotrh)!
+
+## Special thanks to these patrons!
+
+*In no particular order*
+
+* Paul E Hansen
+* Lennart
+* Gunstein Vatnar
+* yutani 
+* David Laban
