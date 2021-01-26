@@ -34,7 +34,7 @@ anyhow = "1.0"
 fs_extra = "1.2"
 glob = "0.3"
 rayon = "1.4" # NEW!
-shaderc = "0.6"
+shaderc = "0.7"
 ```
 
 First some housekeeping. Our `build.rs` code currently uses an array to store the globs to find our projects shaders. We're going to switch to using a `Vec` to make things play nicer with `rayon`.

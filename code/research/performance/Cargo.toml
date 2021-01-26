@@ -20,7 +20,7 @@ version = "0.17"
 features = ["swizzle"]
 
 [build-dependencies]
-shaderc = "0.6"
+shaderc = "0.7"
 glob = "0.3"
 failure = "0.1"
 fs_extra = "1.1"

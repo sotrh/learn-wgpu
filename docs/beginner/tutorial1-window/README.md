@@ -10,7 +10,7 @@ For the beginner stuff, we're going to keep things very simple, we'll add things
 [dependencies]
 image = "0.23"
 winit = "0.22"
-shaderc = "0.6"
+shaderc = "0.7"
 cgmath = "0.17"
 env_logger = "0.7"
 log = "0.4"

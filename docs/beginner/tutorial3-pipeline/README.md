@@ -27,7 +27,7 @@ In order to do that, we're going to need something to do the conversion. Add the
 ```toml
 [dependencies]
 # ...
-shaderc = "0.6"
+shaderc = "0.7"
 ```
 
 We'll use this in a bit, but first let's create the shaders.
@@ -277,7 +277,7 @@ We'll start writing code in it in a bit. First we need to add some things to our
 [dependencies]
 image = "0.23"
 winit = "0.22"
-# shaderc = "0.6" # REMOVED!
+# shaderc = "0.7" # REMOVED!
 cgmath = "0.17"
 wgpu = "0.6"
 futures = "0.3"
@@ -287,7 +287,7 @@ futures = "0.3"
 anyhow = "1.0"
 fs_extra = "1.1"
 glob = "0.3"
-shaderc = "0.6"
+shaderc = "0.7"
 ```
 
 We've removed shaderc from our dependencies and added a new `[build-depencies]` block. These are dependencies for our build script. We know about shaderc, but the other ones are meant to simplify dealing with the file system and dealing with rust errors.

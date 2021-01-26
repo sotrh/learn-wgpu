@@ -24,4 +24,4 @@ framework = { version = "0.1.0", path = "../framework" }
 anyhow = "1.0"
 fs_extra = "1.2"
 glob = "0.3"
-shaderc = "0.6"
+shaderc = "0.7"
