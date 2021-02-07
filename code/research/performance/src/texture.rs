@@ -46,7 +46,7 @@ impl Texture {
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
             format: Self::DEPTH_FORMAT,
-            usage: wgpu::TextureUsage::OUTPUT_ATTACHMENT
+            usage: wgpu::TextureUsage::RENDER_ATTACHMENT
                 | wgpu::TextureUsage::SAMPLED
                 | wgpu::TextureUsage::COPY_SRC,
         };
@@ -123,7 +123,7 @@ impl Texture {
             usage: wgpu::TextureUsage::SAMPLED
                 | wgpu::TextureUsage::COPY_DST
                 // Needed for to make the mip maps.
-                | wgpu::TextureUsage::OUTPUT_ATTACHMENT,
+                | wgpu::TextureUsage::RENDER_ATTACHMENT,
         };
         let texture = device.create_texture(&texture_desc);
 

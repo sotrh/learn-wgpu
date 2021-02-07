@@ -13,7 +13,7 @@ futures = "0.3"
 image = "0.23"
 log = "0.4"
 tobj = "2.0"
-wgpu = "0.6"
+wgpu = "0.7"
 winit = "0.22"
 
 [build-dependencies]

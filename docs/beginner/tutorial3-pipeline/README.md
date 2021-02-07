@@ -279,7 +279,7 @@ image = "0.23"
 winit = "0.22"
 # shaderc = "0.7" # REMOVED!
 cgmath = "0.17"
-wgpu = "0.6"
+wgpu = "0.7"
 futures = "0.3"
 
 # NEW!

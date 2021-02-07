@@ -227,7 +227,7 @@ impl State {
 
         let adapter = wgpu::Adapter::request(
             &wgpu::RequestAdapterOptions {
-                power_preference: wgpu::PowerPreference::Default,
+                power_preference: wgpu::PowerPreference::default(),
                 compatible_surface: Some(&surface),
             },
             wgpu::BackendBit::PRIMARY, // Vulkan + Metal + DX12 + Browser WebGPU
@@ -245,7 +245,7 @@ impl State {
             .await;
 
         let sc_desc = wgpu::SwapChainDescriptor {
-            usage: wgpu::TextureUsage::OUTPUT_ATTACHMENT,
+            usage: wgpu::TextureUsage::RENDER_ATTACHMENT,
             format: wgpu::TextureFormat::Bgra8UnormSrgb,
             width: size.width,
             height: size.height,

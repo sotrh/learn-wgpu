@@ -9,7 +9,7 @@ It's actually quite simple. We don't *need* a window to create an `Instance`, we
 ```rust
 let adapter = wgpu::Adapter::request(
     &wgpu::RequestAdapterOptions {
-        power_preference: wgpu::PowerPreference::Default,
+        power_preference: wgpu::PowerPreference::default(),
         compatible_surface: None,
     },
     wgpu::BackendBit::PRIMARY,
@@ -36,7 +36,7 @@ let texture_desc = wgpu::TextureDescriptor {
     dimension: wgpu::TextureDimension::D2,
     format: wgpu::TextureFormat::Rgba8UnormSrgb,
     usage: wgpu::TextureUsage::COPY_SRC
-        | wgpu::TextureUsage::OUTPUT_ATTACHMENT
+        | wgpu::TextureUsage::RENDER_ATTACHMENT
         ,
     label: None,
 };

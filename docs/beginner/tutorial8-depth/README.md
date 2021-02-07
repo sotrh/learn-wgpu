@@ -39,7 +39,7 @@ impl Texture {
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
             format: Self::DEPTH_FORMAT,
-            usage: wgpu::TextureUsage::OUTPUT_ATTACHMENT // 3.
+            usage: wgpu::TextureUsage::RENDER_ATTACHMENT // 3.
                 | wgpu::TextureUsage::SAMPLED,
         };
         let texture = device.create_texture(&desc);

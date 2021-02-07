@@ -1,7 +1,7 @@
 async fn run() {
     let adapter = wgpu::Adapter::request(
         &wgpu::RequestAdapterOptions {
-            power_preference: wgpu::PowerPreference::Default,
+            power_preference: wgpu::PowerPreference::default(),
             compatible_surface: None,
         },
         wgpu::BackendBit::PRIMARY,
@@ -22,7 +22,7 @@ async fn run() {
         sample_count: 1,
         dimension: wgpu::TextureDimension::D2,
         format: wgpu::TextureFormat::Rgba8UnormSrgb,
-        usage: wgpu::TextureUsage::COPY_SRC | wgpu::TextureUsage::OUTPUT_ATTACHMENT,
+        usage: wgpu::TextureUsage::COPY_SRC | wgpu::TextureUsage::RENDER_ATTACHMENT,
         label: None,
     };
     let texture = device.create_texture(&texture_desc);

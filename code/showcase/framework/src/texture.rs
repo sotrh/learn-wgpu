@@ -145,7 +145,7 @@ impl<'a> Texture<'a> {
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
             format: Self::DEPTH_FORMAT,
-            usage: wgpu::TextureUsage::OUTPUT_ATTACHMENT,
+            usage: wgpu::TextureUsage::RENDER_ATTACHMENT,
         };
         Self::from_descriptor(device, desc)
     }
