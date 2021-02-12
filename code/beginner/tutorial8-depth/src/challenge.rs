@@ -317,17 +317,20 @@ impl DepthPass {
                 wgpu::BindGroupLayoutEntry {
                     binding: 0,
                     count: None,
-                    ty: wgpu::BindingType::SampledTexture {
-                        component_type: wgpu::TextureComponentType::Float,
+                    ty: wgpu::BindingType::Texture {
+                        sample_type: wgpu::TextureSampleType::Depth,
                         multisampled: false,
-                        dimension: wgpu::TextureViewDimension::D2,
+                        view_dimension: wgpu::TextureViewDimension::D2,
                     },
                     visibility: wgpu::ShaderStage::FRAGMENT,
                 },
                 wgpu::BindGroupLayoutEntry {
                     binding: 1,
                     count: None,
-                    ty: wgpu::BindingType::Sampler { comparison: true },
+                    ty: wgpu::BindingType::Sampler { 
+                        comparison: true,
+                        filtering: true, 
+                    },
                     visibility: wgpu::ShaderStage::FRAGMENT,
                 },
             ],
@@ -433,6 +436,7 @@ impl DepthPass {
 
     fn render(&self, frame: &wgpu::SwapChainTexture, encoder: &mut wgpu::CommandEncoder) {
         let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+            label: Some("Depth Visual Render Pass"),
             color_attachments: &[wgpu::RenderPassColorAttachmentDescriptor {
                 attachment: &frame.view,
                 resolve_target: None,
@@ -652,7 +656,7 @@ impl State {
             vertex: wgpu::VertexState {
                 module: &vs_module,
                 entry_point: "main",
-                buffers: &[Vertex::desc()],
+                buffers: &[Vertex::desc(), InstanceRaw::desc()],
             },
             fragment: Some(wgpu::FragmentState {
                 module: &fs_module,
@@ -664,14 +668,6 @@ impl State {
                     write_mask: wgpu::ColorWrite::ALL,
                 }],
             }),
-            rasterization_state: Some(wgpu::RasterizationStateDescriptor {
-                front_face: wgpu::FrontFace::Ccw,
-                cull_mode: wgpu::CullMode::Back,
-                depth_bias: 2, // corresponds to bilinear filtering
-                depth_bias_slope_scale: 2.0,
-                depth_bias_clamp: 0.0,
-                clamp_depth: device.features().contains(wgpu::Features::DEPTH_CLAMPING),
-            }),
             primitive: wgpu::PrimitiveState {
                 topology: wgpu::PrimitiveTopology::TriangleList,
                 strip_index_format: None,
@@ -680,12 +676,18 @@ impl State {
                 // Setting this to anything other than Fill requires Features::NON_FILL_POLYGON_MODE
                 polygon_mode: wgpu::PolygonMode::Fill,
             },
-
-            depth_stencil: Some(wgpu::DepthStencilStateDescriptor {
+            depth_stencil: Some(wgpu::DepthStencilState {
                 format: texture::Texture::DEPTH_FORMAT,
                 depth_write_enabled: true,
                 depth_compare: wgpu::CompareFunction::Less,
-                stencil: wgpu::StencilStateDescriptor::default(),
+                stencil: wgpu::StencilState::default(),
+                bias: wgpu::DepthBiasState {
+                    constant: 2, // Corresponds to bilinear filtering
+                    slope_scale: 2.0,
+                    clamp: 0.0,
+                },
+                // Setting this to true requires Features::DEPTH_CLAMPING
+                clamp_depth: false,
             }),
             multisample: wgpu::MultisampleState {
                 count: 1,
@@ -768,6 +770,7 @@ impl State {
 
         {
             let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                label: Some("Render Pass"),
                 color_attachments: &[wgpu::RenderPassColorAttachmentDescriptor {
                     attachment: &frame.view,
                     resolve_target: None,

@@ -79,12 +79,14 @@ pub fn create_render_pipeline(
             alpha_blend: wgpu::BlendDescriptor::REPLACE,
             write_mask: wgpu::ColorWrite::ALL,
         }],
-        depth_stencil: depth_format.map(|format| wgpu::DepthStencilStateDescriptor {
+        depth_stencil: depth_format.map(|format| wgpu::DepthStencilState {
             format,
             depth_write_enabled: true,
             depth_compare: wgpu::CompareFunction::Less,
-            stencil: wgpu::StencilStateDescriptor::default(),
-        }),
+            stencil: wgpu::StencilState::default(),
+                bias: wgpu::DepthBiasState::default(),
+                // Setting this to true requires Features::DEPTH_CLAMPING
+                clamp_depth: false,        }),
         sample_count: 1,
         sample_mask: !0,
         alpha_to_coverage_enabled: false,

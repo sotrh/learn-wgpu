@@ -480,7 +480,7 @@ impl State {
             vertex: wgpu::VertexState {
                 module: &vs_module,
                 entry_point: "main",
-                buffers: &[Vertex::desc()],
+                buffers: &[Vertex::desc(), InstanceRaw::desc()],
             },
             fragment: Some(wgpu::FragmentState {
                 module: &fs_module,
@@ -501,11 +501,14 @@ impl State {
                 polygon_mode: wgpu::PolygonMode::Fill,
             },
 
-            depth_stencil: Some(wgpu::DepthStencilStateDescriptor {
+            depth_stencil: Some(wgpu::DepthStencilState {
                 format: texture::Texture::DEPTH_FORMAT,
                 depth_write_enabled: true,
                 depth_compare: wgpu::CompareFunction::Less,
-                stencil: wgpu::StencilStateDescriptor::default(),
+                stencil: wgpu::StencilState::default(),
+                bias: wgpu::DepthBiasState::default(),
+                // Setting this to true requires Features::DEPTH_CLAMPING
+                clamp_depth: false,
             }),
             multisample: wgpu::MultisampleState {
                 count: 1,
@@ -586,6 +589,7 @@ impl State {
 
         {
             let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                label: Some("Render Pass"),
                 color_attachments: &[wgpu::RenderPassColorAttachmentDescriptor {
                     attachment: &frame.view,
                     resolve_target: None,

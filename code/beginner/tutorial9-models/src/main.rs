@@ -407,7 +407,7 @@ impl State {
             vertex: wgpu::VertexState {
                 module: &vs_module,
                 entry_point: "main",
-                buffers: &[Vertex::desc()],
+                buffers: &[model::ModelVertex::desc(), InstanceRaw::desc()],
             },
             fragment: Some(wgpu::FragmentState {
                 module: &fs_module,
@@ -427,16 +427,19 @@ impl State {
                 // Setting this to anything other than Fill requires Features::NON_FILL_POLYGON_MODE
                 polygon_mode: wgpu::PolygonMode::Fill,
             },
-
-            depth_stencil: Some(wgpu::DepthStencilStateDescriptor {
+            depth_stencil: Some(wgpu::DepthStencilState {
                 format: texture::Texture::DEPTH_FORMAT,
                 depth_write_enabled: true,
                 depth_compare: wgpu::CompareFunction::Less,
-                stencil: wgpu::StencilStateDescriptor::default(),
+                stencil: wgpu::StencilState::default(),
+                bias: wgpu::DepthBiasState::default(),
+                // Setting this to true requires Features::DEPTH_CLAMPING
+                clamp_depth: false,
             }),
-            vertex_state: wgpu::VertexStateDescriptor {
-                index_format: wgpu::IndexFormat::Uint32,
-                vertex_buffers: &[model::ModelVertex::desc(), InstanceRaw::desc()],
+            multisample: wgpu::MultisampleState {
+                count: 1,
+                mask: !0,
+                alpha_to_coverage_enabled: false,
             },
         });
 
@@ -494,6 +497,7 @@ impl State {
 
         {
             let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                label: Some("Render Pass"),
                 color_attachments: &[wgpu::RenderPassColorAttachmentDescriptor {
                     attachment: &frame.view,
                     resolve_target: None,

@@ -82,11 +82,11 @@ We need to modify our `render_pipeline` to allow depth testing.
 ```rust
 let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
     // ...
-    depth_stencil: Some(wgpu::DepthStencilStateDescriptor {
+    depth_stencil: Some(wgpu::DepthStencilState {
         format: texture::Texture::DEPTH_FORMAT,
         depth_write_enabled: true,
         depth_compare: wgpu::CompareFunction::Less, // 1.
-        stencil: wgpu::StencilStateDescriptor::default(), // 2.
+        stencil: wgpu::StencilState::default(), // 2.
     }),
     // ...
 });

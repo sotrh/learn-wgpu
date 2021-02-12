@@ -16,5 +16,12 @@ layout(location=7) in vec4 model_matrix_2;
 layout(location=8) in vec4 model_matrix_3;
 
 void main() {
-    v_tex_coords = a_tex_coords;    gl_Position = u_view_proj * model_matrix * vec4(a_position, 1.0);
+    mat4 model_matrix = mat4(
+        model_matrix_0,
+        model_matrix_1,
+        model_matrix_2,
+        model_matrix_3
+    );
+    v_tex_coords = a_tex_coords;
+    gl_Position = u_view_proj * model_matrix * vec4(a_position, 1.0);
 }
