@@ -30,7 +30,7 @@ At first glance, this seems just fine, but OpenGL experts would likely see a pro
 
 ![./corruption.png](./corruption.png)
 
-I could have fixed this by adding a padding field after `tex_coords` on the Rust side, but that would require modifying the `VertexBufferDescriptor`. I ended up solving this problem by using the components of the vectors directly and resulted with a struct like this:
+I could have fixed this by adding a padding field after `tex_coords` on the Rust side, but that would require modifying the `VertexBufferLayout`. I ended up solving this problem by using the components of the vectors directly and resulted with a struct like this:
 
 ```glsl
 struct ModelVertex {

@@ -12,9 +12,9 @@ pub struct RenderPipelineBuilder<'a> {
     depth_bias_clamp: f32,
     primitive_topology: wgpu::PrimitiveTopology,
     color_states: Vec<wgpu::ColorStateDescriptor>,
-    depth_stencil_state: Option<wgpu::DepthStencilStateDescriptor>,
+    depth_stencil: Option<wgpu::DepthStencilStateDescriptor>,
     index_format: wgpu::IndexFormat,
-    vertex_buffers: Vec<wgpu::VertexBufferDescriptor<'a>>,
+    vertex_buffers: Vec<wgpu::VertexBufferLayout<'a>>,
     sample_count: u32,
     sample_mask: u32,
     alpha_to_coverage_enabled: bool,
@@ -31,14 +31,18 @@ impl<'a> RenderPipelineBuilder<'a> {
             depth_bias: 0,
             depth_bias_slope_scale: 0.0,
             depth_bias_clamp: 0.0,
-            primitive_topology: wgpu::PrimitiveTopology::TriangleList,
+            primitive: wgpu::PrimitiveState {
+                topology: wgpu::PrimitiveTopology::TriangleList,
+                strip_index_format: None,
+                front_face: wgpu::FrontFace::Ccw,
+                cull_mode: wgpu::CullMode::Back,
+                // Setting this to anything other than Fill requires Features::NON_FILL_POLYGON_MODE
+                polygon_mode: wgpu::PolygonMode::Fill,
+            },
             color_states: Vec::new(),
-            depth_stencil_state: None,
+            depth_stencil: None,
             index_format: wgpu::IndexFormat::Uint32,
             vertex_buffers: Vec::new(),
-            sample_count: 1,
-            sample_mask: !0,
-            alpha_to_coverage_enabled: false,
         }
     }
 
@@ -108,19 +112,19 @@ impl<'a> RenderPipelineBuilder<'a> {
         })
     }
 
-    pub fn depth_stencil_state(&mut self, dss: wgpu::DepthStencilStateDescriptor) -> &mut Self {
-        self.depth_stencil_state = Some(dss);
+    pub fn depth_stencil(&mut self, dss: wgpu::DepthStencilStateDescriptor) -> &mut Self {
+        self.depth_stencil = Some(dss);
         self
     }
 
-    /// Helper method for [RenderPipelineBuilder::depth_stencil_state]
+    /// Helper method for [RenderPipelineBuilder::depth_stencil]
     pub fn depth_no_stencil(
         &mut self,
         format: wgpu::TextureFormat,
         depth_write_enabled: bool,
         depth_compare: wgpu::CompareFunction,
     ) -> &mut Self {
-        self.depth_stencil_state(wgpu::DepthStencilStateDescriptor {
+        self.depth_stencil(wgpu::DepthStencilStateDescriptor {
             format,
             depth_write_enabled,
             depth_compare,
@@ -144,7 +148,7 @@ impl<'a> RenderPipelineBuilder<'a> {
         self
     }
 
-    pub fn vertex_buffer_desc(&mut self, vb: wgpu::VertexBufferDescriptor<'a>) -> &mut Self {
+    pub fn vertex_buffer_desc(&mut self, vb: wgpu::VertexBufferLayout<'a>) -> &mut Self {
         self.vertex_buffers.push(vb);
         self
     }
@@ -205,11 +209,11 @@ impl<'a> RenderPipelineBuilder<'a> {
         let pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
             label: Some("Render Pipeline"),
             layout: Some(&layout),
-            vertex_stage: wgpu::ProgrammableStageDescriptor {
+            vertex: wgpu::VertexState {
                 module: &vs,
                 entry_point: "main",
             },
-            fragment_stage: Some(wgpu::ProgrammableStageDescriptor {
+            fragment: Some(wgpu::FragmentState {
                 module: &fs,
                 entry_point: "main",
             }),
@@ -223,7 +227,7 @@ impl<'a> RenderPipelineBuilder<'a> {
             }),
             primitive_topology: self.primitive_topology,
             color_states: &self.color_states,
-            depth_stencil_state: self.depth_stencil_state.clone(),
+            depth_stencil: self.depth_stencil.clone(),
             vertex_state: wgpu::VertexStateDescriptor {
                 index_format: self.index_format,
                 vertex_buffers: &self.vertex_buffers,

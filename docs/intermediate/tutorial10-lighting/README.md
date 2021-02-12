@@ -59,8 +59,9 @@ let light_bind_group_layout =
         entries: &[wgpu::BindGroupLayoutEntry {
         binding: 0,
             visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
-            ty: wgpu::BindingType::UniformBuffer {
-                dynamic: false,
+            ty: wgpu::BindingType::Buffer {
+                ty: wgpu::BufferBindingType::Uniform,
+                        has_dynamic_offset: false,
                 min_binding_size: None,
             },
             count: None,
@@ -117,7 +118,7 @@ fn create_render_pipeline(
     layout: &wgpu::PipelineLayout,
     color_format: wgpu::TextureFormat,
     depth_format: Option<wgpu::TextureFormat>,
-    vertex_descs: &[wgpu::VertexBufferDescriptor],
+    vertex_descs: &[wgpu::VertexBufferLayout],
     vs_src: &str,
     fs_src: &str,
 ) -> wgpu::RenderPipeline {
@@ -133,11 +134,11 @@ fn create_render_pipeline(
 
     device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
         layout: &layout,
-        vertex_stage: wgpu::ProgrammableStageDescriptor {
+        vertex: wgpu::VertexState {
             module: &vs_module,
             entry_point: "main",
         },
-        fragment_stage: Some(wgpu::ProgrammableStageDescriptor {
+        fragment: Some(wgpu::FragmentState {
             module: &fs_module,
             entry_point: "main",
         }),
@@ -148,7 +149,14 @@ fn create_render_pipeline(
             depth_bias_slope_scale: 0.0,
             depth_bias_clamp: 0.0,
         }),
-        primitive_topology: wgpu::PrimitiveTopology::TriangleList,
+        primitive: wgpu::PrimitiveState {
+                topology: wgpu::PrimitiveTopology::TriangleList,
+                strip_index_format: None,
+                front_face: wgpu::FrontFace::Ccw,
+                cull_mode: wgpu::CullMode::Back,
+                // Setting this to anything other than Fill requires Features::NON_FILL_POLYGON_MODE
+                polygon_mode: wgpu::PolygonMode::Fill,
+            },
         color_states: &[
             wgpu::ColorStateDescriptor {
                 format: color_format,
@@ -157,7 +165,7 @@ fn create_render_pipeline(
                 write_mask: wgpu::ColorWrite::ALL,
             },
         ],
-        depth_stencil_state: depth_format.map(|format| {
+        depth_stencil: depth_format.map(|format| {
             wgpu::DepthStencilStateDescriptor {
                 format,
                 depth_write_enabled: true,
@@ -662,8 +670,9 @@ let uniform_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroup
         wgpu::BindGroupLayoutBinding {
             binding: 0,
             visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT, // Updated!
-            ty: wgpu::BindingType::UniformBuffer {
-                dynamic: false,
+            ty: wgpu::BindingType::Buffer {
+                ty: wgpu::BufferBindingType::Uniform,
+                        has_dynamic_offset: false,
             },
         },
         // ...

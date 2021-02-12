@@ -176,8 +176,9 @@ impl<'a> ShaderCanvasBuilder<'a> {
                         binding: 0,
                         visibility: wgpu::ShaderStage::FRAGMENT,
                         count: None,
-                        ty: wgpu::BindingType::UniformBuffer {
-                            dynamic: false,
+                        ty: wgpu::BindingType::Buffer {
+                            ty: wgpu::BufferBindingType::Uniform,
+                        has_dynamic_offset: false,
                             min_binding_size: None,
                         },
                     },
@@ -203,11 +204,11 @@ impl<'a> ShaderCanvasBuilder<'a> {
         let pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
             label: self.label,
             layout: Some(&pipeline_layout),
-            vertex_stage: wgpu::ProgrammableStageDescriptor {
+            vertex: wgpu::VertexState {
                 entry_point: "main",
                 module: &vert_module,
             },
-            fragment_stage: Some(wgpu::ProgrammableStageDescriptor {
+            fragment: Some(wgpu::FragmentState {
                 entry_point: "main",
                 module: &frag_module,
             }),
@@ -218,11 +219,15 @@ impl<'a> ShaderCanvasBuilder<'a> {
                 write_mask: wgpu::ColorWrite::ALL,
             }],
             rasterization_state: None,
-            primitive_topology: wgpu::PrimitiveTopology::TriangleList,
-            depth_stencil_state: None,
-            sample_count: 1,
-            sample_mask: !0,
-            alpha_to_coverage_enabled: false,
+            primitive: wgpu::PrimitiveState {
+                topology: wgpu::PrimitiveTopology::TriangleList,
+                strip_index_format: None,
+                front_face: wgpu::FrontFace::Ccw,
+                cull_mode: wgpu::CullMode::Back,
+                // Setting this to anything other than Fill requires Features::NON_FILL_POLYGON_MODE
+                polygon_mode: wgpu::PolygonMode::Fill,
+            },
+            depth_stencil: None,
             vertex_state: wgpu::VertexStateDescriptor {
                 index_format: wgpu::IndexFormat::Uint16,
                 vertex_buffers: &[],

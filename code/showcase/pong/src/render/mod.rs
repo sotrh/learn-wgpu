@@ -152,7 +152,7 @@ impl Render {
 
                 if num_indices != 0 {
                     render_pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
-                    render_pass.set_index_buffer(self.index_buffer.slice(..));
+                    render_pass.set_index_buffer(self.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
                     render_pass.set_pipeline(&self.pipeline);
                     render_pass.draw_indexed(0..num_indices, 0, 0..1);
                 }
@@ -231,7 +231,7 @@ fn create_render_pipeline(
     device: &wgpu::Device,
     layout: &wgpu::PipelineLayout,
     color_format: wgpu::TextureFormat,
-    vertex_descs: &[wgpu::VertexBufferDescriptor],
+    vertex_descs: &[wgpu::VertexBufferLayout],
     vs_src: wgpu::ShaderModuleSource,
     fs_src: wgpu::ShaderModuleSource,
 ) -> wgpu::RenderPipeline {
@@ -241,23 +241,30 @@ fn create_render_pipeline(
     device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
         label: Some("Render Pipeline"),
         layout: Some(&layout),
-        vertex_stage: wgpu::ProgrammableStageDescriptor {
+        vertex: wgpu::VertexState {
             module: &vs_module,
             entry_point: "main",
         },
-        fragment_stage: Some(wgpu::ProgrammableStageDescriptor {
+        fragment: Some(wgpu::FragmentState {
             module: &fs_module,
             entry_point: "main",
         }),
         rasterization_state: None,
-        primitive_topology: wgpu::PrimitiveTopology::TriangleList,
+        primitive: wgpu::PrimitiveState {
+            topology: wgpu::PrimitiveTopology::TriangleList,
+            strip_index_format: None,
+            front_face: wgpu::FrontFace::Ccw,
+            cull_mode: wgpu::CullMode::Back,
+            // Setting this to anything other than Fill requires Features::NON_FILL_POLYGON_MODE
+            polygon_mode: wgpu::PolygonMode::Fill,
+        },
         color_states: &[wgpu::ColorStateDescriptor {
             format: color_format,
             color_blend: wgpu::BlendDescriptor::REPLACE,
             alpha_blend: wgpu::BlendDescriptor::REPLACE,
             write_mask: wgpu::ColorWrite::ALL,
         }],
-        depth_stencil_state: None,
+        depth_stencil: None,
         sample_count: 1,
         sample_mask: !0,
         alpha_to_coverage_enabled: false,

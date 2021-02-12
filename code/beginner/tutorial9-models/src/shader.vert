@@ -10,7 +10,10 @@ uniform Uniforms {
     mat4 u_view_proj;
 };
 
-layout(location=5) in mat4 model_matrix;
+layout(location=5) in vec4 model_matrix_0;
+layout(location=6) in vec4 model_matrix_1;
+layout(location=7) in vec4 model_matrix_2;
+layout(location=8) in vec4 model_matrix_3;
 
 void main() {
     v_tex_coords = a_tex_coords;    gl_Position = u_view_proj * model_matrix * vec4(a_position, 1.0);

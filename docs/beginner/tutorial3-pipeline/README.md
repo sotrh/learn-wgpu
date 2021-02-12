@@ -131,11 +131,11 @@ Finally we have all we need to create the `render_pipeline`.
 let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
     label: Some("Render Pipeline"),
     layout: Some(&render_pipeline_layout),
-    vertex_stage: wgpu::ProgrammableStageDescriptor {
+    vertex: wgpu::VertexState {
         module: &vs_module,
         entry_point: "main", // 1.
     },
-    fragment_stage: Some(wgpu::ProgrammableStageDescriptor { // 2.
+    fragment: Some(wgpu::FragmentState { // 2.
         module: &fs_module,
         entry_point: "main",
     }),
@@ -178,8 +178,15 @@ We'll cover culling a bit more when we cover `Buffer`s.
 A `color_state` describes how colors are stored and processed throughout the pipeline. You can have multiple color states, but we only need one as we're just drawing to the screen. We use the `swap_chain`'s format so that copying to it is easy, and we specify that the blending should just replace old pixel data with new data. We also tell `wgpu` to write to all colors: red, blue, green, and alpha. *We'll talk more about*`color_state` *when we talk about textures.*
 
 ```rust
-    primitive_topology: wgpu::PrimitiveTopology::TriangleList, // 1.
-    depth_stencil_state: None, // 2.
+    primitive: wgpu::PrimitiveState {
+                topology: wgpu::PrimitiveTopology::TriangleList,
+                strip_index_format: None,
+                front_face: wgpu::FrontFace::Ccw,
+                cull_mode: wgpu::CullMode::Back,
+                // Setting this to anything other than Fill requires Features::NON_FILL_POLYGON_MODE
+                polygon_mode: wgpu::PolygonMode::Fill,
+            }, // 1.
+    depth_stencil: None, // 2.
     vertex_state: wgpu::VertexStateDescriptor {
         index_format: wgpu::IndexFormat::Uint16, // 3.
         vertex_buffers: &[], // 4.
@@ -192,7 +199,7 @@ A `color_state` describes how colors are stored and processed throughout the pip
 
 The rest of the method is pretty simple:
 1. We tell `wgpu` that we want to use a list of triangles for drawing.
-2. We're not using a depth/stencil buffer currently, so we leave `depth_stencil_state` as `None`. *This will change later*.
+2. We're not using a depth/stencil buffer currently, so we leave `depth_stencil` as `None`. *This will change later*.
 3. We specify the type of index we want to use. In this case a 16-bit unsigned integer. We'll talk about indices when we talk about `Buffer`s.
 4. `vertex_buffers` is a pretty big topic, and as you might have guessed, we'll talk about it when we talk about buffers.
 5. This determines how many samples this pipeline will use. Multisampling is a complex topic, so we won't get into it here.
@@ -378,8 +385,8 @@ fn main() -> Result<()> {
 With that in place we can replace our shader compiling code in `main.rs` with just two lines!
 
 ```rust
-let vs_module = device.create_shader_module(wgpu::include_spirv!("shader.vert.spv"));
-let fs_module = device.create_shader_module(wgpu::include_spirv!("shader.frag.spv"));
+let vs_module = device.create_shader_module(&wgpu::include_spirv!("shader.vert.spv"));
+let fs_module = device.create_shader_module(&wgpu::include_spirv!("shader.frag.spv"));
 ```
 
 <div class="note">

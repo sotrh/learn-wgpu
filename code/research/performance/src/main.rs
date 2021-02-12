@@ -269,7 +269,10 @@ impl State {
                     wgpu::BindGroupLayoutEntry {
                         binding: 1,
                         visibility: wgpu::ShaderStage::FRAGMENT,
-                        ty: wgpu::BindingType::Sampler { comparison: false },
+                        ty: wgpu::BindingType::Sampler { 
+                            comparison: false,
+                            filtering: true, 
+                        },
                     },
                     // normal map
                     wgpu::BindGroupLayoutEntry {
@@ -284,7 +287,10 @@ impl State {
                     wgpu::BindGroupLayoutEntry {
                         binding: 3,
                         visibility: wgpu::ShaderStage::FRAGMENT,
-                        ty: wgpu::BindingType::Sampler { comparison: false },
+                        ty: wgpu::BindingType::Sampler { 
+                            comparison: false,
+                            filtering: true, 
+                        },
                     },
                 ],
                 label: None,
@@ -351,13 +357,14 @@ impl State {
                     wgpu::BindGroupLayoutEntry {
                         binding: 0,
                         visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
-                        ty: wgpu::BindingType::UniformBuffer { dynamic: false },
+                        ty: wgpu::BindingType::Buffer { dynamic: false },
                     },
                     wgpu::BindGroupLayoutEntry {
                         binding: 1,
                         visibility: wgpu::ShaderStage::VERTEX,
                         ty: wgpu::BindingType::StorageBuffer {
-                            dynamic: false,
+                            ty: wgpu::BufferBindingType::Uniform,
+                        has_dynamic_offset: false,
                             readonly: true,
                         },
                     },
@@ -412,7 +419,7 @@ impl State {
                 bindings: &[wgpu::BindGroupLayoutEntry {
                     binding: 0,
                     visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
-                    ty: wgpu::BindingType::UniformBuffer { dynamic: false },
+                    ty: wgpu::BindingType::Buffer { dynamic: false },
                 }],
                 label: None,
             });

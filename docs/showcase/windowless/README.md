@@ -111,11 +111,11 @@ let render_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayout
 
 let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
     layout: &render_pipeline_layout,
-    vertex_stage: wgpu::ProgrammableStageDescriptor {
+    vertex: wgpu::VertexState {
         module: &vs_module,
         entry_point: "main",
     },
-    fragment_stage: Some(wgpu::ProgrammableStageDescriptor {
+    fragment: Some(wgpu::FragmentState {
         module: &fs_module,
         entry_point: "main",
     }),
@@ -126,7 +126,14 @@ let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescrip
         depth_bias_slope_scale: 0.0,
         depth_bias_clamp: 0.0,
     }),
-    primitive_topology: wgpu::PrimitiveTopology::TriangleList,
+    primitive: wgpu::PrimitiveState {
+                topology: wgpu::PrimitiveTopology::TriangleList,
+                strip_index_format: None,
+                front_face: wgpu::FrontFace::Ccw,
+                cull_mode: wgpu::CullMode::Back,
+                // Setting this to anything other than Fill requires Features::NON_FILL_POLYGON_MODE
+                polygon_mode: wgpu::PolygonMode::Fill,
+            },
     color_states: &[
         wgpu::ColorStateDescriptor {
             format: texture_desc.format,
@@ -135,7 +142,7 @@ let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescrip
             write_mask: wgpu::ColorWrite::ALL,
         },
     ],
-    depth_stencil_state: None,
+    depth_stencil: None,
     vertex_state: wgpu::VertexStateDescriptor {
         index_format: wgpu::IndexFormat::Uint16,
         vertex_buffers: &[],

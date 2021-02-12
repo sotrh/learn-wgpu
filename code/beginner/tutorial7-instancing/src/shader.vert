@@ -11,9 +11,18 @@ uniform Uniforms {
 };
 
 // NEW!
-layout(location=5) in mat4 model_matrix;
+layout(location=5) in vec4 model_matrix_0;
+layout(location=6) in vec4 model_matrix_1;
+layout(location=7) in vec4 model_matrix_2;
+layout(location=8) in vec4 model_matrix_3;
 
 void main() {
+    mat4 model_matrix = mat4(
+        model_matrix_0,
+        model_matrix_1,
+        model_matrix_2,
+        model_matrix_3
+    );
     v_tex_coords = a_tex_coords;    // UPDATED!
     gl_Position = u_view_proj * model_matrix * vec4(a_position, 1.0);
 }
