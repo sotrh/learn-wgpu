@@ -29,6 +29,12 @@ layout(set=2, binding=0) uniform Light {
 };
 
 void main() {
+    mat4 model_matrix = mat4(
+        model_matrix_0,
+        model_matrix_1,
+        model_matrix_2,
+        model_matrix_3
+    );
     v_tex_coords = a_tex_coords;
 
     mat3 normal_matrix = mat3(transpose(inverse(model_matrix)));

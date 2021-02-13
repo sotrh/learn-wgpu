@@ -39,12 +39,12 @@ pub fn create_render_pipeline(
     layout: &wgpu::PipelineLayout,
     color_format: wgpu::TextureFormat,
     depth_format: Option<wgpu::TextureFormat>,
-    vertex_descs: &[wgpu::VertexBufferLayout],
-    vs_src: wgpu::ShaderModuleSource,
-    fs_src: wgpu::ShaderModuleSource,
+    vertex_layouts: &[wgpu::VertexBufferLayout],
+    vs_src: wgpu::ShaderModuleDescriptor,
+    fs_src: wgpu::ShaderModuleDescriptor,
 ) -> wgpu::RenderPipeline {
-    let vs_module = device.create_shader_module(vs_src);
-    let fs_module = device.create_shader_module(fs_src);
+    let vs_module = device.create_shader_module(&vs_src);
+    let fs_module = device.create_shader_module(&fs_src);
 
     device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
         label: Some("Render Pipeline"),
@@ -92,7 +92,7 @@ pub fn create_render_pipeline(
         alpha_to_coverage_enabled: false,
         vertex_state: wgpu::VertexStateDescriptor {
             index_format: wgpu::IndexFormat::Uint32,
-            vertex_buffers: vertex_descs,
+            vertex_buffers: vertex_layouts,
         },
     })
 }
@@ -100,7 +100,7 @@ pub fn create_render_pipeline(
 pub fn create_compute_pipeline(
     device: &wgpu::Device,
     bind_group_layouts: &[&wgpu::BindGroupLayout],
-    shader_src: wgpu::ShaderModuleSource,
+    shader_src: wgpu::ShaderModuleDescriptor,
     label: Option<&str>,
 ) -> wgpu::ComputePipeline {
     let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {

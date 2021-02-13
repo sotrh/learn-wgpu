@@ -166,8 +166,8 @@ fn create_render_pipeline(
 ) -> wgpu::RenderPipeline {
     let vs_src = wgpu::include_spirv!("shader.vert.spv");
     let fs_src = wgpu::include_spirv!("shader.frag.spv");
-    let vs_module = device.create_shader_module(vs_src);
-    let fs_module = device.create_shader_module(fs_src);
+    let vs_module = device.create_shader_module(&vs_src);
+    let fs_module = device.create_shader_module(&fs_src);
 
     let render_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
         label: Some("Render Pipeline Layout"),

@@ -172,7 +172,7 @@ let texture_bind_group_layout = device.create_bind_group_layout(
                 ty: wgpu::BindingType::SampledTexture {
                     multisampled: false,
                     dimension: wgpu::TextureViewDimension::D2,
-                    component_type: wgpu::TextureComponentType::Uint,
+                    component_type: wgpu::TextureSampleType::Uint,
                 },
                 count: None,
             },

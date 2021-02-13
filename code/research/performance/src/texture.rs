@@ -198,7 +198,7 @@ impl Texture {
                     visibility: wgpu::ShaderStage::FRAGMENT,
                     ty: wgpu::BindingType::SampledTexture {
                         multisampled: false,
-                        component_type: wgpu::TextureComponentType::Float,
+                        component_type: wgpu::TextureSampleType::Float { filterable: true },
                         dimension: wgpu::TextureViewDimension::D2,
                     },
                 },

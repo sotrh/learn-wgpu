@@ -3,8 +3,8 @@ use anyhow::*;
 
 pub struct RenderPipelineBuilder<'a> {
     layout: Option<&'a wgpu::PipelineLayout>,
-    vertex_shader: Option<wgpu::ShaderModuleSource<'a>>,
-    fragment_shader: Option<wgpu::ShaderModuleSource<'a>>,
+    vertex_shader: Option<wgpu::ShaderModuleDescriptor<'a>>,
+    fragment_shader: Option<wgpu::ShaderModuleDescriptor<'a>>,
     front_face: wgpu::FrontFace,
     cull_mode: wgpu::CullMode,
     depth_bias: i32,
@@ -51,12 +51,12 @@ impl<'a> RenderPipelineBuilder<'a> {
         self
     }
 
-    pub fn vertex_shader(&mut self, src: wgpu::ShaderModuleSource<'a>) -> &mut Self {
+    pub fn vertex_shader(&mut self, src: wgpu::ShaderModuleDescriptor<'a>) -> &mut Self {
         self.vertex_shader = Some(src);
         self
     }
 
-    pub fn fragment_shader(&mut self, src: wgpu::ShaderModuleSource<'a>) -> &mut Self {
+    pub fn fragment_shader(&mut self, src: wgpu::ShaderModuleDescriptor<'a>) -> &mut Self {
         self.fragment_shader = Some(src);
         self
     }
@@ -242,7 +242,7 @@ impl<'a> RenderPipelineBuilder<'a> {
 
 fn create_shader_module(
     device: &wgpu::Device,
-    spirv: wgpu::ShaderModuleSource,
+    spirv: wgpu::ShaderModuleDescriptor,
 ) -> wgpu::ShaderModule {
     device.create_shader_module(spirv)
 }

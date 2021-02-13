@@ -100,8 +100,8 @@ pub struct ShaderCanvasBuilder<'a> {
     clear_color: [f32; 4],
     label: Option<&'a str>,
     display_format: Option<wgpu::TextureFormat>,
-    frag_code: Option<wgpu::ShaderModuleSource<'a>>,
-    vert_code: Option<wgpu::ShaderModuleSource<'a>>,
+    frag_code: Option<wgpu::ShaderModuleDescriptor<'a>>,
+    vert_code: Option<wgpu::ShaderModuleDescriptor<'a>>,
 }
 
 impl<'a> ShaderCanvasBuilder<'a> {
@@ -131,12 +131,12 @@ impl<'a> ShaderCanvasBuilder<'a> {
         self.canvas_size(sc_desc.width as f32, sc_desc.height as f32)
     }
 
-    pub fn fragment_shader(&mut self, code: wgpu::ShaderModuleSource<'a>) -> &mut Self {
+    pub fn fragment_shader(&mut self, code: wgpu::ShaderModuleDescriptor<'a>) -> &mut Self {
         self.frag_code = Some(code);
         self
     }
 
-    pub fn vertex_shader(&mut self, code: wgpu::ShaderModuleSource<'a>) -> &mut Self {
+    pub fn vertex_shader(&mut self, code: wgpu::ShaderModuleDescriptor<'a>) -> &mut Self {
         self.vert_code = Some(code);
         self
     }

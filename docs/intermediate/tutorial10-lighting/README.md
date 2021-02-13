@@ -118,7 +118,7 @@ fn create_render_pipeline(
     layout: &wgpu::PipelineLayout,
     color_format: wgpu::TextureFormat,
     depth_format: Option<wgpu::TextureFormat>,
-    vertex_descs: &[wgpu::VertexBufferLayout],
+    vertex_layouts: &[wgpu::VertexBufferLayout],
     vs_src: &str,
     fs_src: &str,
 ) -> wgpu::RenderPipeline {
@@ -181,7 +181,7 @@ fn create_render_pipeline(
         alpha_to_coverage_enabled: false,
         vertex_state: wgpu::VertexStateDescriptor {
             index_format: wgpu::IndexFormat::Uint32,
-            vertex_buffers: vertex_descs,
+            vertex_buffers: vertex_layouts,
         },
     })
 }
