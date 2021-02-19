@@ -274,7 +274,7 @@ impl State {
 
         let sc_desc = wgpu::SwapChainDescriptor {
             usage: wgpu::TextureUsage::RENDER_ATTACHMENT,
-            format: wgpu::TextureFormat::Bgra8UnormSrgb,
+            format: adapter.get_swap_chain_preferred_format(&surface),
             width: size.width,
             height: size.height,
             present_mode: wgpu::PresentMode::Fifo,

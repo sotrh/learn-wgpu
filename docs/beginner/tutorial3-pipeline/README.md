@@ -11,13 +11,13 @@ A vertex is a point in 3d space (can also be 2d). These vertices are then bundle
 
 <img src="./tutorial3-pipeline-vertices.png" />
 
-Most modern rendering uses triangles to make all shapes, from simple (such as cubes), to complex (such as people).
+Most modern rendering uses triangles to make all shapes, from simple shapes (such as cubes), to complex ones (such as people). These triangles are stored as vertices which are the points that make up the corners of the triangles.
 
 <!-- Todo: Find/make an image to put here -->
 
-We use a vertex shader to manipulate a list of vertices, in order to transform the shape to look the way we want it.
+We use a vertex shader to manipulate the vertices, in order to transform the shape to look the way we want it.
 
-You can think of a fragment as the beginnings of a pixel in the resulting image. Each fragment has a color that will be copied to its corresponding pixel. The fragment shader decides what color the fragment will be.
+The vertices are then converted into fragments. Every pixel in the result image gets at least one fragment. Each fragment has a color that will be copied to its corresponding pixel. The fragment shader decides what color the fragment will be.
 
 ## GLSL and SPIR-V
 Shaders in `wgpu` are written with a binary language called [SPIR-V](https://www.khronos.org/registry/spir-v/). SPIR-V is designed for computers to read, not people, so we're going to use a language called GLSL (specifically, with `wgpu` we need to use the [Vulkan flavor of GLSL](https://github.com/KhronosGroup/GLSL/blob/master/extensions/khr/GL_KHR_vulkan_glsl.txt)) to write our code, and then convert that to SPIR-V.
@@ -110,8 +110,18 @@ let fs_src = include_str!("shader.frag");
 let mut compiler = shaderc::Compiler::new().unwrap();
 let vs_spirv = compiler.compile_into_spirv(vs_src, shaderc::ShaderKind::Vertex, "shader.vert", "main", None).unwrap();
 let fs_spirv = compiler.compile_into_spirv(fs_src, shaderc::ShaderKind::Fragment, "shader.frag", "main", None).unwrap();
-let vs_module = device.create_shader_module(wgpu::util::make_spirv(&vs_spirv.as_binary_u8()));
-let fs_module = device.create_shader_module(wgpu::util::make_spirv(&fs_spirv.as_binary_u8()));
+let vs_data = wgpu::util::make_spirv(vs_spirv.as_binary_u8());
+let fs_data = wgpu::util::make_spirv(fs_spirv.as_binary_u8());
+let vs_module = device.create_shader_module(&wgpu::ShaderModuleDescriptor {
+    label: Some("Vertex Shader"),
+    source: vs_data,
+    flags: wgpu::ShaderFlags::default(),
+});
+let fs_module = device.create_shader_module(&wgpu::ShaderModuleDescriptor {
+    label: Some("Fragment Shader"),
+    source: fs_data,
+    flags: wgpu::ShaderFlags::default(),
+});
 ```
 
 One more thing, we need to create a `PipelineLayout`. We'll get more into this after we cover `Buffer`s.
@@ -134,77 +144,59 @@ let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescrip
     vertex: wgpu::VertexState {
         module: &vs_module,
         entry_point: "main", // 1.
+        buffers: &[], // 2.
     },
-    fragment: Some(wgpu::FragmentState { // 2.
+    fragment: Some(wgpu::FragmentState { // 3.
         module: &fs_module,
         entry_point: "main",
+        targets: &[wgpu::ColorTargetState { // 4.
+            format: sc_desc.format,
+            alpha_blend: wgpu::BlendState::REPLACE,
+            color_blend: wgpu::BlendState::REPLACE,
+            write_mask: wgpu::ColorWrite::ALL,
+        }],
     }),
     // continued ...
 ```
 
 Two things to note here:
 1. Here you can specify which function inside of the shader should be called, which is known as the `entry_point`. I normally use `"main"` as that's what it would be in OpenGL, but feel free to use whatever name you like. Make sure you specify the same entry point when you're compiling your shaders as you do here where you're exposing them to your pipeline.
-2. The `fragment_stage` is technically optional, so you have to wrap it in `Some()`. I've never used a vertex shader without a fragment shader, but the option is available if you need it.
-
-```rust
-    rasterization_state: Some(
-        wgpu::RasterizationStateDescriptor {
-            front_face: wgpu::FrontFace::Ccw,
-            cull_mode: wgpu::CullMode::Back,
-            depth_bias: 0,
-            depth_bias_slope_scale: 0.0,
-            depth_bias_clamp: 0.0,
-            clamp_depth: false,
-        }
-    ),
-    // continued ...
-```
-
-`rasterization_state` describes how to process primitives (in our case triangles) before they are sent to the fragment shader (or the next stage in the pipeline if there is none). Primitives that don't meet the criteria are *culled* (aka not rendered). Culling helps speed up the rendering process by not rendering things that should not be visible anyway.
-
-We'll cover culling a bit more when we cover `Buffer`s.
-
-```rust
-    color_states: &[
-        wgpu::ColorStateDescriptor {
-            format: sc_desc.format,
-            color_blend: wgpu::BlendDescriptor::REPLACE,
-            alpha_blend: wgpu::BlendDescriptor::REPLACE,
-            write_mask: wgpu::ColorWrite::ALL,
-        },
-    ],
-    // continued ...
-```
-A `color_state` describes how colors are stored and processed throughout the pipeline. You can have multiple color states, but we only need one as we're just drawing to the screen. We use the `swap_chain`'s format so that copying to it is easy, and we specify that the blending should just replace old pixel data with new data. We also tell `wgpu` to write to all colors: red, blue, green, and alpha. *We'll talk more about*`color_state` *when we talk about textures.*
+2. The `buffers` field tells `wgpu` what type of vertices we want to pass to the vertex shader. We're specifying the vertices in the vertex shader itself so we'll leave this empty. We'll put something there in the next tutorial.
+3. The `fragment_stage` is technically optional, so you have to wrap it in `Some()`. We need it if we want to store color data to the `swap_chain`.
+4. The `targets` field tells `wgpu` what color outputs it should set up. Currently we only need one for the `swap_chain`. We use the `swap_chain`'s format so that copying to it is easy, and we specify that the blending should just replace old pixel data with new data. We also tell `wgpu` to write to all colors: red, blue, green, and alpha. *We'll talk more about*`color_state` *when we talk about textures.*
 
 ```rust
     primitive: wgpu::PrimitiveState {
-                topology: wgpu::PrimitiveTopology::TriangleList,
-                strip_index_format: None,
-                front_face: wgpu::FrontFace::Ccw,
-                cull_mode: wgpu::CullMode::Back,
-                // Setting this to anything other than Fill requires Features::NON_FILL_POLYGON_MODE
-                polygon_mode: wgpu::PolygonMode::Fill,
-            }, // 1.
-    depth_stencil: None, // 2.
-    vertex_state: wgpu::VertexStateDescriptor {
-        index_format: wgpu::IndexFormat::Uint16, // 3.
-        vertex_buffers: &[], // 4.
+        topology: wgpu::PrimitiveTopology::TriangleList, // 1.
+        strip_index_format: None,
+        front_face: wgpu::FrontFace::Ccw, // 2.
+        cull_mode: wgpu::CullMode::Back,
+        // Setting this to anything other than Fill requires Features::NON_FILL_POLYGON_MODE
+        polygon_mode: wgpu::PolygonMode::Fill,
     },
-    sample_count: 1, // 5.
-    sample_mask: !0, // 6.
-    alpha_to_coverage_enabled: false, // 7.
+    // continued ...
+```
+
+The `primitive` field describes how to interpret our vertices when converting them into triangles.
+
+1. Using `PrimitiveTopology::TriangleList` means that each three vertices will correspond to one triangle.
+2. The `front_face` and `cull_mode` fields tell `wgpu` how to determine whether a given triangle is facing forward or not. `FrontFace::Ccw` means that a triangle is facing forward if the vertices are arranged in a counter clockwise direction. Triangles that are not considered facing forward are culled (not included in the render) as specified by `CullMode::Back`. We'll cover culling a bit more when we cover `Buffer`s.
+
+```rust
+    depth_stencil: None, // 1.
+    multisample: wgpu::MultisampleState {
+        count: 1, // 2.
+        mask: !0, // 3.
+        alpha_to_coverage_enabled: false, // 4.
+    },
 });
 ```
 
 The rest of the method is pretty simple:
-1. We tell `wgpu` that we want to use a list of triangles for drawing.
-2. We're not using a depth/stencil buffer currently, so we leave `depth_stencil` as `None`. *This will change later*.
-3. We specify the type of index we want to use. In this case a 16-bit unsigned integer. We'll talk about indices when we talk about `Buffer`s.
-4. `vertex_buffers` is a pretty big topic, and as you might have guessed, we'll talk about it when we talk about buffers.
-5. This determines how many samples this pipeline will use. Multisampling is a complex topic, so we won't get into it here.
-6. `sample_mask` specifies which samples should be active. In this case we are using all of them.
-7. `alpha_to_coverage_enabled` has to do with anti-aliasing. We're not covering anti-aliasing here, so we'll leave this as false now.
+1. We're not using a depth/stencil buffer currently, so we leave `depth_stencil` as `None`. *This will change later*.
+2. This determines how many samples this pipeline will use. Multisampling is a complex topic, so we won't get into it here.
+3. `sample_mask` specifies which samples should be active. In this case we are using all of them.
+4. `alpha_to_coverage_enabled` has to do with anti-aliasing. We're not covering anti-aliasing here, so we'll leave this as false now.
 
 <!-- https://gamedev.stackexchange.com/questions/22507/what-is-the-alphatocoverage-blend-state-useful-for -->
 
@@ -234,6 +226,7 @@ If you run your program now, it'll take a little longer to start, but it will st
 {
     // 1.
     let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+        label: Some("Render Pass"),
         color_attachments: &[
             wgpu::RenderPassColorAttachmentDescriptor {
                 attachment: &frame.view,
