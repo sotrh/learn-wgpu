@@ -52,9 +52,9 @@ This is basically the same as the original `VertexBufferLayout`, but we added a 
 ```rust
 let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
     // ...
-    vertex_state: wgpu::VertexStateDescriptor {
-        index_format: wgpu::IndexFormat::Uint16,
-        vertex_buffers: &[model::ModelVertex::desc()],
+    vertex_state: wgpu::VertexState {
+        // ...
+        buffers: &[model::ModelVertex::desc(), InstanceRaw::desc()],
     },
     // ...
 });
@@ -242,18 +242,6 @@ impl Model {
         Ok(Self { meshes, materials })
     }
 }
-```
-
-Make sure that you change the `IndexFormat` that the `RenderPipeline` uses from `Uint16` to `Uint32`. Tobj stores the indices as `u32`s, so using a lower bit array_stride will result in your model getting mangled.
-
-```rust
-let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-    // ...
-    vertex_state: wgpu::VertexStateDescriptor {
-        index_format: wgpu::IndexFormat::Uint32,
-        vertex_buffers: &[model::ModelVertex::desc()],
-    },    // ...
-});
 ```
 
 ## Rendering a mesh

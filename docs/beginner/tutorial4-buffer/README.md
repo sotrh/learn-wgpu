@@ -155,13 +155,13 @@ Let's create a static method on `Vertex` that returns this descriptor.
 impl Vertex {
     fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
         wgpu::VertexBufferLayout {
-            array_stride: std::mem::size_of::<Vertex>() as wgpu::BufferAddress, // 1.
-            step_mode: wgpu::InputStepMode::Vertex, // 2.
-            attributes: &[ // 3.
+            array_stride: std::mem::size_of::<Vertex>() as wgpu::BufferAddress,
+            step_mode: wgpu::InputStepMode::Vertex,
+            attributes: &[
                 wgpu::VertexAttribute {
-                    offset: 0, // 4.
-                    shader_location: 0, // 5.
-                    format: wgpu::VertexFormat::Float3, // 6.
+                    offset: 0,
+                    shader_location: 0,
+                    format: wgpu::VertexFormat::Float3,
                 },
                 wgpu::VertexAttribute {
                     offset: std::mem::size_of::<[f32; 3]>() as wgpu::BufferAddress,
@@ -197,9 +197,9 @@ Now we can use it when we create the `render_pipeline`.
 ```rust
 let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
     // ...
-    vertex_state: wgpu::VertexStateDescriptor {
-        index_format: wgpu::IndexFormat::Uint16,
-        vertex_buffers: &[
+    vertex: wgpu::VertexState {
+        // ...
+        buffers: &[
             Vertex::desc(),
         ],
     },

@@ -169,10 +169,10 @@ let texture_bind_group_layout = device.create_bind_group_layout(
             wgpu::BindGroupLayoutEntry {
                 binding: 0,
                 visibility: wgpu::ShaderStage::FRAGMENT,
-                ty: wgpu::BindingType::SampledTexture {
+                ty: wgpu::BindingType::Texture {
                     multisampled: false,
-                    dimension: wgpu::TextureViewDimension::D2,
-                    component_type: wgpu::TextureSampleType::Uint,
+                    view_dimension: wgpu::TextureViewDimension::D2,
+                    sample_type: wgpu::TextureSampleType::Float { filterable: false },
                 },
                 count: None,
             },
@@ -181,6 +181,7 @@ let texture_bind_group_layout = device.create_bind_group_layout(
                 visibility: wgpu::ShaderStage::FRAGMENT,
                 ty: wgpu::BindingType::Sampler {
                     comparison: false,
+                    filtering: true,
                 },
                 count: None,
             },
@@ -265,7 +266,8 @@ Now that we've got our `BindGroup`, we can use it in our `render()` function.
 render_pass.set_pipeline(&self.render_pipeline);
 render_pass.set_bind_group(0, &self.diffuse_bind_group, &[]); // NEW!
 render_pass.set_vertex_buffer(0, &self.vertex_buffer.slice(..));
-render_pass.set_index_buffer(&self.index_buffer.slice(..));
+render_pass.set_index_buffer(self.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
+
 render_pass.draw_indexed(0..self.num_indices, 0, 0..1);
 ```
 
@@ -274,13 +276,8 @@ render_pass.draw_indexed(0..self.num_indices, 0, 0..1);
 Remember the `PipelineLayout` we created back in [the pipeline section](/beginner/tutorial3-pipeline#how-do-we-use-the-shaders)? Now we finally get to use it! The `PipelineLayout` contains a list of `BindGroupLayout`s that the pipeline can use. Modify `render_pipeline_layout` to use our `texture_bind_group_layout`.
 
 ```rust
-fn create_pipeline(
-    device: &wgpu::Device,
-    sc_desc: &wgpu::SwapChainDescriptor,
-    vs_module: wgpu::ShaderModule,
-    fs_module: wgpu::ShaderModule,
-    texture_bind_group_layout: wgpu::BindGroupLayout, // NEW!
-) -> wgpu::RenderPipeline {
+async fn new(...) {
+    // ...
     let render_pipeline_layout = device.create_pipeline_layout(
         &wgpu::PipelineLayoutDescriptor {
             label: Some("Render Pipeline Layout"), // NEW!

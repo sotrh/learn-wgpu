@@ -149,7 +149,8 @@ impl InstanceRaw {
                     format: wgpu::VertexFormat::Float4,
                 },
                 // A mat4 takes up 4 vertex slots as it is technically 4 vec4s. We need to define a slot
-                // for each vec4. We don't have to do this in code though.
+                // for each vec4. We'll have to reassemble the mat4 in
+                // the shader.
                 wgpu::VertexAttribute {
                     offset: mem::size_of::<[f32; 4]>() as wgpu::BufferAddress,
                     shader_location: 6,
@@ -176,10 +177,10 @@ We need to add this descriptor to the render pipeline so that we can use it when
 ```rust
 let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
     // ...
-    vertex_state: wgpu::VertexStateDescriptor {
-        index_format: wgpu::IndexFormat::Uint16,
+    vertex: wgpu::VertexState {
+        // ...
         // UPDATED!
-        vertex_buffers: &[Vertex::desc(), InstanceRaw::desc()],
+        buffers: &[Vertex::desc(), InstanceRaw::desc()],
     },
     // ...
 });
@@ -205,7 +206,8 @@ render_pass.set_bind_group(1, &self.uniform_bind_group, &[]);
 render_pass.set_vertex_buffer(0, &self.vertex_buffer.slice(..));
 // NEW!
 render_pass.set_vertex_buffer(1, self.instance_buffer.slice(..));
-render_pass.set_index_buffer(&self.index_buffer.slice(..));
+render_pass.set_index_buffer(self.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
+
 // UPDATED!
 render_pass.draw_indexed(0..self.num_indices, 0, 0..self.instances.len() as _);
 ```
@@ -216,7 +218,7 @@ Make sure if you add new instances to the `Vec`, that you recreate the `instance
 
 </div>
 
-We need to reference our new matrix in `shader.vert` so that we can use it for our instances. Add the following to the top of `shader.vert`.
+We need to reference the parts of our new matrix in `shader.vert` so that we can use it for our instances. Add the following to the top of `shader.vert`.
 
 ```glsl
 layout(location=5) in vec4 model_matrix_0;
@@ -225,10 +227,25 @@ layout(location=7) in vec4 model_matrix_2;
 layout(location=8) in vec4 model_matrix_3;
 ```
 
+We need to reassemble the matrix before we can use it.
+
+```glsl
+void main() {
+    mat4 model_matrix = mat4(
+        model_matrix_0,
+        model_matrix_1,
+        model_matrix_2,
+        model_matrix_3
+    );
+    // Continued...
+}
+```
+
 We'll apply the `model_matrix` before we apply `u_view_proj`. We do this because the `u_view_proj` changes the coordinate system from `world space` to `camera space`. Our `model_matrix` is a `world space` transformation, so we don't want to be in `camera space` when using it.
 
 ```glsl
 void main() {
+    // ...
     v_tex_coords = a_tex_coords;
     // UPDATED!
     gl_Position = u_view_proj * model_matrix * vec4(a_position, 1.0);
