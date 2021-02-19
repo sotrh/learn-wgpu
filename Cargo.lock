@@ -94,12 +94,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "android_glue"
-version = "0.2.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "000444226fcff248f2bc4c7625be32c63caccfecc2723a2b9f78a7487a49c407"
-
-[[package]]
 name = "android_log-sys"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -125,6 +119,15 @@ name = "approx"
 version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f0e60b75072ecd4168020818c0107f2857bb6c4e64252d8d3983f6263b40a5c3"
+dependencies = [
+ "num-traits",
+]
+
+[[package]]
+name = "approx"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3f2a05fd1bd10b2527e20a2cd32d8873d115b8b39fe219ee25f42a8aca6ba278"
 dependencies = [
  "num-traits",
 ]
@@ -263,7 +266,7 @@ checksum = "28dae23a39becf0b1c8f9198d7e9fc80aaf1ec1ee7428ec570f6a0269e59a9cc"
 dependencies = [
  "proc-macro2 1.0.24",
  "quote 1.0.7",
- "syn 1.0.60",
+ "syn",
 ]
 
 [[package]]
@@ -335,9 +338,19 @@ version = "0.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "283944cdecc44bf0b8dd010ec9af888d3b4f142844fdbe026c20ef68148d6fe7"
 dependencies = [
- "approx",
+ "approx 0.3.2",
  "num-traits",
  "rand 0.6.5",
+]
+
+[[package]]
+name = "cgmath"
+version = "0.18.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1a98d30140e3296250832bbaaff83b27dcd6fa3cc70fb6f1f3e5c9c0023b5317"
+dependencies = [
+ "approx 0.4.0",
+ "num-traits",
 ]
 
 [[package]]
@@ -399,21 +412,6 @@ dependencies = [
 
 [[package]]
 name = "cocoa"
-version = "0.19.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f29f7768b2d1be17b96158e3285951d366b40211320fb30826a76cb7a0da6400"
-dependencies = [
- "bitflags",
- "block",
- "core-foundation 0.6.4",
- "core-graphics 0.17.3",
- "foreign-types",
- "libc",
- "objc",
-]
-
-[[package]]
-name = "cocoa"
 version = "0.20.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0c49e86fc36d5704151f5996b7b3795385f50ce09e3be0f47a0cfde869681cf8"
@@ -432,6 +430,22 @@ name = "cocoa"
 version = "0.23.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c54201c07dcf3a5ca33fececb8042aed767ee4bfd5a0235a8ceabcda956044b2"
+dependencies = [
+ "bitflags",
+ "block",
+ "cocoa-foundation",
+ "core-foundation 0.9.0",
+ "core-graphics 0.22.1",
+ "foreign-types",
+ "libc",
+ "objc",
+]
+
+[[package]]
+name = "cocoa"
+version = "0.24.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6f63902e9223530efb4e26ccd0cf55ec30d592d3b42e21a28defc42a9586e832"
 dependencies = [
  "bitflags",
  "block",
@@ -470,12 +484,12 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bytemuck",
- "cgmath",
+ "cgmath 0.17.0",
  "env_logger",
  "fs_extra",
  "futures",
  "glob",
- "image 0.23.7",
+ "image",
  "log",
  "rayon",
  "shaderc",
@@ -495,16 +509,6 @@ name = "copyless"
 version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a2df960f5d869b2dd8532793fde43eb5427cceb126c929747a26823ab0eeb536"
-
-[[package]]
-name = "core-foundation"
-version = "0.6.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "25b9e03f145fd4f2bf705e07b900cd41fc636598fe5dc452fd0db1441c3f496d"
-dependencies = [
- "core-foundation-sys 0.6.2",
- "libc",
-]
 
 [[package]]
 name = "core-foundation"
@@ -543,18 +547,6 @@ name = "core-foundation-sys"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9a21fa21941700a3cd8fcb4091f361a6a712fac632f85d9f487cc892045d55c6"
-
-[[package]]
-name = "core-graphics"
-version = "0.17.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "56790968ab1c8a1202a102e6de05fc6e1ec87da99e4e93e9a7d13efbfc1e95a9"
-dependencies = [
- "bitflags",
- "core-foundation 0.6.4",
- "foreign-types",
- "libc",
-]
 
 [[package]]
 name = "core-graphics"
@@ -777,7 +769,7 @@ dependencies = [
  "proc-macro2 1.0.24",
  "quote 1.0.7",
  "strsim",
- "syn 1.0.60",
+ "syn",
 ]
 
 [[package]]
@@ -788,17 +780,7 @@ checksum = "d9b5a2f4ac4969822c62224815d069952656cadc7084fdca9751e6d959189b72"
 dependencies = [
  "darling_core",
  "quote 1.0.7",
- "syn 1.0.60",
-]
-
-[[package]]
-name = "deflate"
-version = "0.7.20"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "707b6a7b384888a70c8d2e8650b3e60170dfc6a67bb4aa67b6dfca57af4bedb4"
-dependencies = [
- "adler32",
- "byteorder",
+ "syn",
 ]
 
 [[package]]
@@ -819,14 +801,8 @@ checksum = "cb582b60359da160a9477ee80f15c8d784c477e69c217ef2cdd4169c24ea380f"
 dependencies = [
  "proc-macro2 1.0.24",
  "quote 1.0.7",
- "syn 1.0.60",
+ "syn",
 ]
-
-[[package]]
-name = "dispatch"
-version = "0.1.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "04e93ca78226c51902d7aa8c12c988338aadd9e85ed9c6be8aaac39192ff3605"
 
 [[package]]
 name = "dispatch"
@@ -886,7 +862,7 @@ checksum = "aa4da3c766cd7a0db8242e326e9e4e081edd567072893ed320008189715366a4"
 dependencies = [
  "proc-macro2 1.0.24",
  "quote 1.0.7",
- "syn 1.0.60",
+ "syn",
  "synstructure",
 ]
 
@@ -923,12 +899,12 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bytemuck",
- "cgmath",
+ "cgmath 0.17.0",
  "env_logger",
  "fs_extra",
  "futures",
  "glob",
- "image 0.23.7",
+ "image",
  "log",
  "rayon",
  "shaderc",
@@ -1024,7 +1000,7 @@ dependencies = [
  "proc-macro-hack",
  "proc-macro2 1.0.24",
  "quote 1.0.7",
- "syn 1.0.60",
+ "syn",
 ]
 
 [[package]]
@@ -1141,7 +1117,7 @@ dependencies = [
  "log",
  "parking_lot 0.10.2",
  "range-alloc",
- "raw-window-handle 0.3.3",
+ "raw-window-handle",
  "smallvec",
  "spirv_cross 0.20.0",
  "winapi 0.3.9",
@@ -1161,7 +1137,7 @@ dependencies = [
  "log",
  "parking_lot 0.11.0",
  "range-alloc",
- "raw-window-handle 0.3.3",
+ "raw-window-handle",
  "smallvec",
  "spirv_cross 0.20.0",
  "winapi 0.3.9",
@@ -1182,7 +1158,7 @@ dependencies = [
  "log",
  "parking_lot 0.11.0",
  "range-alloc",
- "raw-window-handle 0.3.3",
+ "raw-window-handle",
  "smallvec",
  "spirv_cross 0.23.0",
  "thunderdome",
@@ -1202,7 +1178,7 @@ dependencies = [
  "gfx-hal 0.5.3",
  "log",
  "range-alloc",
- "raw-window-handle 0.3.3",
+ "raw-window-handle",
  "smallvec",
  "spirv_cross 0.20.0",
  "winapi 0.3.9",
@@ -1220,7 +1196,7 @@ dependencies = [
  "gfx-hal 0.6.0",
  "log",
  "range-alloc",
- "raw-window-handle 0.3.3",
+ "raw-window-handle",
  "smallvec",
  "spirv_cross 0.20.0",
  "winapi 0.3.9",
@@ -1241,7 +1217,7 @@ dependencies = [
  "log",
  "parking_lot 0.11.0",
  "range-alloc",
- "raw-window-handle 0.3.3",
+ "raw-window-handle",
  "smallvec",
  "spirv_cross 0.23.0",
  "winapi 0.3.9",
@@ -1255,7 +1231,7 @@ checksum = "2e0f922b263916801583b7a1d58213f51c46a225c1cdf29f6d10135a23945f07"
 dependencies = [
  "gfx-hal 0.5.3",
  "log",
- "raw-window-handle 0.3.3",
+ "raw-window-handle",
 ]
 
 [[package]]
@@ -1266,7 +1242,7 @@ checksum = "2085227c12b78f6657a900c829f2d0deb46a9be3eaf86844fde263cdc218f77c"
 dependencies = [
  "gfx-hal 0.6.0",
  "log",
- "raw-window-handle 0.3.3",
+ "raw-window-handle",
 ]
 
 [[package]]
@@ -1277,7 +1253,7 @@ checksum = "9f07ef26a65954cfdd7b4c587f485100d1bb3b0bd6a51b02d817d6c87cca7a91"
 dependencies = [
  "gfx-hal 0.7.0",
  "log",
- "raw-window-handle 0.3.3",
+ "raw-window-handle",
 ]
 
 [[package]]
@@ -1297,7 +1273,7 @@ dependencies = [
  "log",
  "naga 0.3.1",
  "parking_lot 0.11.0",
- "raw-window-handle 0.3.3",
+ "raw-window-handle",
  "spirv_cross 0.23.0",
  "wasm-bindgen",
  "web-sys",
@@ -1324,7 +1300,7 @@ dependencies = [
  "objc",
  "parking_lot 0.10.2",
  "range-alloc",
- "raw-window-handle 0.3.3",
+ "raw-window-handle",
  "smallvec",
  "spirv_cross 0.20.0",
  "storage-map 0.2.0",
@@ -1350,7 +1326,7 @@ dependencies = [
  "objc",
  "parking_lot 0.11.0",
  "range-alloc",
- "raw-window-handle 0.3.3",
+ "raw-window-handle",
  "smallvec",
  "spirv_cross 0.20.0",
  "storage-map 0.3.0",
@@ -1376,7 +1352,7 @@ dependencies = [
  "objc",
  "parking_lot 0.11.0",
  "range-alloc",
- "raw-window-handle 0.3.3",
+ "raw-window-handle",
  "spirv_cross 0.23.0",
  "storage-map 0.3.0",
 ]
@@ -1395,7 +1371,7 @@ dependencies = [
  "lazy_static",
  "log",
  "objc",
- "raw-window-handle 0.3.3",
+ "raw-window-handle",
  "smallvec",
  "winapi 0.3.9",
  "x11",
@@ -1416,7 +1392,7 @@ dependencies = [
  "lazy_static",
  "log",
  "objc",
- "raw-window-handle 0.3.3",
+ "raw-window-handle",
  "smallvec",
  "winapi 0.3.9",
  "x11",
@@ -1438,7 +1414,7 @@ dependencies = [
  "naga 0.3.1",
  "objc",
  "parking_lot 0.11.0",
- "raw-window-handle 0.3.3",
+ "raw-window-handle",
  "smallvec",
  "winapi 0.3.9",
 ]
@@ -1473,7 +1449,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a18534b23d4c262916231511309bc1f307c74cda8dcb68b93a10ca213a22814b"
 dependencies = [
  "bitflags",
- "raw-window-handle 0.3.3",
+ "raw-window-handle",
 ]
 
 [[package]]
@@ -1483,7 +1459,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "18d0754f5b7a43915fd7466883b2d1bb0800d7cc4609178d0b27bf143b9e5123"
 dependencies = [
  "bitflags",
- "raw-window-handle 0.3.3",
+ "raw-window-handle",
 ]
 
 [[package]]
@@ -1494,7 +1470,7 @@ checksum = "c1d9cc8d3b573dda62d0baca4f02e0209786e22c562caff001d77c389008781d"
 dependencies = [
  "bitflags",
  "naga 0.3.1",
- "raw-window-handle 0.3.3",
+ "raw-window-handle",
  "thiserror",
 ]
 
@@ -1540,14 +1516,14 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bytemuck",
- "cgmath",
+ "cgmath 0.17.0",
  "env_logger",
  "framework",
  "fs_extra",
  "futures",
  "gif",
  "glob",
- "image 0.23.7",
+ "image",
  "log",
  "shaderc",
  "tobj 2.0.2",
@@ -1614,7 +1590,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9aa49abf7dcf7bfe68f42c1c8ab7473505aaba14de84afb8899a0109b6c61717"
 dependencies = [
  "ab_glyph",
- "approx",
+ "approx 0.3.2",
  "xi-unicode",
 ]
 
@@ -1709,23 +1685,6 @@ checksum = "b9e0384b61958566e926dc50660321d12159025e767c18e043daf26b70104c39"
 
 [[package]]
 name = "image"
-version = "0.22.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "08ed2ada878397b045454ac7cfb011d73132c59f31a955d230bd1f1c2e68eb4a"
-dependencies = [
- "byteorder",
- "gif",
- "jpeg-decoder",
- "num-iter",
- "num-rational 0.2.4",
- "num-traits",
- "png 0.15.3",
- "scoped_threadpool",
- "tiff 0.3.1",
-]
-
-[[package]]
-name = "image"
 version = "0.23.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a2397fc43bd5648b7117aabb3c5e62d0e62c194826ec77b0b4d0c41e62744635"
@@ -1735,11 +1694,11 @@ dependencies = [
  "gif",
  "jpeg-decoder",
  "num-iter",
- "num-rational 0.3.0",
+ "num-rational",
  "num-traits",
- "png 0.16.7",
+ "png",
  "scoped_threadpool",
- "tiff 0.5.0",
+ "tiff",
 ]
 
 [[package]]
@@ -1810,38 +1769,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "inflate"
-version = "0.4.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1cdb29978cc5797bd8dcc8e5bf7de604891df2a8dc576973d71a281e916db2ff"
-dependencies = [
- "adler32",
-]
-
-[[package]]
 name = "inplace_it"
 version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "90953f308a79fe6d62a4643e51f848fbfddcd05975a38e69fdf4ab86a7baf7ca"
-
-[[package]]
-name = "instancing"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "bytemuck",
- "cgmath",
- "env_logger",
- "fs_extra",
- "futures",
- "glob",
- "image 0.23.7",
- "log",
- "shaderc",
- "tobj 2.0.2",
- "wgpu 0.7.0",
- "winit 0.22.2",
-]
 
 [[package]]
 name = "instant"
@@ -2300,7 +2231,7 @@ dependencies = [
  "proc-macro-crate",
  "proc-macro2 1.0.24",
  "quote 1.0.7",
- "syn 1.0.60",
+ "syn",
 ]
 
 [[package]]
@@ -2362,17 +2293,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "num-derive"
-version = "0.2.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "eafd0b45c5537c3ba526f79d3e75120036502bebacbb3f3220914067ce39dbf2"
-dependencies = [
- "proc-macro2 0.4.30",
- "quote 0.6.13",
- "syn 0.15.44",
-]
-
-[[package]]
 name = "num-integer"
 version = "0.1.43"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2387,17 +2307,6 @@ name = "num-iter"
 version = "0.1.41"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7a6e6b7c748f995c4c29c5f5ae0248536e04a5739927c74ec0fa564805094b9f"
-dependencies = [
- "autocfg 1.0.0",
- "num-integer",
- "num-traits",
-]
-
-[[package]]
-name = "num-rational"
-version = "0.2.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5c000134b5dbf44adc5cb772486d335293351644b801551abe8f75c84cfa4aef"
 dependencies = [
  "autocfg 1.0.0",
  "num-integer",
@@ -2453,7 +2362,7 @@ dependencies = [
  "proc-macro-crate",
  "proc-macro2 1.0.24",
  "quote 1.0.7",
- "syn 1.0.60",
+ "syn",
 ]
 
 [[package]]
@@ -2590,7 +2499,7 @@ checksum = "6fb44a25c5bba983be0fc8592dfaf3e6d0935ce8be0c6b15b2a39507af34a926"
 dependencies = [
  "proc-macro2 1.0.24",
  "quote 1.0.7",
- "syn 1.0.60",
+ "syn",
  "synstructure",
  "unicode-xid 0.2.1",
 ]
@@ -2612,13 +2521,13 @@ name = "performance"
 version = "0.1.0"
 dependencies = [
  "bytemuck",
- "cgmath",
+ "cgmath 0.17.0",
  "env_logger",
  "failure",
  "fs_extra",
  "futures",
  "glob",
- "image 0.23.7",
+ "image",
  "log",
  "shaderc",
  "tobj 1.0.0",
@@ -2653,7 +2562,7 @@ checksum = "6a0ffd45cf79d88737d7cc85bfd5d2894bee1139b356e616fe85dc389c61aaf7"
 dependencies = [
  "proc-macro2 1.0.24",
  "quote 1.0.7",
- "syn 1.0.60",
+ "syn",
 ]
 
 [[package]]
@@ -2670,25 +2579,13 @@ checksum = "d36492546b6af1463394d46f0c834346f31548646f6ba10849802c9c9a27ac33"
 
 [[package]]
 name = "png"
-version = "0.15.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ef859a23054bbfee7811284275ae522f0434a3c8e7f4b74bd4a35ae7e1c4a283"
-dependencies = [
- "bitflags",
- "crc32fast",
- "deflate 0.7.20",
- "inflate",
-]
-
-[[package]]
-name = "png"
 version = "0.16.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "dfe7f9f1c730833200b134370e1d5098964231af8450bce9b78ee3ab5278b970"
 dependencies = [
  "bitflags",
  "crc32fast",
- "deflate 0.8.6",
+ "deflate",
  "miniz_oxide 0.3.7",
 ]
 
@@ -2698,7 +2595,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bytemuck",
- "cgmath",
+ "cgmath 0.17.0",
  "fs_extra",
  "futures",
  "glob",
@@ -2934,15 +2831,6 @@ checksum = "a871f1e45a3a3f0c73fb60343c811238bb5143a81642e27c2ac7aac27ff01a63"
 
 [[package]]
 name = "raw-window-handle"
-version = "0.1.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "af3d3b2e1053b3ff2171efc29a8bff3439ce6b2ce6a0432695134bc1c7ff8e87"
-dependencies = [
- "libc",
-]
-
-[[package]]
-name = "raw-window-handle"
 version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0a441a7a6c80ad6473bd4b74ec1c9a4c951794285bf941c2126f607c72e48211"
@@ -3079,7 +2967,7 @@ version = "0.8.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9f61411055101f7b60ecf1041d87fb74205fb20b0c7a723f07ef39174cf6b4c0"
 dependencies = [
- "approx",
+ "approx 0.3.2",
  "ordered-float",
  "stb_truetype",
 ]
@@ -3159,7 +3047,7 @@ checksum = "2a0be94b04690fbaed37cddffc5c134bf537c8e3329d53e982fe04c374978f8e"
 dependencies = [
  "proc-macro2 1.0.24",
  "quote 1.0.7",
- "syn 1.0.60",
+ "syn",
 ]
 
 [[package]]
@@ -3347,17 +3235,6 @@ checksum = "6446ced80d6c486436db5c078dde11a9f73d42b57fb273121e160b84f63d894c"
 
 [[package]]
 name = "syn"
-version = "0.15.44"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9ca4b3b69a77cbe1ffc9e198781b7acb0c7365a883670e8f1c1bc66fba79a5c5"
-dependencies = [
- "proc-macro2 0.4.30",
- "quote 0.6.13",
- "unicode-xid 0.1.0",
-]
-
-[[package]]
-name = "syn"
 version = "1.0.60"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c700597eca8a5a762beb35753ef6b94df201c81cca676604f547495a0d7f0081"
@@ -3375,7 +3252,7 @@ checksum = "b834f2d66f734cb897113e34aaff2f1ab4719ca946f9a7358dba8f8064148701"
 dependencies = [
  "proc-macro2 1.0.24",
  "quote 1.0.7",
- "syn 1.0.60",
+ "syn",
  "unicode-xid 0.2.1",
 ]
 
@@ -3405,7 +3282,7 @@ checksum = "9be73a2caec27583d0046ef3796c3794f868a5bc813db689eed00c7631275cd1"
 dependencies = [
  "proc-macro2 1.0.24",
  "quote 1.0.7",
- "syn 1.0.60",
+ "syn",
 ]
 
 [[package]]
@@ -3433,18 +3310,6 @@ name = "thunderdome"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7572415bd688d401c52f6e36f4c8e805b9ae1622619303b9fa835d531db0acae"
-
-[[package]]
-name = "tiff"
-version = "0.3.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d7b7c2cfc4742bd8a32f2e614339dd8ce30dbcf676bb262bd63a2327bc5df57d"
-dependencies = [
- "byteorder",
- "lzw",
- "num-derive",
- "num-traits",
-]
 
 [[package]]
 name = "tiff"
@@ -3514,7 +3379,7 @@ checksum = "80e0ccfc3378da0cce270c946b676a376943f5cd16aeba64568e7939806f4ada"
 dependencies = [
  "proc-macro2 1.0.24",
  "quote 1.0.7",
- "syn 1.0.60",
+ "syn",
 ]
 
 [[package]]
@@ -3585,10 +3450,10 @@ checksum = "d973cfa0e6124166b50a1105a67c85de40bbc625082f35c0f56f84cb1fb0a827"
 name = "tutorial1-window"
 version = "0.1.0"
 dependencies = [
- "cgmath",
+ "cgmath 0.17.0",
  "env_logger",
  "futures",
- "image 0.23.7",
+ "image",
  "log",
  "shaderc",
  "wgpu 0.7.0",
@@ -3601,12 +3466,12 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bytemuck",
- "cgmath",
+ "cgmath 0.17.0",
  "env_logger",
  "fs_extra",
  "futures",
  "glob",
- "image 0.23.7",
+ "image",
  "log",
  "shaderc",
  "tobj 2.0.2",
@@ -3620,12 +3485,12 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bytemuck",
- "cgmath",
+ "cgmath 0.17.0",
  "env_logger",
  "fs_extra",
  "futures",
  "glob",
- "image 0.23.7",
+ "image",
  "log",
  "shaderc",
  "tobj 2.0.2",
@@ -3639,12 +3504,12 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bytemuck",
- "cgmath",
+ "cgmath 0.17.0",
  "env_logger",
  "fs_extra",
  "futures",
  "glob",
- "image 0.23.7",
+ "image",
  "log",
  "shaderc",
  "tobj 2.0.2",
@@ -3658,12 +3523,12 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bytemuck",
- "cgmath",
+ "cgmath 0.17.0",
  "env_logger",
  "fs_extra",
  "futures",
  "glob",
- "image 0.23.7",
+ "image",
  "log",
  "rayon",
  "shaderc",
@@ -3676,10 +3541,10 @@ dependencies = [
 name = "tutorial2-swapchain"
 version = "0.1.0"
 dependencies = [
- "cgmath",
+ "cgmath 0.17.0",
  "env_logger",
  "futures",
- "image 0.23.7",
+ "image",
  "log",
  "shaderc",
  "wgpu 0.7.0",
@@ -3691,12 +3556,12 @@ name = "tutorial3-pipeline"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "cgmath",
+ "cgmath 0.17.0",
  "env_logger",
  "fs_extra",
  "futures",
  "glob",
- "image 0.23.7",
+ "image",
  "log",
  "shaderc",
  "wgpu 0.7.0",
@@ -3709,12 +3574,12 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bytemuck",
- "cgmath",
+ "cgmath 0.17.0",
  "env_logger",
  "fs_extra",
  "futures",
  "glob",
- "image 0.23.7",
+ "image",
  "log",
  "shaderc",
  "wgpu 0.7.0",
@@ -3727,12 +3592,12 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bytemuck",
- "cgmath",
+ "cgmath 0.17.0",
  "env_logger",
  "fs_extra",
  "futures",
  "glob",
- "image 0.23.7",
+ "image",
  "log",
  "shaderc",
  "wgpu 0.7.0",
@@ -3745,12 +3610,12 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bytemuck",
- "cgmath",
+ "cgmath 0.17.0",
  "env_logger",
  "fs_extra",
  "futures",
  "glob",
- "image 0.23.7",
+ "image",
  "log",
  "shaderc",
  "wgpu 0.7.0",
@@ -3763,12 +3628,12 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bytemuck",
- "cgmath",
+ "cgmath 0.17.0",
  "env_logger",
  "fs_extra",
  "futures",
  "glob",
- "image 0.23.7",
+ "image",
  "log",
  "shaderc",
  "wgpu 0.7.0",
@@ -3781,12 +3646,12 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bytemuck",
- "cgmath",
+ "cgmath 0.17.0",
  "env_logger",
  "fs_extra",
  "futures",
  "glob",
- "image 0.23.7",
+ "image",
  "log",
  "shaderc",
  "wgpu 0.7.0",
@@ -3799,12 +3664,12 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bytemuck",
- "cgmath",
+ "cgmath 0.17.0",
  "env_logger",
  "fs_extra",
  "futures",
  "glob",
- "image 0.23.7",
+ "image",
  "log",
  "shaderc",
  "tobj 2.0.2",
@@ -3901,7 +3766,7 @@ dependencies = [
  "log",
  "proc-macro2 1.0.24",
  "quote 1.0.7",
- "syn 1.0.60",
+ "syn",
  "wasm-bindgen-shared",
 ]
 
@@ -3935,7 +3800,7 @@ checksum = "b5a48c72f299d80557c7c62e37e7225369ecc0c963964059509fbafe917c7549"
 dependencies = [
  "proc-macro2 1.0.24",
  "quote 1.0.7",
- "syn 1.0.60",
+ "syn",
  "wasm-bindgen-backend",
  "wasm-bindgen-shared",
 ]
@@ -4097,7 +3962,7 @@ checksum = "b5dece29f3cd403aabf4056595eabe4b9af56b8bfae12445f097cf8666a41829"
 dependencies = [
  "arrayvec",
  "parking_lot 0.10.2",
- "raw-window-handle 0.3.3",
+ "raw-window-handle",
  "smallvec",
  "wgpu-core 0.5.6",
  "wgpu-native",
@@ -4116,7 +3981,7 @@ dependencies = [
  "js-sys",
  "objc",
  "parking_lot 0.11.0",
- "raw-window-handle 0.3.3",
+ "raw-window-handle",
  "smallvec",
  "tracing",
  "typed-arena",
@@ -4137,7 +4002,7 @@ dependencies = [
  "js-sys",
  "naga 0.3.1",
  "parking_lot 0.11.0",
- "raw-window-handle 0.3.3",
+ "raw-window-handle",
  "serde",
  "smallvec",
  "tracing",
@@ -4194,7 +4059,7 @@ dependencies = [
  "gfx-memory 0.2.0",
  "naga 0.2.0",
  "parking_lot 0.11.0",
- "raw-window-handle 0.3.3",
+ "raw-window-handle",
  "smallvec",
  "thiserror",
  "tracing",
@@ -4223,7 +4088,7 @@ dependencies = [
  "gpu-descriptor",
  "naga 0.3.1",
  "parking_lot 0.11.0",
- "raw-window-handle 0.3.3",
+ "raw-window-handle",
  "ron",
  "serde",
  "smallvec",
@@ -4243,7 +4108,7 @@ dependencies = [
  "libc",
  "objc",
  "parking_lot 0.10.2",
- "raw-window-handle 0.3.3",
+ "raw-window-handle",
  "wgpu-core 0.5.6",
  "wgpu-types 0.5.1",
 ]
@@ -4349,42 +4214,13 @@ checksum = "712e227841d057c1ee1cd2fb22fa7e5a5461ae8e48fa2ca79ec42cfc1931183f"
 name = "windowless"
 version = "0.1.0"
 dependencies = [
- "cgmath",
+ "cgmath 0.18.0",
  "futures",
- "image 0.22.5",
- "raw-window-handle 0.1.2",
+ "image",
+ "raw-window-handle",
  "shaderc",
- "wgpu 0.5.2",
- "winit 0.20.0",
-]
-
-[[package]]
-name = "winit"
-version = "0.20.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3ba128780050481f453bec2a115b916dbc6ae79c303dee9bad8b9080bdccd4f5"
-dependencies = [
- "android_glue",
- "bitflags",
- "cocoa 0.19.1",
- "core-foundation 0.6.4",
- "core-graphics 0.17.3",
- "core-video-sys",
- "dispatch 0.1.4",
- "instant",
- "lazy_static",
- "libc",
- "log",
- "mio",
- "mio-extras",
- "objc",
- "parking_lot 0.10.2",
- "percent-encoding",
- "raw-window-handle 0.3.3",
- "smithay-client-toolkit 0.6.6",
- "wayland-client 0.23.6",
- "winapi 0.3.9",
- "x11-dl",
+ "wgpu 0.7.0",
+ "winit 0.24.0",
 ]
 
 [[package]]
@@ -4398,7 +4234,7 @@ dependencies = [
  "core-foundation 0.7.0",
  "core-graphics 0.19.2",
  "core-video-sys",
- "dispatch 0.2.0",
+ "dispatch",
  "instant",
  "lazy_static",
  "libc",
@@ -4411,7 +4247,7 @@ dependencies = [
  "objc",
  "parking_lot 0.10.2",
  "percent-encoding",
- "raw-window-handle 0.3.3",
+ "raw-window-handle",
  "smithay-client-toolkit 0.6.6",
  "wayland-client 0.23.6",
  "winapi 0.3.9",
@@ -4429,7 +4265,7 @@ dependencies = [
  "core-foundation 0.9.0",
  "core-graphics 0.22.1",
  "core-video-sys",
- "dispatch 0.2.0",
+ "dispatch",
  "instant",
  "lazy_static",
  "libc",
@@ -4442,7 +4278,38 @@ dependencies = [
  "objc",
  "parking_lot 0.11.0",
  "percent-encoding",
- "raw-window-handle 0.3.3",
+ "raw-window-handle",
+ "smithay-client-toolkit 0.12.0",
+ "wayland-client 0.28.2",
+ "winapi 0.3.9",
+ "x11-dl",
+]
+
+[[package]]
+name = "winit"
+version = "0.24.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "da4eda6fce0eb84bd0a33e3c8794eb902e1033d0a1d5a31bc4f19b1b4bbff597"
+dependencies = [
+ "bitflags",
+ "cocoa 0.24.0",
+ "core-foundation 0.9.0",
+ "core-graphics 0.22.1",
+ "core-video-sys",
+ "dispatch",
+ "instant",
+ "lazy_static",
+ "libc",
+ "log",
+ "mio",
+ "mio-extras",
+ "ndk 0.2.1",
+ "ndk-glue 0.2.1",
+ "ndk-sys 0.2.1",
+ "objc",
+ "parking_lot 0.11.0",
+ "percent-encoding",
+ "raw-window-handle",
  "smithay-client-toolkit 0.12.0",
  "wayland-client 0.28.2",
  "winapi 0.3.9",
@@ -4534,6 +4401,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d498dbd1fd7beb83c86709ae1c33ca50942889473473d287d56ce4770a18edfb"
 dependencies = [
  "proc-macro2 1.0.24",
- "syn 1.0.60",
+ "syn",
  "synstructure",
 ]
