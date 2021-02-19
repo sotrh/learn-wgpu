@@ -7,14 +7,17 @@ Sometimes we just want to leverage the gpu. Maybe we want to crunch a large set 
 It's actually quite simple. We don't *need* a window to create an `Instance`, we don't *need* a window to select an `Adapter`, nor do we *need* a window to create a `Device`. We only needed the window to create a `Surface` which we needed to create the `SwapChain`. Once we have a `Device`, we have all we need to start sending commands to the gpu.
 
 ```rust
-let adapter = wgpu::Adapter::request(
-    &wgpu::RequestAdapterOptions {
+let adapter = instance
+    .request_adapter(&wgpu::RequestAdapterOptions {
         power_preference: wgpu::PowerPreference::default(),
         compatible_surface: None,
-    },
-    wgpu::BackendBit::PRIMARY,
-).await.unwrap();
-let (device, queue) = adapter.request_device(&Default::default()).await;
+    })
+    .await
+    .unwrap();
+let (device, queue) = adapter
+    .request_device(&Default::default(), None)
+    .await
+    .unwrap();
 ```
 
 ## A triangle without a window
@@ -30,7 +33,6 @@ let texture_desc = wgpu::TextureDescriptor {
         height: texture_size,
         depth: 1,
     },
-    array_layer_count: 1,
     mip_level_count: 1,
     sample_count: 1,
     dimension: wgpu::TextureDimension::D2,
@@ -40,9 +42,8 @@ let texture_desc = wgpu::TextureDescriptor {
         ,
     label: None,
 };
-
 let texture = device.create_texture(&texture_desc);
-let texture_view = texture.create_default_view();
+let texture_view = texture.create_view(&Default::default());
 ```
 
 We're using `TextureUsage::OUTPUT_ATTACHMENT` so wgpu can render to our texture. The `TextureUsage::COPY_SRC` is so we can pull data out of the texture so we can save it to a file.
@@ -60,6 +61,7 @@ let output_buffer_desc = wgpu::BufferDescriptor {
         // this tells wpgu that we want to read this buffer from the cpu
         | wgpu::BufferUsage::MAP_READ,
     label: None,
+    mapped_at_creation: false,
 };
 let output_buffer = device.create_buffer(&output_buffer_desc);
 ```
@@ -98,58 +100,75 @@ Using that we'll create a simple `RenderPipeline`.
 let vs_src = include_str!("shader.vert");
 let fs_src = include_str!("shader.frag");
 let mut compiler = shaderc::Compiler::new().unwrap();
-let vs_spirv = compiler.compile_into_spirv(vs_src, shaderc::ShaderKind::Vertex, "shader.vert", "main", None).unwrap();
-let fs_spirv = compiler.compile_into_spirv(fs_src, shaderc::ShaderKind::Fragment, "shader.frag", "main", None).unwrap();
-let vs_data = wgpu::read_spirv(std::io::Cursor::new(vs_spirv.as_binary_u8())).unwrap();
-let fs_data = wgpu::read_spirv(std::io::Cursor::new(fs_spirv.as_binary_u8())).unwrap();
-let vs_module = device.create_shader_module(&vs_data);
-let fs_module = device.create_shader_module(&fs_data);
+let vs_spirv = compiler
+    .compile_into_spirv(
+        vs_src,
+        shaderc::ShaderKind::Vertex,
+        "shader.vert",
+        "main",
+        None,
+    )
+    .unwrap();
+let fs_spirv = compiler
+    .compile_into_spirv(
+        fs_src,
+        shaderc::ShaderKind::Fragment,
+        "shader.frag",
+        "main",
+        None,
+    )
+    .unwrap();
+let vs_data = wgpu::util::make_spirv(vs_spirv.as_binary_u8());
+let fs_data = wgpu::util::make_spirv(fs_spirv.as_binary_u8());
+let vs_module = device.create_shader_module(&wgpu::ShaderModuleDescriptor {
+    label: Some("Vertex Shader"),
+    source: vs_data,
+    flags: wgpu::ShaderFlags::default(),
+});
+let fs_module = device.create_shader_module(&wgpu::ShaderModuleDescriptor {
+    label: Some("Fragment Shader"),
+    source: fs_data,
+    flags: wgpu::ShaderFlags::default(),
+});
 
 let render_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+    label: Some("Render Pipeline Layout"),
     bind_group_layouts: &[],
+    push_constant_ranges: &[],
 });
 
 let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-    layout: &render_pipeline_layout,
+    label: Some("Render Pipeline"),
+    layout: Some(&render_pipeline_layout),
     vertex: wgpu::VertexState {
         module: &vs_module,
         entry_point: "main",
+        buffers: &[],
     },
     fragment: Some(wgpu::FragmentState {
         module: &fs_module,
         entry_point: "main",
-    }),
-    rasterization_state: Some(wgpu::RasterizationStateDescriptor {
-        front_face: wgpu::FrontFace::Ccw,
-        cull_mode: wgpu::CullMode::Back,
-        depth_bias: 0,
-        depth_bias_slope_scale: 0.0,
-        depth_bias_clamp: 0.0,
+        targets: &[wgpu::ColorTargetState {
+            format: texture_desc.format,
+            alpha_blend: wgpu::BlendState::REPLACE,
+            color_blend: wgpu::BlendState::REPLACE,
+            write_mask: wgpu::ColorWrite::ALL,
+        }],
     }),
     primitive: wgpu::PrimitiveState {
-                topology: wgpu::PrimitiveTopology::TriangleList,
-                strip_index_format: None,
-                front_face: wgpu::FrontFace::Ccw,
-                cull_mode: wgpu::CullMode::Back,
-                // Setting this to anything other than Fill requires Features::NON_FILL_POLYGON_MODE
-                polygon_mode: wgpu::PolygonMode::Fill,
-            },
-    color_states: &[
-        wgpu::ColorStateDescriptor {
-            format: texture_desc.format,
-            color_blend: wgpu::BlendDescriptor::REPLACE,
-            alpha_blend: wgpu::BlendDescriptor::REPLACE,
-            write_mask: wgpu::ColorWrite::ALL,
-        },
-    ],
-    depth_stencil: None,
-    vertex_state: wgpu::VertexStateDescriptor {
-        index_format: wgpu::IndexFormat::Uint16,
-        vertex_buffers: &[],
+        topology: wgpu::PrimitiveTopology::TriangleList,
+        strip_index_format: None,
+        front_face: wgpu::FrontFace::Ccw,
+        cull_mode: wgpu::CullMode::Back,
+        // Setting this to anything other than Fill requires Features::NON_FILL_POLYGON_MODE
+        polygon_mode: wgpu::PolygonMode::Fill,
     },
-    sample_count: 1,
-    sample_mask: !0,
-    alpha_to_coverage_enabled: false,
+    depth_stencil: None,
+    multisample: wgpu::MultisampleState {
+        count: 1,
+        mask: !0,
+        alpha_to_coverage_enabled: false,
+    },
 });
 ```
 
@@ -166,17 +185,19 @@ The `RenderPass` is where things get interesting. A render pass requires at leas
 ```rust
 {
     let render_pass_desc = wgpu::RenderPassDescriptor {
+        label: Some("Render Pass"),
         color_attachments: &[
             wgpu::RenderPassColorAttachmentDescriptor {
                 attachment: &texture_view,
                 resolve_target: None,
-                load_op: wgpu::LoadOp::Clear,
-                store_op: wgpu::StoreOp::Store,
-                clear_color: wgpu::Color {
-                    r: 0.1,
-                    g: 0.2,
-                    b: 0.3,
-                    a: 1.0,
+                ops: wgpu::Operations {
+                    load: wgpu::LoadOp::Clear(wgpu::Color {
+                        r: 0.1,
+                        g: 0.2,
+                        b: 0.3,
+                        a: 1.0,
+                    }),
+                    store: true,
                 },
             }
         ],
@@ -196,15 +217,16 @@ encoder.copy_texture_to_buffer(
     wgpu::TextureCopyView {
         texture: &texture,
         mip_level: 0,
-        array_layer: 0,
         origin: wgpu::Origin3d::ZERO,
-    }, 
+    },
     wgpu::BufferCopyView {
         buffer: &output_buffer,
-        offset: 0,
-        bytes_per_row: u32_size * texture_size,
-        rows_per_image: texture_size,
-    }, 
+        layout: wgpu::TextureDataLayout {
+            offset: 0,
+            bytes_per_row: u32_size * texture_size,
+            rows_per_image: texture_size,
+        },
+    },
     texture_desc.size,
 );
 ```
@@ -212,37 +234,38 @@ encoder.copy_texture_to_buffer(
 Now that we've made all our commands, let's submit them to the gpu.
 
 ```rust
-device.get_queue().submit(&[encoder.finish()]);
+queue.submit(Some(encoder.finish()));
 ```
 
 ## Getting data out of a buffer
 
-The `Buffer` struct has two methods to access it's contents: `map_read`, and `map_write`. Both of these methods take in a `BufferAddress` specifying the byte to start from, the size in bytes of the chunk we're reading/writing, and a callback lambda that where we'll actually access the data. We're going to use `map_read` to save our `output_buffer` to a png file.
-
-The actual mapping code is fairly simple.
+In order to get the data out of the buffer we need to first map it, then we can get a `BufferView` that we can treat like a `&[u8]`.
 
 ```rust
-// NOTE: We have to create the mapping THEN device.poll(). If we don't
-// the application will freeze.
-let mapping = output_buffer.map_read(0, output_buffer_size);
-device.poll(wgpu::Maintain::Wait);
+// We need to scope the mapping variables so that we can
+// unmap the buffer
+{
+    let buffer_slice = output_buffer.slice(..);
 
-let result = mapping.await.unwrap();
-let data = result.as_slice();
+    // NOTE: We have to create the mapping THEN device.poll() before await
+    // the future. Otherwise the application will freeze.
+    let mapping = buffer_slice.map_async(wgpu::MapMode::Read);
+    device.poll(wgpu::Maintain::Wait);
+    mapping.await.unwrap();
 
-use image::{ImageBuffer, Rgba};
-let buffer = ImageBuffer::<Rgba<u8>, _>::from_raw(
-    texture_size,
-    texture_size,
-    data,
-).unwrap();
+    let data = buffer_slice.get_mapped_range();
 
-buffer.save("image.png").unwrap();
+    use image::{ImageBuffer, Rgba};
+    let buffer =
+        ImageBuffer::<Rgba<u8>, _>::from_raw(texture_size, texture_size, data).unwrap();
+    buffer.save("image.png").unwrap();
+}
+output_buffer.unmap();
 ```
 
 ## Main is not asyncable
 
-The `main()` method can't return a future, so we can't use the `async` keyword. We'll get around this by putting our code into a different function so that we can block on it in `main()`. You'll need to use the [futures crate](https://docs.rs/futures).
+The `main()` method can't return a future, so we can't use the `async` keyword. We'll get around this by putting our code into a different function so that we can block on it in `main()`. You'll need to use a crate that can poll futures such as the [futures crate](https://docs.rs/futures).
 
 ```rust
 async fn run() {

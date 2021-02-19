@@ -163,6 +163,8 @@ async fn run() {
 
     queue.submit(Some(encoder.finish()));
 
+    // We need to scope the mapping variables so that we can
+    // unmap the buffer
     {
         let buffer_slice = output_buffer.slice(..);
 
@@ -179,7 +181,6 @@ async fn run() {
             ImageBuffer::<Rgba<u8>, _>::from_raw(texture_size, texture_size, data).unwrap();
         buffer.save("image.png").unwrap();
     }
-
     output_buffer.unmap();
 }
 
