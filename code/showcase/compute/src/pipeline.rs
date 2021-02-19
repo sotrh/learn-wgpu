@@ -84,9 +84,10 @@ pub fn create_render_pipeline(
             depth_write_enabled: true,
             depth_compare: wgpu::CompareFunction::Less,
             stencil: wgpu::StencilState::default(),
-                bias: wgpu::DepthBiasState::default(),
-                // Setting this to true requires Features::DEPTH_CLAMPING
-                clamp_depth: false,        }),
+            bias: wgpu::DepthBiasState::default(),
+            // Setting this to true requires Features::DEPTH_CLAMPING
+            clamp_depth: false,
+        }),
         sample_count: 1,
         sample_mask: !0,
         alpha_to_coverage_enabled: false,

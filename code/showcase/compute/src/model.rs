@@ -142,7 +142,7 @@ impl pipeline::Bindable for BitangentComputeBinding {
                 visibility: wgpu::ShaderStage::COMPUTE,
                 ty: wgpu::BindingType::StorageBuffer {
                     ty: wgpu::BufferBindingType::Uniform,
-                        has_dynamic_offset: false,
+                    has_dynamic_offset: false,
                     min_binding_size: None,
                     // We use these vertices to compute the tangent and bitangent
                     readonly: true,
@@ -155,7 +155,7 @@ impl pipeline::Bindable for BitangentComputeBinding {
                 visibility: wgpu::ShaderStage::COMPUTE,
                 ty: wgpu::BindingType::StorageBuffer {
                     ty: wgpu::BufferBindingType::Uniform,
-                        has_dynamic_offset: false,
+                    has_dynamic_offset: false,
                     min_binding_size: None,
                     // We'll store the computed tangent and bitangent here
                     readonly: false,
@@ -168,7 +168,7 @@ impl pipeline::Bindable for BitangentComputeBinding {
                 visibility: wgpu::ShaderStage::COMPUTE,
                 ty: wgpu::BindingType::StorageBuffer {
                     ty: wgpu::BufferBindingType::Uniform,
-                        has_dynamic_offset: false,
+                    has_dynamic_offset: false,
                     min_binding_size: None,
                     // We WILL NOT change the indices in the compute shader
                     readonly: true,
@@ -181,7 +181,7 @@ impl pipeline::Bindable for BitangentComputeBinding {
                 visibility: wgpu::ShaderStage::COMPUTE,
                 ty: wgpu::BindingType::Buffer {
                     ty: wgpu::BufferBindingType::Uniform,
-                        has_dynamic_offset: false,
+                    has_dynamic_offset: false,
                     min_binding_size: None,
                 },
                 count: None,

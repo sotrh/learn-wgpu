@@ -1,14 +1,16 @@
 async fn run() {
     let instance = wgpu::Instance::new(wgpu::BackendBit::PRIMARY);
-    let adapter = instance.request_adapter(
-        &wgpu::RequestAdapterOptions {
+    let adapter = instance
+        .request_adapter(&wgpu::RequestAdapterOptions {
             power_preference: wgpu::PowerPreference::default(),
             compatible_surface: None,
-        },
-    )
-    .await
-    .unwrap();
-    let (device, queue) = adapter.request_device(&Default::default(), None).await.unwrap();
+        })
+        .await
+        .unwrap();
+    let (device, queue) = adapter
+        .request_device(&Default::default(), None)
+        .await
+        .unwrap();
 
     let texture_size = 256u32;
     let texture_desc = wgpu::TextureDescriptor {
@@ -169,14 +171,15 @@ async fn run() {
         let mapping = buffer_slice.map_async(wgpu::MapMode::Read);
         device.poll(wgpu::Maintain::Wait);
         mapping.await.unwrap();
-    
+
         let data = buffer_slice.get_mapped_range();
-    
+
         use image::{ImageBuffer, Rgba};
-        let buffer = ImageBuffer::<Rgba<u8>, _>::from_raw(texture_size, texture_size, data).unwrap();
+        let buffer =
+            ImageBuffer::<Rgba<u8>, _>::from_raw(texture_size, texture_size, data).unwrap();
         buffer.save("image.png").unwrap();
     }
-    
+
     output_buffer.unmap();
 }
 

@@ -327,9 +327,9 @@ impl DepthPass {
                 wgpu::BindGroupLayoutEntry {
                     binding: 1,
                     count: None,
-                    ty: wgpu::BindingType::Sampler { 
+                    ty: wgpu::BindingType::Sampler {
                         comparison: true,
-                        filtering: true, 
+                        filtering: true,
                     },
                     visibility: wgpu::ShaderStage::FRAGMENT,
                 },
@@ -536,9 +536,9 @@ impl State {
                     wgpu::BindGroupLayoutEntry {
                         binding: 1,
                         visibility: wgpu::ShaderStage::FRAGMENT,
-                        ty: wgpu::BindingType::Sampler { 
+                        ty: wgpu::BindingType::Sampler {
                             comparison: false,
-                            filtering: true, 
+                            filtering: true,
                         },
                         count: None,
                     },

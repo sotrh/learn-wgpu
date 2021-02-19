@@ -244,9 +244,9 @@ impl State {
                     wgpu::BindGroupLayoutEntry {
                         binding: 1,
                         visibility: wgpu::ShaderStage::FRAGMENT,
-                        ty: wgpu::BindingType::Sampler { 
+                        ty: wgpu::BindingType::Sampler {
                             comparison: false,
-                            filtering: true, 
+                            filtering: true,
                         },
                         count: None,
                     },
@@ -264,9 +264,9 @@ impl State {
                     wgpu::BindGroupLayoutEntry {
                         binding: 3,
                         visibility: wgpu::ShaderStage::FRAGMENT,
-                        ty: wgpu::BindingType::Sampler { 
+                        ty: wgpu::BindingType::Sampler {
                             comparison: false,
-                            filtering: true, 
+                            filtering: true,
                         },
                         count: None,
                     },

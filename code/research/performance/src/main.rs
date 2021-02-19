@@ -269,9 +269,9 @@ impl State {
                     wgpu::BindGroupLayoutEntry {
                         binding: 1,
                         visibility: wgpu::ShaderStage::FRAGMENT,
-                        ty: wgpu::BindingType::Sampler { 
+                        ty: wgpu::BindingType::Sampler {
                             comparison: false,
-                            filtering: true, 
+                            filtering: true,
                         },
                     },
                     // normal map
@@ -287,9 +287,9 @@ impl State {
                     wgpu::BindGroupLayoutEntry {
                         binding: 3,
                         visibility: wgpu::ShaderStage::FRAGMENT,
-                        ty: wgpu::BindingType::Sampler { 
+                        ty: wgpu::BindingType::Sampler {
                             comparison: false,
-                            filtering: true, 
+                            filtering: true,
                         },
                     },
                 ],
@@ -364,7 +364,7 @@ impl State {
                         visibility: wgpu::ShaderStage::VERTEX,
                         ty: wgpu::BindingType::StorageBuffer {
                             ty: wgpu::BufferBindingType::Uniform,
-                        has_dynamic_offset: false,
+                            has_dynamic_offset: false,
                             readonly: true,
                         },
                     },

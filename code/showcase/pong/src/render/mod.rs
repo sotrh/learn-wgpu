@@ -152,7 +152,8 @@ impl Render {
 
                 if num_indices != 0 {
                     render_pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
-                    render_pass.set_index_buffer(self.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
+                    render_pass
+                        .set_index_buffer(self.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
                     render_pass.set_pipeline(&self.pipeline);
                     render_pass.draw_indexed(0..num_indices, 0, 0..1);
                 }
