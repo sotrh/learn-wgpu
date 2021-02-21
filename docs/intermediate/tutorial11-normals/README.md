@@ -31,10 +31,10 @@ let texture_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroup
         wgpu::BindGroupLayoutEntry {
             binding: 2,
             visibility: wgpu::ShaderStage::FRAGMENT,
-            ty: wgpu::BindingType::SampledTexture {
+            ty: wgpu::BindingType::Texture {
                 multisampled: false,
-                component_type: wgpu::TextureSampleType::Float { filterable: true },
-                dimension: wgpu::TextureViewDimension::D2,
+                sample_type: wgpu::TextureSampleType::Float { filterable: true },
+                view_dimension: wgpu::TextureViewDimension::D2,
             },
             count: None,
         },
@@ -42,9 +42,9 @@ let texture_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroup
             binding: 3,
             visibility: wgpu::ShaderStage::FRAGMENT,
             ty: wgpu::BindingType::Sampler { 
-                            comparison: false,
-                            filtering: true, 
-                        },
+                comparison: false,
+                filtering: true, 
+            },
             count: None,
         },
     ],

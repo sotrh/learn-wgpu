@@ -119,69 +119,51 @@ fn create_render_pipeline(
     color_format: wgpu::TextureFormat,
     depth_format: Option<wgpu::TextureFormat>,
     vertex_layouts: &[wgpu::VertexBufferLayout],
-    vs_src: &str,
-    fs_src: &str,
+    vs_src: wgpu::ShaderModuleDescriptor,
+    fs_src: wgpu::ShaderModuleDescriptor,
 ) -> wgpu::RenderPipeline {
-    let mut compiler = shaderc::Compiler::new().unwrap();
-    let vs_spirv = compiler.compile_into_spirv(vs_src, shaderc::ShaderKind::Vertex, "shader.vert", "main", None).unwrap();
-    let fs_spirv = compiler.compile_into_spirv(fs_src, shaderc::ShaderKind::Fragment, "shader.frag", "main", None).unwrap();
-
-    let vs_data = wgpu::read_spirv(std::io::Cursor::new(vs_spirv.as_binary_u8())).unwrap();
-    let fs_data = wgpu::read_spirv(std::io::Cursor::new(fs_spirv.as_binary_u8())).unwrap();
-
-    let vs_module = device.create_shader_module(&vs_data);
-    let fs_module = device.create_shader_module(&fs_data);
+    let vs_module = device.create_shader_module(&vs_src);
+    let fs_module = device.create_shader_module(&fs_src);
 
     device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-        layout: &layout,
+        label: Some("Render Pipeline"),
+        layout: Some(&layout),
         vertex: wgpu::VertexState {
             module: &vs_module,
             entry_point: "main",
+            buffers: vertex_layouts,
         },
         fragment: Some(wgpu::FragmentState {
             module: &fs_module,
             entry_point: "main",
-        }),
-        rasterization_state: Some(wgpu::RasterizationStateDescriptor {
-            front_face: wgpu::FrontFace::Ccw,
-            cull_mode: wgpu::CullMode::Back,
-            depth_bias: 0,
-            depth_bias_slope_scale: 0.0,
-            depth_bias_clamp: 0.0,
+            targets: &[wgpu::ColorTargetState {
+                format: color_format,
+                alpha_blend: wgpu::BlendState::REPLACE,
+                color_blend: wgpu::BlendState::REPLACE,
+                write_mask: wgpu::ColorWrite::ALL,
+            }],
         }),
         primitive: wgpu::PrimitiveState {
-                topology: wgpu::PrimitiveTopology::TriangleList,
-                strip_index_format: None,
-                front_face: wgpu::FrontFace::Ccw,
-                cull_mode: wgpu::CullMode::Back,
-                // Setting this to anything other than Fill requires Features::NON_FILL_POLYGON_MODE
-                polygon_mode: wgpu::PolygonMode::Fill,
-            },
-        color_states: &[
-            wgpu::ColorStateDescriptor {
-                format: color_format,
-                color_blend: wgpu::BlendDescriptor::REPLACE,
-                alpha_blend: wgpu::BlendDescriptor::REPLACE,
-                write_mask: wgpu::ColorWrite::ALL,
-            },
-        ],
-        depth_stencil: depth_format.map(|format| {
-            wgpu::DepthStencilState {
-                format,
-                depth_write_enabled: true,
-                depth_compare: wgpu::CompareFunction::Less,
-                stencil_front: wgpu::StencilStateFaceDescriptor::IGNORE,
-                stencil_back: wgpu::StencilStateFaceDescriptor::IGNORE,
-                stencil_read_mask: 0,
-                stencil_write_mask: 0,
-            }
+            topology: wgpu::PrimitiveTopology::TriangleList,
+            strip_index_format: None,
+            front_face: wgpu::FrontFace::Ccw,
+            cull_mode: wgpu::CullMode::Back,
+            // Setting this to anything other than Fill requires Features::NON_FILL_POLYGON_MODE
+            polygon_mode: wgpu::PolygonMode::Fill,
+        },
+        depth_stencil: depth_format.map(|format| wgpu::DepthStencilState {
+            format,
+            depth_write_enabled: true,
+            depth_compare: wgpu::CompareFunction::Less,
+            stencil: wgpu::StencilState::default(),
+            bias: wgpu::DepthBiasState::default(),
+            // Setting this to true requires Features::DEPTH_CLAMPING
+            clamp_depth: false,
         }),
-        sample_count: 1,
-        sample_mask: !0,
-        alpha_to_coverage_enabled: false,
-        vertex_state: wgpu::VertexStateDescriptor {
-            index_format: wgpu::IndexFormat::Uint32,
-            vertex_buffers: vertex_layouts,
+        multisample: wgpu::MultisampleState {
+            count: 1,
+            mask: !0,
+            alpha_to_coverage_enabled: false,
         },
     })
 }
@@ -190,20 +172,15 @@ fn create_render_pipeline(
 We also need to change `State::new()` to use this function.
 
 ```rust
-let render_pipeline = {
-    let vs_src = include_str!("shader.vert");
-    let fs_src = include_str!("shader.frag");
-
-    create_render_pipeline(
-        &device, 
-        &render_pipeline_layout, 
-        sc_desc.format,
-        Some(texture::Texture::DEPTH_FORMAT),
-        &[model::ModelVertex::desc()],
-        vs_src, 
-        fs_src
-    )
-};
+let render_pipeline = create_render_pipeline(
+    &device,
+    &render_pipeline_layout,
+    sc_desc.format,
+    Some(texture::Texture::DEPTH_FORMAT),
+    &[model::ModelVertex::desc(), InstanceRaw::desc()],
+    wgpu::include_spirv!("shader.vert.spv"),
+    wgpu::include_spirv!("shader.frag.spv"),
+);
 ```
 
 We're going to need to modify `model::DrawModel` to use our `light_bind_group`.
@@ -303,23 +280,19 @@ With that done we can create another render pipeline for our light.
 ```rust
 let light_render_pipeline = {
     let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-        bind_group_layouts: &[
-            &uniform_bind_group_layout,
-            &light_bind_group_layout,
-        ]
+        label: Some("Light Pipeline Layout"),
+        bind_group_layouts: &[&uniform_bind_group_layout, &light_bind_group_layout],
+        push_constant_ranges: &[],
     });
 
-    let vs_src = include_str!("light.vert");
-    let fs_src = include_str!("light.frag");
-
     create_render_pipeline(
-        &device, 
-        &layout, 
-        sc_desc.format, 
-        Some(texture::Texture::DEPTH_FORMAT), 
-        &[model::ModelVertex::desc()], 
-        vs_src, 
-        fs_src,
+        &device,
+        &layout,
+        sc_desc.format,
+        Some(texture::Texture::DEPTH_FORMAT),
+        &[model::ModelVertex::desc()],
+        wgpu::include_spirv!("light.vert.spv"),
+        wgpu::include_spirv!("light.frag.spv"),
     )
 };
 ```
