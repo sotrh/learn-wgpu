@@ -79,6 +79,7 @@ impl ShaderCanvas {
         );
 
         let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+            label: Some("Shader Canvas Render Pass"),
             color_attachments: &[wgpu::RenderPassColorAttachmentDescriptor {
                 attachment: frame,
                 resolve_target: None,
@@ -189,12 +190,12 @@ impl<'a> ShaderCanvasBuilder<'a> {
             label: self.label,
             entries: &[wgpu::BindGroupEntry {
                 binding: 0,
-                resource: wgpu::BindingResource::Buffer(simulation_data_buffer.slice(..)),
+                resource: simulation_data_buffer.as_entire_binding(),
             }],
         });
 
-        let vert_module = device.create_shader_module(vert_code);
-        let frag_module = device.create_shader_module(frag_code);
+        let vert_module = device.create_shader_module(&vert_code);
+        let frag_module = device.create_shader_module(&frag_code);
 
         let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             label: self.label,
@@ -207,18 +208,18 @@ impl<'a> ShaderCanvasBuilder<'a> {
             vertex: wgpu::VertexState {
                 entry_point: "main",
                 module: &vert_module,
+                buffers: &[],
             },
             fragment: Some(wgpu::FragmentState {
                 entry_point: "main",
                 module: &frag_module,
+                targets: &[wgpu::ColorTargetState {
+                    format: display_format,
+                    alpha_blend: wgpu::BlendState::REPLACE,
+                    color_blend: wgpu::BlendState::REPLACE,
+                    write_mask: wgpu::ColorWrite::ALL,
+                }],
             }),
-            color_states: &[wgpu::ColorStateDescriptor {
-                format: display_format,
-                alpha_blend: wgpu::BlendDescriptor::REPLACE,
-                color_blend: wgpu::BlendDescriptor::REPLACE,
-                write_mask: wgpu::ColorWrite::ALL,
-            }],
-            rasterization_state: None,
             primitive: wgpu::PrimitiveState {
                 topology: wgpu::PrimitiveTopology::TriangleList,
                 strip_index_format: None,
@@ -228,9 +229,10 @@ impl<'a> ShaderCanvasBuilder<'a> {
                 polygon_mode: wgpu::PolygonMode::Fill,
             },
             depth_stencil: None,
-            vertex_state: wgpu::VertexStateDescriptor {
-                index_format: wgpu::IndexFormat::Uint16,
-                vertex_buffers: &[],
+            multisample: wgpu::MultisampleState {
+                count: 1,
+                mask: !0,
+                alpha_to_coverage_enabled: false,
             },
         });
 

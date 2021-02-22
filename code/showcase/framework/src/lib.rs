@@ -163,7 +163,7 @@ impl UniformBinding {
             layout: &layout,
             entries: &[wgpu::BindGroupEntry {
                 binding: 0,
-                resource: wgpu::BindingResource::Buffer(uniforms.buffer.slice(..)),
+                resource: uniforms.buffer.as_entire_binding(),
             }],
             label: Some("UniformBinding::bind_group"),
         });
@@ -176,7 +176,7 @@ impl UniformBinding {
             layout: &self.layout,
             entries: &[wgpu::BindGroupEntry {
                 binding: 0,
-                resource: wgpu::BindingResource::Buffer(uniforms.buffer.slice(..)),
+                resource: uniforms.buffer.as_entire_binding(),
             }],
             label: Some("UniformBinding::bind_group"),
         });

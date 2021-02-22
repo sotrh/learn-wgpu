@@ -11,7 +11,7 @@ pub struct RenderPipelineBuilder<'a> {
     depth_bias_slope_scale: f32,
     depth_bias_clamp: f32,
     primitive_topology: wgpu::PrimitiveTopology,
-    color_states: Vec<wgpu::ColorStateDescriptor>,
+    color_states: Vec<wgpu::ColorTargetState>,
     depth_stencil: Option<wgpu::DepthStencilState>,
     index_format: wgpu::IndexFormat,
     vertex_buffers: Vec<wgpu::VertexBufferLayout<'a>>,
@@ -31,18 +31,14 @@ impl<'a> RenderPipelineBuilder<'a> {
             depth_bias: 0,
             depth_bias_slope_scale: 0.0,
             depth_bias_clamp: 0.0,
-            primitive: wgpu::PrimitiveState {
-                topology: wgpu::PrimitiveTopology::TriangleList,
-                strip_index_format: None,
-                front_face: wgpu::FrontFace::Ccw,
-                cull_mode: wgpu::CullMode::Back,
-                // Setting this to anything other than Fill requires Features::NON_FILL_POLYGON_MODE
-                polygon_mode: wgpu::PolygonMode::Fill,
-            },
+            primitive_topology: wgpu::PrimitiveTopology::TriangleList,
             color_states: Vec::new(),
             depth_stencil: None,
             index_format: wgpu::IndexFormat::Uint32,
             vertex_buffers: Vec::new(),
+            sample_count: 1,
+            sample_mask: !0,
+            alpha_to_coverage_enabled: false,
         }
     }
 
@@ -97,17 +93,17 @@ impl<'a> RenderPipelineBuilder<'a> {
         self
     }
 
-    pub fn color_state(&mut self, cs: wgpu::ColorStateDescriptor) -> &mut Self {
+    pub fn color_state(&mut self, cs: wgpu::ColorTargetState) -> &mut Self {
         self.color_states.push(cs);
         self
     }
 
     /// Helper method for [RenderPipelineBuilder::color_state]
     pub fn color_solid(&mut self, format: wgpu::TextureFormat) -> &mut Self {
-        self.color_state(wgpu::ColorStateDescriptor {
+        self.color_state(wgpu::ColorTargetState {
             format,
-            alpha_blend: wgpu::BlendDescriptor::REPLACE,
-            color_blend: wgpu::BlendDescriptor::REPLACE,
+            alpha_blend: wgpu::BlendState::REPLACE,
+            color_blend: wgpu::BlendState::REPLACE,
             write_mask: wgpu::ColorWrite::ALL,
         })
     }
@@ -129,6 +125,9 @@ impl<'a> RenderPipelineBuilder<'a> {
             depth_write_enabled,
             depth_compare,
             stencil: Default::default(),
+            // Setting this to true requires Features::DEPTH_CLAMPING
+            clamp_depth: false,
+            bias: wgpu::DepthBiasState::default(),
         })
     }
 
@@ -212,29 +211,33 @@ impl<'a> RenderPipelineBuilder<'a> {
             vertex: wgpu::VertexState {
                 module: &vs,
                 entry_point: "main",
+                buffers: &self.vertex_buffers,
             },
             fragment: Some(wgpu::FragmentState {
                 module: &fs,
                 entry_point: "main",
+                targets: &self.color_states,
             }),
-            rasterization_state: Some(wgpu::RasterizationStateDescriptor {
+            primitive: wgpu::PrimitiveState {
+                topology: self.primitive_topology,
                 front_face: self.front_face,
                 cull_mode: self.cull_mode,
-                depth_bias: self.depth_bias,
-                depth_bias_slope_scale: self.depth_bias_slope_scale,
-                depth_bias_clamp: self.depth_bias_clamp,
-                clamp_depth: false,
-            }),
-            primitive_topology: self.primitive_topology,
-            color_states: &self.color_states,
-            depth_stencil: self.depth_stencil.clone(),
-            vertex_state: wgpu::VertexStateDescriptor {
-                index_format: self.index_format,
-                vertex_buffers: &self.vertex_buffers,
+                strip_index_format: None,
+                polygon_mode: wgpu::PolygonMode::Fill,
             },
-            sample_count: self.sample_count,
-            sample_mask: self.sample_mask,
-            alpha_to_coverage_enabled: self.alpha_to_coverage_enabled,
+            depth_stencil: self.depth_stencil.clone(),
+            multisample: wgpu::MultisampleState {
+                count: 1,
+                mask: !0,
+                alpha_to_coverage_enabled: false,
+            },
+            // vertex_state: wgpu::VertexStateDescriptor {
+            //     index_format: self.index_format,
+            //     vertex_buffers: &self.vertex_buffers,
+            // },
+            // sample_count: self.sample_count,
+            // sample_mask: self.sample_mask,
+            // alpha_to_coverage_enabled: self.alpha_to_coverage_enabled,
         });
         Ok(pipeline)
     }
@@ -244,5 +247,5 @@ fn create_shader_module(
     device: &wgpu::Device,
     spirv: wgpu::ShaderModuleDescriptor,
 ) -> wgpu::ShaderModule {
-    device.create_shader_module(spirv)
+    device.create_shader_module(&spirv)
 }

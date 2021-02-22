@@ -354,6 +354,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "chlorine"
+version = "1.0.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bd650552110e39b7c5058986cf177decd3365841836578ac50a286094eac0be6"
+
+[[package]]
 name = "chrono"
 version = "0.4.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -485,7 +491,7 @@ dependencies = [
  "anyhow",
  "bytemuck",
  "cgmath 0.17.0",
- "env_logger",
+ "env_logger 0.7.1",
  "fs_extra",
  "futures",
  "glob",
@@ -838,7 +844,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "44533bbbb3bb3c1fa17d9f2e4e38bbbaf8396ba82193c4cb1b6445d711445d36"
 dependencies = [
  "atty",
- "humantime",
+ "humantime 1.3.0",
+ "log",
+ "regex",
+ "termcolor",
+]
+
+[[package]]
+name = "env_logger"
+version = "0.8.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "17392a012ea30ef05a610aa97dfb49496e71c9f676b27879922ea5bdf60d9d3f"
+dependencies = [
+ "atty",
+ "humantime 2.1.0",
  "log",
  "regex",
  "termcolor",
@@ -899,8 +918,8 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bytemuck",
- "cgmath 0.17.0",
- "env_logger",
+ "cgmath 0.18.0",
+ "env_logger 0.8.3",
  "fs_extra",
  "futures",
  "glob",
@@ -912,7 +931,7 @@ dependencies = [
  "tobj 2.0.2",
  "wgpu 0.7.0",
  "wgpu-subscriber",
- "winit 0.23.0",
+ "winit 0.24.0",
 ]
 
 [[package]]
@@ -1517,7 +1536,7 @@ dependencies = [
  "anyhow",
  "bytemuck",
  "cgmath 0.17.0",
- "env_logger",
+ "env_logger 0.7.1",
  "framework",
  "fs_extra",
  "futures",
@@ -1678,6 +1697,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "humantime"
+version = "2.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9a3a5bfb195931eeb336b2a7b4d761daec841b97f947d34394601737a7bba5e4"
+
+[[package]]
 name = "ident_case"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1703,13 +1728,12 @@ dependencies = [
 
 [[package]]
 name = "imgui"
-version = "0.6.0"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a714f73a3f08446d92c47a38b536a03deba500aa6bb6fa805e8c0b6f90945e4f"
+checksum = "24cfcf6e3326886321c5d637caf1ce217006651059015fae372b1c49c0e722b2"
 dependencies = [
  "bitflags",
  "imgui-sys",
- "lazy_static",
  "parking_lot 0.11.0",
 ]
 
@@ -1728,34 +1752,35 @@ dependencies = [
 
 [[package]]
 name = "imgui-sys"
-version = "0.6.0"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0522b693da8a64322afbb32c63c04f39d9b9435cc75199d630207eee48886fc1"
+checksum = "85ca00be6b78bf02b57e91468cf19d08dfcc11d0fb3c2f3dc491c29404d8d330"
 dependencies = [
  "cc",
+ "chlorine",
 ]
 
 [[package]]
 name = "imgui-wgpu"
-version = "0.12.0"
+version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8017f74f8880049c1c3fc055868486a610178ab93ad18eadaf5b0bb52f738365"
+checksum = "79d5d73b68effcb4bcb89048e8c437e01c6d5675247d664188c584ce4d6d9696"
 dependencies = [
  "bytemuck",
  "imgui",
  "log",
  "smallvec",
- "wgpu 0.6.0",
+ "wgpu 0.7.0",
 ]
 
 [[package]]
 name = "imgui-winit-support"
-version = "0.6.0"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5e0fc247afc385ed9cd26860cdb7fae988d5c7e2ad1d70c70aef728ce9b78e85"
+checksum = "d632440e05c964e8a7f00f2659c4f71c97897d8c38a77a0c2dc1f3fe8d632208"
 dependencies = [
  "imgui",
- "winit 0.23.0",
+ "winit 0.24.0",
 ]
 
 [[package]]
@@ -2522,7 +2547,7 @@ version = "0.1.0"
 dependencies = [
  "bytemuck",
  "cgmath 0.17.0",
- "env_logger",
+ "env_logger 0.7.1",
  "failure",
  "fs_extra",
  "futures",
@@ -3451,7 +3476,7 @@ name = "tutorial1-window"
 version = "0.1.0"
 dependencies = [
  "cgmath 0.17.0",
- "env_logger",
+ "env_logger 0.7.1",
  "futures",
  "image",
  "log",
@@ -3467,7 +3492,7 @@ dependencies = [
  "anyhow",
  "bytemuck",
  "cgmath 0.17.0",
- "env_logger",
+ "env_logger 0.7.1",
  "fs_extra",
  "futures",
  "glob",
@@ -3486,7 +3511,7 @@ dependencies = [
  "anyhow",
  "bytemuck",
  "cgmath 0.17.0",
- "env_logger",
+ "env_logger 0.7.1",
  "fs_extra",
  "futures",
  "glob",
@@ -3505,7 +3530,7 @@ dependencies = [
  "anyhow",
  "bytemuck",
  "cgmath 0.17.0",
- "env_logger",
+ "env_logger 0.7.1",
  "fs_extra",
  "futures",
  "glob",
@@ -3524,7 +3549,7 @@ dependencies = [
  "anyhow",
  "bytemuck",
  "cgmath 0.17.0",
- "env_logger",
+ "env_logger 0.7.1",
  "fs_extra",
  "futures",
  "glob",
@@ -3542,7 +3567,7 @@ name = "tutorial2-swapchain"
 version = "0.1.0"
 dependencies = [
  "cgmath 0.17.0",
- "env_logger",
+ "env_logger 0.7.1",
  "futures",
  "image",
  "log",
@@ -3557,7 +3582,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "cgmath 0.17.0",
- "env_logger",
+ "env_logger 0.7.1",
  "fs_extra",
  "futures",
  "glob",
@@ -3575,7 +3600,7 @@ dependencies = [
  "anyhow",
  "bytemuck",
  "cgmath 0.17.0",
- "env_logger",
+ "env_logger 0.7.1",
  "fs_extra",
  "futures",
  "glob",
@@ -3593,7 +3618,7 @@ dependencies = [
  "anyhow",
  "bytemuck",
  "cgmath 0.17.0",
- "env_logger",
+ "env_logger 0.7.1",
  "fs_extra",
  "futures",
  "glob",
@@ -3611,7 +3636,7 @@ dependencies = [
  "anyhow",
  "bytemuck",
  "cgmath 0.17.0",
- "env_logger",
+ "env_logger 0.7.1",
  "fs_extra",
  "futures",
  "glob",
@@ -3629,7 +3654,7 @@ dependencies = [
  "anyhow",
  "bytemuck",
  "cgmath 0.17.0",
- "env_logger",
+ "env_logger 0.7.1",
  "fs_extra",
  "futures",
  "glob",
@@ -3647,7 +3672,7 @@ dependencies = [
  "anyhow",
  "bytemuck",
  "cgmath 0.17.0",
- "env_logger",
+ "env_logger 0.7.1",
  "fs_extra",
  "futures",
  "glob",
@@ -3665,7 +3690,7 @@ dependencies = [
  "anyhow",
  "bytemuck",
  "cgmath 0.17.0",
- "env_logger",
+ "env_logger 0.7.1",
  "fs_extra",
  "futures",
  "glob",
