@@ -16,7 +16,7 @@ pub struct RenderPipelineBuilder<'a> {
     index_format: wgpu::IndexFormat,
     vertex_buffers: Vec<wgpu::VertexBufferLayout<'a>>,
     sample_count: u32,
-    sample_mask: u32,
+    sample_mask: u64,
     alpha_to_coverage_enabled: bool,
 }
 
@@ -159,7 +159,7 @@ impl<'a> RenderPipelineBuilder<'a> {
     }
 
     #[allow(dead_code)]
-    pub fn sample_mask(&mut self, sm: u32) -> &mut Self {
+    pub fn sample_mask(&mut self, sm: u64) -> &mut Self {
         self.sample_mask = sm;
         self
     }
@@ -227,17 +227,10 @@ impl<'a> RenderPipelineBuilder<'a> {
             },
             depth_stencil: self.depth_stencil.clone(),
             multisample: wgpu::MultisampleState {
-                count: 1,
-                mask: !0,
-                alpha_to_coverage_enabled: false,
+                count: self.sample_count,
+                mask: self.sample_mask,
+                alpha_to_coverage_enabled: self.alpha_to_coverage_enabled,
             },
-            // vertex_state: wgpu::VertexStateDescriptor {
-            //     index_format: self.index_format,
-            //     vertex_buffers: &self.vertex_buffers,
-            // },
-            // sample_count: self.sample_count,
-            // sample_mask: self.sample_mask,
-            // alpha_to_coverage_enabled: self.alpha_to_coverage_enabled,
         });
         Ok(pipeline)
     }

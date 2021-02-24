@@ -12,9 +12,9 @@ async fn run() {
     let (device, queue) = adapter
         .request_device(
             &wgpu::DeviceDescriptor {
+                label: Some("Device"),
                 features: wgpu::Features::empty(),
                 limits: wgpu::Limits::default(),
-                shader_validation: true,
             },
             None, // Trace path
         )
@@ -79,6 +79,7 @@ async fn run() {
             device.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
 
         let mut rpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+            label: Some("GIF Pass"),
             color_attachments: &[wgpu::RenderPassColorAttachmentDescriptor {
                 attachment: &render_target.view,
                 resolve_target: None,
@@ -181,12 +182,20 @@ fn create_render_pipeline(
         vertex: wgpu::VertexState {
             module: &vs_module,
             entry_point: "main",
+            buffers: &[],
         },
         fragment: Some(wgpu::FragmentState {
             module: &fs_module,
             entry_point: "main",
+            targets: &[
+                wgpu::ColorTargetState {
+                    format: target.desc.format,
+                    color_blend: wgpu::BlendState::REPLACE,
+                    alpha_blend: wgpu::BlendState::REPLACE,
+                    write_mask: wgpu::ColorWrite::ALL,
+                }
+            ]
         }),
-        rasterization_state: None,
         primitive: wgpu::PrimitiveState {
             topology: wgpu::PrimitiveTopology::TriangleList,
             strip_index_format: None,
@@ -195,20 +204,12 @@ fn create_render_pipeline(
             // Setting this to anything other than Fill requires Features::NON_FILL_POLYGON_MODE
             polygon_mode: wgpu::PolygonMode::Fill,
         },
-        color_states: &[wgpu::ColorStateDescriptor {
-            format: target.desc.format,
-            color_blend: wgpu::BlendDescriptor::REPLACE,
-            alpha_blend: wgpu::BlendDescriptor::REPLACE,
-            write_mask: wgpu::ColorWrite::ALL,
-        }],
         depth_stencil: None,
-        vertex_state: wgpu::VertexStateDescriptor {
-            index_format: wgpu::IndexFormat::Uint16,
-            vertex_buffers: &[],
+        multisample: wgpu::MultisampleState {
+            count: 1,
+            mask: !0,
+            alpha_to_coverage_enabled: false,
         },
-        sample_count: 1,
-        sample_mask: !0,
-        alpha_to_coverage_enabled: false,
     });
 
     render_pipeline
