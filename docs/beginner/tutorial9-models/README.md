@@ -116,7 +116,7 @@ pub struct Mesh {
 }
 ```
 
-The `Material` is pretty simple, it's just the name and one texture. Our cube obj actually has 2 textures, but one is a normal map, and we'll get to those [later](../../intermediate/normal-mapping). The name is more for debugging purposes.
+The `Material` is pretty simple, it's just the name and one texture. Our cube obj actually has 2 textures, but one is a normal map, and we'll get to those [later](../../intermediate/tutorial11-normals). The name is more for debugging purposes.
 
 Speaking of textures, we'll need to add a `load()` method to `Texture` in `texture.rs`.
 
