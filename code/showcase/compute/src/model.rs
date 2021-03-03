@@ -137,28 +137,31 @@ impl pipeline::Bindable for BitangentComputeBinding {
     fn layout_entries() -> Vec<wgpu::BindGroupLayoutEntry> {
         vec![
             // Src Vertices
+            // We use these vertices to compute the tangent and bitangent
             wgpu::BindGroupLayoutEntry {
                 binding: 0,
                 visibility: wgpu::ShaderStage::COMPUTE,
-                ty: wgpu::BindingType::StorageBuffer {
-                    ty: wgpu::BufferBindingType::Uniform,
+                ty: wgpu::BindingType::Buffer {
+                    ty: wgpu::BufferBindingType::Storage {
+                        read_only: true,
+                    },
                     has_dynamic_offset: false,
                     min_binding_size: None,
-                    // We use these vertices to compute the tangent and bitangent
-                    readonly: true,
                 },
                 count: None,
             },
             // Dst Vertices
+            // We'll store the computed tangent and bitangent here
             wgpu::BindGroupLayoutEntry {
                 binding: 1,
                 visibility: wgpu::ShaderStage::COMPUTE,
-                ty: wgpu::BindingType::StorageBuffer {
-                    ty: wgpu::BufferBindingType::Uniform,
+                ty: wgpu::BindingType::Buffer {
+                    ty: wgpu::BufferBindingType::Storage {
+                        // We will change the values in this buffer
+                        read_only: false,
+                    },
                     has_dynamic_offset: false,
                     min_binding_size: None,
-                    // We'll store the computed tangent and bitangent here
-                    readonly: false,
                 },
                 count: None,
             },
@@ -166,12 +169,13 @@ impl pipeline::Bindable for BitangentComputeBinding {
             wgpu::BindGroupLayoutEntry {
                 binding: 2,
                 visibility: wgpu::ShaderStage::COMPUTE,
-                ty: wgpu::BindingType::StorageBuffer {
-                    ty: wgpu::BufferBindingType::Uniform,
+                ty: wgpu::BindingType::Buffer {
+                    ty: wgpu::BufferBindingType::Storage {
+                        // We won't change the indices
+                        read_only: true,
+                    },
                     has_dynamic_offset: false,
                     min_binding_size: None,
-                    // We WILL NOT change the indices in the compute shader
-                    readonly: true,
                 },
                 count: None,
             },
@@ -194,22 +198,22 @@ impl pipeline::Bindable for BitangentComputeBinding {
             // Src Vertices
             wgpu::BindGroupEntry {
                 binding: 0,
-                resource: wgpu::BindingResource::Buffer(self.src_vertex_buffer.slice(..)),
+                resource: self.src_vertex_buffer.as_entire_binding(),
             },
             // Dst Vertices
             wgpu::BindGroupEntry {
                 binding: 1,
-                resource: wgpu::BindingResource::Buffer(self.dst_vertex_buffer.slice(..)),
+                resource: self.dst_vertex_buffer.as_entire_binding(),
             },
             // Indices
             wgpu::BindGroupEntry {
                 binding: 2,
-                resource: wgpu::BindingResource::Buffer(self.index_buffer.slice(..)),
+                resource: self.index_buffer.as_entire_binding(),
             },
             // ComputeInfo
             wgpu::BindGroupEntry {
                 binding: 3,
-                resource: wgpu::BindingResource::Buffer(self.info_buffer.slice(..)),
+                resource: self.info_buffer.as_entire_binding(),
             },
         ]
     }
@@ -358,7 +362,9 @@ impl ModelLoader {
                     label: Some("Tangent and Bitangent Calc"),
                 });
                 {
-                    let mut pass = encoder.begin_compute_pass();
+                    let mut pass = encoder.begin_compute_pass(&wgpu::ComputePassDescriptor {
+                        label: Some("Compute Pass"),
+                    });
                     pass.set_pipeline(&self.pipeline);
                     pass.set_bind_group(0, &calc_bind_group, &[]);
                     pass.dispatch(binding.compute_info.num_vertices as u32, 1, 1);
