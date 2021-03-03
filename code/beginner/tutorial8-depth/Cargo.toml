@@ -12,7 +12,7 @@ env_logger = "0.7"
 futures = "0.3"
 image = "0.23"
 log = "0.4"
-wgpu = "0.6"
+wgpu = "0.7"
 winit = "0.22"
 
 [build-dependencies]

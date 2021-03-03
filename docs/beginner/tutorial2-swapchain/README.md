@@ -55,7 +55,7 @@ impl State {
         let surface = unsafe { instance.create_surface(window) };
         let adapter = instance.request_adapter(
             &wgpu::RequestAdapterOptions {
-                power_preference: wgpu::PowerPreference::Default,
+                power_preference: wgpu::PowerPreference::default(),
                 compatible_surface: Some(&surface),
             },
         ).await.unwrap();
@@ -84,16 +84,16 @@ The device you have limits the features you can use. If you want to use certain 
 
 You can get a list of features supported by your device using `adapter.features()`, or `device.features()`.
 
-You can view a full list of features [here](https://docs.rs/wgpu/0.6.0/wgpu/struct.Features.html).
+You can view a full list of features [here](https://docs.rs/wgpu/0.7.0/wgpu/struct.Features.html).
 
 </div>
 
-The `limits` field describes the limit of certain types of resource we can create. We'll use the defaults for this tutorial, so we can support most devices. You can view a list of limits [here](https://docs.rs/wgpu/0.6.0/wgpu/struct.Limits.html).
+The `limits` field describes the limit of certain types of resource we can create. We'll use the defaults for this tutorial, so we can support most devices. You can view a list of limits [here](https://docs.rs/wgpu/0.7.0/wgpu/struct.Limits.html).
 
 ```rust
         let sc_desc = wgpu::SwapChainDescriptor {
-            usage: wgpu::TextureUsage::OUTPUT_ATTACHMENT,
-            format: wgpu::TextureFormat::Bgra8UnormSrgb,
+            usage: wgpu::TextureUsage::RENDER_ATTACHMENT,
+            format: adapter.get_swap_chain_preferred_format(&surface),
             width: size.width,
             height: size.height,
             present_mode: wgpu::PresentMode::Fifo,
@@ -102,33 +102,11 @@ The `limits` field describes the limit of certain types of resource we can creat
 ```
 Here we are defining and creating the `swap_chain`. The `usage` field describes how the `swap_chain`'s underlying textures will be used. `OUTPUT_ATTACHMENT` specifies that the textures will be used to write to the screen (we'll talk about more `TextureUsage`s later).
 
-The `format` defines how the `swap_chain`s textures will be stored on the gpu. Usually you want to specify the format of the display you're using. As of writing, I was unable to find a way to query what format the display has through `wgpu`, though [there are plans on including such a method](https://github.com/gfx-rs/wgpu-rs/issues/123#issuecomment-555803321), so `wgpu::TextureFormat::Bgra8UnormSrgb` will do for now. We use `wgpu::TextureFormat::Bgra8UnormSrgb` because that's the format that's [guaranteed to be natively supported by the swapchains of all the APIs/platforms](https://github.com/gfx-rs/wgpu-rs/issues/123#issuecomment-555800583) which are currently supported.
+The `format` defines how the `swap_chain`s textures will be stored on the gpu. Different displays prefer different formats. We use `adapter.get_swap_chain_preferred_format()` to figure out the best format to use.
 
-`width` and `height`, are self explanatory.
+`width` and `height`, are the width and height in pixels of the swap chain. This should usually be the width and height of the window.
 
-The `present_mode` uses the `wgpu::PresentMode` enum which is defined as follows.
-
-```rust
-#[repr(C)]
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub enum PresentMode {
-    /// The presentation engine does **not** wait for a vertical blanking period and
-    /// the request is presented immediately. This is a low-latency presentation mode,
-    /// but visible tearing may be observed. Will fallback to `Fifo` if unavailable on the
-    /// selected  platform and backend. Not optimal for mobile.
-    Immediate = 0,
-    /// The presentation engine waits for the next vertical blanking period to update
-    /// the current image, but frames may be submitted without delay. This is a low-latency
-    /// presentation mode and visible tearing will **not** be observed. Will fallback to `Fifo`
-    /// if unavailable on the selected platform and backend. Not optimal for mobile.
-    Mailbox = 1,
-    /// The presentation engine waits for the next vertical blanking period to update
-    /// the current image. The framerate will be capped at the display refresh rate,
-    /// corresponding to the `VSync`. Tearing cannot be observed. Optimal for mobile.
-    Fifo = 2,
-}
-```
+The `present_mode` uses the `wgpu::PresentMode` enum which determines how to sync the swap chain with the display. You can see all the options [in the docs](https://docs.rs/wgpu/0.7.0/wgpu/enum.PresentMode.html)
 
 At the end of the method, we simply return the resulting struct.
 
@@ -280,6 +258,7 @@ Now we can actually get to clearing the screen (long time coming). We need to us
 ```rust
     {
         let _render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+            label: Some("Render Pass"),
             color_attachments: &[
                 wgpu::RenderPassColorAttachmentDescriptor {
                     attachment: &frame.view,
@@ -351,6 +330,7 @@ Some of you may be able to tell what's going on just by looking at it, but I'd b
 
 ```rust
 &wgpu::RenderPassDescriptor {
+    label: Some("Render Pass"),
     color_attachments: &[
         // ...
     ],
@@ -358,9 +338,7 @@ Some of you may be able to tell what's going on just by looking at it, but I'd b
 }
 ```
 
-A `RenderPassDescriptor` only has two fields: `color_attachments` and `depth_stencil_attachment`. The `color_attachements` describe where we are going to draw our color to.
-
-We'll use `depth_stencil_attachment` later, but we'll set it to `None` for now.
+A `RenderPassDescriptor` only has three fields: `label`, `color_attachments` and `depth_stencil_attachment`. The `color_attachements` describe where we are going to draw our color to. We'll use `depth_stencil_attachment` later, but we'll set it to `None` for now.
 
 ```rust
 wgpu::RenderPassColorAttachmentDescriptor {
@@ -386,7 +364,7 @@ The `ops` field takes a `wpgu::Operations` object. This tells wgpu what to do wi
 
 <div class="note">
 
-It's not uncommon to not clear the screen if the screen is going to be completely covered up with objects. If your scene doesn't cover the entire screen however you'll end up with something like this.
+It's not uncommon to not clear the screen if the screen is going to be completely covered up with objects. If your scene doesn't cover the entire screen however you can end up with something like this.
 
 ![./no-clear.png](./no-clear.png)
 

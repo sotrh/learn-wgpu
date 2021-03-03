@@ -62,7 +62,7 @@ let vertex_buffer = device.create_buffer_init(
 );
 ```
 
-To access the `create_buffer_init` method on `wgpu::Device` we'll have to import the [DeviceExt](https://docs.rs/wgpu/0.6.0/wgpu/util/trait.DeviceExt.html#tymethod.create_buffer_init) extension trait. For more information on extension traits, check out [this article](http://xion.io/post/code/rust-extension-traits.html). 
+To access the `create_buffer_init` method on `wgpu::Device` we'll have to import the [DeviceExt](https://docs.rs/wgpu/0.7.0/wgpu/util/trait.DeviceExt.html#tymethod.create_buffer_init) extension trait. For more information on extension traits, check out [this article](http://xion.io/post/code/rust-extension-traits.html). 
 
 To import the extension trait, this line somewhere near the top of `main.rs`.
 
@@ -114,21 +114,21 @@ Self {
 ```
 
 ## So what do I do with it?
-We need to tell the `render_pipeline` to use this buffer when we are drawing, but first we need to tell the `render_pipeline` how to read the buffer. We do this using `VertexBufferDescriptor`s and the `vertex_buffers` field that I promised we'd talk about when we created the `render_pipeline`.
+We need to tell the `render_pipeline` to use this buffer when we are drawing, but first we need to tell the `render_pipeline` how to read the buffer. We do this using `VertexBufferLayout`s and the `vertex_buffers` field that I promised we'd talk about when we created the `render_pipeline`.
 
-A `VertexBufferDescriptor` defines how a buffer is layed out in memory. Without this, the render_pipeline has no idea how to map the buffer in the shader. Here's what the descriptor for a buffer full of `Vertex` would look like.
+A `VertexBufferLayout` defines how a buffer is layed out in memory. Without this, the render_pipeline has no idea how to map the buffer in the shader. Here's what the descriptor for a buffer full of `Vertex` would look like.
 
 ```rust
-wgpu::VertexBufferDescriptor {
-    stride: std::mem::size_of::<Vertex>() as wgpu::BufferAddress, // 1.
+wgpu::VertexBufferLayout {
+    array_stride: std::mem::size_of::<Vertex>() as wgpu::BufferAddress, // 1.
     step_mode: wgpu::InputStepMode::Vertex, // 2.
     attributes: &[ // 3.
-        wgpu::VertexAttributeDescriptor {
+        wgpu::VertexAttribute {
             offset: 0, // 4.
             shader_location: 0, // 5.
             format: wgpu::VertexFormat::Float3, // 6.
         },
-        wgpu::VertexAttributeDescriptor {
+        wgpu::VertexAttribute {
             offset: std::mem::size_of::<[f32; 3]>() as wgpu::BufferAddress,
             shader_location: 1,
             format: wgpu::VertexFormat::Float3,
@@ -137,7 +137,7 @@ wgpu::VertexBufferDescriptor {
 }
 ```
 
-1. The `stride` defines how wide a vertex is. When the shader goes to read the next vertex, it will skip over `stride` number of bytes. In our case, stride will probably be 24 bytes.
+1. The `array_stride` defines how wide a vertex is. When the shader goes to read the next vertex, it will skip over `array_stride` number of bytes. In our case, array_stride will probably be 24 bytes.
 2. `step_mode` tells the pipeline how often it should move to the next vertex. This seems redundant in our case, but we can specify `wgpu::InputStepMode::Instance` if we only want to change vertices when we start drawing a new instance. We'll cover instancing in a later tutorial.
 3. Vertex attributes describe the individual parts of the vertex. Generally this is a 1:1 mapping with a struct's fields, which it is in our case.
 4. This defines the `offset` in bytes that this attribute starts. The first attribute is usually zero, and any future attributes are the collective `size_of` the previous attributes data.
@@ -146,24 +146,24 @@ wgpu::VertexBufferDescriptor {
 
 For you visually learners, our vertex buffer looks like this.
 
-![A figure of the VertexBufferDescriptor](./vb_desc.png)
+![A figure of the VertexBufferLayout](./vb_desc.png)
 
 Let's create a static method on `Vertex` that returns this descriptor.
 
 ```rust
 // main.rs
 impl Vertex {
-    fn desc<'a>() -> wgpu::VertexBufferDescriptor<'a> {
-        wgpu::VertexBufferDescriptor {
-            stride: std::mem::size_of::<Vertex>() as wgpu::BufferAddress, // 1.
-            step_mode: wgpu::InputStepMode::Vertex, // 2.
-            attributes: &[ // 3.
-                wgpu::VertexAttributeDescriptor {
-                    offset: 0, // 4.
-                    shader_location: 0, // 5.
-                    format: wgpu::VertexFormat::Float3, // 6.
+    fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
+        wgpu::VertexBufferLayout {
+            array_stride: std::mem::size_of::<Vertex>() as wgpu::BufferAddress,
+            step_mode: wgpu::InputStepMode::Vertex,
+            attributes: &[
+                wgpu::VertexAttribute {
+                    offset: 0,
+                    shader_location: 0,
+                    format: wgpu::VertexFormat::Float3,
                 },
-                wgpu::VertexAttributeDescriptor {
+                wgpu::VertexAttribute {
                     offset: std::mem::size_of::<[f32; 3]>() as wgpu::BufferAddress,
                     shader_location: 1,
                     format: wgpu::VertexFormat::Float3,
@@ -176,17 +176,17 @@ impl Vertex {
 
 <div class="note">
 
-Specifying the attributes as we did now is quite verbose. We could use the `vertex_attr_array` macro provided by wgpu to clean things up a bit. With it our `VertexBufferDescriptor` becomes
+Specifying the attributes as we did now is quite verbose. We could use the `vertex_attr_array` macro provided by wgpu to clean things up a bit. With it our `VertexBufferLayout` becomes
 
 ```rust
-wgpu::VertexBufferDescriptor {
-    stride: std::mem::size_of::<Vertex>() as wgpu::BufferAddress,
+wgpu::VertexBufferLayout {
+    array_stride: std::mem::size_of::<Vertex>() as wgpu::BufferAddress,
     step_mode: wgpu::InputStepMode::Vertex,
     attributes: &wgpu::vertex_attr_array![0 => Float3, 1 => Float3],
 }
 ```
 
-While this is definitely nice, we would have to change the lifetime on `wgpu::VertexBufferDescriptor` to `'static` as rust wouldn't compile the code because the result of `vertex_attr_array` is a temporary value, which we can't return from a function.
+While this is definitely nice, we would have to change the lifetime on `wgpu::VertexBufferLayout` to `'static` as rust wouldn't compile the code because the result of `vertex_attr_array` is a temporary value, which we can't return from a function.
 
 Beyond that, I feel it's good to show how the data gets mapped, so I'll forgo using this macro for now.
 
@@ -197,9 +197,9 @@ Now we can use it when we create the `render_pipeline`.
 ```rust
 let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
     // ...
-    vertex_state: wgpu::VertexStateDescriptor {
-        index_format: wgpu::IndexFormat::Uint16,
-        vertex_buffers: &[
+    vertex: wgpu::VertexState {
+        // ...
+        buffers: &[
             Vertex::desc(),
         ],
     },
@@ -403,7 +403,7 @@ All we have to do now is update the `render()` method to use the `index_buffer`.
 // render()
 render_pass.set_pipeline(&self.render_pipeline);
 render_pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
-render_pass.set_index_buffer(self.index_buffer.slice(..)); // 1.
+render_pass.set_index_buffer(self.index_buffer.slice(..), wgpu::IndexFormat::Uint16); // 1.
 render_pass.draw_indexed(0..self.num_indices, 0, 0..1); // 2.
 ```
 

@@ -14,7 +14,7 @@ shaderc = "0.7"
 cgmath = "0.17"
 env_logger = "0.7"
 log = "0.4"
-wgpu = "0.6"
+wgpu = "0.7"
 futures = "0.3"
 ```
 
@@ -29,12 +29,11 @@ To enable the Vulkan backend, add this new section to `Cargo.toml`, and do not f
 
 ``` toml
 [dependencies.wgpu]
-version = "0.6"
+version = "0.7"
 features = ["vulkan-portability"]
 ```
 
-- This may not be necessary because normally `wgpu-rs` validation will catch problems. In fact that is one of it's
-  design goals.
+- This may not be necessary because normally `wgpu-rs` validation will catch problems. In fact that is one of it's design goals.
 - This is not intended for shipping code. 
 - See also [gfx-portability](https://github.com/gfx-rs/portability).
 
@@ -44,43 +43,35 @@ There's not much going on here yet, so I'm just going to post the code in full. 
 ```rust
 use winit::{
     event::*,
-    event_loop::{EventLoop, ControlFlow},
-    window::{Window, WindowBuilder},
+    event_loop::{ControlFlow, EventLoop},
+    window::WindowBuilder,
 };
 
 fn main() {
     env_logger::init();
     let event_loop = EventLoop::new();
-    let window = WindowBuilder::new()
-        .build(&event_loop)
-        .unwrap();
+    let window = WindowBuilder::new().build(&event_loop).unwrap();
 
-    event_loop.run(move |event, _, control_flow| {
-        match event {
-            Event::WindowEvent {
-                ref event,
-                window_id,
-            } if window_id == window.id() => match event {
-                WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
-                WindowEvent::KeyboardInput {
-                    input,
+    event_loop.run(move |event, _, control_flow| match event {
+        Event::WindowEvent {
+            ref event,
+            window_id,
+        } if window_id == window.id() => match event {
+            WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
+            WindowEvent::KeyboardInput { input, .. } => match input {
+                KeyboardInput {
+                    state: ElementState::Pressed,
+                    virtual_keycode: Some(VirtualKeyCode::Escape),
                     ..
-                } => {
-                    match input {
-                        KeyboardInput {
-                            state: ElementState::Pressed,
-                            virtual_keycode: Some(VirtualKeyCode::Escape),
-                            ..
-                        } => *control_flow = ControlFlow::Exit,
-                        _ => {}
-                    }
-                }
+                } => *control_flow = ControlFlow::Exit,
                 _ => {}
-            }
+            },
             _ => {}
-        }
+        },
+        _ => {}
     });
 }
+
 ```
 
 All this does is create a window, and keep it open until until user closes it, or presses escape. Next tutorial we'll actually start using wgpu!

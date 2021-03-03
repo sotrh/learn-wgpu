@@ -39,7 +39,7 @@ impl Texture {
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
             format: Self::DEPTH_FORMAT,
-            usage: wgpu::TextureUsage::OUTPUT_ATTACHMENT // 3.
+            usage: wgpu::TextureUsage::RENDER_ATTACHMENT // 3.
                 | wgpu::TextureUsage::SAMPLED,
         };
         let texture = device.create_texture(&desc);
@@ -82,11 +82,14 @@ We need to modify our `render_pipeline` to allow depth testing.
 ```rust
 let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
     // ...
-    depth_stencil_state: Some(wgpu::DepthStencilStateDescriptor {
+    depth_stencil: Some(wgpu::DepthStencilState {
         format: texture::Texture::DEPTH_FORMAT,
         depth_write_enabled: true,
         depth_compare: wgpu::CompareFunction::Less, // 1.
-        stencil: wgpu::StencilStateDescriptor::default(), // 2.
+        stencil: wgpu::StencilState::default(), // 2.
+        bias: wgpu::DepthBiasState::default(),
+        // Setting this to true requires Features::DEPTH_CLAMPING
+        clamp_depth: false,
     }),
     // ...
 });
@@ -140,7 +143,7 @@ The last change we need to make is in the `render()` function. We've created the
 
 ```rust
 let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-    /// ...
+    // ...
     depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachmentDescriptor {
         attachment: &self.depth_texture.view,
         depth_ops: Some(wgpu::Operations {

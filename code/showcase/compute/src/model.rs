@@ -8,7 +8,7 @@ use crate::pipeline;
 use crate::texture;
 
 pub trait Vertex {
-    fn desc<'a>() -> wgpu::VertexBufferDescriptor<'a>;
+    fn desc<'a>() -> wgpu::VertexBufferLayout<'a>;
 }
 
 #[repr(C)]
@@ -22,37 +22,37 @@ pub struct ModelVertex {
 }
 
 impl Vertex for ModelVertex {
-    fn desc<'a>() -> wgpu::VertexBufferDescriptor<'a> {
+    fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
         use std::mem;
-        wgpu::VertexBufferDescriptor {
-            stride: mem::size_of::<ModelVertex>() as wgpu::BufferAddress,
+        wgpu::VertexBufferLayout {
+            array_stride: mem::size_of::<ModelVertex>() as wgpu::BufferAddress,
             step_mode: wgpu::InputStepMode::Vertex,
             attributes: &[
-                wgpu::VertexAttributeDescriptor {
+                wgpu::VertexAttribute {
                     offset: 0,
                     shader_location: 0,
                     format: wgpu::VertexFormat::Float3,
                 },
-                wgpu::VertexAttributeDescriptor {
+                wgpu::VertexAttribute {
                     offset: mem::size_of::<[f32; 3]>() as wgpu::BufferAddress,
                     shader_location: 1,
                     // format: wgpu::VertexFormat::Float3,
                     format: wgpu::VertexFormat::Float2,
                 },
-                wgpu::VertexAttributeDescriptor {
+                wgpu::VertexAttribute {
                     // offset: mem::size_of::<[f32; 6]>() as wgpu::BufferAddress,
                     offset: mem::size_of::<[f32; 5]>() as wgpu::BufferAddress,
                     shader_location: 2,
                     format: wgpu::VertexFormat::Float3,
                 },
                 // Tangent and bitangent
-                wgpu::VertexAttributeDescriptor {
+                wgpu::VertexAttribute {
                     // offset: mem::size_of::<[f32; 9]>() as wgpu::BufferAddress,
                     offset: mem::size_of::<[f32; 8]>() as wgpu::BufferAddress,
                     shader_location: 3,
                     format: wgpu::VertexFormat::Float3,
                 },
-                wgpu::VertexAttributeDescriptor {
+                wgpu::VertexAttribute {
                     // offset: mem::size_of::<[f32; 12]>() as wgpu::BufferAddress,
                     offset: mem::size_of::<[f32; 11]>() as wgpu::BufferAddress,
                     shader_location: 4,
@@ -137,26 +137,31 @@ impl pipeline::Bindable for BitangentComputeBinding {
     fn layout_entries() -> Vec<wgpu::BindGroupLayoutEntry> {
         vec![
             // Src Vertices
+            // We use these vertices to compute the tangent and bitangent
             wgpu::BindGroupLayoutEntry {
                 binding: 0,
                 visibility: wgpu::ShaderStage::COMPUTE,
-                ty: wgpu::BindingType::StorageBuffer {
-                    dynamic: false,
+                ty: wgpu::BindingType::Buffer {
+                    ty: wgpu::BufferBindingType::Storage {
+                        read_only: true,
+                    },
+                    has_dynamic_offset: false,
                     min_binding_size: None,
-                    // We use these vertices to compute the tangent and bitangent
-                    readonly: true,
                 },
                 count: None,
             },
             // Dst Vertices
+            // We'll store the computed tangent and bitangent here
             wgpu::BindGroupLayoutEntry {
                 binding: 1,
                 visibility: wgpu::ShaderStage::COMPUTE,
-                ty: wgpu::BindingType::StorageBuffer {
-                    dynamic: false,
+                ty: wgpu::BindingType::Buffer {
+                    ty: wgpu::BufferBindingType::Storage {
+                        // We will change the values in this buffer
+                        read_only: false,
+                    },
+                    has_dynamic_offset: false,
                     min_binding_size: None,
-                    // We'll store the computed tangent and bitangent here
-                    readonly: false,
                 },
                 count: None,
             },
@@ -164,11 +169,13 @@ impl pipeline::Bindable for BitangentComputeBinding {
             wgpu::BindGroupLayoutEntry {
                 binding: 2,
                 visibility: wgpu::ShaderStage::COMPUTE,
-                ty: wgpu::BindingType::StorageBuffer {
-                    dynamic: false,
+                ty: wgpu::BindingType::Buffer {
+                    ty: wgpu::BufferBindingType::Storage {
+                        // We won't change the indices
+                        read_only: true,
+                    },
+                    has_dynamic_offset: false,
                     min_binding_size: None,
-                    // We WILL NOT change the indices in the compute shader
-                    readonly: true,
                 },
                 count: None,
             },
@@ -176,8 +183,9 @@ impl pipeline::Bindable for BitangentComputeBinding {
             wgpu::BindGroupLayoutEntry {
                 binding: 3,
                 visibility: wgpu::ShaderStage::COMPUTE,
-                ty: wgpu::BindingType::UniformBuffer {
-                    dynamic: false,
+                ty: wgpu::BindingType::Buffer {
+                    ty: wgpu::BufferBindingType::Uniform,
+                    has_dynamic_offset: false,
                     min_binding_size: None,
                 },
                 count: None,
@@ -190,22 +198,22 @@ impl pipeline::Bindable for BitangentComputeBinding {
             // Src Vertices
             wgpu::BindGroupEntry {
                 binding: 0,
-                resource: wgpu::BindingResource::Buffer(self.src_vertex_buffer.slice(..)),
+                resource: self.src_vertex_buffer.as_entire_binding(),
             },
             // Dst Vertices
             wgpu::BindGroupEntry {
                 binding: 1,
-                resource: wgpu::BindingResource::Buffer(self.dst_vertex_buffer.slice(..)),
+                resource: self.dst_vertex_buffer.as_entire_binding(),
             },
             // Indices
             wgpu::BindGroupEntry {
                 binding: 2,
-                resource: wgpu::BindingResource::Buffer(self.index_buffer.slice(..)),
+                resource: self.index_buffer.as_entire_binding(),
             },
             // ComputeInfo
             wgpu::BindGroupEntry {
                 binding: 3,
-                resource: wgpu::BindingResource::Buffer(self.info_buffer.slice(..)),
+                resource: self.info_buffer.as_entire_binding(),
             },
         ]
     }
@@ -354,7 +362,9 @@ impl ModelLoader {
                     label: Some("Tangent and Bitangent Calc"),
                 });
                 {
-                    let mut pass = encoder.begin_compute_pass();
+                    let mut pass = encoder.begin_compute_pass(&wgpu::ComputePassDescriptor {
+                        label: Some("Compute Pass"),
+                    });
                     pass.set_pipeline(&self.pipeline);
                     pass.set_bind_group(0, &calc_bind_group, &[]);
                     pass.dispatch(binding.compute_info.num_vertices as u32, 1, 1);
@@ -442,7 +452,7 @@ where
         light: &'b wgpu::BindGroup,
     ) {
         self.set_vertex_buffer(0, mesh.vertex_buffer.slice(..));
-        self.set_index_buffer(mesh.index_buffer.slice(..));
+        self.set_index_buffer(mesh.index_buffer.slice(..), wgpu::IndexFormat::Uint32);
         self.set_bind_group(0, &material.bind_group, &[]);
         self.set_bind_group(1, &uniforms, &[]);
         self.set_bind_group(2, &light, &[]);
@@ -540,7 +550,7 @@ where
         light: &'b wgpu::BindGroup,
     ) {
         self.set_vertex_buffer(0, mesh.vertex_buffer.slice(..));
-        self.set_index_buffer(mesh.index_buffer.slice(..));
+        self.set_index_buffer(mesh.index_buffer.slice(..), wgpu::IndexFormat::Uint32);
         self.set_bind_group(0, uniforms, &[]);
         self.set_bind_group(1, light, &[]);
         self.draw_indexed(0..mesh.num_elements, 0, instances);

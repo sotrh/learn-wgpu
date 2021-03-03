@@ -42,9 +42,9 @@ impl ShaderData {
 fn main() -> Result<()> {
     // Collect all shaders recursively within /src/
     let mut shader_paths = [
-        glob("./src/**/*.vert")?,
-        glob("./src/**/*.frag")?,
-        glob("./src/**/*.comp")?,
+        glob("./res/**/*.vert")?,
+        glob("./res/**/*.frag")?,
+        glob("./res/**/*.comp")?,
     ];
 
     // This could be parallelized
@@ -78,19 +78,6 @@ fn main() -> Result<()> {
             None,
         )?;
         write(shader.spv_path, compiled.as_binary_u8())?;
-    }
-
-    // This tells cargo to rerun this script if something in /res/ changes.
-    println!("cargo:rerun-if-changed=res/*");
-
-    let out_dir = env::var("OUT_DIR")?;
-    let mut copy_options = CopyOptions::new();
-    copy_options.overwrite = true;
-    let mut paths_to_copy = Vec::new();
-    paths_to_copy.push("res/");
-    match copy_items(&paths_to_copy, out_dir, &copy_options) {
-        Ok(_) => {}
-        Err(e) => eprintln!("{}", e),
     }
 
     Ok(())

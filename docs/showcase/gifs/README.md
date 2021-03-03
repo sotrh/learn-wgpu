@@ -61,7 +61,7 @@ let rt_desc = wgpu::TextureDescriptor {
     dimension: wgpu::TextureDimension::D2,
     format: wgpu::TextureFormat::Rgba8UnormSrgb,
     usage: wgpu::TextureUsage::COPY_SRC
-        | wgpu::TextureUsage::OUTPUT_ATTACHMENT,
+        | wgpu::TextureUsage::RENDER_ATTACHMENT,
     label: None,
 };
 let render_target = framework::Texture::from_descriptor(&device, rt_desc);
@@ -98,6 +98,7 @@ for c in &colors {
     });
 
     let mut rpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+        label: Some("GIF Pass"),
         color_attachments: &[
             wgpu::RenderPassColorAttachmentDescriptor {
                 attachment: &render_target.view,

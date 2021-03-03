@@ -141,8 +141,9 @@ let uniform_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroup
         wgpu::BindGroupLayoutEntry {
             binding: 0,
             visibility: wgpu::ShaderStage::VERTEX,
-            ty: wgpu::BindingType::UniformBuffer {
-                dynamic: false,
+            ty: wgpu::BindingType::Buffer {
+                ty: wgpu::BufferBindingType::Uniform,
+                has_dynamic_offset: false,
                 min_binding_size: None,
             },
             count: None,
@@ -163,7 +164,7 @@ let uniform_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
     entries: &[
         wgpu::BindGroupEntry {
             binding: 0,
-            resource: wgpu::BindingResource::Buffer(uniform_buffer.slice(..))
+            resource: uniform_buffer.as_entire_binding(),
         }
     ],
     label: Some("uniform_bind_group"),
@@ -216,7 +217,8 @@ render_pass.set_bind_group(0, &self.diffuse_bind_group, &[]);
 // NEW!
 render_pass.set_bind_group(1, &self.uniform_bind_group, &[]);
 render_pass.set_vertex_buffer(0, &self.vertex_buffer.slice(..));
-render_pass.set_index_buffer(&self.index_buffer.slice(..));
+render_pass.set_index_buffer(self.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
+
 render_pass.draw_indexed(0..self.num_indices, 0, 0..1);
 ```
 

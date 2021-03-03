@@ -8,9 +8,9 @@ edition = "2018"
 
 [dependencies]
 anyhow = "1.0"
-wgpu = "0.6"
+wgpu = "0.7"
 futures = "0.3"
-imgui = "0.6"
-imgui-wgpu = "0.12"
-imgui-winit-support = "0.6"
+imgui = "0.7"
+imgui-wgpu = "0.14"
+imgui-winit-support = "0.7"
 framework = { path = "../framework" }

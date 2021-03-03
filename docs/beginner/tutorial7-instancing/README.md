@@ -128,20 +128,20 @@ let instance_buffer = device.create_buffer_init(
 );
 ```
 
-We're going to need to create a new `VertexBufferDescriptor` for `InstanceRaw`.
+We're going to need to create a new `VertexBufferLayout` for `InstanceRaw`.
 
 ```rust
 impl InstanceRaw {
-    fn desc<'a>() -> wgpu::VertexBufferDescriptor<'a> {
+    fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
         use std::mem;
-        wgpu::VertexBufferDescriptor {
-            stride: mem::size_of::<InstanceRaw>() as wgpu::BufferAddress,
+        wgpu::VertexBufferLayout {
+            array_stride: mem::size_of::<InstanceRaw>() as wgpu::BufferAddress,
             // We need to switch from using a step mode of Vertex to Instance
             // This means that our shaders will only change to use the next
             // instance when the shader starts processing a new instance
             step_mode: wgpu::InputStepMode::Instance,
             attributes: &[
-                wgpu::VertexAttributeDescriptor {
+                wgpu::VertexAttribute {
                     offset: 0,
                     // While our vertex shader only uses locations 0, and 1 now, in later tutorials we'll
                     // be using 2, 3, and 4, for Vertex. We'll start at slot 5 not conflict with them later
@@ -149,18 +149,19 @@ impl InstanceRaw {
                     format: wgpu::VertexFormat::Float4,
                 },
                 // A mat4 takes up 4 vertex slots as it is technically 4 vec4s. We need to define a slot
-                // for each vec4. We don't have to do this in code though.
-                wgpu::VertexAttributeDescriptor {
+                // for each vec4. We'll have to reassemble the mat4 in
+                // the shader.
+                wgpu::VertexAttribute {
                     offset: mem::size_of::<[f32; 4]>() as wgpu::BufferAddress,
                     shader_location: 6,
                     format: wgpu::VertexFormat::Float4,
                 },
-                wgpu::VertexAttributeDescriptor {
+                wgpu::VertexAttribute {
                     offset: mem::size_of::<[f32; 8]>() as wgpu::BufferAddress,
                     shader_location: 7,
                     format: wgpu::VertexFormat::Float4,
                 },
-                wgpu::VertexAttributeDescriptor {
+                wgpu::VertexAttribute {
                     offset: mem::size_of::<[f32; 12]>() as wgpu::BufferAddress,
                     shader_location: 8,
                     format: wgpu::VertexFormat::Float4,
@@ -176,10 +177,10 @@ We need to add this descriptor to the render pipeline so that we can use it when
 ```rust
 let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
     // ...
-    vertex_state: wgpu::VertexStateDescriptor {
-        index_format: wgpu::IndexFormat::Uint16,
+    vertex: wgpu::VertexState {
+        // ...
         // UPDATED!
-        vertex_buffers: &[Vertex::desc(), InstanceRaw::desc()],
+        buffers: &[Vertex::desc(), InstanceRaw::desc()],
     },
     // ...
 });
@@ -205,7 +206,8 @@ render_pass.set_bind_group(1, &self.uniform_bind_group, &[]);
 render_pass.set_vertex_buffer(0, &self.vertex_buffer.slice(..));
 // NEW!
 render_pass.set_vertex_buffer(1, self.instance_buffer.slice(..));
-render_pass.set_index_buffer(&self.index_buffer.slice(..));
+render_pass.set_index_buffer(self.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
+
 // UPDATED!
 render_pass.draw_indexed(0..self.num_indices, 0, 0..self.instances.len() as _);
 ```
@@ -216,16 +218,34 @@ Make sure if you add new instances to the `Vec`, that you recreate the `instance
 
 </div>
 
-We need to reference our new matrix in `shader.vert` so that we can use it for our instances. Add the following to the top of `shader.vert`.
+We need to reference the parts of our new matrix in `shader.vert` so that we can use it for our instances. Add the following to the top of `shader.vert`.
 
 ```glsl
-layout(location=5) in mat4 model_matrix;
+layout(location=5) in vec4 model_matrix_0;
+layout(location=6) in vec4 model_matrix_1;
+layout(location=7) in vec4 model_matrix_2;
+layout(location=8) in vec4 model_matrix_3;
+```
+
+We need to reassemble the matrix before we can use it.
+
+```glsl
+void main() {
+    mat4 model_matrix = mat4(
+        model_matrix_0,
+        model_matrix_1,
+        model_matrix_2,
+        model_matrix_3
+    );
+    // Continued...
+}
 ```
 
 We'll apply the `model_matrix` before we apply `u_view_proj`. We do this because the `u_view_proj` changes the coordinate system from `world space` to `camera space`. Our `model_matrix` is a `world space` transformation, so we don't want to be in `camera space` when using it.
 
 ```glsl
 void main() {
+    // ...
     v_tex_coords = a_tex_coords;
     // UPDATED!
     gl_Position = u_view_proj * model_matrix * vec4(a_position, 1.0);

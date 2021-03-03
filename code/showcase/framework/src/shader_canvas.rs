@@ -79,6 +79,7 @@ impl ShaderCanvas {
         );
 
         let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+            label: Some("Shader Canvas Render Pass"),
             color_attachments: &[wgpu::RenderPassColorAttachmentDescriptor {
                 attachment: frame,
                 resolve_target: None,
@@ -100,8 +101,8 @@ pub struct ShaderCanvasBuilder<'a> {
     clear_color: [f32; 4],
     label: Option<&'a str>,
     display_format: Option<wgpu::TextureFormat>,
-    frag_code: Option<wgpu::ShaderModuleSource<'a>>,
-    vert_code: Option<wgpu::ShaderModuleSource<'a>>,
+    frag_code: Option<wgpu::ShaderModuleDescriptor<'a>>,
+    vert_code: Option<wgpu::ShaderModuleDescriptor<'a>>,
 }
 
 impl<'a> ShaderCanvasBuilder<'a> {
@@ -131,12 +132,12 @@ impl<'a> ShaderCanvasBuilder<'a> {
         self.canvas_size(sc_desc.width as f32, sc_desc.height as f32)
     }
 
-    pub fn fragment_shader(&mut self, code: wgpu::ShaderModuleSource<'a>) -> &mut Self {
+    pub fn fragment_shader(&mut self, code: wgpu::ShaderModuleDescriptor<'a>) -> &mut Self {
         self.frag_code = Some(code);
         self
     }
 
-    pub fn vertex_shader(&mut self, code: wgpu::ShaderModuleSource<'a>) -> &mut Self {
+    pub fn vertex_shader(&mut self, code: wgpu::ShaderModuleDescriptor<'a>) -> &mut Self {
         self.vert_code = Some(code);
         self
     }
@@ -176,8 +177,9 @@ impl<'a> ShaderCanvasBuilder<'a> {
                         binding: 0,
                         visibility: wgpu::ShaderStage::FRAGMENT,
                         count: None,
-                        ty: wgpu::BindingType::UniformBuffer {
-                            dynamic: false,
+                        ty: wgpu::BindingType::Buffer {
+                            ty: wgpu::BufferBindingType::Uniform,
+                            has_dynamic_offset: false,
                             min_binding_size: None,
                         },
                     },
@@ -188,12 +190,12 @@ impl<'a> ShaderCanvasBuilder<'a> {
             label: self.label,
             entries: &[wgpu::BindGroupEntry {
                 binding: 0,
-                resource: wgpu::BindingResource::Buffer(simulation_data_buffer.slice(..)),
+                resource: simulation_data_buffer.as_entire_binding(),
             }],
         });
 
-        let vert_module = device.create_shader_module(vert_code);
-        let frag_module = device.create_shader_module(frag_code);
+        let vert_module = device.create_shader_module(&vert_code);
+        let frag_module = device.create_shader_module(&frag_code);
 
         let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             label: self.label,
@@ -203,29 +205,34 @@ impl<'a> ShaderCanvasBuilder<'a> {
         let pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
             label: self.label,
             layout: Some(&pipeline_layout),
-            vertex_stage: wgpu::ProgrammableStageDescriptor {
+            vertex: wgpu::VertexState {
                 entry_point: "main",
                 module: &vert_module,
+                buffers: &[],
             },
-            fragment_stage: Some(wgpu::ProgrammableStageDescriptor {
+            fragment: Some(wgpu::FragmentState {
                 entry_point: "main",
                 module: &frag_module,
+                targets: &[wgpu::ColorTargetState {
+                    format: display_format,
+                    alpha_blend: wgpu::BlendState::REPLACE,
+                    color_blend: wgpu::BlendState::REPLACE,
+                    write_mask: wgpu::ColorWrite::ALL,
+                }],
             }),
-            color_states: &[wgpu::ColorStateDescriptor {
-                format: display_format,
-                alpha_blend: wgpu::BlendDescriptor::REPLACE,
-                color_blend: wgpu::BlendDescriptor::REPLACE,
-                write_mask: wgpu::ColorWrite::ALL,
-            }],
-            rasterization_state: None,
-            primitive_topology: wgpu::PrimitiveTopology::TriangleList,
-            depth_stencil_state: None,
-            sample_count: 1,
-            sample_mask: !0,
-            alpha_to_coverage_enabled: false,
-            vertex_state: wgpu::VertexStateDescriptor {
-                index_format: wgpu::IndexFormat::Uint16,
-                vertex_buffers: &[],
+            primitive: wgpu::PrimitiveState {
+                topology: wgpu::PrimitiveTopology::TriangleList,
+                strip_index_format: None,
+                front_face: wgpu::FrontFace::Ccw,
+                cull_mode: wgpu::CullMode::Back,
+                // Setting this to anything other than Fill requires Features::NON_FILL_POLYGON_MODE
+                polygon_mode: wgpu::PolygonMode::Fill,
+            },
+            depth_stencil: None,
+            multisample: wgpu::MultisampleState {
+                count: 1,
+                mask: !0,
+                alpha_to_coverage_enabled: false,
             },
         });
 

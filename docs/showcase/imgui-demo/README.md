@@ -3,9 +3,9 @@
 This is not an in depth guid on how to use Imgui. But here are some of the basics you'll need to get started. We'll need to import [imgui-rs](https://docs.rs/imgui), [imgui-wgpu](https://docs.rs/imgui-wgpu), and [imgui-winit-support](https://docs.rs/imgui-winit-support).
 
 ```toml
-imgui = "0.6"
-imgui-wgpu = "0.12"
-imgui-winit-support = "0.6"
+imgui = "0.7"
+imgui-wgpu = "0.14"
+imgui-winit-support = "0.7"
 ```
 
 <div class="note">
@@ -110,6 +110,7 @@ if self.last_cursor != ui.mouse_cursor() {
 }
 
 let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+    label: Some("UI RenderPass"),
     color_attachments: &[wgpu::RenderPassColorAttachmentDescriptor {
         attachment: &output.view,
         resolve_target: None,

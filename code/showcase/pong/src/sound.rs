@@ -4,22 +4,25 @@ const BOUNCE_BYTES: &[u8] = include_bytes!("../res/sounds/4362__noisecollector__
 
 pub struct SoundSystem {
     #[allow(dead_code)]
-    device: rodio::Device,
+    stream: rodio::OutputStream,
+    #[allow(dead_code)]
+    stream_handle: rodio::OutputStreamHandle,
     sink: rodio::Sink,
     spatial_sink: rodio::SpatialSink,
 }
 
 impl SoundSystem {
     pub fn new() -> Self {
-        let device = rodio::default_output_device().unwrap();
-        let sink = rodio::Sink::new(&device);
+        let (stream, stream_handle) = rodio::OutputStream::try_default().unwrap();
+        let sink = rodio::Sink::try_new(&stream_handle).unwrap();
         sink.set_volume(0.5);
 
         let spatial_sink =
-            rodio::SpatialSink::new(&device, [0.0, 0.0, 0.0], [-1.0, 0.0, 0.0], [1.0, 0.0, 0.0]);
+            rodio::SpatialSink::try_new(&stream_handle, [0.0, 0.0, 0.0], [-1.0, 0.0, 0.0], [1.0, 0.0, 0.0]).unwrap();
 
         Self {
-            device,
+            stream,
+            stream_handle,
             sink,
             spatial_sink,
         }
