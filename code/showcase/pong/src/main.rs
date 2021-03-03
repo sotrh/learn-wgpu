@@ -15,7 +15,7 @@ use winit::window::{Fullscreen, WindowBuilder};
 
 fn main() {
     let event_loop = EventLoop::new();
-    let monitor = event_loop.primary_monitor();
+    let monitor = event_loop.primary_monitor().unwrap();
     let video_mode = monitor.video_modes().next().unwrap();
     let window = WindowBuilder::new()
         .with_visible(false)

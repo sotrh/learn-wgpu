@@ -142,6 +142,7 @@ impl Render {
         match self.swap_chain.get_current_frame() {
             Ok(frame) => {
                 let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                    label: Some("Main Render Pass"),
                     color_attachments: &[wgpu::RenderPassColorAttachmentDescriptor {
                         attachment: &frame.output.view,
                         resolve_target: None,
@@ -153,7 +154,7 @@ impl Render {
                 if num_indices != 0 {
                     render_pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
                     render_pass
-                        .set_index_buffer(self.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
+                        .set_index_buffer(self.index_buffer.slice(..), wgpu::IndexFormat::Uint32);
                     render_pass.set_pipeline(&self.pipeline);
                     render_pass.draw_indexed(0..num_indices, 0, 0..1);
                 }
@@ -245,12 +246,18 @@ fn create_render_pipeline(
         vertex: wgpu::VertexState {
             module: &vs_module,
             entry_point: "main",
+            buffers: &vertex_layouts,
         },
         fragment: Some(wgpu::FragmentState {
             module: &fs_module,
             entry_point: "main",
+            targets: &[wgpu::ColorTargetState {
+                format: color_format,
+                color_blend: wgpu::BlendState::REPLACE,
+                alpha_blend: wgpu::BlendState::REPLACE,
+                write_mask: wgpu::ColorWrite::ALL,
+            }],
         }),
-        rasterization_state: None,
         primitive: wgpu::PrimitiveState {
             topology: wgpu::PrimitiveTopology::TriangleList,
             strip_index_format: None,
@@ -259,19 +266,11 @@ fn create_render_pipeline(
             // Setting this to anything other than Fill requires Features::NON_FILL_POLYGON_MODE
             polygon_mode: wgpu::PolygonMode::Fill,
         },
-        color_states: &[wgpu::ColorStateDescriptor {
-            format: color_format,
-            color_blend: wgpu::BlendDescriptor::REPLACE,
-            alpha_blend: wgpu::BlendDescriptor::REPLACE,
-            write_mask: wgpu::ColorWrite::ALL,
-        }],
         depth_stencil: None,
-        sample_count: 1,
-        sample_mask: !0,
-        alpha_to_coverage_enabled: false,
-        vertex_state: wgpu::VertexStateDescriptor {
-            index_format: wgpu::IndexFormat::Uint32,
-            vertex_buffers: vertex_layouts,
+        multisample: wgpu::MultisampleState {
+            count: 1,
+            mask: !0,
+            alpha_to_coverage_enabled: false,
         },
     })
 }
