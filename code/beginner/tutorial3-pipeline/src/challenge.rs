@@ -109,18 +109,17 @@ impl State {
                 vertex: wgpu::VertexState {
                     module: &vs_module,
                     entry_point: "main",
+                    buffers: &[],
                 },
                 fragment: Some(wgpu::FragmentState {
                     module: &fs_module,
                     entry_point: "main",
-                }),
-                rasterization_state: Some(wgpu::RasterizationStateDescriptor {
-                    front_face: wgpu::FrontFace::Ccw,
-                    cull_mode: wgpu::CullMode::Back,
-                    depth_bias: 0,
-                    depth_bias_slope_scale: 0.0,
-                    depth_bias_clamp: 0.0,
-                    clamp_depth: false,
+                    targets: &[wgpu::ColorTargetState {
+                    format: sc_desc.format,
+                    color_blend: wgpu::BlendState::REPLACE,
+                    alpha_blend: wgpu::BlendState::REPLACE,
+                    write_mask: wgpu::ColorWrite::ALL,
+                    }]
                 }),
                 primitive: wgpu::PrimitiveState {
                     topology: wgpu::PrimitiveTopology::TriangleList,
@@ -130,20 +129,12 @@ impl State {
                     // Setting this to anything other than Fill requires Features::NON_FILL_POLYGON_MODE
                     polygon_mode: wgpu::PolygonMode::Fill,
                 },
-                color_states: &[wgpu::ColorStateDescriptor {
-                    format: sc_desc.format,
-                    color_blend: wgpu::BlendDescriptor::REPLACE,
-                    alpha_blend: wgpu::BlendDescriptor::REPLACE,
-                    write_mask: wgpu::ColorWrite::ALL,
-                }],
                 depth_stencil: None,
-                vertex_state: wgpu::VertexStateDescriptor {
-                    index_format: wgpu::IndexFormat::Uint16,
-                    vertex_buffers: &[],
+                multisample: wgpu::MultisampleState {
+                    count: 1,
+                    mask: !0,
+                    alpha_to_coverage_enabled: false,
                 },
-                sample_count: 1,
-                sample_mask: !0,
-                alpha_to_coverage_enabled: false,
             });
 
         let use_color = true;
