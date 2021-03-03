@@ -8,7 +8,4 @@ members = [
 
     # showcase
     "code/showcase/*",
-
-    # research
-    "code/research/*",
 ]
