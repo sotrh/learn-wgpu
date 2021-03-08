@@ -70,7 +70,7 @@ We need the `adapter` to create the device and queue.
             &wgpu::DeviceDescriptor {
                 features: wgpu::Features::empty(),
                 limits: wgpu::Limits::default(),
-                shader_validation: true,
+                label: None,
             },
             None, // Trace path
         ).await.unwrap();
@@ -100,7 +100,7 @@ The `limits` field describes the limit of certain types of resource we can creat
         };
         let swap_chain = device.create_swap_chain(&surface, &sc_desc);
 ```
-Here we are defining and creating the `swap_chain`. The `usage` field describes how the `swap_chain`'s underlying textures will be used. `OUTPUT_ATTACHMENT` specifies that the textures will be used to write to the screen (we'll talk about more `TextureUsage`s later).
+Here we are defining and creating the `swap_chain`. The `usage` field describes how the `swap_chain`'s underlying textures will be used. `RENDER_ATTACHMENT` specifies that the textures will be used to write to the screen (we'll talk about more `TextureUsage`s later).
 
 The `format` defines how the `swap_chain`s textures will be stored on the gpu. Different displays prefer different formats. We use `adapter.get_swap_chain_preferred_format()` to figure out the best format to use.
 
