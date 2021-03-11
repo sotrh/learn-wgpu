@@ -1,5 +1,9 @@
 # News
 
+## 0.7
+
+There were a lot of changes particularly to the `RenderPipelineDescriptor`. Most other things have not changed. You can check out the [0.9 PR](https://github.com/sotrh/learn-wgpu/pull/140) for the full details.
+
 ## November 2020 Cleanup, Content Freeze, and Patreon
 
 School is starting to ramp up, so I haven't had as much time to work on the site as I would like to. Because of that there were some issues piling up. I decided to tackle a bunch of them in one go. Here's a snapshot of what I did:
