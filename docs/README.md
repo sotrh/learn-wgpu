@@ -22,6 +22,9 @@ I'm using this project as a way to learn wgpu myself, so I might miss some impor
 
 *In no particular order*
 
+* Ben Anderson
+* Ian Gowen
+* Eliot Bolduc
 * Paul E Hansen
 * Lennart
 * Gunstein Vatnar
