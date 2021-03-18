@@ -375,7 +375,7 @@ struct State {
     vertex_buffer: wgpu::Buffer,
     // NEW!
     index_buffer: wgpu::Buffer, 
-    num_indicies: u32,
+    num_indices: u32,
 }
 ```
 
