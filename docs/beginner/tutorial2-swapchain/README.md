@@ -4,6 +4,8 @@
 For convenience we're going to pack all the fields into a struct, and create some methods on that.
 
 ```rust
+use winit::Window;
+
 // main.rs
 struct State {
     surface: wgpu::Surface,
