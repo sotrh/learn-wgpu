@@ -203,7 +203,7 @@ The last change we need to make is in the `render()` method. We need to bind our
 render_pass.set_pipeline(&self.render_pipeline);
 render_pass.set_bind_group(0, &self.diffuse_bind_group, &[]);
 render_pass.set_bind_group(1, &self.uniform_bind_group, &[]);
-render_pass.set_vertex_buffer(0, &self.vertex_buffer.slice(..));
+render_pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
 // NEW!
 render_pass.set_vertex_buffer(1, self.instance_buffer.slice(..));
 render_pass.set_index_buffer(self.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
