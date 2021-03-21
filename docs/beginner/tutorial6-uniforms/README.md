@@ -241,7 +241,7 @@ uniform Uniforms {
 };
 
 void main() {
-    v_tex_coords = a_tex_coords;    // UPDATED!
+    v_tex_coords = a_tex_coords;
     gl_Position = u_view_proj * vec4(a_position, 1.0); // 3.
 }
 ```
@@ -355,7 +355,6 @@ impl CameraController {
         if self.is_left_pressed {
             camera.eye = camera.target - (forward - right * self.speed).normalize() * forward_mag;
         }
-    }
     }
 }
 ```
