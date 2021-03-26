@@ -34,13 +34,26 @@ Let's define our `VertexBufferLayout`.
 ```rust
 impl Vertex for ModelVertex {
     fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
+        use std::mem;
         wgpu::VertexBufferLayout {
-            array_stride: std::mem::size_of::<ModelVertex>() as wgpu::BufferAddress,
+            array_stride: mem::size_of::<ModelVertex>() as wgpu::BufferAddress,
             step_mode: wgpu::InputStepMode::Vertex,
-            attributes: &wgpu::vertex_attr_array![
-                0 => Float3,
-                1 => Float2,
-                2 => Float3
+            attributes: &[
+                wgpu::VertexAttribute {
+                    offset: 0,
+                    shader_location: 0,
+                    format: wgpu::VertexFormat::Float3,
+                },
+                wgpu::VertexAttribute {
+                    offset: mem::size_of::<[f32; 3]>() as wgpu::BufferAddress,
+                    shader_location: 1,
+                    format: wgpu::VertexFormat::Float2,
+                },
+                wgpu::VertexAttribute {
+                    offset: mem::size_of::<[f32; 5]>() as wgpu::BufferAddress,
+                    shader_location: 2,
+                    format: wgpu::VertexFormat::Float3,
+                },
             ],
         }
     }
@@ -52,7 +65,7 @@ This is basically the same as the original `VertexBufferLayout`, but we added a 
 ```rust
 let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
     // ...
-    vertex_state: wgpu::VertexState {
+    vertex: wgpu::VertexState {
         // ...
         buffers: &[model::ModelVertex::desc(), InstanceRaw::desc()],
     },
@@ -145,10 +158,10 @@ While we're at it let's import `texture.rs` in `model.rs`.
 use crate::texture;
 ```
 
-We also need to make a subtle change on `from_image()` method in `texture.rs`. PNGs work fine with `as_rgba8()`, as they have an alpha channel. But, JPEGs don't have an alpha channel, and the code would panic if we try to call `as_rgba8()` on the JPEG texture image we are going to use. Instead, we can use `to_rgba()` to handle such an image.
+We also need to make a subtle change on `from_image()` method in `texture.rs`. PNGs work fine with `as_rgba8()`, as they have an alpha channel. But, JPEGs don't have an alpha channel, and the code would panic if we try to call `as_rgba8()` on the JPEG texture image we are going to use. Instead, we can use `to_rgba8()` to handle such an image.
 
 ```rust
-let rgba = img.to_rgba(); 
+let rgba = img.to_rgba8(); 
 ```
 
 `Mesh` holds a vertex buffer, an index buffer, and the number of indices in the mesh. We're using an `usize` for the material. This `usize` will be used to index the `materials` list when it comes time to draw.
@@ -284,6 +297,7 @@ We could have put this methods in `impl Model`, but I felt it made more sense to
 
 ```rust
 // main.rs
+render_pass.set_vertex_buffer(1, self.instance_buffer.slice(..));
 render_pass.set_pipeline(&self.render_pipeline);
 render_pass.set_bind_group(0, &self.diffuse_bind_group, &[]);
 render_pass.set_bind_group(1, &self.uniform_bind_group, &[]);
@@ -401,6 +415,8 @@ where
 We need to change the render code to reflect this.
 
 ```rust
+render_pass.set_vertex_buffer(1, self.instance_buffer.slice(..));
+
 render_pass.set_pipeline(&self.render_pipeline);
 
 let mesh = &self.obj_model.meshes[0];
@@ -456,6 +472,7 @@ where
 The code in `main.rs` will change accordingly.
 
 ```rust
+render_pass.set_vertex_buffer(1, self.instance_buffer.slice(..));
 render_pass.set_pipeline(&self.render_pipeline);
 render_pass.draw_model_instanced(&self.obj_model, 0..self.instances.len() as u32, &self.uniform_bind_group);
 ```

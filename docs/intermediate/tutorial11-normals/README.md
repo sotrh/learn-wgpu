@@ -1,6 +1,6 @@
 # Normal Mapping
 
-With just lighting, our scene is already looking pretty good. Still, our models are still overly smooth. This is understandable because we are using a very simple model. If we were using a texture that was supposed to be smooth, this wouldn't be a problem, but our brick texture is supposed to be rougher. We could solve this by adding more geometry, but that would slow our scene down, and it would hard to know where to add new polygons. This is were normal mapping comes in.
+With just lighting, our scene is already looking pretty good. Still, our models are still overly smooth. This is understandable because we are using a very simple model. If we were using a texture that was supposed to be smooth, this wouldn't be a problem, but our brick texture is supposed to be rougher. We could solve this by adding more geometry, but that would slow our scene down, and it be would hard to know where to add new polygons. This is were normal mapping comes in.
 
 Remember in [the instancing tutorial](/beginner/tutorial7-instancing/#a-different-way-textures), we experimented with storing instance data in a texture? A normal map is doing just that with normal data! We'll use the normals in the normal map in our lighting calculation in addition to the vertex normal.
 
@@ -52,7 +52,7 @@ let texture_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroup
 });
 ```
 
-We'll need to actually the normal map itself. We'll do this in the loop we create the materials in.
+We'll need to actually load the normal map. We'll do this in the loop we create the materials in.
 
 ```rust
     let diffuse_path = mat.diffuse_texture;
@@ -63,7 +63,7 @@ We'll need to actually the normal map itself. We'll do this in the loop we creat
 
 ```
 
-* Note: I duplicated and moved teh `command_buffers.push(cmds);` line. This means we can reuse the `cmds` variable for both the normal map and diffuse/color map.
+* Note: I duplicated and moved the `command_buffers.push(cmds);` line. This means we can reuse the `cmds` variable for both the normal map and diffuse/color map.
 
 Our `Material`'s `bind_group` will have to change as well. 
 
@@ -208,7 +208,7 @@ impl Model {
         queue: &wgpu::Queue,
         layout: &wgpu::BindGroupLayout,
         path: P,
-    ) -> Result<(Self, Vec<wgpu::CommandBuffer>), failure::Error> {
+    ) -> Result<Self> {
         // ...
         for m in obj_models {
             let mut vertices = Vec::new();
@@ -281,7 +281,7 @@ impl Model {
             // ...
         }
 
-        Ok((Self { meshes, materials }, command_buffers))
+        Ok(Self { meshes, materials })
     }
 }
 ```
@@ -436,7 +436,6 @@ pub fn from_image(
     let texture = device.create_texture(&wgpu::TextureDescriptor {
         label,
         size,
-        array_layer_count: 1,
         mip_level_count: 1,
         sample_count: 1,
         dimension: wgpu::TextureDimension::D2,

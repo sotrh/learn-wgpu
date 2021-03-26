@@ -36,9 +36,9 @@ We're going to create another buffer to store our light in.
 
 ```rust
 let light = Light {
-    position: (2.0, 2.0, 2.0).into(),
+    position: [2.0, 2.0, 2.0],
     _padding: 0,
-    color: (1.0, 1.0, 1.0).into(),
+    color: [1.0, 1.0, 1.0],
 };
 
  // We'll want to update our lights position, so we use COPY_DST
@@ -57,11 +57,11 @@ Don't forget to add the `light` and `light_buffer` to `State`. After that we nee
 let light_bind_group_layout =
     device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
         entries: &[wgpu::BindGroupLayoutEntry {
-        binding: 0,
+            binding: 0,
             visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
             ty: wgpu::BindingType::Buffer {
                 ty: wgpu::BufferBindingType::Uniform,
-                        has_dynamic_offset: false,
+                has_dynamic_offset: false,
                 min_binding_size: None,
             },
             count: None,
@@ -71,12 +71,9 @@ let light_bind_group_layout =
 
 let light_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
     layout: &light_bind_group_layout,
-    bindings: &[wgpu::Binding {
+    entries: &[wgpu::BindGroupEntry {
         binding: 0,
-        resource: wgpu::BindingResource::Buffer {
-            buffer: &light_buffer,
-            range: 0..std::mem::size_of_val(&light) as wgpu::BufferAddress,
-        },
+        resource: light_buffer.as_entire_binding(),
     }],
     label: None,
 });
@@ -429,6 +426,33 @@ where
 }
 ```
 
+Finally we want to add Light rendering to our render passes.
+
+```rust
+impl State {
+    // ...
+   fn render(&mut self) -> Result<(), wgpu::SwapChainError> {
+        // ...
+        render_pass.set_vertex_buffer(1, self.instance_buffer.slice(..));
+
+        use crate::model::DrawLight; // NEW!
+        render_pass.set_pipeline(&self.light_render_pipeline); // NEW!
+        render_pass.draw_light_model(
+            &self.obj_model,
+            &self.uniform_bind_group,
+            &self.light_bind_group,
+        ); // NEW!
+
+        render_pass.set_pipeline(&self.render_pipeline);
+        render_pass.draw_model_instanced(
+            &self.obj_model,
+            0..self.instances.len() as u32,
+            &self.uniform_bind_group,
+            &self.light_bind_group,
+        );
+}
+```
+
 With all that we'll end up with something like this.
 
 ![./light-in-scene.png](./light-in-scene.png)
@@ -470,7 +494,7 @@ With that we should get something like the this.
 
 ## Diffuse Lighting
 
-Remember the normal vectors that were included with our model? We're finally going to use them. Normals represent the direction a surface is facing. By comparing the normal of a fragment with a vector pointing to a light source, we get a value of how light/dark that fragment should be. We compare the vector be using the dot product to get the cosine of the angle between them.
+Remember the normal vectors that were included with our model? We're finally going to use them. Normals represent the direction a surface is facing. By comparing the normal of a fragment with a vector pointing to a light source, we get a value of how light/dark that fragment should be. We compare the vector using the dot product to get the cosine of the angle between them.
 
 ![./normal_diagram.png](./normal_diagram.png)
 
@@ -495,7 +519,8 @@ For now let's just pass the normal directly as is. This is wrong, but we'll fix 
 
 ```glsl
 void main() {
-    v_tex_coords = a_tex_coords;    v_normal = a_normal; // NEW!
+    v_tex_coords = a_tex_coords;
+    v_normal = a_normal; // NEW!
     vec4 model_space = model_matrix * vec4(a_position, 1.0); // NEW!
     v_position = model_space.xyz; // NEW!
     gl_Position = u_view_proj * model_space; // UPDATED!
@@ -559,7 +584,6 @@ We need to use the model matrix to transform the normals to be in the right dire
 
 ```glsl
 // shader.vert
-mat4 model_matrix = model_matrix;
 mat3 normal_matrix = mat3(transpose(inverse(model_matrix)));
 v_normal = normal_matrix * a_normal;
 ```
@@ -618,8 +642,8 @@ struct Uniforms {
 impl Uniforms {
     fn new() -> Self {
         Self {
-            view_position: Zero::zero(),
-            view_proj: cgmath::Matrix4::identity(),
+            view_position: [0.0; 4],
+            view_proj: cgmath::Matrix4::identity().into(),
         }
     }
 
@@ -639,14 +663,11 @@ Since we want to use our uniforms in the fragment shader now, we need to change 
 ```rust
 // main.rs
 let uniform_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-    bindings: &[
+    entries: &[
         wgpu::BindGroupLayoutBinding {
-            binding: 0,
+            // ...
             visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT, // Updated!
-            ty: wgpu::BindingType::Buffer {
-                ty: wgpu::BufferBindingType::Uniform,
-                        has_dynamic_offset: false,
-            },
+            // ...
         },
         // ...
     ],
@@ -657,6 +678,7 @@ let uniform_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroup
 We're going to get the direction from the fragment's position to the camera, and use that with the normal to calculate the `reflect_dir`.
 
 ```glsl
+// shader.frag
 vec3 view_dir = normalize(u_view_position - v_position);
 vec3 reflect_dir = reflect(-light_dir, normal);
 ```
@@ -687,6 +709,7 @@ If we just look at the `specular_color` on it's own we get this.
 Up to this point we've actually only implemented the Phong part of Blinn-Phong. The Phong reflection model works well, but it can break down under [certain circumstances](https://learnopengl.com/Advanced-Lighting/Advanced-Lighting). The Blinn part of Blinn-Phong comes from the realization that if you add the `view_dir`, and `light_dir` together, normalize the result and use the dot product of that and the `normal`, you get roughly the same results without the issues that using `reflect_dir` had.
 
 ```glsl
+// sahder.frag
 vec3 view_dir = normalize(u_view_position - v_position);
 vec3 half_dir = normalize(view_dir + light_dir);
 
