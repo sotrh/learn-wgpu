@@ -67,7 +67,7 @@ impl Texture {
 
 1. We need the DEPTH_FORMAT for when we create the depth stage of the `render_pipeline` and creating the depth texture itself.
 2. Our depth texture needs to be the same size as our screen if we want things to render correctly. We can use our `sc_desc` to make sure that our depth texture is the same size as our swap chain images.
-3. Since we are rendering to this texture, we need to add the `OUTPUT_ATTACHMENT` flag to it.
+3. Since we are rendering to this texture, we need to add the `RENDER_ATTACHMENT` flag to it.
 4. We technically don't *need* a sampler for a depth texture, but our `Texture` struct requires it, and we need one if we ever want to sample it.
 5. If we do decide to render our depth texture, we need to use `CompareFunction::LessEqual`. This is due to how the `samplerShadow` and `sampler2DShadow()` interacts with the `texture()` function in GLSL.
 
