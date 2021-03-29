@@ -167,7 +167,19 @@ impl Model {
                 }
             }).collect::<Vec<_>>();
             // ...
-        }
+            let index_buffer = device.create_buffer_init(
+                &wgpu::util::BufferInitDescriptor {
+                    label: Some(&format!("{:?} Index Buffer", m.name)), // UPDATED!
+                    contents: bytemuck::cast_slice(&m.mesh.indices),
+                    usage: wgpu::BufferUsage::INDEX,
+                }
+            );
+            // ...
+            // UPDATED!
+            Ok(Mesh {
+                // ...
+            })
+        }).collect::<Result<Vec<_>>>()?;
         // ...
     }
     // ...

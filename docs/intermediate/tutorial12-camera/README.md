@@ -109,7 +109,7 @@ You can tell the difference between a right-handed coordinate system and a left-
 
 # The Camera Controller
 
-As our camera is different, so we'll need a new camera controller. Add the following to `camera.rs`.
+Our camera is different, so we'll need a new camera controller. Add the following to `camera.rs`.
 
 ```rust
 #[derive(Debug)]
@@ -253,8 +253,8 @@ impl Uniforms {
 
     // UPDATED!
     fn update_view_proj(&mut self, camera: &camera::Camera, projection: &camera::Projection) {
-        self.view_position = camera.position.to_homogeneous();
-        self.view_proj = projection.calc_matrix() * camera.calc_matrix()
+        self.view_position = camera.position.to_homogeneous().into();
+        self.view_proj = (projection.calc_matrix() * camera.calc_matrix()).into();
     }
 }
 ```
@@ -289,14 +289,17 @@ impl State {
 
         // ...
 
+        uniforms.update_view_proj(&camera, &projection); // UPDATED!
+
+        // ...
+
         Self {
             // ...
             camera,
-            projection,
+            projection, // NEW!
             camera_controller,
             // ...
-            // NEW!
-            mouse_pressed: false,
+            mouse_pressed: false, // NEW!
         }
     }
 }
@@ -326,7 +329,7 @@ fn input(&mut self, event: &DeviceEvent) -> bool {
             }
         ) => self.camera_controller.process_keyboard(*key, *state),
         DeviceEvent::MouseWheel { delta, .. } => {
-            self.camera_controller.process_scroll(delta);
+            self.camera_controller.process_scroll(*delta);
             true
         }
         DeviceEvent::Button {
