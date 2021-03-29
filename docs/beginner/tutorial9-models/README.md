@@ -140,7 +140,7 @@ pub fn load<P: AsRef<Path>>(
     device: &wgpu::Device,
     queue: &wgpu::Queue,
     path: P,
-) -> Result<(Self, wgpu::CommandBuffer), failure::Error> {
+) -> Result<Self> {
     // Needed to appease the borrow checker
     let path_copy = path.as_ref().to_path_buf();
     let label = path_copy.to_str();
