@@ -425,7 +425,7 @@ For convenience sake, let's pull our texture code into its module. We'll first n
 [dependencies]
 image = "0.23"
 winit = "0.22"
-cgmath = "0.17"
+cgmath = "0.18"
 env_logger = "0.7"
 log = "0.4"
 futures = "0.3"

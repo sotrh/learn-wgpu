@@ -278,7 +278,7 @@ We'll start writing code in it in a bit. First we need to add some things to our
 image = "0.23"
 winit = "0.22"
 # shaderc = "0.7" # REMOVED!
-cgmath = "0.17"
+cgmath = "0.18"
 wgpu = "0.7"
 futures = "0.3"
 

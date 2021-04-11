@@ -8,7 +8,7 @@ edition = "2018"
 [dependencies]
 image = "0.23"
 winit = "0.22"
-cgmath = "0.17"
+cgmath = "0.18"
 wgpu = "0.7"
 env_logger = "0.7"
 log = "0.4"
