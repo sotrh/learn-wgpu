@@ -38,7 +38,7 @@ features = ["vulkan-portability"]
 - See also [gfx-portability](https://github.com/gfx-rs/portability).
 
 ## The code
-There's not much going on here yet, so I'm just going to post the code in full. Just paste this into you're `main.rs` or equivalent.
+There's not much going on here yet, so I'm just going to post the code in full. Just paste this into your `main.rs` or equivalent.
 
 ```rust
 use winit::{
@@ -74,6 +74,6 @@ fn main() {
 
 ```
 
-All this does is create a window, and keep it open until until user closes it, or presses escape. Next tutorial we'll actually start using wgpu!
+All this does is create a window, and keep it open until user closes it, or presses escape. Next tutorial we'll actually start using wgpu!
 
 <AutoGithubLink/>
