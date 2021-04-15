@@ -276,7 +276,7 @@ We'll start writing code in it in a bit. First we need to add some things to our
 ```toml
 [dependencies]
 image = "0.23"
-winit = "0.22"
+winit = "0.24"
 # shaderc = "0.7" # REMOVED!
 cgmath = "0.17"
 wgpu = "0.7"

@@ -424,7 +424,7 @@ For convenience sake, let's pull our texture code into its module. We'll first n
 ```toml
 [dependencies]
 image = "0.23"
-winit = "0.22"
+winit = "0.24"
 cgmath = "0.17"
 env_logger = "0.7"
 log = "0.4"
