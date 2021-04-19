@@ -33,7 +33,7 @@ impl Camera {
     }
 
     pub fn calc_matrix(&self) -> Matrix4<f32> {
-        Matrix4::look_at_dir(
+        Matrix4::look_to_rh(
             self.position,
             Vector3::new(self.yaw.0.cos(), self.pitch.0.sin(), self.yaw.0.sin()).normalize(),
             Vector3::unit_y(),

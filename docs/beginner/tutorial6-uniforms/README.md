@@ -4,7 +4,7 @@ While all of our previous work has seemed to be in 2d, we've actually been worki
 
 ## A perspective camera
 
-This tutorial is more about learning to use wgpu and less about linear algebra, so I'm going to gloss over a lot of the math involved. There's plenty of reading material online if you're interested in what's going on under the hood. The first thing to know is that we need `cgmath = "0.17"` in our `Cargo.toml`.
+This tutorial is more about learning to use wgpu and less about linear algebra, so I'm going to gloss over a lot of the math involved. There's plenty of reading material online if you're interested in what's going on under the hood. The first thing to know is that we need `cgmath = "0.18"` in our `Cargo.toml`.
 
 Now that we have a math library, let's put it to use! Create a `Camera` struct above the `State` struct.
 
@@ -22,7 +22,7 @@ struct Camera {
 impl Camera {
     fn build_view_projection_matrix(&self) -> cgmath::Matrix4<f32> {
         // 1.
-        let view = cgmath::Matrix4::look_at(self.eye, self.target, self.up);
+        let view = cgmath::Matrix4::look_at_rh(self.eye, self.target, self.up);
         // 2.
         let proj = cgmath::perspective(cgmath::Deg(self.fovy), self.aspect, self.znear, self.zfar);
 

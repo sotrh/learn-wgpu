@@ -7,7 +7,7 @@ edition = "2018"
 [dependencies]
 anyhow = "1.0"
 bytemuck = { version = "1.4", features = [ "derive" ] }
-cgmath = "0.17"
+cgmath = "0.18"
 env_logger = "0.7"
 futures = "0.3"
 image = "0.23"
