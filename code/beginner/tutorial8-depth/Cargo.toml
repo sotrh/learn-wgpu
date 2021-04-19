@@ -13,7 +13,7 @@ futures = "0.3"
 image = "0.23"
 log = "0.4"
 wgpu = "0.7"
-winit = "0.22"
+winit = "0.24"
 
 [build-dependencies]
 anyhow = "1.0"

@@ -14,7 +14,7 @@ image = "0.23"
 log = "0.4"
 tobj = "2.0"
 wgpu = "0.7"
-winit = "0.23"
+winit = "0.24"
 
 [build-dependencies]
 anyhow = "1.0"

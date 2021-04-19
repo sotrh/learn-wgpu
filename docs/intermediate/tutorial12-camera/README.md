@@ -315,7 +315,7 @@ fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
 }
 ```
 
-`input()` will need to be updated as well. Up to this point we have been using `WindowEvent`s for our camera controls. While this works, it's not the best solution. The [winit docs](https://docs.rs/winit/0.23.0/winit/event/enum.WindowEvent.html?search=#variant.CursorMoved) inform us that OS will often transform the data for the `CursorMoved` event to allow effects such as cursor acceleration. Because of this, we're going to change our `input()` function to use `DeviceEvent` instead of `WindowEvent`.
+`input()` will need to be updated as well. Up to this point we have been using `WindowEvent`s for our camera controls. While this works, it's not the best solution. The [winit docs](https://docs.rs/winit/0.24.0/winit/event/enum.WindowEvent.html?search=#variant.CursorMoved) inform us that OS will often transform the data for the `CursorMoved` event to allow effects such as cursor acceleration. Because of this, we're going to change our `input()` function to use `DeviceEvent` instead of `WindowEvent`.
 
 ```rust
 // UPDATED!
