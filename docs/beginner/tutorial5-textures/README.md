@@ -34,7 +34,7 @@ Now, let's create the `Texture`:
 let texture_size = wgpu::Extent3d {
     width: dimensions.0,
     height: dimensions.1,
-    depth: 1,
+    depth_or_array_layers: 1,
 };
 let diffuse_texture = device.create_texture(
     &wgpu::TextureDescriptor {
@@ -60,7 +60,7 @@ The `Texture` struct has no methods to interact with the data directly. However,
 ```rust
 queue.write_texture(
     // Tells wgpu where to copy the pixel data
-    wgpu::TextureCopyView {
+    wgpu::ImageCopyTexture {
         texture: &diffuse_texture,
         mip_level: 0,
         origin: wgpu::Origin3d::ZERO,
@@ -68,7 +68,7 @@ queue.write_texture(
     // The actual pixel data
     diffuse_rgba,
     // The layout of the texture
-    wgpu::TextureDataLayout {
+    wgpu::ImageDataLayout {
         offset: 0,
         bytes_per_row: 4 * dimensions.0,
         rows_per_image: dimensions.1,
@@ -95,13 +95,13 @@ let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor 
 });
 
 encoder.copy_buffer_to_texture(
-    wgpu::BufferCopyView {
+    wgpu::ImageCopyBuffer {
         buffer: &buffer,
         offset: 0,
         bytes_per_row: 4 * dimensions.0,
         rows_per_image: dimensions.1,
     },
-    wgpu::TextureCopyView {
+    wgpu::ImageCopyTexture {
         texture: &diffuse_texture,
         mip_level: 0,
         array_layer: 0,
@@ -318,12 +318,12 @@ impl Vertex {
                 wgpu::VertexAttribute {
                     offset: 0,
                     shader_location: 0,
-                    format: wgpu::VertexFormat::Float3,
+                    format: wgpu::VertexFormat::Float32x3,
                 },
                 wgpu::VertexAttribute {
                     offset: mem::size_of::<[f32; 3]>() as wgpu::BufferAddress,
                     shader_location: 1,
-                    format: wgpu::VertexFormat::Float2, // NEW!
+                    format: wgpu::VertexFormat::Float32x2, // NEW!
                 },
             ]
         }
@@ -426,7 +426,7 @@ For convenience sake, let's pull our texture code into its module. We'll first n
 image = "0.23"
 cgmath = "0.18"
 winit = "0.24"
-env_logger = "0.7"
+env_logger = "0.8"
 log = "0.4"
 futures = "0.3"
 wgpu ="0.6"
@@ -469,7 +469,7 @@ impl Texture {
         let size = wgpu::Extent3d {
             width: dimensions.0,
             height: dimensions.1,
-            depth: 1,
+            depth_or_array_layers: 1,
         };
         let texture = device.create_texture(
             &wgpu::TextureDescriptor {
@@ -484,16 +484,16 @@ impl Texture {
         );
 
         queue.write_texture(
-            wgpu::TextureCopyView {
+            wgpu::ImageCopyTexture {
                 texture: &texture,
                 mip_level: 0,
                 origin: wgpu::Origin3d::ZERO,
             },
             rgba,
-            wgpu::TextureDataLayout {
+            wgpu::ImageDataLayout {
                 offset: 0,
-                bytes_per_row: 4 * dimensions.0,
-                rows_per_image: dimensions.1,
+                bytes_per_row: NonZeroU32::new(4 * dimensions.0),
+                rows_per_image: NonZeroU32::new(dimensions.1),
             },
             size,
         );

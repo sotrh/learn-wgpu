@@ -1,5 +1,19 @@
 # News
 
+## 0.8
+
+* The `depth` field is now `depth_or_array_layers`
+* `wgpu::VertexFormat::Float3` is now `wgpu::VertexFormat::Float32x3`. Similar things apply to `Float2` and `Float4`
+* `CullMode` is no longer a thing, instead `PrimitiveState::cull_mode` will require an `Option<Face>`
+* Added `clamp_depth` and `conservative` to `PrimitiveState`. Part of this means that `DepthStencilState` no longer has a `clamp_depth` field.
+* `color_blend` and `alpha_blend` have been moved into the new `blend` field with accepts an `Option<wgpu::BlendState>`
+* `adapter.get_swap_chain_preferred_format()` now returns an `Option<wgpu::TextureFormat>`
+* `wgpu::RenderPassColorAttachmentDescriptor` has been renamed `wgpu::RenderPassColorAttachement` and the `attachment` field has been renamed to `view`
+* `wgpu::RenderPassDepthStencialAttachmentDescriptor` also loses the `Descriptor` part of it's name. `attachment` gets renamed to `view` as well.
+* `wgpu::TextureCopyView` has been renamed to `wgpu::ImageCopyTexture`. This is a typedef for `wgpu::ImageCopyTextureBase<T>`
+* `wgpu::TextureDataLayout` is now `wgpu::ImageDataLayout` and it's `bytes_per_row` and `rows_per_image` now take `NonZeroU32`.
+* `wgpu::ImageCopyBuffer` is now `wgpu::ImageCopyBuffer`.
+
 ## 0.7
 
 There were a lot of changes particularly to the `RenderPipelineDescriptor`. Most other things have not changed. You can check out the [0.9 PR](https://github.com/sotrh/learn-wgpu/pull/140) for the full details.

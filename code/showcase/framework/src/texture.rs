@@ -1,6 +1,6 @@
 use anyhow::*;
 use image::GenericImageView;
-use std::mem;
+use std::{mem, num::NonZeroU32};
 use std::path::Path;
 
 use crate::buffer;
@@ -76,7 +76,7 @@ impl<'a> Texture<'a> {
         let size = wgpu::Extent3d {
             width: dimensions.0,
             height: dimensions.1,
-            depth: 1,
+            depth_or_array_layers: 1,
         };
         let desc = wgpu::TextureDescriptor {
             size,
@@ -94,16 +94,16 @@ impl<'a> Texture<'a> {
         let texture = device.create_texture(&desc);
 
         queue.write_texture(
-            wgpu::TextureCopyView {
+            wgpu::ImageCopyTexture {
                 texture: &texture,
                 mip_level: 0,
                 origin: wgpu::Origin3d::ZERO,
             },
             &rgba,
-            wgpu::TextureDataLayout {
+            wgpu::ImageDataLayout {
                 offset: 0,
-                bytes_per_row: 4 * dimensions.0,
-                rows_per_image: dimensions.1,
+                bytes_per_row: NonZeroU32::new(4 * dimensions.0),
+                rows_per_image: NonZeroU32::new(dimensions.1),
             },
             size,
         );
@@ -139,7 +139,7 @@ impl<'a> Texture<'a> {
             size: wgpu::Extent3d {
                 width: sc_desc.width,
                 height: sc_desc.height,
-                depth: 1,
+                depth_or_array_layers: 1,
             },
             mip_level_count: 1,
             sample_count: 1,
@@ -151,7 +151,7 @@ impl<'a> Texture<'a> {
     }
 
     pub fn prepare_buffer_rgba(&self, device: &wgpu::Device) -> buffer::RawBuffer<[f32; 4]> {
-        let num_pixels = self.desc.size.width * self.desc.size.height * self.desc.size.depth;
+        let num_pixels = self.desc.size.width * self.desc.size.height * self.desc.size.depth_or_array_layers;
 
         let buffer_size = num_pixels * mem::size_of::<[f32; 4]>() as u32;
         let buffer_usage = wgpu::BufferUsage::COPY_DST | wgpu::BufferUsage::MAP_READ;

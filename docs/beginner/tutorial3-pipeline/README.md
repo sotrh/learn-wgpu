@@ -170,7 +170,7 @@ Two things to note here:
         topology: wgpu::PrimitiveTopology::TriangleList, // 1.
         strip_index_format: None,
         front_face: wgpu::FrontFace::Ccw, // 2.
-        cull_mode: wgpu::CullMode::Back,
+        cull_mode: Some(wgpu::Face::Back),
         // Setting this to anything other than Fill requires Features::NON_FILL_POLYGON_MODE
         polygon_mode: wgpu::PolygonMode::Fill,
     },
@@ -279,7 +279,7 @@ image = "0.23"
 winit = "0.24"
 # shaderc = "0.7" # REMOVED!
 cgmath = "0.18"
-wgpu = "0.7"
+wgpu = "0.8"
 futures = "0.3"
 
 # NEW!

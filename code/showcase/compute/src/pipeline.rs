@@ -59,8 +59,7 @@ pub fn create_render_pipeline(
             entry_point: "main",
             targets: &[wgpu::ColorTargetState {
                 format: color_format,
-                color_blend: wgpu::BlendState::REPLACE,
-                alpha_blend: wgpu::BlendState::REPLACE,
+                blend: None,
                 write_mask: wgpu::ColorWrite::ALL,
             }],
         }),
@@ -68,9 +67,11 @@ pub fn create_render_pipeline(
             topology: wgpu::PrimitiveTopology::TriangleList,
             strip_index_format: None,
             front_face: wgpu::FrontFace::Ccw,
-            cull_mode: wgpu::CullMode::Back,
+            cull_mode: Some(wgpu::Face::Back),
             // Setting this to anything other than Fill requires Features::NON_FILL_POLYGON_MODE
             polygon_mode: wgpu::PolygonMode::Fill,
+            clamp_depth: false,
+            conservative: false,
         },
         depth_stencil: depth_format.map(|format| wgpu::DepthStencilState {
             format,
@@ -78,8 +79,6 @@ pub fn create_render_pipeline(
             depth_compare: wgpu::CompareFunction::Less,
             stencil: wgpu::StencilState::default(),
             bias: wgpu::DepthBiasState::default(),
-            // Setting this to true requires Features::DEPTH_CLAMPING
-            clamp_depth: false,
         }),
         multisample: wgpu::MultisampleState {
             count: 1,

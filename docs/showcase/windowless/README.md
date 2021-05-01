@@ -31,7 +31,7 @@ let texture_desc = wgpu::TextureDescriptor {
     size: wgpu::Extent3d {
         width: texture_size,
         height: texture_size,
-        depth: 1,
+        depth_or_array_layers: 1,
     },
     mip_level_count: 1,
     sample_count: 1,
@@ -159,7 +159,7 @@ let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescrip
         topology: wgpu::PrimitiveTopology::TriangleList,
         strip_index_format: None,
         front_face: wgpu::FrontFace::Ccw,
-        cull_mode: wgpu::CullMode::Back,
+        cull_mode: Some(wgpu::Face::Back),
         // Setting this to anything other than Fill requires Features::NON_FILL_POLYGON_MODE
         polygon_mode: wgpu::PolygonMode::Fill,
     },
@@ -214,14 +214,14 @@ There's not much we can do with the data when it's stuck in a `Texture`, so let'
 
 ```rust
 encoder.copy_texture_to_buffer(
-    wgpu::TextureCopyView {
+    wgpu::ImageCopyTexture {
         texture: &texture,
         mip_level: 0,
         origin: wgpu::Origin3d::ZERO,
     },
-    wgpu::BufferCopyView {
+    wgpu::ImageCopyBuffer {
         buffer: &output_buffer,
-        layout: wgpu::TextureDataLayout {
+        layout: wgpu::ImageDataLayout {
             offset: 0,
             bytes_per_row: u32_size * texture_size,
             rows_per_image: texture_size,
