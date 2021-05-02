@@ -228,7 +228,7 @@ If you run your program now, it'll take a little longer to start, but it will st
     let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
         label: Some("Render Pass"),
         color_attachments: &[
-            wgpu::RenderPassColorAttachmentDescriptor {
+            wgpu::RenderPassColorAttachment {
                 attachment: &frame.view,
                 resolve_target: None,
                 ops: wgpu::Operations {

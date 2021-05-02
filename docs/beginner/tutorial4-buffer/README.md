@@ -335,10 +335,11 @@ const INDICES: &[u16] = &[
     0, 1, 4,
     1, 2, 4,
     2, 3, 4,
+    /* padding */ 0,
 ];
 ```
 
-Now with this setup our `VERTICES` take up about 120 bytes and `INDICES` is just 18 bytes given that `u16` is 2 bytes wide. All together our pentagon is 132 bytes in total. That means we saved 84 bytes! It may not seem like much, but when dealing with tri counts in the hundreds of thousands, indexing saves a lot of memory.
+Now with this setup our `VERTICES` take up about 120 bytes and `INDICES` is just 18 bytes given that `u16` is 2 bytes wide. We add 2 bytes padding as wgpu requires buffers to be aligned to 4 bytes. All together our pentagon is 134 bytes in total. That means we saved 82 bytes! It may not seem like much, but when dealing with tri counts in the hundreds of thousands, indexing saves a lot of memory.
 
 There's a couple of things we need to change in order to use indexing. The first is we need to create a buffer to store the indices. In `State`'s `new()` method create the `index_buffer` after you create the `vertex_buffer`. Also change `num_vertices` to `num_indices` and set it equal to `INDICES.len()`.
 
