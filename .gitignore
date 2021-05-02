@@ -7,6 +7,6 @@ target/
 output/
 
 /trace
-trace.zip
+*trace.zip
 
 secrets.txt
