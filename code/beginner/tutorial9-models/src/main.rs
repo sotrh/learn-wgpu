@@ -261,7 +261,8 @@ impl State {
                     features: wgpu::Features::empty(),
                     limits: wgpu::Limits::default(),
                 },
-                Some(&std::path::Path::new("trace")), // Trace path
+                // Some(&std::path::Path::new("trace")), // Trace path
+                None, // Trace path
             )
             .await
             .unwrap();
@@ -388,8 +389,13 @@ impl State {
         )
         .unwrap();
 
-        let vs_module = device.create_shader_module(&wgpu::include_spirv!("shader.vert.spv"));
-        let fs_module = device.create_shader_module(&wgpu::include_spirv!("shader.frag.spv"));
+        // let vs_module = device.create_shader_module(&wgpu::include_spirv!("shader.vert.spv"));
+        // let fs_module = device.create_shader_module(&wgpu::include_spirv!("shader.frag.spv"));
+        let shader = device.create_shader_module(&wgpu::ShaderModuleDescriptor {
+            label: Some("shader.wgsl"),
+            source: wgpu::ShaderSource::Wgsl(include_str!("shader.wgsl").into()),
+            flags: wgpu::ShaderFlags::VALIDATION,
+        });
 
         let depth_texture =
             texture::Texture::create_depth_texture(&device, &sc_desc, "depth_texture");
@@ -405,12 +411,12 @@ impl State {
             label: Some("Render Pipeline"),
             layout: Some(&render_pipeline_layout),
             vertex: wgpu::VertexState {
-                module: &vs_module,
+                module: &shader,
                 entry_point: "main",
                 buffers: &[model::ModelVertex::desc(), InstanceRaw::desc()],
             },
             fragment: Some(wgpu::FragmentState {
-                module: &fs_module,
+                module: &shader,
                 entry_point: "main",
                 targets: &[wgpu::ColorTargetState {
                     format: sc_desc.format,

@@ -266,9 +266,11 @@ fn create_render_pipeline(
     color_format: wgpu::TextureFormat,
     depth_format: Option<wgpu::TextureFormat>,
     vertex_layouts: &[wgpu::VertexBufferLayout],
-    vs_src: wgpu::ShaderModuleDescriptor,
-    fs_src: wgpu::ShaderModuleDescriptor,
+    mut vs_src: wgpu::ShaderModuleDescriptor,
+    mut fs_src: wgpu::ShaderModuleDescriptor,
 ) -> wgpu::RenderPipeline {
+    vs_src.flags = wgpu::ShaderFlags::EXPERIMENTAL_TRANSLATION;
+    fs_src.flags = wgpu::ShaderFlags::EXPERIMENTAL_TRANSLATION;
     let vs_module = device.create_shader_module(&vs_src);
     let fs_module = device.create_shader_module(&fs_src);
 
@@ -341,7 +343,7 @@ impl State {
                     features: wgpu::Features::empty(),
                     limits: wgpu::Limits::default(),
                 },
-                Some(&std::path::Path::new("trace")), // Trace path
+                None,
             )
             .await
             .unwrap();

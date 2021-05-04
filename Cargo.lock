@@ -833,6 +833,7 @@ dependencies = [
  "arrayvec",
  "bitflags",
  "fxhash",
+ "gfx-auxil",
  "gfx-hal",
  "glow",
  "js-sys",
@@ -842,6 +843,7 @@ dependencies = [
  "naga",
  "parking_lot",
  "raw-window-handle",
+ "spirv_cross",
  "wasm-bindgen",
  "web-sys",
 ]
@@ -859,6 +861,7 @@ dependencies = [
  "copyless",
  "foreign-types",
  "fxhash",
+ "gfx-auxil",
  "gfx-hal",
  "log",
  "metal",
@@ -868,6 +871,7 @@ dependencies = [
  "profiling",
  "range-alloc",
  "raw-window-handle",
+ "spirv_cross",
  "storage-map",
 ]
 
