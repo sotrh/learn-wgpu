@@ -1,6 +1,12 @@
 # News
 
-## 0.8
+## 0.8 and WGSL
+
+### The GLSL shaders have been translated to WGSL
+
+Originally I wanted to wait until the WGSL spec fully stabilized, but due to some issues with the GLSL code, I've decided to switch over the code now. Why'll GLSL is supported by WebGPU, it's currently secondary to WGSL. I'll keep an example of how to use GLSL (and maybe add HLSL and Metal as well), but I'm going to use WGSL from now on.
+
+### Various API changes
 
 * The `depth` field is now `depth_or_array_layers`
 * `wgpu::VertexFormat::Float3` is now `wgpu::VertexFormat::Float32x3`. Similar things apply to `Float2` and `Float4`
