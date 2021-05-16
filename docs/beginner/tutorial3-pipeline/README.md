@@ -290,7 +290,7 @@ glob = "0.3"
 shaderc = "0.7"
 ```
 
-We've removed shaderc from our dependencies and added a new `[build-depencies]` block. These are dependencies for our build script. We know about shaderc, but the other ones are meant to simplify dealing with the file system and dealing with rust errors.
+We've removed shaderc from our dependencies and added a new `[build-dependencies]` block. These are dependencies for our build script. We know about shaderc, but the other ones are meant to simplify dealing with the file system and dealing with rust errors.
 
 Now we can put some code in our `build.rs`.
 
