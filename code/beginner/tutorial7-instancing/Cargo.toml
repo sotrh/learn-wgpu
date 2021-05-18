@@ -19,7 +19,6 @@ winit = "0.24"
 anyhow = "1.0"
 fs_extra = "1.2"
 glob = "0.3"
-shaderc = "0.7"
 
 [[bin]]
 name = "tutorial7-instancing"
