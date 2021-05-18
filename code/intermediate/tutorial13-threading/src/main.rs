@@ -49,15 +49,17 @@ impl Instance {
             model: (cgmath::Matrix4::from_translation(self.position)
                 * cgmath::Matrix4::from(self.rotation))
             .into(),
+            normal: cgmath::Matrix3::from(self.rotation).into()
         }
     }
 }
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
+#[allow(dead_code)]
 struct InstanceRaw {
-    #[allow(dead_code)]
     model: [[f32; 4]; 4],
+    normal: [[f32; 3]; 3],
 }
 
 impl model::Vertex for InstanceRaw {
@@ -93,6 +95,21 @@ impl model::Vertex for InstanceRaw {
                     offset: mem::size_of::<[f32; 12]>() as wgpu::BufferAddress,
                     shader_location: 8,
                     format: wgpu::VertexFormat::Float32x4,
+                },
+                wgpu::VertexAttribute {
+                    offset: mem::size_of::<[f32; 16]>() as wgpu::BufferAddress,
+                    shader_location: 9,
+                    format: wgpu::VertexFormat::Float32x3,
+                },
+                wgpu::VertexAttribute {
+                    offset: mem::size_of::<[f32; 19]>() as wgpu::BufferAddress,
+                    shader_location: 10,
+                    format: wgpu::VertexFormat::Float32x3,
+                },
+                wgpu::VertexAttribute {
+                    offset: mem::size_of::<[f32; 22]>() as wgpu::BufferAddress,
+                    shader_location: 11,
+                    format: wgpu::VertexFormat::Float32x3,
                 },
             ],
         }
@@ -142,22 +159,20 @@ fn create_render_pipeline(
     color_format: wgpu::TextureFormat,
     depth_format: Option<wgpu::TextureFormat>,
     vertex_layouts: &[wgpu::VertexBufferLayout],
-    vs_src: wgpu::ShaderModuleDescriptor,
-    fs_src: wgpu::ShaderModuleDescriptor,
+    shader: wgpu::ShaderModuleDescriptor,
 ) -> wgpu::RenderPipeline {
-    let vs_module = device.create_shader_module(&vs_src);
-    let fs_module = device.create_shader_module(&fs_src);
+    let shader = device.create_shader_module(&shader);
 
     device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-        label: Some("Render Pipeline"),
+        label: Some(&format!("{:?}", shader)),
         layout: Some(&layout),
         vertex: wgpu::VertexState {
-            module: &vs_module,
+            module: &shader,
             entry_point: "main",
             buffers: vertex_layouts,
         },
         fragment: Some(wgpu::FragmentState {
-            module: &fs_module,
+            module: &shader,
             entry_point: "main",
             targets: &[wgpu::ColorTargetState {
                 format: color_format,
@@ -411,15 +426,21 @@ impl State {
                 push_constant_ranges: &[],
             });
 
-        let render_pipeline = create_render_pipeline(
-            &device,
-            &render_pipeline_layout,
-            sc_desc.format,
-            Some(texture::Texture::DEPTH_FORMAT),
-            &[model::ModelVertex::desc(), InstanceRaw::desc()],
-            wgpu::include_spirv!("shader.vert.spv"),
-            wgpu::include_spirv!("shader.frag.spv"),
-        );
+        let render_pipeline = {
+            let shader = wgpu::ShaderModuleDescriptor {
+                label: Some("Normal Shader"),
+                flags: wgpu::ShaderFlags::all(),
+                source: wgpu::ShaderSource::Wgsl(include_str!("shader.wgsl").into()),
+            };
+            create_render_pipeline(
+                &device,
+                &render_pipeline_layout,
+                sc_desc.format,
+                Some(texture::Texture::DEPTH_FORMAT),
+                &[model::ModelVertex::desc(), InstanceRaw::desc()],
+                shader,
+            )
+        };
 
         let light_render_pipeline = {
             let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
@@ -427,18 +448,21 @@ impl State {
                 bind_group_layouts: &[&uniform_bind_group_layout, &light_bind_group_layout],
                 push_constant_ranges: &[],
             });
-
+            let shader = wgpu::ShaderModuleDescriptor {
+                label: Some("Light Shader"),
+                flags: wgpu::ShaderFlags::all(),
+                source: wgpu::ShaderSource::Wgsl(include_str!("light.wgsl").into()),
+            };
             create_render_pipeline(
                 &device,
                 &layout,
                 sc_desc.format,
                 Some(texture::Texture::DEPTH_FORMAT),
                 &[model::ModelVertex::desc()],
-                wgpu::include_spirv!("light.vert.spv"),
-                wgpu::include_spirv!("light.frag.spv"),
+                shader,
             )
         };
-
+    
         let debug_material = {
             let diffuse_bytes = include_bytes!("../res/cobble-diffuse.png");
             let normal_bytes = include_bytes!("../res/cobble-normal.png");
