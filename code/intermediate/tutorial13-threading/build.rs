@@ -1,10 +1,7 @@
 use anyhow::*;
 use fs_extra::copy_items;
 use fs_extra::dir::CopyOptions;
-use glob::glob;
 use std::env;
-use std::fs::{read_to_string, write};
-use std::path::PathBuf;
 
 fn main() -> Result<()> {
     // This tells cargo to rerun this script if something in /res/ changes.
