@@ -348,47 +348,47 @@ const VERTICES: &[Vertex] = &[
 
 With our new `Vertex` structure in place it's time to update our shaders. We'll first need to pass our `tex_coords` into the vertex shader and then use them over to our fragment shader to get the final color from the `Sampler`. Let's start with the vertex shader:
 
-```glsl
-// shader.vert
-#version 450
+```wgsl
+// Vertex shader
 
-layout(location=0) in vec3 a_position;
-// Changed
-layout(location=1) in vec2 a_tex_coords;
+struct VertexInput {
+    [[location(0)]] position: vec3<f32>;
+    [[location(1)]] tex_coords: vec2<f32>;
+};
 
-// Changed
-layout(location=0) out vec2 v_tex_coords;
+struct VertexOutput {
+    [[builtin(position)]] clip_position: vec4<f32>;
+    [[location(0)]] tex_coords: vec2<f32>;
+};
 
-void main() {
-    // Changed
-    v_tex_coords = a_tex_coords;
-    gl_Position = vec4(a_position, 1.0);
+[[stage(vertex)]]
+fn main(
+    model: VertexInput,
+) -> VertexOutput {
+    var out: VertexOutput;
+    out.tex_coords = model.tex_coords;
+    out.clip_position = vec4<f32>(model.position, 1.0);
+    return out;
 }
 ```
 
-Now that we have our vertex shader outputting our `tex_cords`, we need to change the fragment shader to take them in. With these coordinates, we'll finally be able to use our sampler to get a color from our texture.
+Now that we have our vertex shader outputting our `tex_coords`, we need to change the fragment shader to take them in. With these coordinates, we'll finally be able to use our sampler to get a color from our texture.
 
 ```glsl
-// shader.frag
-#version 450
+// Fragment shader
 
-// Changed
-layout(location=0) in vec2 v_tex_coords;
-layout(location=0) out vec4 f_color;
+[[group(0), binding(0)]]
+var t_diffuse: texture_2d<f32>;
+[[group(0), binding(1)]]
+var s_diffuse: sampler;
 
-// NEW!
-layout(set = 0, binding = 0) uniform texture2D t_diffuse;
-layout(set = 0, binding = 1) uniform sampler s_diffuse;
-
-void main() {
-    // Changed
-    f_color = texture(sampler2D(t_diffuse, s_diffuse), v_tex_coords);
+[[stage(fragment)]]
+fn main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
+    return textureSample(t_diffuse, s_diffuse, in.tex_coords);
 }
 ```
 
-You'll notice that `t_diffuse` and `s_diffuse` are defined with the `uniform` keyword, they don't have `in` nor `out`, and the layout definition uses `set` and `binding` instead of `location`. This is because `t_diffuse` and `s_diffuse` are what's known as *uniforms*. We won't go too deep into what a uniform is, until we talk about uniform buffers in the [cameras section](/beginner/tutorial6-uniforms/). 
-
-For now, all we need to know is that `set = 0` corresponds to the 1st parameter in `set_bind_group()` and `binding = 0` relates to the `binding` specified when we create the `BindGroupLayout` and `BindGroup`.
+The variables `t_diffuse` and `s_diffuse` are what's known as uniforms. We'll go over uniforms more in the [cameras section](/beginner/tutorial6-uniforms/). For now, all we need to know is that `group()` corresponds to the 1st parameter in `set_bind_group()` and `binding()` relates to the `binding` specified when we created the `BindGroupLayout` and `BindGroup`.
 
 ## The results
 

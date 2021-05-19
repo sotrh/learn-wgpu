@@ -259,34 +259,36 @@ Then use it in the draw call.
 render_pass.draw(0..self.num_vertices, 0..1);
 ```
 
-Before our changes will have any effect, we need to update our vertex shader to get its data from the vertex buffer.
+Before our changes will have any effect, we need to update our vertex shader to get its data from the vertex buffer. We'll also have it include the vertex color as well.
 
 ```glsl
-// shader.vert
-#version 450
+// Vertex shader
 
-layout(location=0) in vec3 a_position;
-layout(location=1) in vec3 a_color;
+struct VertexInput {
+    [[location(0)]] position: vec3<f32>;
+    [[location(1)]] color: vec3<f32>;
+};
 
-layout(location=0) out vec3 v_color;
+struct VertexOutput {
+    [[builtin(position)]] clip_position: vec4<f32>;
+    [[location(0)]] color: vec3<f32>;
+};
 
-void main() {
-    v_color = a_color;
-    gl_Position = vec4(a_position, 1.0);
+[[stage(vertex)]]
+fn main(
+    model: VertexInput,
+) -> VertexOutput {
+    var out: VertexOutput;
+    out.color = model.color;
+    out.clip_position = vec4<f32>(model.position, 1.0);
+    return out;
 }
-```
 
-We'll want to update the fragment shader to use `v_color` as well.
+// Fragment shader
 
-```glsl
-// shader.frag
-#version 450
-
-layout(location=0) in vec3 v_color;
-layout(location=0) out vec4 f_color;
-
-void main() {
-    f_color = vec4(v_color, 1.0);
+[[stage(fragment)]]
+fn main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
+    return vec4<f32>(in.color, 1.0);
 }
 ```
 
