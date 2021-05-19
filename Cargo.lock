@@ -2154,7 +2154,6 @@ dependencies = [
  "glob",
  "image",
  "log",
- "shaderc",
  "tobj",
  "wgpu",
  "winit",
@@ -2173,7 +2172,6 @@ dependencies = [
  "glob",
  "image",
  "log",
- "shaderc",
  "tobj",
  "wgpu",
  "winit",
@@ -2192,7 +2190,6 @@ dependencies = [
  "glob",
  "image",
  "log",
- "shaderc",
  "tobj",
  "wgpu",
  "winit",
@@ -2212,7 +2209,6 @@ dependencies = [
  "image",
  "log",
  "rayon",
- "shaderc",
  "tobj",
  "wgpu",
  "winit",
@@ -2244,7 +2240,6 @@ dependencies = [
  "glob",
  "image",
  "log",
- "shaderc",
  "wgpu",
  "winit",
 ]
@@ -2262,7 +2257,6 @@ dependencies = [
  "glob",
  "image",
  "log",
- "shaderc",
  "wgpu",
  "winit",
 ]
@@ -2280,7 +2274,6 @@ dependencies = [
  "glob",
  "image",
  "log",
- "shaderc",
  "wgpu",
  "winit",
 ]
@@ -2298,7 +2291,6 @@ dependencies = [
  "glob",
  "image",
  "log",
- "shaderc",
  "wgpu",
  "winit",
 ]
@@ -2316,7 +2308,6 @@ dependencies = [
  "glob",
  "image",
  "log",
- "shaderc",
  "wgpu",
  "winit",
 ]
@@ -2334,7 +2325,6 @@ dependencies = [
  "glob",
  "image",
  "log",
- "shaderc",
  "wgpu",
  "winit",
 ]
@@ -2352,7 +2342,6 @@ dependencies = [
  "glob",
  "image",
  "log",
- "shaderc",
  "tobj",
  "wgpu",
  "winit",

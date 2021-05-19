@@ -1,7 +1,7 @@
 use anyhow::*;
 use image::GenericImageView;
-use std::{mem, num::NonZeroU32};
 use std::path::Path;
+use std::{mem, num::NonZeroU32};
 
 use crate::buffer;
 
@@ -151,7 +151,8 @@ impl<'a> Texture<'a> {
     }
 
     pub fn prepare_buffer_rgba(&self, device: &wgpu::Device) -> buffer::RawBuffer<[f32; 4]> {
-        let num_pixels = self.desc.size.width * self.desc.size.height * self.desc.size.depth_or_array_layers;
+        let num_pixels =
+            self.desc.size.width * self.desc.size.height * self.desc.size.depth_or_array_layers;
 
         let buffer_size = num_pixels * mem::size_of::<[f32; 4]>() as u32;
         let buffer_usage = wgpu::BufferUsage::COPY_DST | wgpu::BufferUsage::MAP_READ;

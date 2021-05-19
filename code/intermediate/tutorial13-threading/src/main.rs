@@ -49,7 +49,7 @@ impl Instance {
             model: (cgmath::Matrix4::from_translation(self.position)
                 * cgmath::Matrix4::from(self.rotation))
             .into(),
-            normal: cgmath::Matrix3::from(self.rotation).into()
+            normal: cgmath::Matrix3::from(self.rotation).into(),
         }
     }
 }
@@ -462,7 +462,7 @@ impl State {
                 shader,
             )
         };
-    
+
         let debug_material = {
             let diffuse_bytes = include_bytes!("../res/cobble-diffuse.png");
             let normal_bytes = include_bytes!("../res/cobble-normal.png");
