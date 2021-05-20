@@ -79,25 +79,49 @@ With all that in place we need a model to render. If you have one already that's
 
 When cargo builds and runs our program it sets what's known as the current working directory. This directory is usually the folder containing your projects root `Cargo.toml`. The path to our res folder may differ depending on the structure of the project. In the `res` folder for the example code for this section tutorial is at `code/beginner/tutorial9-models/res/`. When loading our model we could use this path, and just append `cube.obj`. This is fine, but if we change our projects structure, our code will break.
 
-We're going to fix that by modifying our build script to copy our `res` folder to where cargo creates our executable, and we'll reference it from there. Add the following lines to `build.rs` after you compile the shaders.
+We're going to fix that by modifying our build script to copy our `res` folder to where cargo creates our executable, and we'll reference it from there. Create a file called `build.rs` and add the following:
 
 ```rust
-// This tells cargo to rerun this script if something in /res/ changes.
-println!("cargo:rerun-if-changed=res/*");
+use anyhow::*;
+use fs_extra::copy_items;
+use fs_extra::dir::CopyOptions;
+use std::env;
 
-let out_dir = env::var("OUT_DIR")?;
-let mut copy_options = CopyOptions::new();
-copy_options.overwrite = true;
-let mut paths_to_copy = Vec::new();
-paths_to_copy.push("res/");
-copy_items(&paths_to_copy, out_dir, &copy_options)?;
+fn main() -> Result<()> {
+    // This tells cargo to rerun this script if something in /res/ changes.
+    println!("cargo:rerun-if-changed=res/*");
+
+    let out_dir = env::var("OUT_DIR")?;
+    let mut copy_options = CopyOptions::new();
+    copy_options.overwrite = true;
+    let mut paths_to_copy = Vec::new();
+    paths_to_copy.push("res/");
+    copy_items(&paths_to_copy, out_dir, &copy_options)?;
+
+    Ok(())
+}
 ```
+
+<div class="note">
+
+Make sure to put `build.rs` in the same folder as the `Cargo.toml`. If you don't, cargo won't run it when your crate builds.
+
+</div>
 
 <div class="note">
 
 The `OUT_DIR` is an environment variable that cargo uses to specify where our application will be built.
 
 </div>
+
+You'll need to modify your `Cargo.toml` for this to work properly. Add the following below your `[dependencies]` block.
+
+```toml
+[build-dependencies]
+anyhow = "1.0"
+fs_extra = "1.2"
+glob = "0.3"
+```
 
 
 ## Loading models with TOBJ

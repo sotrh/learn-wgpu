@@ -44,7 +44,7 @@ A `Quaternion` is a mathematical structure often used to represent rotation. The
 
 </div>
 
-Using these values directly in the shader would be a pain as quaternions don't have a GLSL analog. I don't feel like writing the math in the shader, so we'll convert the `Instance` data into a matrix and store it into a struct called `InstanceRaw`.
+Using these values directly in the shader would be a pain as quaternions don't have a WGSL analog. I don't feel like writing the math in the shader, so we'll convert the `Instance` data into a matrix and store it into a struct called `InstanceRaw`.
 
 ```rust
 // NEW!
@@ -218,37 +218,48 @@ Make sure if you add new instances to the `Vec`, that you recreate the `instance
 
 </div>
 
-We need to reference the parts of our new matrix in `shader.vert` so that we can use it for our instances. Add the following to the top of `shader.vert`.
+We need to reference the parts of our new matrix in `shader.wgsl` so that we can use it for our instances. Add the following to the top of `shader.wgsl`.
 
-```glsl
-layout(location=5) in vec4 model_matrix_0;
-layout(location=6) in vec4 model_matrix_1;
-layout(location=7) in vec4 model_matrix_2;
-layout(location=8) in vec4 model_matrix_3;
+```wgsl
+struct InstanceInput {
+    [[location(5)]] model_matrix_0: vec4<f32>;
+    [[location(6)]] model_matrix_1: vec4<f32>;
+    [[location(7)]] model_matrix_2: vec4<f32>;
+    [[location(8)]] model_matrix_3: vec4<f32>;
+};
 ```
 
 We need to reassemble the matrix before we can use it.
 
-```glsl
-void main() {
-    mat4 model_matrix = mat4(
-        model_matrix_0,
-        model_matrix_1,
-        model_matrix_2,
-        model_matrix_3
+```wgsl
+[[stage(vertex)]]
+fn main(
+    model: VertexInput,
+    instance: InstanceInput,
+) -> VertexOutput {
+    let model_matrix = mat4x4<f32>(
+        instance.model_matrix_0,
+        instance.model_matrix_1,
+        instance.model_matrix_2,
+        instance.model_matrix_3,
     );
     // Continued...
 }
 ```
 
-We'll apply the `model_matrix` before we apply `u_view_proj`. We do this because the `u_view_proj` changes the coordinate system from `world space` to `camera space`. Our `model_matrix` is a `world space` transformation, so we don't want to be in `camera space` when using it.
+We'll apply the `model_matrix` before we apply `uniforms.view_proj`. We do this because the `uniforms.view_proj` changes the coordinate system from `world space` to `camera space`. Our `model_matrix` is a `world space` transformation, so we don't want to be in `camera space` when using it.
 
-```glsl
-void main() {
+```wgsl
+[[stage(vertex)]]
+fn main(
+    model: VertexInput,
+    instance: InstanceInput,
+) -> VertexOutput {
     // ...
-    v_tex_coords = a_tex_coords;
-    // UPDATED!
-    gl_Position = u_view_proj * model_matrix * vec4(a_position, 1.0);
+    var out: VertexOutput;
+    out.tex_coords = model.tex_coords;
+    out.clip_position = uniforms.view_proj * model_matrix * vec4<f32>(model.position, 1.0);
+    return out;
 }
 ```
 
