@@ -98,24 +98,39 @@ materials.push(Material {
 
 Now we can add use the texture in the fragment shader.
 
-```glsl
-// shader.frag
-// ...
+```wgsl
+// Fragment shader
 
-layout(set = 0, binding = 2) uniform texture2D t_normal;
-layout(set = 0, binding = 3) uniform sampler s_normal;
+[[group(0), binding(0)]]
+var t_diffuse: texture_2d<f32>;
+[[group(0), binding(1)]]
+var s_diffuse: sampler;
+[[group(0), binding(2)]]
+var t_normal: texture_2d<f32>;
+[[group(0), binding(3)]]
+var s_normal: sampler;
 
-// ...
-
-void main() {
-    vec4 object_color = texture(sampler2D(t_diffuse, s_diffuse), v_tex_coords);
-    vec4 object_normal = texture(sampler2D(t_normal, s_normal), v_tex_coords); // NEW!
-
-    // ...
-
-    vec3 normal = normalize(object_normal.rgb * 2.0 - 1.0); // UPDATED!
+[[stage(fragment)]]
+fn main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
+    let object_color: vec4<f32> = textureSample(t_diffuse, s_diffuse, in.tex_coords);
+    let object_normal: vec4<f32> = textureSample(t_normal, s_normal, in.tex_coords);
     
-    // ...
+    // We don't need (or want) much ambient light, so 0.1 is fine
+    let ambient_strength = 0.1;
+    let ambient_color = light.color * ambient_strength;
+
+    // Create the lighting vectors
+    let tangent_normal = object_normal.xyz * 2.0 - 1.0;
+
+    let diffuse_strength = max(dot(tangent_normal, light_dir), 0.0);
+    let diffuse_color = light.color * diffuse_strength;
+
+    let specular_strength = pow(max(dot(tangent_normal, half_dir), 0.0), 32.0);
+    let specular_color = specular_strength * light.color;
+
+    let result = (ambient_color + diffuse_color + specular_color) * object_color.xyz;
+
+    return vec4<f32>(result, object_color.a);
 }
 ```
 
@@ -134,8 +149,8 @@ If we remember the [lighting-tutorial](/intermediate/tutorial10-lighting/#), we 
 
 We can create a matrix that represents a coordinate system using 3 vectors that are perpendicular (or orthonormal) to each other. Basically we define the x, y, and z axes of our coordinate system.
 
-```glsl
-mat3 coordinate_system = mat3(
+```wgsl
+let coordinate_system = mat3x3<f32>(
     vec3(1, 0, 0), // x axis (right)
     vec3(0, 1, 0), // y axis (up)
     vec3(0, 0, 1)  // z axis (forward)
@@ -158,12 +173,9 @@ Basically we can use the edges of our triangles, and our normal to calculate the
 #[repr(C)]
 #[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct ModelVertex {
-    // Use cgmath to simplify the tangent, bitanget
-    // calculation. You can't add and subtract [f32; 3]
-    // without implementing such traits by yourself.
-    position: cgmath::Vector3<f32>,
-    tex_coords: cgmath::Vector2<f32>,
-    normal: cgmath::Vector3<f32>,
+    position: [f32; 3],
+    tex_coords: [f32; 2],
+    normal: [f32; 3],
     // NEW!
     tangent: [f32; 3],
     bitangent: [f32; 3],
@@ -286,137 +298,85 @@ impl Model {
 }
 ```
 
-## Shader time!
-
-The fragment shader needs to be updated to include our tangent and bitangent.
-
-```glsl
-// shader.vert
-layout(location=0) in vec3 a_position;
-layout(location=1) in vec2 a_tex_coords;
-layout(location=2) in vec3 a_normal;
-// NEW!
-layout(location=3) in vec3 a_tangent;
-layout(location=4) in vec3 a_bitangent;
-```
-
-We're going to change up the output variables as well. We're going to calculate a `tangent_matrix` that we're going to pass to the fragment shader. We're also going to remove `v_normal` as we will be using the normal map data instead.
-
-```glsl
-layout(location=0) out vec2 v_tex_coords;
-layout(location=1) out vec3 v_position; // UPDATED!
-layout(location=2) out mat3 v_tangent_matrix; // NEW!
-
-// ...
-
-void main() {
-    // ...
-    vec3 normal = normalize(normal_matrix * a_normal);
-    vec3 tangent = normalize(normal_matrix * a_tangent);
-    vec3 bitangent = normalize(normal_matrix * a_bitangent);
-    
-    v_tangent_matrix = transpose(mat3(
-        tangent,
-        bitangent,
-        normal
-    ));
-    // ...
-}
-```
-
-We need to reflect these updates in the fragment shader as well. We'll also transform the normal into `world space`.
-
-```glsl
-// shader.frag
-layout(location=0) in vec2 v_tex_coords;
-layout(location=1) in vec3 v_position; // UPDATED!
-layout(location=2) in mat3 v_tangent_matrix; // NEW!
-
-// ...
-
-void main() {
-    // ...
-    vec3 normal = normalize(v_tangent_matrix * (object_normal.rgb * 2.0 - 1.0));
-    // ...
-}
-```
-
-With that we get the following.
-
-![](./normal_mapping_correct.png)
-
-## Eww, matrix multiplication in the fragment shader...
-
-Currently we are transforming the normal in the fragment shader. The fragment shader gets run for **every pixel**. To say this is inefficient is an understatement. Even so, we can't do the transformation in the vertex shader since we need to sample the normal map in the pixel shader. If want to use the `tangent_matrix` out of the fragment shader, we're going to have to think outside the box.
-
 ## World Space to Tangent Space
 
-The variables we're using in the lighting calculation are `v_position`, `light_position`, and `u_view_position`. These are in `world space` while our normals are in `tangent space`. We can convert from `world space` to `tangent space` by multiplying by the inverse of the `tangent_matrix`. The inverse operation is a little expensive, but because our `tangent_matrix` is made up of vectors that are perpendicular to each other (aka. orthonormal), we can use the `transpose()` function instead!
+Since the normal map by default is in tangent space, we need to transform all the other variables used in that calculation to tangent space as well. We'll need to construct the tangent matrix in the vertex shader. First we need our `VertexInput` to include the tangent and bitangents we calculated earlier.
 
-But first, we need to change up our output variables, and import the `Light` uniforms.
-
-```glsl
-// ...
-layout(location=0) out vec2 v_tex_coords;
-layout(location=1) out vec3 v_position; // UPDATED!
-layout(location=2) out vec3 v_light_position; // NEW!
-layout(location=3) out vec3 v_view_position; // NEW!
-// ...
-
-// NEW!
-layout(set=2, binding=0) uniform Light {
-    vec3 light_position;
-    vec3 light_color;
+```wgsl
+struct VertexInput {
+    [[location(0)]] position: vec3<f32>;
+    [[location(1)]] tex_coords: vec2<f32>;
+    [[location(2)]] normal: vec3<f32>;
+    [[location(3)]] tangent: vec3<f32>;
+    [[location(4)]] bitangent: vec3<f32>;
 };
 ```
 
-Now we'll convert the other lighting values as follows.
+Next we'll construct the `tangent_matrix` and then transform the vertex, light and view position into tangent space.
 
-```glsl
-void main() {
+```wgsl
+struct VertexOutput {
+    [[builtin(position)]] clip_position: vec4<f32>;
+    [[location(0)]] tex_coords: vec2<f32>;
+    // UPDATED!
+    [[location(1)]] tangent_position: vec3<f32>;
+    [[location(2)]] tangent_light_position: vec3<f32>;
+    [[location(3)]] tangent_view_position: vec3<f32>;
+};
+
+[[stage(vertex)]]
+fn main(
+    model: VertexInput,
+    instance: InstanceInput,
+) -> VertexOutput {
     // ...
+    let normal_matrix = mat3x3<f32>(
+        instance.normal_matrix_0,
+        instance.normal_matrix_1,
+        instance.normal_matrix_2,
+    );
 
-    // UDPATED!
-    mat3 tangent_matrix = transpose(mat3(
-        tangent,
-        bitangent,
-        normal
+    // Construct the tangent matrix
+    let world_normal = normalize(normal_matrix * model.normal);
+    let world_tangent = normalize(normal_matrix * model.tangent);
+    let world_bitangent = normalize(normal_matrix * model.bitangent);
+    let tangent_matrix = transpose(mat3x3<f32>(
+        world_tangent,
+        world_bitangent,
+        world_normal,
     ));
 
-    vec4 model_space = model_matrix * vec4(a_position, 1.0);
-    v_position = model_space.xyz;
+    let world_position = model_matrix * vec4<f32>(model.position, 1.0);
 
-    // NEW!
-    v_position = tangent_matrix * model_space.xyz;
-    v_light_position = tangent_matrix * light_position;
-    v_view_position = tangent_matrix * u_view_position;
-    // ...
+    var out: VertexOutput;
+    out.clip_position = uniforms.view_proj * world_position;
+    out.tex_coords = model.tex_coords;
+    out.tangent_position = tangent_matrix * world_position.xyz;
+    out.tangent_view_position = tangent_matrix * uniforms.view_pos.xyz;
+    out.tangent_light_position = tangent_matrix * light.position;
+    return out;
 }
 ```
 
-Finally we'll update `shader.frag` to import and use the transformed lighting values.
+Finally we'll update the fragment shader to use these transformed lighting values.
 
-```glsl
-#version 450
+```wgsl
+[[stage(fragment)]]
+fn main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
+    // Sample textures..
 
-layout(location=0) in vec2 v_tex_coords;
-layout(location=1) in vec3 v_position; // UPDATED!
-layout(location=2) in vec3 v_light_position; // NEW!
-layout(location=3) in vec3 v_view_position; // NEW!
-// ...
-void main() {
-    // ...
+    // Create the lighting vectors
+    let tangent_normal = object_normal.xyz * 2.0 - 1.0;
+    let light_dir = normalize(in.tangent_light_position - in.tangent_position);
+    let view_dir = normalize(in.tangent_view_position - in.tangent_position);
 
-    vec3 normal = normalize(object_normal.rgb); // UPDATED!
-    vec3 light_dir = normalize(v_light_position - v_position); // UPDATED!
-    // ...
-
-    vec3 view_dir = normalize(v_view_position - v_position); // UPDATED!
-    // ...
+    // Perform lighting calculations...
 }
 ```
 
-The resulting image isn't noticeably different so I won't show it here, but the calculation definitely is more efficient.
+We get the following from this calculation.
+
+![](./normal_mapping_correct.png)
 
 ## Srgb and normal textures
 
