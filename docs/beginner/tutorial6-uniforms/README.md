@@ -224,31 +224,42 @@ render_pass.draw_indexed(0..self.num_indices, 0, 0..1);
 
 ## Using the uniforms in the vertex shader
 
-Modify `shader.vert` to include the following.
+Modify the vertex shader to include the following.
 
-```glsl
-#version 450
+```wgsl
+// Vertex shader
 
-layout(location=0) in vec3 a_position;
-layout(location=1) in vec2 a_tex_coords;
+[[block]] // 1.
+struct Uniforms {
+    view_proj: mat4x4<f32>;
+};
+[[group(1), binding(0)]] // 2.
+var<uniform> uniforms: Uniforms;
 
-layout(location=0) out vec2 v_tex_coords;
-
-// NEW!
-layout(set=1, binding=0) // 1.
-uniform Uniforms {
-    mat4 u_view_proj; // 2.
+struct VertexInput {
+    [[location(0)]] position: vec3<f32>;
+    [[location(1)]] tex_coords: vec2<f32>;
 };
 
-void main() {
-    v_tex_coords = a_tex_coords;
-    gl_Position = u_view_proj * vec4(a_position, 1.0); // 3.
+struct VertexOutput {
+    [[builtin(position)]] clip_position: vec4<f32>;
+    [[location(0)]] tex_coords: vec2<f32>;
+};
+
+[[stage(vertex)]]
+fn main(
+    model: VertexInput,
+) -> VertexOutput {
+    var out: VertexOutput;
+    out.tex_coords = model.tex_coords;
+    out.clip_position = uniforms.view_proj * vec4<f32>(model.position, 1.0); // 3.
+    return out;
 }
 ```
 
-1. Because we've created a new bind group, we need to specify which one we're using in the shader. The number is determined by our `render_pipeline_layout`. The `texture_bind_group_layout` is listed first, thus it's `set=0`, and `uniform_bind_group` is second, so it's `set=1`.
-2. The `uniform` block requires us to specify global identifiers for all the fields we intend to use. It's important to only specify fields that are actually in our uniform buffer, as trying to access data that isn't there may lead to undefined behavior.
-3. Multiplication order is important when it comes to matrices. The vector always goes on the right, and the matrices gone on the left in order of importance.
+1. The according to the [WGSL Spec](https://gpuweb.github.io/gpuweb/wgsl/), The block decorator indicates this structure type represents the contents of a buffer resource occupying a single binding slot in the shader’s resource interface. Any structure used as a `uniform` must be annotated with `[[block]]`
+2. Because we've created a new bind group, we need to specify which one we're using in the shader. The number is determined by our `render_pipeline_layout`. The `texture_bind_group_layout` is listed first, thus it's `group(0)`, and `uniform_bind_group` is second, so it's `group(1)`.
+3. Multiplication order is important when it comes to matrices. The vector goes on the right, and the matrices gone on the left in order of importance.
 
 ## A controller for our camera
 

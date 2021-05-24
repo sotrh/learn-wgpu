@@ -19,71 +19,107 @@ We use a vertex shader to manipulate the vertices, in order to transform the sha
 
 The vertices are then converted into fragments. Every pixel in the result image gets at least one fragment. Each fragment has a color that will be copied to its corresponding pixel. The fragment shader decides what color the fragment will be.
 
-## GLSL and SPIR-V
-Shaders in `wgpu` are written with a binary language called [SPIR-V](https://www.khronos.org/registry/spir-v/). SPIR-V is designed for computers to read, not people, so we're going to use a language called GLSL (specifically, with `wgpu` we need to use the [Vulkan flavor of GLSL](https://github.com/KhronosGroup/GLSL/blob/master/extensions/khr/GL_KHR_vulkan_glsl.txt)) to write our code, and then convert that to SPIR-V.
+## WGSL
 
-In order to do that, we're going to need something to do the conversion. Add the following crate to your dependencies.
+WebGPU supports two shader languages natively: SPIR-V, and WGSL. SPIR-V is actually a binary format developed by Kronos to be a compilation target for other languages such as GLSL and HLSL. It allows for easy porting of code. The only problem is that it's not human readable as it's a binary language. WGSL is meant to fix that. WGSL's development focuses on getting it to easily convert into SPIR-V. WGPU even allows us to supply WGSL for our shaders. 
 
-```toml
-[dependencies]
-# ...
-shaderc = "0.7"
-```
+<div class="note">
 
-We'll use this in a bit, but first let's create the shaders.
+If you've gone through this tutorial before you'll likely notice that I've switched from using GLSL to using WGSL. Given that GLSL support is a secondary concern and that WGSL is the first class language of WGPU, I've elected to convert all the tutorials to use WGSL. Some of the showcase examples still use GLSL, but the main tutorial and all examples going forward will be using WGSL.
+
+</div>
+
+<div class="note">
+
+The WGSL spec and it's inclusion in WGPU is still in development. If you run into trouble using it, you may want the folks at [https://app.element.io/#/room/#wgpu:matrix.org](https://app.element.io/#/room/#wgpu:matrix.org) to take a look at your code.
+
+</div>
 
 ## Writing the shaders
-In the same folder as `main.rs`, create two (2) files: `shader.vert`, and `shader.frag`. Write the following code in `shader.vert`.
+In the same folder as `main.rs`, create a file `shader.wgsl`. Write the following code in `shader.wgsl`.
 
-```glsl
-// shader.vert
-#version 450
+```wgsl
+// Vertex shader
 
-const vec2 positions[3] = vec2[3](
-    vec2(0.0, 0.5),
-    vec2(-0.5, -0.5),
-    vec2(0.5, -0.5)
-);
+struct VertexOutput {
+    [[builtin(position)]] clip_position: vec4<f32>;
+};
 
-void main() {
-    gl_Position = vec4(positions[gl_VertexIndex], 0.0, 1.0);
+[[stage(vertex)]]
+fn main(
+    [[builtin(vertex_index)]] in_vertex_index: u32,
+) -> VertexOutput {
+    var out: VertexOutput;
+    let x = f32(1 - i32(in_vertex_index)) * 0.5;
+    let y = f32(i32(in_vertex_index & 1u) * 2 - 1) * 0.5;
+    out.clip_position = vec4<f32>(x, y, 0.0, 1.0);
+    return out;
 }
 ```
 
-If you've used C/C++ before (or even Java), this syntax should be somewhat familiar. There are some key differences though that i'll go over.
+First we declare `struct` to store the inputs the output of our vertex shader. This consists of only one field currently which is our vertex's `clip_position`. The `[[builtin(position)]]` bit tells WGPU that this is the value we want to use as the vertex's [clip coordinates](https://en.wikipedia.org/wiki/Clip_coordinates). This is analogous to GLSL's `gl_Position` variable.
 
-First up there's the `#version 450` line. This specifies the version of GLSL that we're using. I've gone with a later version so we can use many of the advanced GLSL features.
+<div class="note">
 
-We're currently storing vertex data in the shader as `positions`. This is bad practice as it limits what we can draw with this shader, and it can make the shader super big if we want to use a complex model. Using actual vertex data requires us to use `Buffer`s, which we'll talk about next time, so we'll turn a blind eye for now.
+Vector types such as `vec4` are generic. Currently you must specify the type of value the vector will contain. Thus a 3D vector using 32bit floats would be `vec3<f32>`.
 
-There's also `gl_Position` and `gl_VertexIndex` which are built-in variables that define where the vertex position data is going to be stored as 4 floats, and the index of the current vertex in the vertex data.
+</div>
 
-Next up `shader.frag`.
+The next part of the shader code is the `main` function. We using `[[stage(vertex)]]` to mark this function as a valid entry point for a vertex shader. We expect a `u32` called `in_vertex_index` which gets its value from `[[builtin(vertex_index)]]`.
 
-```glsl
-// shader.frag
-#version 450
+We then declare a variable called `out` using our `VertexOutput` struct. We create two other variables for the `x`, and `y`, of a triangle.
 
-layout(location=0) out vec4 f_color;
+<div class="note">
 
-void main() {
-    f_color = vec4(0.3, 0.2, 0.1, 1.0);
+The `f32()` and `i32()` bits are examples of casts.
+
+</div>
+
+<div class="note">
+
+Variables defined with `var` can be modified, but must specify their type. Variables created with `let` can have their types inferred, but their value cannot be changed during the shader.
+
+</div>
+
+Now we can save our `clip_position` to `out`. We then just return `out` and we're done with the vertex shader!
+
+<div class="note">
+
+We technically didn't need a struct for this example, and could have just done something like the following:
+
+```wgsl
+[[stage(vertex)]]
+fn main(
+    [[builtin(vertex_index)]] in_vertex_index: u32
+) -> [[builtin(position)]] vec4<f32> {
+    // Vertex shader code...
 }
 ```
 
-The part that sticks out is the `layout(location=0) out vec4 f_color;` line. In GLSL you can create `in` and `out` variables in your shaders. An `in` variable will expect data from outside the shader. In the case of the vertex shader, this will come from vertex data. In a fragment shader, an `in` variable will pull from `out` variables in the vertex shader. When an `out` variable is defined in the fragment shader, it means that the value is meant to be written to a buffer to be used outside the shader program.
+We'll be adding more fields to `VertexOutput` later, so we might as well start using it now.
 
-`in` and `out` variables can also specify a layout. In `shader.frag` we specify that the `out vec4 f_color` should be `layout(location=0)`; this means that the value of `f_color` will be saved to whatever buffer is at location zero in our application. In most cases, `location=0` is the current texture from the swapchain aka the screen.
+</div>
 
-You may have noticed that `shader.vert` doesn't have any `in` variables nor `out` variables. `gl_Position` functions as an out variable for vertex position data, so `shader.vert` doesn't need any `out` variables. If we wanted to send more data to fragment shader, we could specify an `out` variable in `shader.vert` and an in variable in `shader.frag`. *Note: the location has to match, otherwise the GLSL code will fail to compile*
+Next up the fragment shader. Still in `shader.wgsl` add the follow:
 
-```glsl
-// shader.vert
-layout(location=0) out vec4 v_color;
+```wgsl
+// Fragment shader
 
-// shader.frag
-layout(location=0) in vec4 v_color;
+[[stage(fragment)]]
+fn main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
+    return vec4<f32>(0.3, 0.2, 0.1, 1.0);
+}
 ```
+
+All this does is set the color of the current fragment to brown color.
+
+<div class="note">
+
+Notice that this function is also called `main`. Because this function is marked as a fragment shader entry point, this is ok. You can change the names around if you like, but I've opted to keep them the same.
+
+</div>
+
+The `[[location(0)]]` bit tells WGPU to store the value the `vec4` returned by this function in the first color target. We'll get into what this is later.
 
 ## How do we use the shaders?
 This is the part where we finally make the thing in the title: the pipeline. First let's modify `State` to include the following.
@@ -105,22 +141,10 @@ struct State {
 Now let's move to the `new()` method, and start making the pipeline. We'll have to load in those shaders we made earlier, as the `render_pipeline` requires those.
 
 ```rust
-let vs_src = include_str!("shader.vert");
-let fs_src = include_str!("shader.frag");
-let mut compiler = shaderc::Compiler::new().unwrap();
-let vs_spirv = compiler.compile_into_spirv(vs_src, shaderc::ShaderKind::Vertex, "shader.vert", "main", None).unwrap();
-let fs_spirv = compiler.compile_into_spirv(fs_src, shaderc::ShaderKind::Fragment, "shader.frag", "main", None).unwrap();
-let vs_data = wgpu::util::make_spirv(vs_spirv.as_binary_u8());
-let fs_data = wgpu::util::make_spirv(fs_spirv.as_binary_u8());
-let vs_module = device.create_shader_module(&wgpu::ShaderModuleDescriptor {
-    label: Some("Vertex Shader"),
-    source: vs_data,
-    flags: wgpu::ShaderFlags::default(),
-});
-let fs_module = device.create_shader_module(&wgpu::ShaderModuleDescriptor {
-    label: Some("Fragment Shader"),
-    source: fs_data,
-    flags: wgpu::ShaderFlags::default(),
+let shader = device.create_shader_module(&wgpu::ShaderModuleDescriptor {
+    label: Some("Shader"),
+    flags: wgpu::ShaderFlags::all(),
+    source: wgpu::ShaderSource::Wgsl(include_str!("shader.wgsl").into()),
 });
 ```
 
@@ -142,12 +166,12 @@ let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescrip
     label: Some("Render Pipeline"),
     layout: Some(&render_pipeline_layout),
     vertex: wgpu::VertexState {
-        module: &vs_module,
+        module: &shader,
         entry_point: "main", // 1.
         buffers: &[], // 2.
     },
     fragment: Some(wgpu::FragmentState { // 3.
-        module: &fs_module,
+        module: &shader,
         entry_point: "main",
         targets: &[wgpu::ColorTargetState { // 4.
             format: sc_desc.format,
@@ -160,17 +184,17 @@ let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescrip
 ```
 
 Two things to note here:
-1. Here you can specify which function inside of the shader should be called, which is known as the `entry_point`. I normally use `"main"` as that's what it would be in OpenGL, but feel free to use whatever name you like. Make sure you specify the same entry point when you're compiling your shaders as you do here where you're exposing them to your pipeline.
+1. Here you can specify which function inside of the shader should be called, which is known as the `entry_point`. These are the functions we marked with `[[stage(vertex)]]` and `[[stage(fragment)]]`
 2. The `buffers` field tells `wgpu` what type of vertices we want to pass to the vertex shader. We're specifying the vertices in the vertex shader itself so we'll leave this empty. We'll put something there in the next tutorial.
 3. The `fragment_stage` is technically optional, so you have to wrap it in `Some()`. We need it if we want to store color data to the `swap_chain`.
-4. The `targets` field tells `wgpu` what color outputs it should set up. Currently we only need one for the `swap_chain`. We use the `swap_chain`'s format so that copying to it is easy, and we specify that the blending should just replace old pixel data with new data. We also tell `wgpu` to write to all colors: red, blue, green, and alpha. *We'll talk more about*`color_state` *when we talk about textures.*
+4. The `targets` field tells `wgpu` what color outputs it should set up.Currently we only need one for the `swap_chain`. We use the `swap_chain`'s format so that copying to it is easy, and we specify that the blending should just replace old pixel data with new data. We also tell `wgpu` to write to all colors: red, blue, green, and alpha. *We'll talk more about*`color_state` *when we talk about textures.*
 
 ```rust
     primitive: wgpu::PrimitiveState {
         topology: wgpu::PrimitiveTopology::TriangleList, // 1.
         strip_index_format: None,
         front_face: wgpu::FrontFace::Ccw, // 2.
-        cull_mode: wgpu::CullMode::Back,
+        cull_mode: Some(wgpu::Face::Back),
         // Setting this to anything other than Fill requires Features::NON_FILL_POLYGON_MODE
         polygon_mode: wgpu::PolygonMode::Fill,
     },
@@ -228,7 +252,8 @@ If you run your program now, it'll take a little longer to start, but it will st
     let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
         label: Some("Render Pass"),
         color_attachments: &[
-            wgpu::RenderPassColorAttachmentDescriptor {
+            // This is what [[location(0)]] in the fragment shader targets
+            wgpu::RenderPassColorAttachment {
                 attachment: &frame.view,
                 resolve_target: None,
                 ops: wgpu::Operations {
@@ -257,138 +282,14 @@ If you run your program now, it'll take a little longer to start, but it will st
 We didn't change much, but let's talk about what we did change.
 1. We renamed `_render_pass` to `render_pass` and made it mutable.
 2. We set the pipeline on the `render_pass` using the one we just created.
-3. We tell `wgpu` to draw *something* with 3 vertices, and 1 instance. This is where `gl_VertexIndex` comes from.
+3. We tell `wgpu` to draw *something* with 3 vertices, and 1 instance. This is where `[[builtin(vertex_index)]]` comes from.
 
 With all that you should be seeing a lovely brown triangle.
 
 ![Said lovely brown triangle](./tutorial3-pipeline-triangle.png)
 
-## Compiling shaders and include_spirv
-
-Currently we're compiling our shaders when our program starts up, and while this is a valid way of doing things it slows down our programs start up considerably. It also prevents us from using wgpu's `include_spirv` convenience macro that would inline the spirv code directly. Doing this would also remove our dependency on shaderc (at least for the runtime code).
-
-We can do this using a build script. A build script is a file that runs when cargo is compiling your project. We can use it for all sorts of things including compiling our shaders!
-
-Add a file called `build.rs` at the same level as the src directory. It should be at in the same folder as your `Cargo.toml`.
-
-We'll start writing code in it in a bit. First we need to add some things to our `Cargo.toml`.
-
-```toml
-[dependencies]
-image = "0.23"
-winit = "0.24"
-# shaderc = "0.7" # REMOVED!
-cgmath = "0.18"
-wgpu = "0.7"
-futures = "0.3"
-
-# NEW!
-[build-dependencies]
-anyhow = "1.0"
-fs_extra = "1.1"
-glob = "0.3"
-shaderc = "0.7"
-```
-
-We've removed shaderc from our dependencies and added a new `[build-depencies]` block. These are dependencies for our build script. We know about shaderc, but the other ones are meant to simplify dealing with the file system and dealing with rust errors.
-
-Now we can put some code in our `build.rs`.
-
-```rust
-use anyhow::*;
-use glob::glob;
-use std::fs::{read_to_string, write};
-use std::path::PathBuf;
-
-struct ShaderData {
-    src: String,
-    src_path: PathBuf,
-    spv_path: PathBuf,
-    kind: shaderc::ShaderKind,
-}
-
-impl ShaderData {
-    pub fn load(src_path: PathBuf) -> Result<Self> {
-        let extension = src_path
-            .extension()
-            .context("File has no extension")?
-            .to_str()
-            .context("Extension cannot be converted to &str")?;
-        let kind = match extension {
-            "vert" => shaderc::ShaderKind::Vertex,
-            "frag" => shaderc::ShaderKind::Fragment,
-            "comp" => shaderc::ShaderKind::Compute,
-            _ => bail!("Unsupported shader: {}", src_path.display()),
-        };
-
-        let src = read_to_string(src_path.clone())?;
-        let spv_path = src_path.with_extension(format!("{}.spv", extension));
-
-        Ok(Self {
-            src,
-            src_path,
-            spv_path,
-            kind,
-        })
-    }
-}
-
-fn main() -> Result<()> {
-    // Collect all shaders recursively within /src/
-    let mut shader_paths = [
-        glob("./src/**/*.vert")?,
-        glob("./src/**/*.frag")?,
-        glob("./src/**/*.comp")?,
-    ];
-
-    // This could be parallelized
-    let shaders = shader_paths
-        .iter_mut()
-        .flatten()
-        .map(|glob_result| ShaderData::load(glob_result?))
-        .collect::<Vec<Result<_>>>()
-        .into_iter()
-        .collect::<Result<Vec<_>>>()?;
-
-    let mut compiler = shaderc::Compiler::new().context("Unable to create shader compiler")?;
-
-    // This can't be parallelized. The [shaderc::Compiler] is not
-    // thread safe. Also, it creates a lot of resources. You could
-    // spawn multiple processes to handle this, but it would probably
-    // be better just to only compile shaders that have been changed
-    // recently.
-    for shader in shaders {
-        // This tells cargo to rerun this script if something in /src/ changes.
-        println!("cargo:rerun-if-changed={}", shader.src_path.as_os_str().to_str().unwrap());
-        
-        let compiled = compiler.compile_into_spirv(
-            &shader.src,
-            shader.kind,
-            &shader.src_path.to_str().unwrap(),
-            "main",
-            None,
-        )?;
-        write(shader.spv_path, compiled.as_binary_u8())?;
-    }
-
-    Ok(())
-}
-```
-
-With that in place we can replace our shader compiling code in `main.rs` with just two lines!
-
-```rust
-let vs_module = device.create_shader_module(&wgpu::include_spirv!("shader.vert.spv"));
-let fs_module = device.create_shader_module(&wgpu::include_spirv!("shader.frag.spv"));
-```
-
-<div class="note">
-
-I'm glossing over the code in the build script as this guide is focused on wgpu related topics. Designing build scripts is a topic in and of itself, and going into it in detail would be quite a long tangent. You can learn more about build scripts in [The Cargo Book](https://doc.rust-lang.org/cargo/reference/build-scripts.html).
-
-</div>
 
 ## Challenge
-Create a second pipeline that uses the triangle's position data to create a color that it then sends to the fragment shader to use for `f_color`. Have the app swap between these when you press the spacebar. *Hint: use* `in` *and* `out` *variables in a separate shader.*
+Create a second pipeline that uses the triangle's position data to create a color that it then sends to the fragment shader. Have the app swap between these when you press the spacebar. *Hint: you'll need to modify* `VertexOutput`
 
 <AutoGithubLink/>

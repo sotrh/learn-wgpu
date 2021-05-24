@@ -1,7 +1,7 @@
 extern crate framework;
 
 use anyhow::*;
-use std::{iter, mem};
+use std::{iter, mem, num::NonZeroU32};
 
 async fn run() {
     let instance = wgpu::Instance::new(wgpu::BackendBit::PRIMARY);
@@ -38,7 +38,7 @@ async fn run() {
         size: wgpu::Extent3d {
             width: texture_size,
             height: texture_size,
-            depth: 1,
+            depth_or_array_layers: 1,
         },
         mip_level_count: 1,
         sample_count: 1,
@@ -80,8 +80,8 @@ async fn run() {
 
         let mut rpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("GIF Pass"),
-            color_attachments: &[wgpu::RenderPassColorAttachmentDescriptor {
-                attachment: &render_target.view,
+            color_attachments: &[wgpu::RenderPassColorAttachment {
+                view: &render_target.view,
                 resolve_target: None,
                 ops: wgpu::Operations {
                     load: wgpu::LoadOp::Clear(wgpu::Color {
@@ -102,17 +102,17 @@ async fn run() {
         drop(rpass);
 
         encoder.copy_texture_to_buffer(
-            wgpu::TextureCopyView {
+            wgpu::ImageCopyTexture {
                 texture: &render_target.texture,
                 mip_level: 0,
                 origin: wgpu::Origin3d::ZERO,
             },
-            wgpu::BufferCopyView {
+            wgpu::ImageCopyBuffer {
                 buffer: &output_buffer,
-                layout: wgpu::TextureDataLayout {
+                layout: wgpu::ImageDataLayout {
                     offset: 0,
-                    bytes_per_row: padded_bytes_per_row,
-                    rows_per_image: texture_size,
+                    bytes_per_row: NonZeroU32::new(padded_bytes_per_row),
+                    rows_per_image: NonZeroU32::new(texture_size),
                 },
             },
             render_target.desc.size,
@@ -187,22 +187,23 @@ fn create_render_pipeline(
         fragment: Some(wgpu::FragmentState {
             module: &fs_module,
             entry_point: "main",
-            targets: &[
-                wgpu::ColorTargetState {
-                    format: target.desc.format,
-                    color_blend: wgpu::BlendState::REPLACE,
-                    alpha_blend: wgpu::BlendState::REPLACE,
-                    write_mask: wgpu::ColorWrite::ALL,
-                }
-            ]
+            targets: &[wgpu::ColorTargetState {
+                format: target.desc.format,
+                blend: Some(wgpu::BlendState::REPLACE),
+                write_mask: wgpu::ColorWrite::ALL,
+            }],
         }),
         primitive: wgpu::PrimitiveState {
             topology: wgpu::PrimitiveTopology::TriangleList,
             strip_index_format: None,
             front_face: wgpu::FrontFace::Ccw,
-            cull_mode: wgpu::CullMode::Back,
+            cull_mode: Some(wgpu::Face::Back),
             // Setting this to anything other than Fill requires Features::NON_FILL_POLYGON_MODE
             polygon_mode: wgpu::PolygonMode::Fill,
+            // Requires Features::DEPTH_CLAMPING
+            clamp_depth: false,
+            // Requires Features::CONSERVATIVE_RASTERIZATION
+            conservative: false,
         },
         depth_stencil: None,
         multisample: wgpu::MultisampleState {

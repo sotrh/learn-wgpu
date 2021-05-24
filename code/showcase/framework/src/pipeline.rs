@@ -6,7 +6,7 @@ pub struct RenderPipelineBuilder<'a> {
     vertex_shader: Option<wgpu::ShaderModuleDescriptor<'a>>,
     fragment_shader: Option<wgpu::ShaderModuleDescriptor<'a>>,
     front_face: wgpu::FrontFace,
-    cull_mode: wgpu::CullMode,
+    cull_mode: Option<wgpu::Face>,
     depth_bias: i32,
     depth_bias_slope_scale: f32,
     depth_bias_clamp: f32,
@@ -27,7 +27,7 @@ impl<'a> RenderPipelineBuilder<'a> {
             vertex_shader: None,
             fragment_shader: None,
             front_face: wgpu::FrontFace::Ccw,
-            cull_mode: wgpu::CullMode::None,
+            cull_mode: None,
             depth_bias: 0,
             depth_bias_slope_scale: 0.0,
             depth_bias_clamp: 0.0,
@@ -64,7 +64,7 @@ impl<'a> RenderPipelineBuilder<'a> {
     }
 
     #[allow(dead_code)]
-    pub fn cull_mode(&mut self, cm: wgpu::CullMode) -> &mut Self {
+    pub fn cull_mode(&mut self, cm: Option<wgpu::Face>) -> &mut Self {
         self.cull_mode = cm;
         self
     }
@@ -102,8 +102,7 @@ impl<'a> RenderPipelineBuilder<'a> {
     pub fn color_solid(&mut self, format: wgpu::TextureFormat) -> &mut Self {
         self.color_state(wgpu::ColorTargetState {
             format,
-            alpha_blend: wgpu::BlendState::REPLACE,
-            color_blend: wgpu::BlendState::REPLACE,
+            blend: None,
             write_mask: wgpu::ColorWrite::ALL,
         })
     }
@@ -125,8 +124,6 @@ impl<'a> RenderPipelineBuilder<'a> {
             depth_write_enabled,
             depth_compare,
             stencil: Default::default(),
-            // Setting this to true requires Features::DEPTH_CLAMPING
-            clamp_depth: false,
             bias: wgpu::DepthBiasState::default(),
         })
     }
@@ -224,6 +221,7 @@ impl<'a> RenderPipelineBuilder<'a> {
                 cull_mode: self.cull_mode,
                 strip_index_format: None,
                 polygon_mode: wgpu::PolygonMode::Fill,
+                ..Default::default()
             },
             depth_stencil: self.depth_stencil.clone(),
             multisample: wgpu::MultisampleState {

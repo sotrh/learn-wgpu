@@ -30,7 +30,7 @@ impl Texture {
         let size = wgpu::Extent3d { // 2.
             width: sc_desc.width,
             height: sc_desc.height,
-            depth: 1,
+            depth_or_array_layers: 1,
         };
         let desc = wgpu::TextureDescriptor {
             label: Some(label),
@@ -145,7 +145,7 @@ The last change we need to make is in the `render()` function. We've created the
 let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
     // ...
     depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachmentDescriptor {
-        attachment: &self.depth_texture.view,
+        view: &self.depth_texture.view,
         depth_ops: Some(wgpu::Operations {
             load: wgpu::LoadOp::Clear(1.0),
             store: true,

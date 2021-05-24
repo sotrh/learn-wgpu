@@ -19,6 +19,7 @@ pub struct ModelVertex {
     normal: [f32; 3],
     tangent: [f32; 3],
     bitangent: [f32; 3],
+    padding: [u32; 2],
 }
 
 impl Vertex for ModelVertex {
@@ -31,32 +32,32 @@ impl Vertex for ModelVertex {
                 wgpu::VertexAttribute {
                     offset: 0,
                     shader_location: 0,
-                    format: wgpu::VertexFormat::Float3,
+                    format: wgpu::VertexFormat::Float32x3,
                 },
                 wgpu::VertexAttribute {
                     offset: mem::size_of::<[f32; 3]>() as wgpu::BufferAddress,
                     shader_location: 1,
-                    // format: wgpu::VertexFormat::Float3,
-                    format: wgpu::VertexFormat::Float2,
+                    // format: wgpu::VertexFormat::Float32x3,
+                    format: wgpu::VertexFormat::Float32x2,
                 },
                 wgpu::VertexAttribute {
                     // offset: mem::size_of::<[f32; 6]>() as wgpu::BufferAddress,
                     offset: mem::size_of::<[f32; 5]>() as wgpu::BufferAddress,
                     shader_location: 2,
-                    format: wgpu::VertexFormat::Float3,
+                    format: wgpu::VertexFormat::Float32x3,
                 },
                 // Tangent and bitangent
                 wgpu::VertexAttribute {
                     // offset: mem::size_of::<[f32; 9]>() as wgpu::BufferAddress,
                     offset: mem::size_of::<[f32; 8]>() as wgpu::BufferAddress,
                     shader_location: 3,
-                    format: wgpu::VertexFormat::Float3,
+                    format: wgpu::VertexFormat::Float32x3,
                 },
                 wgpu::VertexAttribute {
                     // offset: mem::size_of::<[f32; 12]>() as wgpu::BufferAddress,
                     offset: mem::size_of::<[f32; 11]>() as wgpu::BufferAddress,
                     shader_location: 4,
-                    format: wgpu::VertexFormat::Float3,
+                    format: wgpu::VertexFormat::Float32x3,
                 },
             ],
         }
@@ -142,9 +143,7 @@ impl pipeline::Bindable for BitangentComputeBinding {
                 binding: 0,
                 visibility: wgpu::ShaderStage::COMPUTE,
                 ty: wgpu::BindingType::Buffer {
-                    ty: wgpu::BufferBindingType::Storage {
-                        read_only: true,
-                    },
+                    ty: wgpu::BufferBindingType::Storage { read_only: true },
                     has_dynamic_offset: false,
                     min_binding_size: None,
                 },
@@ -296,20 +295,18 @@ impl ModelLoader {
                                 m.mesh.positions[i * 3],
                                 m.mesh.positions[i * 3 + 1],
                                 m.mesh.positions[i * 3 + 2],
-                            ]
-                            .into(),
+                            ],
                             // tex_coords: [m.mesh.texcoords[i * 2], m.mesh.texcoords[i * 2 + 1], 0.0]
-                            tex_coords: [m.mesh.texcoords[i * 2], m.mesh.texcoords[i * 2 + 1]]
-                                .into(),
+                            tex_coords: [m.mesh.texcoords[i * 2], m.mesh.texcoords[i * 2 + 1]],
                             normal: [
                                 m.mesh.normals[i * 3],
                                 m.mesh.normals[i * 3 + 1],
                                 m.mesh.normals[i * 3 + 2],
-                            ]
-                            .into(),
+                            ],
                             // We'll calculate these later
-                            tangent: [0.0; 3].into(),
-                            bitangent: [0.0; 3].into(),
+                            tangent: [0.0; 3],
+                            bitangent: [0.0; 3],
+                            padding: [0; 2],
                         }
                     })
                     .collect::<Vec<_>>();

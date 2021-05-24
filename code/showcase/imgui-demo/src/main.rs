@@ -115,7 +115,8 @@ impl framework::Demo for ImguiDemo {
 
         let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("UI RenderPass"),
-            color_attachments: &[wgpu::RenderPassColorAttachmentDescriptor {
+            color_attachments: &[wgpu::RenderPassColorAttachment {
+                    view: &frame.view,
                 attachment: &output.view,
                 resolve_target: None,
                 ops: wgpu::Operations {

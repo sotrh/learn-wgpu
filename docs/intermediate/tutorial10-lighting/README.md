@@ -116,27 +116,27 @@ fn create_render_pipeline(
     color_format: wgpu::TextureFormat,
     depth_format: Option<wgpu::TextureFormat>,
     vertex_layouts: &[wgpu::VertexBufferLayout],
-    vs_src: wgpu::ShaderModuleDescriptor,
-    fs_src: wgpu::ShaderModuleDescriptor,
+    shader: wgpu::ShaderModuleDescriptor,
 ) -> wgpu::RenderPipeline {
-    let vs_module = device.create_shader_module(&vs_src);
-    let fs_module = device.create_shader_module(&fs_src);
+    let shader = device.create_shader_module(&shader);
 
     device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
         label: Some("Render Pipeline"),
         layout: Some(&layout),
         vertex: wgpu::VertexState {
-            module: &vs_module,
+            module: &shader,
             entry_point: "main",
             buffers: vertex_layouts,
         },
         fragment: Some(wgpu::FragmentState {
-            module: &fs_module,
+            module: &shader,
             entry_point: "main",
             targets: &[wgpu::ColorTargetState {
                 format: color_format,
-                alpha_blend: wgpu::BlendState::REPLACE,
-                color_blend: wgpu::BlendState::REPLACE,
+                blend: Some(wgpu::BlendState {
+                    alpha: wgpu::BlendComponent::REPLACE,
+                    color: wgpu::BlendComponent::REPLACE,
+                }),
                 write_mask: wgpu::ColorWrite::ALL,
             }],
         }),
@@ -144,9 +144,13 @@ fn create_render_pipeline(
             topology: wgpu::PrimitiveTopology::TriangleList,
             strip_index_format: None,
             front_face: wgpu::FrontFace::Ccw,
-            cull_mode: wgpu::CullMode::Back,
+            cull_mode: Some(wgpu::Face::Back),
             // Setting this to anything other than Fill requires Features::NON_FILL_POLYGON_MODE
             polygon_mode: wgpu::PolygonMode::Fill,
+            // Requires Features::DEPTH_CLAMPING
+            clamp_depth: false,
+            // Requires Features::CONSERVATIVE_RASTERIZATION
+            conservative: false,
         },
         depth_stencil: depth_format.map(|format| wgpu::DepthStencilState {
             format,
@@ -154,8 +158,6 @@ fn create_render_pipeline(
             depth_compare: wgpu::CompareFunction::Less,
             stencil: wgpu::StencilState::default(),
             bias: wgpu::DepthBiasState::default(),
-            // Setting this to true requires Features::DEPTH_CLAMPING
-            clamp_depth: false,
         }),
         multisample: wgpu::MultisampleState {
             count: 1,
@@ -169,15 +171,21 @@ fn create_render_pipeline(
 We also need to change `State::new()` to use this function.
 
 ```rust
-let render_pipeline = create_render_pipeline(
-    &device,
-    &render_pipeline_layout,
-    sc_desc.format,
-    Some(texture::Texture::DEPTH_FORMAT),
-    &[model::ModelVertex::desc(), InstanceRaw::desc()],
-    wgpu::include_spirv!("shader.vert.spv"),
-    wgpu::include_spirv!("shader.frag.spv"),
-);
+let render_pipeline = {
+    let shader = wgpu::ShaderModuleDescriptor {
+        label: Some("Normal Shader"),
+        flags: wgpu::ShaderFlags::all(),
+        source: wgpu::ShaderSource::Wgsl(include_str!("shader.wgsl").into()),
+    };
+    create_render_pipeline(
+        &device,
+        &render_pipeline_layout,
+        sc_desc.format,
+        Some(texture::Texture::DEPTH_FORMAT),
+        &[model::ModelVertex::desc(), InstanceRaw::desc()],
+        shader,
+    )
+};
 ```
 
 We're going to need to modify `model::DrawModel` to use our `light_bind_group`.
@@ -281,15 +289,18 @@ let light_render_pipeline = {
         bind_group_layouts: &[&uniform_bind_group_layout, &light_bind_group_layout],
         push_constant_ranges: &[],
     });
-
+    let shader = wgpu::ShaderModuleDescriptor {
+        label: Some("Light Shader"),
+        flags: wgpu::ShaderFlags::all(),
+        source: wgpu::ShaderSource::Wgsl(include_str!("light.wgsl").into()),
+    };
     create_render_pipeline(
         &device,
         &layout,
         sc_desc.format,
         Some(texture::Texture::DEPTH_FORMAT),
         &[model::ModelVertex::desc()],
-        wgpu::include_spirv!("light.vert.spv"),
-        wgpu::include_spirv!("light.frag.spv"),
+        shader,
     )
 };
 ```
@@ -298,45 +309,50 @@ I chose to create a seperate layout for the `light_render_pipeline`, as it doesn
 
 With that in place we need to write the actual shaders.
 
-```glsl
-// light.vert
-#version 450
+```wgsl
+// Vertex shader
 
-layout(location=0) in vec3 a_position;
+[[block]]
+struct Uniforms {
+    view_pos: vec4<f32>;
+    view_proj: mat4x4<f32>;
+};
+[[group(0), binding(0)]]
+var<uniform> uniforms: Uniforms;
 
-layout(location=0) out vec3 v_color;
+[[block]]
+struct Light {
+    position: vec3<f32>;
+    color: vec3<f32>;
+};
+[[group(1), binding(0)]]
+var<uniform> light: Light;
 
-layout(set=0, binding=0)
-uniform Uniforms {
-    mat4 u_view_proj;
+struct VertexInput {
+    [[location(0)]] position: vec3<f32>;
 };
 
-layout(set=1, binding=0)
-uniform Light {
-    vec3 u_position;
-    vec3 u_color;
+struct VertexOutput {
+    [[builtin(position)]] clip_position: vec4<f32>;
+    [[location(0)]] color: vec3<f32>;
 };
 
-// Let's keep our light smaller than our other objects
-float scale = 0.25;
-
-void main() {
-    vec3 v_position = a_position * scale + u_position;
-    gl_Position = u_view_proj * vec4(v_position, 1);
-
-    v_color = u_color;
+[[stage(vertex)]]
+fn main(
+    model: VertexInput,
+) -> VertexOutput {
+    let scale = 0.25;
+    var out: VertexOutput;
+    out.clip_position = uniforms.view_proj * vec4<f32>(model.position * scale + light.position, 1.0);
+    out.color = light.color;
+    return out;
 }
-```
 
-```glsl
-// light.frag
-#version 450
+// Fragment shader
 
-layout(location=0) in vec3 v_color;
-layout(location=0) out vec4 f_color;
-
-void main() {
-    f_color = vec4(v_color, 1.0);
+[[stage(fragment)]]
+fn main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
+    return vec4<f32>(in.color, 1.0);
 }
 ```
 
@@ -461,30 +477,32 @@ With all that we'll end up with something like this.
 
 Light has a tendency to bounce around before entering our eyes. That's why you can see in areas that are in shadow. Actually modeling this interaction is computationally expensive, so we cheat. We define an ambient lighting value that stands in for the light bouncing of other parts of the scene to light our objects.
 
-The ambient part is based on the light color as well as the object color. We've already added our `light_bind_group`, so we just need to use it in our shader. In `shader.frag`, add the following below the texture uniforms.
+The ambient part is based on the light color as well as the object color. We've already added our `light_bind_group`, so we just need to use it in our shader. In `shader.wgsl`, add the following below the texture uniforms.
 
-```glsl
-layout(set = 2, binding = 0) uniform Light {
-    vec3 light_position;
-    vec3 light_color;
+```wgsl
+[[block]]
+struct Light {
+    position: vec3<f32>;
+    color: vec3<f32>;
 };
+[[group(2), binding(0)]]
+var<uniform> light: Light;
 ```
 
 Then we need to update our main shader code to calculate and use the ambient color value.
 
-```glsl
-void main() {
-    vec4 object_color = texture(sampler2D(t_diffuse, s_diffuse), v_tex_coords);
-
+```wgsl
+[[stage(fragment)]]
+fn main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
+    let object_color: vec4<f32> = textureSample(t_diffuse, s_diffuse, in.tex_coords);
+    
     // We don't need (or want) much ambient light, so 0.1 is fine
-    float ambient_strength = 0.1;
-    vec3 ambient_color = light_color * ambient_strength;
+    let ambient_strength = 0.1;
+    let ambient_color = light.color * ambient_strength;
 
-    vec3 result = ambient_color * object_color.xyz;
+    let result = ambient_color * object_color.xyz;
 
-    // Since lights don't typically (afaik) cast transparency, so we use
-    // the alpha here at the end.
-    f_color = vec4(result, object_color.a);
+    return vec4<f32>(result, object_color.a);
 }
 ```
 
@@ -502,53 +520,62 @@ If the dot product of the normal and light vector is 1.0, that means that the cu
 
 We're going to need to pull in the normal vector into our `shader.vert`.
 
-```glsl
-layout(location=0) in vec3 a_position;
-layout(location=1) in vec2 a_tex_coords;
-layout(location=2) in vec3 a_normal; // NEW!
+```wgsl
+struct VertexInput {
+    [[location(0)]] position: vec3<f32>;
+    [[location(1)]] tex_coords: vec2<f32>;
+    [[location(2)]] normal: vec3<f32>; // NEW!
+};
 ```
 
 We're also going to want to pass that value, as well as the vertex's position to the fragment shader.
 
-```glsl
-layout(location=1) out vec3 v_normal;
-layout(location=2) out vec3 v_position;
+```wgsl
+struct VertexOutput {
+    [[builtin(position)]] clip_position: vec4<f32>;
+    [[location(0)]] tex_coords: vec2<f32>;
+    [[location(1)]] world_normal: vec3<f32>;
+    [[location(2)]] world_position: vec3<f32>;
+};
 ```
 
 For now let's just pass the normal directly as is. This is wrong, but we'll fix it later.
 
-```glsl
-void main() {
-    v_tex_coords = a_tex_coords;
-    v_normal = a_normal; // NEW!
-    vec4 model_space = model_matrix * vec4(a_position, 1.0); // NEW!
-    v_position = model_space.xyz; // NEW!
-    gl_Position = u_view_proj * model_space; // UPDATED!
+```wgsl
+[[stage(vertex)]]
+fn main(
+    model: VertexInput,
+    instance: InstanceInput,
+) -> VertexOutput {
+    let model_matrix = mat4x4<f32>(
+        instance.model_matrix_0,
+        instance.model_matrix_1,
+        instance.model_matrix_2,
+        instance.model_matrix_3,
+    );
+    var out: VertexOutput;
+    out.tex_coords = model.tex_coords;
+    out.world_normal = model.normal;
+    var world_position: vec4<f32> = model_matrix * vec4<f32>(model.position, 1.0);
+    out.world_position = world_position.xyz;
+    out.clip_position = uniforms.view_proj * world_position;
+    return out;
 }
-```
-
-Now in `shader.frag` we'll take in the vertex's normal and position.
-
-```glsl
-layout(location=0) in vec2 v_tex_coords;
-layout(location=1) in vec3 v_normal; // NEW!
-layout(location=2) in vec3 v_position; // NEW!
 ```
 
 With that we can do the actual calculation. Below the `ambient_color` calculation, but above `result`, add the following.
 
-```glsl
-vec3 normal = normalize(v_normal);
-vec3 light_dir = normalize(light_position - v_position);
+```wgsl
+let light_dir = normalize(light.position - in.world_position);
 
-float diffuse_strength = max(dot(normal, light_dir), 0.0);
-vec3 diffuse_color = light_color * diffuse_strength;
+let diffuse_strength = max(dot(in.world_normal, light_dir), 0.0);
+let diffuse_color = light.color * diffuse_strength;
 ```
 
 Now we can include the `diffuse_color` in the `result`.
 
-```glsl
-vec3 result = (ambient_color + diffuse_color) * object_color.xyz;
+```wgsl
+let result = (ambient_color + diffuse_color) * object_color.xyz;
 ```
 
 With that we get something like this.
@@ -568,8 +595,8 @@ let rotation = cgmath::Quaternion::from_axis_angle((0.0, 1.0, 0.0).into(), cgmat
 
 We'll also remove the `ambient_color` from our lighting `result`.
 
-```glsl
-vec3 result = (diffuse_color) * object_color.xyz;
+```wgsl
+let result = (diffuse_color) * object_color.xyz;
 ```
 
 That should give us something that looks like this.
@@ -580,18 +607,159 @@ This is clearly wrong as the light is illuminating the wrong side of the cube. T
 
 ![./normal_not_rotated.png](./normal_not_rotated.png)
 
-We need to use the model matrix to transform the normals to be in the right direction. We only want the rotation data though. A normal represents a direction, and should be a unit vector throughout the calculation. We can get our normals into the right direction using what is called a normal matrix. We can calculate the normal matrix with the following.
+We need to use the model matrix to transform the normals to be in the right direction. We only want the rotation data though. A normal represents a direction, and should be a unit vector throughout the calculation. We can get our normals into the right direction using what is called a normal matrix.
 
-```glsl
-// shader.vert
-mat3 normal_matrix = mat3(transpose(inverse(model_matrix)));
-v_normal = normal_matrix * a_normal;
+We could compute the normal matrix in the vertex shader, but that would involve inverting the `model_matrix`, and WGSL doesn't actually have an inverse function. We would have to code our own. On top of that computing the inverse of a matrix is actually really expensive, especially doing that compututation for every vertex.
+
+Instead we're going to create add a `normal` matrix field to `InstanceRaw`. Instead of inverting the model matrix, we'll just using the the instances rotation to create a `Matrix3`.
+
+<div class="note">
+
+We using `Matrix3` instead of `Matrix4` as we only really need the rotation component of the matrix.
+
+</div>
+
+```rust
+#[repr(C)]
+#[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
+#[allow(dead_code)]
+struct InstanceRaw {
+    model: [[f32; 4]; 4],
+    normal: [[f32; 3]; 3],
+}
+
+impl model::Vertex for InstanceRaw {
+    fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
+        use std::mem;
+        wgpu::VertexBufferLayout {
+            array_stride: mem::size_of::<InstanceRaw>() as wgpu::BufferAddress,
+            // We need to switch from using a step mode of Vertex to Instance
+            // This means that our shaders will only change to use the next
+            // instance when the shader starts processing a new instance
+            step_mode: wgpu::InputStepMode::Instance,
+            attributes: &[
+                wgpu::VertexAttribute {
+                    offset: 0,
+                    // While our vertex shader only uses locations 0, and 1 now, in later tutorials we'll
+                    // be using 2, 3, and 4, for Vertex. We'll start at slot 5 not conflict with them later
+                    shader_location: 5,
+                    format: wgpu::VertexFormat::Float32x4,
+                },
+                // A mat4 takes up 4 vertex slots as it is technically 4 vec4s. We need to define a slot
+                // for each vec4. We don't have to do this in code though.
+                wgpu::VertexAttribute {
+                    offset: mem::size_of::<[f32; 4]>() as wgpu::BufferAddress,
+                    shader_location: 6,
+                    format: wgpu::VertexFormat::Float32x4,
+                },
+                wgpu::VertexAttribute {
+                    offset: mem::size_of::<[f32; 8]>() as wgpu::BufferAddress,
+                    shader_location: 7,
+                    format: wgpu::VertexFormat::Float32x4,
+                },
+                wgpu::VertexAttribute {
+                    offset: mem::size_of::<[f32; 12]>() as wgpu::BufferAddress,
+                    shader_location: 8,
+                    format: wgpu::VertexFormat::Float32x4,
+                },
+                // NEW!
+                wgpu::VertexAttribute {
+                    offset: mem::size_of::<[f32; 16]>() as wgpu::BufferAddress,
+                    shader_location: 9,
+                    format: wgpu::VertexFormat::Float32x3,
+                },
+                wgpu::VertexAttribute {
+                    offset: mem::size_of::<[f32; 19]>() as wgpu::BufferAddress,
+                    shader_location: 10,
+                    format: wgpu::VertexFormat::Float32x3,
+                },
+                wgpu::VertexAttribute {
+                    offset: mem::size_of::<[f32; 22]>() as wgpu::BufferAddress,
+                    shader_location: 11,
+                    format: wgpu::VertexFormat::Float32x3,
+                },
+            ],
+        }
+    }
+}
 ```
 
-This takes the `model_matrix` from our `instance_buffer`, inverts it, transposes it and then pulls out the top left 3x3 to just get the rotation data. This is all necessary because because normals are technically not vectors, there bivectors. The explanation is beyond me, but I do know that it means we have to treat them differently.
+We need to modify `Instance` to create the normal matrix.
 
-* Note: I'm currently doing things in [world space](https://gamedev.stackexchange.com/questions/65783/what-are-world-space-and-eye-space-in-game-development). Doing things in view-space also known as eye-space, is more standard as objects can have lighting issues when they are further away from the origin. If we wanted to use view-space, we would use something along the lines of `mat3(transpose(inverse(view_matrix * model_matrix)))`. Currently we are combining the view matrix and projection matrix before we draw, so we'd have to pass those in separately. We'd also have to transform our light's position using something like `view_matrix * model_matrix * light_position` to keep the calculation from getting messed up when the camera moves.
-* Another Note: I'm calculating the `normal_matrix` in the vertex shader currently. This is rather expensive, so it is often suggested that you compute the `normal_matrix` on the CPU and pass it in with the other uniforms.
+```rust
+struct Instance {
+    position: cgmath::Vector3<f32>,
+    rotation: cgmath::Quaternion<f32>,
+}
+
+impl Instance {
+    fn to_raw(&self) -> InstanceRaw {
+        let model =
+            cgmath::Matrix4::from_translation(self.position) * cgmath::Matrix4::from(self.rotation);
+        InstanceRaw {
+            model: model.into(),
+            // NEW!
+            normal: cgmath::Matrix3::from(self.rotation).into(),
+        }
+    }
+}
+```
+
+Now we need to reconstruct the normal matrix in the vertex shader.
+
+```wgsl
+struct InstanceInput {
+    [[location(5)]] model_matrix_0: vec4<f32>;
+    [[location(6)]] model_matrix_1: vec4<f32>;
+    [[location(7)]] model_matrix_2: vec4<f32>;
+    [[location(8)]] model_matrix_3: vec4<f32>;
+    // NEW!
+    [[location(9)]] normal_matrix_0: vec3<f32>;
+    [[location(10)]] normal_matrix_1: vec3<f32>;
+    [[location(11)]] normal_matrix_2: vec3<f32>;
+};
+
+struct VertexOutput {
+    [[builtin(position)]] clip_position: vec4<f32>;
+    [[location(0)]] tex_coords: vec2<f32>;
+    [[location(1)]] world_normal: vec3<f32>;
+    [[location(2)]] world_position: vec3<f32>;
+};
+
+[[stage(vertex)]]
+fn main(
+    model: VertexInput,
+    instance: InstanceInput,
+) -> VertexOutput {
+    let model_matrix = mat4x4<f32>(
+        instance.model_matrix_0,
+        instance.model_matrix_1,
+        instance.model_matrix_2,
+        instance.model_matrix_3,
+    );
+    // NEW!
+    let normal_matrix = mat3x3<f32>(
+        instance.normal_matrix_0,
+        instance.normal_matrix_1,
+        instance.normal_matrix_2,
+    );
+    var out: VertexOutput;
+    out.tex_coords = model.tex_coords;
+    out.world_normal = normal_matrix * model.normal;
+    var world_position: vec4<f32> = model_matrix * vec4<f32>(model.position, 1.0);
+    out.world_position = world_position.xyz;
+    out.clip_position = uniforms.view_proj * world_position;
+    return out;
+}
+```
+
+<div class="note">
+
+I'm currently doing things in [world space](https://gamedev.stackexchange.com/questions/65783/what-are-world-space-and-eye-space-in-game-development). Doing things in view-space also known as eye-space, is more standard as objects can have lighting issues when they are further away from the origin. If we wanted to use view-space, we would have include the rotation due to the view matrix as well. We'd also have to transform our light's position using something like `view_matrix * model_matrix * light_position` to keep the calculation from getting messed up when the camera moves.
+
+There are advantages to using view space. The main one is when you have massive worlds doing lighting and other calculations in model spacing can cause issues as floating point precision degrades when numbers get really large. View space keeps the camera at the origin meaning all calculations will be using smaller numbers. The actual lighting math ends up the same, but it does require a bit more setup.
+
+</div>
 
 With that change our lighting now looks correct.
 
@@ -609,24 +777,15 @@ Specular lighting describes the highlights that appear on objects when viewed fr
 
 Because this is relative to the view angle, we are going to need to pass in the camera's position both into the fragment shader and into the vertex shader.
 
-```glsl
-// shader.frag
-layout(set=1, binding=0) 
-uniform Uniforms {
-    vec3 u_view_position;
-    mat4 u_view_proj; // unused
+```wgsl
+[[block]]
+struct Uniforms {
+    view_pos: vec4<f32>;
+    view_proj: mat4x4<f32>;
 };
+[[group(1), binding(0)]]
+var<uniform> uniforms: Uniforms;
 ```
-
-```glsl
-// shader.vert & light.vert
-layout(set=1, binding=0) 
-uniform Uniforms {
-    vec3 u_view_position; // unused
-    mat4 u_view_proj;
-};
-```
-
 
 We're going to need to update the `Uniforms` struct as well.
 
@@ -648,10 +807,7 @@ impl Uniforms {
     }
 
     fn update_view_proj(&mut self, camera: &Camera) {
-        // We don't specifically need homogeneous coordinates since we're just using
-        // a vec3 in the shader. We're using Point3 for the camera.eye, and this is
-        // the easiest way to convert to Vector4. We're using Vector4 because of
-        // the uniforms 16 byte spacing requirement
+        // We're using Vector4 because of the uniforms 16 byte spacing requirement
         self.view_position = camera.eye.to_homogeneous();
         self.view_proj = OPENGL_TO_WGPU_MATRIX * camera.build_view_projection_matrix();
     }
@@ -677,23 +833,23 @@ let uniform_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroup
 
 We're going to get the direction from the fragment's position to the camera, and use that with the normal to calculate the `reflect_dir`.
 
-```glsl
-// shader.frag
-vec3 view_dir = normalize(u_view_position - v_position);
-vec3 reflect_dir = reflect(-light_dir, normal);
+```wgsl
+// In the fragment shader...
+let view_dir = normalize(uniforms.view_pos.xyz - in.world_position);
+let reflect_dir = reflect(-light_dir, in.world_normal);
 ```
 
 Then we use the dot product to calculate the `specular_strength` and use that to compute the `specular_color`.
 
-```glsl
-float specular_strength = pow(max(dot(view_dir, reflect_dir), 0.0), 32);
-vec3 specular_color = specular_strength * light_color;
+```wgsl
+let specular_strength = pow(max(dot(view_dir, reflect_dir), 0.0), 32);
+let specular_color = specular_strength * light_color;
 ```
 
 Finally we add that to the result.
 
-```glsl
-vec3 result = (ambient_color + diffuse_color + specular_color) * object_color.xyz;
+```wgsl
+let result = (ambient_color + diffuse_color + specular_color) * object_color.xyz;
 ```
 
 With that you should have something like this.
@@ -708,12 +864,11 @@ If we just look at the `specular_color` on it's own we get this.
 
 Up to this point we've actually only implemented the Phong part of Blinn-Phong. The Phong reflection model works well, but it can break down under [certain circumstances](https://learnopengl.com/Advanced-Lighting/Advanced-Lighting). The Blinn part of Blinn-Phong comes from the realization that if you add the `view_dir`, and `light_dir` together, normalize the result and use the dot product of that and the `normal`, you get roughly the same results without the issues that using `reflect_dir` had.
 
-```glsl
-// sahder.frag
-vec3 view_dir = normalize(u_view_position - v_position);
-vec3 half_dir = normalize(view_dir + light_dir);
+```wgsl
+let view_dir = normalize(uniforms.view_pos.xyz - in.world_position);
+let half_dir = normalize(view_dir + light_dir);
 
-float specular_strength = pow(max(dot(normal, half_dir), 0.0), 32);
+let specular_strength = pow(max(dot(in.world_normal, half_dir), 0.0), 32);
 ```
 
 It's hard to tell the difference, but here's the results.

@@ -65,7 +65,7 @@ impl Render {
         let size = video_mode.size();
         let sc_desc = wgpu::SwapChainDescriptor {
             usage: wgpu::TextureUsage::RENDER_ATTACHMENT,
-            format: adapter.get_swap_chain_preferred_format(&surface),
+            format: adapter.get_swap_chain_preferred_format(&surface).unwrap(),
             width: size.width,
             height: size.height,
             present_mode: wgpu::PresentMode::Fifo,
@@ -143,7 +143,8 @@ impl Render {
             Ok(frame) => {
                 let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                     label: Some("Main Render Pass"),
-                    color_attachments: &[wgpu::RenderPassColorAttachmentDescriptor {
+                    color_attachments: &[wgpu::RenderPassColorAttachment {
+                    view: &frame.view,
                         attachment: &frame.output.view,
                         resolve_target: None,
                         ops: wgpu::Operations::default(),
@@ -258,14 +259,7 @@ fn create_render_pipeline(
                 write_mask: wgpu::ColorWrite::ALL,
             }],
         }),
-        primitive: wgpu::PrimitiveState {
-            topology: wgpu::PrimitiveTopology::TriangleList,
-            strip_index_format: None,
-            front_face: wgpu::FrontFace::Ccw,
-            cull_mode: wgpu::CullMode::Back,
-            // Setting this to anything other than Fill requires Features::NON_FILL_POLYGON_MODE
-            polygon_mode: wgpu::PolygonMode::Fill,
-        },
+        RenderPassDepthStencilAttachment
         depth_stencil: None,
         multisample: wgpu::MultisampleState {
             count: 1,

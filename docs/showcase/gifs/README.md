@@ -54,7 +54,7 @@ let rt_desc = wgpu::TextureDescriptor {
     size: wgpu::Extent3d {
         width: texture_size,
         height: texture_size,
-        depth: 1,
+        depth_or_array_layers: 1,
     },
     mip_level_count: 1,
     sample_count: 1,
@@ -125,14 +125,14 @@ for c in &colors {
     drop(rpass);
 
     encoder.copy_texture_to_buffer(
-        wgpu::TextureCopyView {
+        wgpu::ImageCopyTexture {
             texture: &render_target.texture,
             mip_level: 0,
             origin: wgpu::Origin3d::ZERO,
         }, 
-        wgpu::BufferCopyView {
+        wgpu::ImageCopyBuffer {
             buffer: &output_buffer,
-            layout: wgpu::TextureDataLayout {
+            layout: wgpu::ImageDataLayout {
                 offset: 0,
                 bytes_per_row: padded_bytes_per_row,
                 rows_per_image: texture_size,

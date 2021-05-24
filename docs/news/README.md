@@ -1,5 +1,35 @@
 # News
 
+## 0.8 and WGSL
+
+### The GLSL shaders have been translated to WGSL
+
+Originally I wanted to wait until the WGSL spec fully stabilized, but due to some issues with the GLSL code, I've decided to switch over the code now. Why'll GLSL is supported by WebGPU, it's currently secondary to WGSL. I'll keep an example of how to use GLSL (and maybe add HLSL and Metal as well), but I'm going to use WGSL from now on.
+
+### Shaderc has been removed
+
+I've been thinking about doing this for a while now. Because shaderc is a c library, it often has to be redownloaded during builds. This has been slowing down my ability to add new content and maintain old content. I had been considering switching to naga earlier, but some of my shaders (notably the lighting ones) weren't compiling with naga as I was using features not available for compatibility reasons (`inverse` is not available in all languages targeting spirv).
+
+Since I needed to make a bunch of changes to the code base to make the glsl, and because I wanted to switch the tutorial to WGSL anyways, I decided to bite the bullet and recode everything in WGSL and remove shaderc from the tutorials.
+
+### Some of the showcase examples are broken
+
+The `wgpu_glyph`, and `imgui-wgpu` crates currently depend on `wgpu` 0.7, which is causing the `pong` and `imgui-demo` to not compile. I decided to excluded them from the workspace until the underlying crates update to using `wgpu` 0.8. (Feel free to submit a issue or even PR when that happens!)
+
+### Various API changes
+
+* The `depth` field is now `depth_or_array_layers`
+* `wgpu::VertexFormat::Float3` is now `wgpu::VertexFormat::Float32x3`. Similar things apply to `Float2` and `Float4`
+* `CullMode` is no longer a thing, instead `PrimitiveState::cull_mode` will require an `Option<Face>`
+* Added `clamp_depth` and `conservative` to `PrimitiveState`. Part of this means that `DepthStencilState` no longer has a `clamp_depth` field.
+* `color_blend` and `alpha_blend` have been moved into the new `blend` field with accepts an `Option<wgpu::BlendState>`
+* `adapter.get_swap_chain_preferred_format()` now returns an `Option<wgpu::TextureFormat>`
+* `wgpu::RenderPassColorAttachmentDescriptor` has been renamed `wgpu::RenderPassColorAttachement` and the `attachment` field has been renamed to `view`
+* `wgpu::RenderPassDepthStencialAttachmentDescriptor` also loses the `Descriptor` part of it's name. `attachment` gets renamed to `view` as well.
+* `wgpu::TextureCopyView` has been renamed to `wgpu::ImageCopyTexture`. This is a typedef for `wgpu::ImageCopyTextureBase<T>`
+* `wgpu::TextureDataLayout` is now `wgpu::ImageDataLayout` and it's `bytes_per_row` and `rows_per_image` now take `NonZeroU32`.
+* `wgpu::ImageCopyBuffer` is now `wgpu::ImageCopyBuffer`.
+
 ## 0.7
 
 There were a lot of changes particularly to the `RenderPipelineDescriptor`. Most other things have not changed. You can check out the [0.9 PR](https://github.com/sotrh/learn-wgpu/pull/140) for the full details.
