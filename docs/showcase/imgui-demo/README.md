@@ -1,5 +1,11 @@
 # Basic Imgui Demo
 
+<div class="warning">
+
+This example is currently broken for 0.8. Some of the dependecies used are still on wgpu 0.7 which causes some dependency conflicts. Once the `imgui-wgpu` crate has been updated to use wgpu 0.8 I'll update the dependencies and remove this warning.
+
+</div>
+
 This is not an in depth guid on how to use Imgui. But here are some of the basics you'll need to get started. We'll need to import [imgui-rs](https://docs.rs/imgui), [imgui-wgpu](https://docs.rs/imgui-wgpu), and [imgui-winit-support](https://docs.rs/imgui-winit-support).
 
 ```toml

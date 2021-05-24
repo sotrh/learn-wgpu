@@ -6,6 +6,16 @@
 
 Originally I wanted to wait until the WGSL spec fully stabilized, but due to some issues with the GLSL code, I've decided to switch over the code now. Why'll GLSL is supported by WebGPU, it's currently secondary to WGSL. I'll keep an example of how to use GLSL (and maybe add HLSL and Metal as well), but I'm going to use WGSL from now on.
 
+### Shaderc has been removed
+
+I've been thinking about doing this for a while now. Because shaderc is a c library, it often has to be redownloaded during builds. This has been slowing down my ability to add new content and maintain old content. I had been considering switching to naga earlier, but some of my shaders (notably the lighting ones) weren't compiling with naga as I was using features not available for compatibility reasons (`inverse` is not available in all languages targeting spirv).
+
+Since I needed to make a bunch of changes to the code base to make the glsl, and because I wanted to switch the tutorial to WGSL anyways, I decided to bite the bullet and recode everything in WGSL and remove shaderc from the tutorials.
+
+### Some of the showcase examples are broken
+
+The `wgpu_glyph`, and `imgui-wgpu` crates currently depend on `wgpu` 0.7, which is causing the `pong` and `imgui-demo` to not compile. I decided to excluded them from the workspace until the underlying crates update to using `wgpu` 0.8. (Feel free to submit a issue or even PR when that happens!)
+
 ### Various API changes
 
 * The `depth` field is now `depth_or_array_layers`

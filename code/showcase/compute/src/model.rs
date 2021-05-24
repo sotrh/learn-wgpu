@@ -19,6 +19,7 @@ pub struct ModelVertex {
     normal: [f32; 3],
     tangent: [f32; 3],
     bitangent: [f32; 3],
+    padding: [u32; 2],
 }
 
 impl Vertex for ModelVertex {
@@ -294,20 +295,18 @@ impl ModelLoader {
                                 m.mesh.positions[i * 3],
                                 m.mesh.positions[i * 3 + 1],
                                 m.mesh.positions[i * 3 + 2],
-                            ]
-                            .into(),
+                            ],
                             // tex_coords: [m.mesh.texcoords[i * 2], m.mesh.texcoords[i * 2 + 1], 0.0]
-                            tex_coords: [m.mesh.texcoords[i * 2], m.mesh.texcoords[i * 2 + 1]]
-                                .into(),
+                            tex_coords: [m.mesh.texcoords[i * 2], m.mesh.texcoords[i * 2 + 1]],
                             normal: [
                                 m.mesh.normals[i * 3],
                                 m.mesh.normals[i * 3 + 1],
                                 m.mesh.normals[i * 3 + 2],
-                            ]
-                            .into(),
+                            ],
                             // We'll calculate these later
-                            tangent: [0.0; 3].into(),
-                            bitangent: [0.0; 3].into(),
+                            tangent: [0.0; 3],
+                            bitangent: [0.0; 3],
+                            padding: [0; 2],
                         }
                     })
                     .collect::<Vec<_>>();

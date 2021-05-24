@@ -14,7 +14,7 @@ image = "0.23"
 log = "0.4"
 rayon = "1.4"
 tobj = "2.0"
-wgpu = { version = "0.8", features = ["trace"] }
+wgpu = { version = "0.8", features = ["trace", "cross"] }
 winit = "0.24"
 
 [build-dependencies]

@@ -1,5 +1,11 @@
 # Pong
 
+<div class="warning">
+
+This example is currently broken for 0.8. Some of the dependecies used are still on wgpu 0.7 which causes some dependency conflicts. Once the `imgui-wgpu` crate has been updated to use wgpu 0.8 I'll update the dependencies and remove this warning.
+
+</div>
+
 ![](./pong.png)
 
 Practically the "Hello World!" of games. Pong has been remade thousands of times. I know Pong. You know Pong. We all know Pong. That being said, this time I wanted to put a little more effort than most people do. This showcase has a basic menu system, sounds, and different game states.
