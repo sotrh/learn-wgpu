@@ -10,7 +10,6 @@ For the beginner stuff, we're going to keep things very simple, we'll add things
 [dependencies]
 image = "0.23"
 winit = "0.24"
-shaderc = "0.7"
 cgmath = "0.18"
 env_logger = "0.8"
 log = "0.4"
@@ -29,7 +28,7 @@ To enable the Vulkan backend, add this new section to `Cargo.toml`, and do not f
 
 ``` toml
 [dependencies.wgpu]
-version = "0.7"
+version = "0.8"
 features = ["vulkan-portability"]
 ```
 
