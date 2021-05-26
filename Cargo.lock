@@ -2136,7 +2136,6 @@ dependencies = [
  "futures",
  "image",
  "log",
- "shaderc",
  "wgpu",
  "winit",
 ]
@@ -2223,7 +2222,6 @@ dependencies = [
  "futures",
  "image",
  "log",
- "shaderc",
  "wgpu",
  "winit",
 ]
