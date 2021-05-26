@@ -187,8 +187,8 @@ The `RenderPass` is where things get interesting. A render pass requires at leas
     let render_pass_desc = wgpu::RenderPassDescriptor {
         label: Some("Render Pass"),
         color_attachments: &[
-            wgpu::RenderPassColorAttachmentDescriptor {
-                attachment: &texture_view,
+            wgpu::RenderPassColorAttachment {
+                view: &texture_view,
                 resolve_target: None,
                 ops: wgpu::Operations {
                     load: wgpu::LoadOp::Clear(wgpu::Color {

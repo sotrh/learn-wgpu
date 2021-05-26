@@ -262,8 +262,8 @@ Now we can actually get to clearing the screen (long time coming). We need to us
         let _render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("Render Pass"),
             color_attachments: &[
-                wgpu::RenderPassColorAttachmentDescriptor {
-                    attachment: &frame.view,
+                wgpu::RenderPassColorAttachment {
+                    view: &frame.view,
                     resolve_target: None,
                     ops: wgpu::Operations {
                         load: wgpu::LoadOp::Clear(wgpu::Color {
@@ -343,8 +343,8 @@ Some of you may be able to tell what's going on just by looking at it, but I'd b
 A `RenderPassDescriptor` only has three fields: `label`, `color_attachments` and `depth_stencil_attachment`. The `color_attachements` describe where we are going to draw our color to. We'll use `depth_stencil_attachment` later, but we'll set it to `None` for now.
 
 ```rust
-wgpu::RenderPassColorAttachmentDescriptor {
-    attachment: &frame.view,
+wgpu::RenderPassColorAttachment {
+    view: &frame.view,
     resolve_target: None,
     ops: wgpu::Operations {
         load: wgpu::LoadOp::Clear(wgpu::Color {
@@ -358,7 +358,7 @@ wgpu::RenderPassColorAttachmentDescriptor {
 }
 ```
 
-The `RenderPassColorAttachmentDescriptor` has the `attachment` field which informs `wgpu` what texture to save the colors to. In this case we specify `frame.view` that we created using `swap_chain.get_current_frame()`. This means that any colors we draw to this attachment will get drawn to the screen.
+The `RenderPassColorAttachment` has the `view` field which informs `wgpu` what texture to save the colors to. In this case we specify `frame.view` that we created using `swap_chain.get_current_frame()`. This means that any colors we draw to this attachment will get drawn to the screen.
 
 The `resolve_target` is the texture that will receive the resolved output. This will be the same as `attachment` unless multisampling is enabled. We don't need to specify this, so we leave it as `None`.
 
