@@ -123,7 +123,6 @@ fs_extra = "1.2"
 glob = "0.3"
 ```
 
-
 ## Loading models with TOBJ
 
 We're going to use the [tobj](https://docs.rs/tobj/0.1.12/tobj/) library to load our model. Before we can load our model though, we need somewhere to put it.
@@ -168,7 +167,7 @@ pub fn load<P: AsRef<Path>>(
     // Needed to appease the borrow checker
     let path_copy = path.as_ref().to_path_buf();
     let label = path_copy.to_str();
-    
+
     let img = image::open(path)?;
     Self::from_image(device, queue, &img, label)
 }
@@ -185,7 +184,7 @@ use crate::texture;
 We also need to make a subtle change on `from_image()` method in `texture.rs`. PNGs work fine with `as_rgba8()`, as they have an alpha channel. But, JPEGs don't have an alpha channel, and the code would panic if we try to call `as_rgba8()` on the JPEG texture image we are going to use. Instead, we can use `to_rgba8()` to handle such an image.
 
 ```rust
-let rgba = img.to_rgba8(); 
+let rgba = img.to_rgba8();
 ```
 
 `Mesh` holds a vertex buffer, an index buffer, and the number of indices in the mesh. We're using an `usize` for the material. This `usize` will be used to index the `materials` list when it comes time to draw.
@@ -200,7 +199,13 @@ impl Model {
         layout: &wgpu::BindGroupLayout,
         path: P,
     ) -> Result<Self> {
-        let (obj_models, obj_materials) = tobj::load_obj(path.as_ref(), true)?;
+        let (obj_models, obj_materials) = tobj::load_obj(path.as_ref(), &tobj::LoadOptions {
+		    triangulate: true,
+		    single_index: true,
+		    ..Default::default()
+        })?;
+
+        let obj_materials = obj_materials?;
 
         // We're assuming that the texture files are stored with the obj file
         let containing_folder = path.as_ref().parent()
