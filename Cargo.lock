@@ -19,6 +19,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "739f4a8db6605981345c5654f3a85b056ce52f37a39d34da03f25bf2151ea16e"
 
 [[package]]
+name = "ahash"
+version = "0.7.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "43bb833f0bf979d8475d38fbf09ed3b8a55e1885fe93ad3f93239fc6a4f17b98"
+dependencies = [
+ "getrandom",
+ "once_cell",
+ "version_check",
+]
+
+[[package]]
 name = "aho-corasick"
 version = "0.7.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -308,7 +319,7 @@ dependencies = [
  "log",
  "rayon",
  "shaderc",
- "tobj",
+ "tobj 2.0.2",
  "wgpu",
  "winit",
 ]
@@ -613,7 +624,7 @@ dependencies = [
  "rayon",
  "shaderc",
  "thiserror",
- "tobj",
+ "tobj 2.0.2",
  "wgpu",
  "wgpu-subscriber",
  "winit",
@@ -756,6 +767,17 @@ dependencies = [
  "log",
  "rustc_version",
  "winapi 0.3.9",
+]
+
+[[package]]
+name = "getrandom"
+version = "0.2.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7fcd999463524c52659517fe2cea98493cfe485d10565e7b0fb07dbba7ad2753"
+dependencies = [
+ "cfg-if 1.0.0",
+ "libc",
+ "wasi",
 ]
 
 [[package]]
@@ -934,7 +956,7 @@ dependencies = [
  "image",
  "log",
  "shaderc",
- "tobj",
+ "tobj 2.0.2",
  "wgpu",
  "winit",
 ]
@@ -1002,7 +1024,7 @@ version = "0.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d7afe4a420e3fe79967a00898cc1f4db7c8a49a9333a29f8a4bd76a253d5cd04"
 dependencies = [
- "ahash",
+ "ahash 0.4.7",
 ]
 
 [[package]]
@@ -2039,6 +2061,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6172100cd5b17cdd085c94f261e31101ca31886c86a2337a6687dac6d2fb3cf1"
 
 [[package]]
+name = "tobj"
+version = "3.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8985733c6a9b851f289747c1c3ee7a962a642787e248a97b6e04185d8d536d70"
+dependencies = [
+ "ahash 0.7.4",
+]
+
+[[package]]
 name = "toml"
 version = "0.5.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2153,7 +2184,7 @@ dependencies = [
  "glob",
  "image",
  "log",
- "tobj",
+ "tobj 3.0.1",
  "wgpu",
  "winit",
 ]
@@ -2171,7 +2202,7 @@ dependencies = [
  "glob",
  "image",
  "log",
- "tobj",
+ "tobj 3.0.1",
  "wgpu",
  "winit",
 ]
@@ -2189,7 +2220,7 @@ dependencies = [
  "glob",
  "image",
  "log",
- "tobj",
+ "tobj 3.0.1",
  "wgpu",
  "winit",
 ]
@@ -2208,7 +2239,7 @@ dependencies = [
  "image",
  "log",
  "rayon",
- "tobj",
+ "tobj 3.0.1",
  "wgpu",
  "winit",
 ]
@@ -2340,7 +2371,7 @@ dependencies = [
  "glob",
  "image",
  "log",
- "tobj",
+ "tobj 3.0.1",
  "wgpu",
  "winit",
 ]
