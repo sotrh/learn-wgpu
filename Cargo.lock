@@ -2220,7 +2220,7 @@ dependencies = [
  "glob",
  "image",
  "log",
- "tobj 2.0.2",
+ "tobj 3.0.1",
  "wgpu",
  "winit",
 ]
