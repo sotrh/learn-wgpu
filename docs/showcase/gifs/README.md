@@ -100,8 +100,8 @@ for c in &colors {
     let mut rpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
         label: Some("GIF Pass"),
         color_attachments: &[
-            wgpu::RenderPassColorAttachmentDescriptor {
-                attachment: &render_target.view,
+            wgpu::RenderPassColorAttachment {
+                view: &render_target.view,
                 resolve_target: None,
                 ops: wgpu::Operations {
                     load: wgpu::LoadOp::Clear(

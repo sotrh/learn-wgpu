@@ -254,7 +254,7 @@ If you run your program now, it'll take a little longer to start, but it will st
         color_attachments: &[
             // This is what [[location(0)]] in the fragment shader targets
             wgpu::RenderPassColorAttachment {
-                attachment: &frame.view,
+                view: &frame.view,
                 resolve_target: None,
                 ops: wgpu::Operations {
                     load: wgpu::LoadOp::Clear(
