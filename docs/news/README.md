@@ -1,5 +1,9 @@
 # News
 
+## Pong and imgui demos are fixed!
+
+The `imgui_wgpu` and `wgpu_glyph` crates have been updated to `wgpu` 0.8 so I was able to fixed the demos! They both still use GLSL, and I don't think I'll be changing that for now. I may switch them over to `naga` at some point.
+
 ## 0.8 and WGSL
 
 ### The GLSL shaders have been translated to WGSL

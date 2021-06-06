@@ -144,8 +144,7 @@ impl Render {
                 let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                     label: Some("Main Render Pass"),
                     color_attachments: &[wgpu::RenderPassColorAttachment {
-                    view: &frame.view,
-                        attachment: &frame.output.view,
+                        view: &frame.output.view,
                         resolve_target: None,
                         ops: wgpu::Operations::default(),
                     }],
@@ -254,12 +253,25 @@ fn create_render_pipeline(
             entry_point: "main",
             targets: &[wgpu::ColorTargetState {
                 format: color_format,
-                color_blend: wgpu::BlendState::REPLACE,
-                alpha_blend: wgpu::BlendState::REPLACE,
+                blend: Some(wgpu::BlendState {
+                    alpha: wgpu::BlendComponent::REPLACE,
+                    color: wgpu::BlendComponent::REPLACE,
+                }),
                 write_mask: wgpu::ColorWrite::ALL,
             }],
         }),
-        RenderPassDepthStencilAttachment
+        primitive: wgpu::PrimitiveState {
+            topology: wgpu::PrimitiveTopology::TriangleList,
+            strip_index_format: None,
+            front_face: wgpu::FrontFace::Ccw,
+            cull_mode: Some(wgpu::Face::Back),
+            // Setting this to anything other than Fill requires Features::NON_FILL_POLYGON_MODE
+            polygon_mode: wgpu::PolygonMode::Fill,
+            // Requires Features::DEPTH_CLAMPING
+            clamp_depth: false,
+            // Requires Features::CONSERVATIVE_RASTERIZATION
+            conservative: false,
+        },
         depth_stencil: None,
         multisample: wgpu::MultisampleState {
             count: 1,

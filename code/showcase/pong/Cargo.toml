@@ -5,16 +5,16 @@ authors = ["Ben Hansen <bhbenjaminhansen@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-winit = "0.24"
+winit = "0.25"
 shaderc = "0.7"
 anyhow = "1.0"
 bytemuck = { version = "1.4", features = [ "derive" ] }
 cgmath = "0.18"
 futures = "0.3"
 wgpu = "0.8"
-wgpu_glyph = "0.11"
+wgpu_glyph = "0.12"
 rand = "0.8"
-rodio = "0.13"
+rodio = "0.14"
 
 [build-dependencies]
 anyhow = "1.0"

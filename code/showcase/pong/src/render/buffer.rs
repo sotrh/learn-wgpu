@@ -19,7 +19,7 @@ impl Vertex {
         array_stride: Self::SIZE,
         step_mode: wgpu::InputStepMode::Vertex,
         attributes: &wgpu::vertex_attr_array![
-            0 => Float2
+            0 => Float32x2
         ],
     };
 }

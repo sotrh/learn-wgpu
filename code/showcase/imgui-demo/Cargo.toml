@@ -11,6 +11,6 @@ anyhow = "1.0"
 wgpu = "0.8"
 futures = "0.3"
 imgui = "0.7"
-imgui-wgpu = "0.14"
+imgui-wgpu = "0.15"
 imgui-winit-support = "0.7"
 framework = { path = "../framework" }
