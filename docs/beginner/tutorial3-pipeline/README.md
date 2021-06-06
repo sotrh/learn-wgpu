@@ -1,7 +1,7 @@
 # The Pipeline
 
 ## What's a pipeline?
-If you're familiar with OpenGL, you may remember using shader programs. You can think of a pipeline as a more robust version of that. A pipeline describes all the actions the gpu will preform when acting on a set of data. In this section, we will be creating a `RenderPipeline` specifically.
+If you're familiar with OpenGL, you may remember using shader programs. You can think of a pipeline as a more robust version of that. A pipeline describes all the actions the gpu will perform when acting on a set of data. In this section, we will be creating a `RenderPipeline` specifically.
 
 ## Wait shaders?
 Shaders are mini programs that you send to the gpu to perform operations on your data. There are 3 main types of shader: vertex, fragment, and compute. There are others such as geometry shaders, but they're more of an advanced topic. For now we're just going to use vertex, and fragment shaders.
@@ -175,8 +175,7 @@ let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescrip
         entry_point: "main",
         targets: &[wgpu::ColorTargetState { // 4.
             format: sc_desc.format,
-            alpha_blend: wgpu::BlendState::REPLACE,
-            color_blend: wgpu::BlendState::REPLACE,
+            blend: Some(wgpu::BlendState::REPLACE),
             write_mask: wgpu::ColorWrite::ALL,
         }],
     }),
