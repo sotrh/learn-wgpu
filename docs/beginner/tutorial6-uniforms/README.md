@@ -257,7 +257,7 @@ fn main(
 }
 ```
 
-1. The according to the [WGSL Spec](https://gpuweb.github.io/gpuweb/wgsl/), The block decorator indicates this structure type represents the contents of a buffer resource occupying a single binding slot in the shader’s resource interface. Any structure used as a `uniform` must be annotated with `[[block]]`
+1. According to the [WGSL Spec](https://gpuweb.github.io/gpuweb/wgsl/), The block decorator indicates this structure type represents the contents of a buffer resource occupying a single binding slot in the shader’s resource interface. Any structure used as a `uniform` must be annotated with `[[block]]`
 2. Because we've created a new bind group, we need to specify which one we're using in the shader. The number is determined by our `render_pipeline_layout`. The `texture_bind_group_layout` is listed first, thus it's `group(0)`, and `uniform_bind_group` is second, so it's `group(1)`.
 3. Multiplication order is important when it comes to matrices. The vector goes on the right, and the matrices gone on the left in order of importance.
 
