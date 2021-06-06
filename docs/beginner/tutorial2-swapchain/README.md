@@ -78,7 +78,7 @@ We need the `adapter` to create the device and queue.
         ).await.unwrap();
 ```
 
-The `features` field on `DeviceDescriptor`, allows us to specify what extra features we want. For this simple example, I've deviced to not use any extra features.
+The `features` field on `DeviceDescriptor`, allows us to specify what extra features we want. For this simple example, I've decided not to use any extra features.
 
 <div class="note">
 
