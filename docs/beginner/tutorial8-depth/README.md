@@ -88,8 +88,6 @@ let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescrip
         depth_compare: wgpu::CompareFunction::Less, // 1.
         stencil: wgpu::StencilState::default(), // 2.
         bias: wgpu::DepthBiasState::default(),
-        // Setting this to true requires Features::DEPTH_CLAMPING
-        clamp_depth: false,
     }),
     // ...
 });
