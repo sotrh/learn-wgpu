@@ -88,8 +88,6 @@ let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescrip
         depth_compare: wgpu::CompareFunction::Less, // 1.
         stencil: wgpu::StencilState::default(), // 2.
         bias: wgpu::DepthBiasState::default(),
-        // Setting this to true requires Features::DEPTH_CLAMPING
-        clamp_depth: false,
     }),
     // ...
 });
@@ -144,7 +142,7 @@ The last change we need to make is in the `render()` function. We've created the
 ```rust
 let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
     // ...
-    depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachmentDescriptor {
+    depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
         view: &self.depth_texture.view,
         depth_ops: Some(wgpu::Operations {
             load: wgpu::LoadOp::Clear(1.0),
