@@ -17,25 +17,6 @@ wgpu = "0.8"
 futures = "0.3"
 ```
 
-### Vulkan Portability Layer
-
-You may also want to make the Vulkan backend available on platforms where it is by default not, e.g. Mac OS. The reason
-you might want to enable the Vulkan backend is if you are doing cross-platform development and you need the
-Vulkan validation layers output. 
-
-To enable the Vulkan backend, add this new section to `Cargo.toml`, and do not forget to remove `wgpu` from the earlier
-`[dependencies]` section.
-
-``` toml
-[dependencies.wgpu]
-version = "0.8"
-features = ["vulkan-portability"]
-```
-
-- This may not be necessary because normally `wgpu-rs` validation will catch problems. In fact that is one of it's design goals.
-- This is not intended for shipping code. 
-- See also [gfx-portability](https://github.com/gfx-rs/portability).
-
 ## The code
 There's not much going on here yet, so I'm just going to post the code in full. Just paste this into your `main.rs` or equivalent.
 
