@@ -11,7 +11,7 @@ anyhow = "1.0"
 bytemuck = { version = "1.4", features = [ "derive" ] }
 cgmath = "0.18"
 futures = "0.3"
-wgpu = "0.8"
+wgpu = "0.9"
 wgpu_glyph = "0.12"
 rand = "0.8"
 rodio = "0.14"
