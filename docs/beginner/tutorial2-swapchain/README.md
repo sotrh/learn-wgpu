@@ -135,6 +135,12 @@ use futures::executor::block_on;
 let mut state = block_on(State::new(&window));
 ```
 
+<div class="note">
+
+You can use libraries like [async_std](https://docs.rs/async_std) and [tokio](https://docs.rs/tokio) to make main async, so you can await futures. I've elected not to use these crates as this tutorial is not about writing an async application. We just need some way to interact with wgpu's async functions, and the [futures crate](https://docs.rs/futures) is enough for that.
+
+</div>
+
 ## resize()
 If we want to support resizing in our application, we're going to need to recreate the `swap_chain` everytime the window's size changes. That's the reason we stored the physical `size` and the `sc_desc` used to create the swapchain. With all of these, the resize method is very simple.
 
