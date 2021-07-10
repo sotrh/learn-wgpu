@@ -14,8 +14,8 @@ futures = "0.3"
 image = "0.23"
 log = "0.4"
 tobj = "2.0"
-wgpu = "0.8"
-winit = "0.24"
+wgpu = "0.9"
+winit = "0.25"
 gif = "0.10.3"
 
 framework = { version = "0.1.0", path = "../framework" }

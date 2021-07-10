@@ -14,7 +14,7 @@ image = "0.23"
 log = "0.4"
 tobj = "3.0"
 wgpu = { version = "0.8", features = ["cross"]}
-winit = "0.24"
+winit = "0.25"
 
 [build-dependencies]
 anyhow = "1.0"

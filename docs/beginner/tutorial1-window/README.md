@@ -9,11 +9,11 @@ For the beginner stuff, we're going to keep things very simple, we'll add things
 ```toml
 [dependencies]
 image = "0.23"
-winit = "0.24"
+winit = "0.25"
 cgmath = "0.18"
 env_logger = "0.8"
 log = "0.4"
-wgpu = "0.8"
+wgpu = "0.9"
 futures = "0.3"
 ```
 

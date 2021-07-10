@@ -15,7 +15,7 @@ log = "0.4"
 rayon = "1.4"
 tobj = "2.0"
 wgpu = { version = "0.8", features = ["trace", "cross"] }
-winit = "0.24"
+winit = "0.25"
 
 [build-dependencies]
 anyhow = "1.0"
