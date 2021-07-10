@@ -8,7 +8,7 @@ The `imgui_wgpu` and `wgpu_glyph` crates have been updated to `wgpu` 0.8 so I wa
 
 ### The GLSL shaders have been translated to WGSL
 
-Originally I wanted to wait until the WGSL spec fully stabilized, but due to some issues with the GLSL code, I've decided to switch over the code now. Why'll GLSL is supported by WebGPU, it's currently secondary to WGSL. I'll keep an example of how to use GLSL (and maybe add HLSL and Metal as well), but I'm going to use WGSL from now on.
+Originally I wanted to wait until the WGSL spec fully stabilized, but due to some issues with the GLSL code, I've decided to switch over the code now. While GLSL is supported by WebGPU, it's currently secondary to WGSL. I'll keep an example of how to use GLSL (and maybe add HLSL and Metal as well), but I'm going to use WGSL from now on.
 
 ### Shaderc has been removed
 
