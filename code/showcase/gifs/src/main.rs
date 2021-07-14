@@ -217,6 +217,5 @@ fn create_render_pipeline(
 }
 
 fn main() {
-    use futures::executor::block_on;
-    block_on(run());
+    pollster::block_on(run());
 }

@@ -57,7 +57,7 @@ let u32_size = std::mem::size_of::<u32>() as u32;
 let output_buffer_size = (u32_size * texture_size * texture_size) as wgpu::BufferAddress;
 let output_buffer_desc = wgpu::BufferDescriptor {
     size: output_buffer_size,
-    usage: wgpu::BufferUsage::COPY_DST 
+    usage: wgpu::BufferUsage::COPY_DST
         // this tells wpgu that we want to read this buffer from the cpu
         | wgpu::BufferUsage::MAP_READ,
     label: None,
@@ -265,7 +265,7 @@ output_buffer.unmap();
 
 ## Main is not asyncable
 
-The `main()` method can't return a future, so we can't use the `async` keyword. We'll get around this by putting our code into a different function so that we can block on it in `main()`. You'll need to use a crate that can poll futures such as the [futures crate](https://docs.rs/futures).
+The `main()` method can't return a future, so we can't use the `async` keyword. We'll get around this by putting our code into a different function so that we can block on it in `main()`. You'll need to use a crate that can poll futures such as the [pollster crate](https://docs.rs/pollster).
 
 ```rust
 async fn run() {
@@ -273,12 +273,11 @@ async fn run() {
 }
 
 fn main() {
-    use futures::executor::block_on;
-    block_on(run());
+    pollster::block_on(run());
 }
 ```
 
-With all that you should have an image like this. 
+With all that you should have an image like this.
 
 ![a brown triangle](./image-output.png)
 

@@ -9,7 +9,7 @@ edition = "2018"
 [dependencies]
 anyhow = "1.0"
 wgpu = "0.9"
-futures = "0.3"
+pollster = "0.2"
 imgui = "0.7"
 imgui-wgpu = "0.15"
 imgui-winit-support = "0.7"

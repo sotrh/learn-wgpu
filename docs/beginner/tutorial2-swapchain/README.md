@@ -129,15 +129,13 @@ At the end of the method, we simply return the resulting struct.
 We'll want to call this in our main method before we enter the event loop.
 
 ```rust
-use futures::executor::block_on;
-
 // Since main can't be async, we're going to need to block
-let mut state = block_on(State::new(&window));
+let mut state = pollster::block_on(State::new(&window));
 ```
 
 <div class="note">
 
-You can use libraries like [async_std](https://docs.rs/async_std) and [tokio](https://docs.rs/tokio) to make main async, so you can await futures. I've elected not to use these crates as this tutorial is not about writing an async application. We just need some way to interact with wgpu's async functions, and the [futures crate](https://docs.rs/futures) is enough for that.
+You can use heavier libraries like [async_std](https://docs.rs/async_std) and [tokio](https://docs.rs/tokio) to make main async, so you can await futures. I've elected not to use these crates as this tutorial is not about writing an async application, and the futures created by wgpu do not require [special executor support](https://rust-lang.github.io/async-book/08_ecosystem/00_chapter.html#determining-ecosystem-compatibility). We just need some way to interact with wgpu's async functions, and the [pollster crate](https://docs.rs/pollster) is enough for that.
 
 </div>
 
