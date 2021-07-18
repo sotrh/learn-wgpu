@@ -517,7 +517,7 @@ Remember the normal vectors that were included with our model? We're finally goi
 
 If the dot product of the normal and light vector is 1.0, that means that the current fragment is directly inline with the light source and will receive the lights full intensity. A value of 0.0 or lower means that the surface is perpendicular or facing away from the light, and therefore will be dark.
 
-We're going to need to pull in the normal vector into our `shader.vert`.
+We're going to need to pull in the normal vector into our `shader.wgsl`.
 
 ```wgsl
 struct VertexInput {
@@ -847,8 +847,8 @@ let reflect_dir = reflect(-light_dir, in.world_normal);
 Then we use the dot product to calculate the `specular_strength` and use that to compute the `specular_color`.
 
 ```wgsl
-let specular_strength = pow(max(dot(view_dir, reflect_dir), 0.0), 32);
-let specular_color = specular_strength * light_color;
+let specular_strength = pow(max(dot(view_dir, reflect_dir), 0.0), 32.0);
+let specular_color = specular_strength * light.color;
 ```
 
 Finally we add that to the result.
