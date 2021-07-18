@@ -873,7 +873,7 @@ Up to this point we've actually only implemented the Phong part of Blinn-Phong. 
 let view_dir = normalize(uniforms.view_pos.xyz - in.world_position);
 let half_dir = normalize(view_dir + light_dir);
 
-let specular_strength = pow(max(dot(in.world_normal, half_dir), 0.0), 32);
+let specular_strength = pow(max(dot(in.world_normal, half_dir), 0.0), 32.0);
 ```
 
 It's hard to tell the difference, but here's the results.
