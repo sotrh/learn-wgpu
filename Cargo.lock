@@ -912,9 +912,9 @@ dependencies = [
 
 [[package]]
 name = "gfx-backend-dx12"
-version = "0.9.0"
+version = "0.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "61f09e9d8c2aa69e9a21eb83c0f5d1a286c6d37da011f796e550d180b08090ce"
+checksum = "21506399f64a3c4d389182a89a30073856ae33eb712315456b4fd8f39ee7682a"
 dependencies = [
  "arrayvec",
  "bit-set",
@@ -1030,9 +1030,9 @@ dependencies = [
 
 [[package]]
 name = "gfx-backend-metal"
-version = "0.9.0"
+version = "0.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "76c10e91bbe274122a9bf196ac16a57dd2db67cd7c4299eeb962503aebacc013"
+checksum = "0de85808e2a98994c6af925253f8a9593bc57180ef1ea137deab6d35cc949517"
 dependencies = [
  "arrayvec",
  "bitflags",
@@ -2984,10 +2984,10 @@ dependencies = [
  "copyless",
  "fxhash",
  "gfx-backend-dx11 0.9.0",
- "gfx-backend-dx12 0.9.0",
+ "gfx-backend-dx12 0.9.1",
  "gfx-backend-empty 0.9.0",
  "gfx-backend-gl 0.9.0",
- "gfx-backend-metal 0.9.0",
+ "gfx-backend-metal 0.9.1",
  "gfx-backend-vulkan 0.9.0",
  "gfx-hal 0.9.0",
  "gpu-alloc",

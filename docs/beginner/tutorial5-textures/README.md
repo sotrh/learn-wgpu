@@ -44,6 +44,7 @@ let diffuse_texture = device.create_texture(
         mip_level_count: 1, // We'll talk about this a little later
         sample_count: 1,
         dimension: wgpu::TextureDimension::D2,
+        // Most images are stored using sRGB so we need to reflect that here.
         format: wgpu::TextureFormat::Rgba8UnormSrgb,
         // SAMPLED tells wgpu that we want to use this texture in shaders
         // COPY_DST means that we want to copy data to this texture
