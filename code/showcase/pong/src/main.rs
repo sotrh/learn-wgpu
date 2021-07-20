@@ -8,7 +8,6 @@ mod util;
 use input::Input;
 use system::System;
 
-use futures::executor::block_on;
 use winit::event::*;
 use winit::event_loop::{ControlFlow, EventLoop};
 use winit::window::{Fullscreen, WindowBuilder};
@@ -25,7 +24,7 @@ fn main() {
         .unwrap();
     window.set_cursor_visible(false);
 
-    let mut render = block_on(render::Render::new(&window, &video_mode));
+    let mut render = pollster::block_on(render::Render::new(&window, &video_mode));
     let mut state = state::State {
         ball: state::Ball {
             position: (0.0, 0.0).into(),

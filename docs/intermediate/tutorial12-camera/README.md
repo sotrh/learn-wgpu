@@ -418,12 +418,12 @@ self.light.position =
         * old_position; // UPDATED!
 ```
 
-We still need to calculate `dt`. Let's do that in the `main` function. 
+We still need to calculate `dt`. Let's do that in the `main` function.
 
 ```rust
 fn main() {
     // ...
-    let mut state = block_on(State::new(&window));
+    let mut state = pollster::block_on(State::new(&window));
     let mut last_render_time = std::time::Instant::now();
     event_loop.run(move |event, _, control_flow| {
         *control_flow = ControlFlow::Poll;

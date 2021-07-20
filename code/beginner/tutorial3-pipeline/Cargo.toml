@@ -12,7 +12,7 @@ cgmath = "0.18"
 env_logger = "0.8"
 log = "0.4"
 wgpu = "0.9"
-futures = "0.3"
+pollster = "0.2"
 
 # NEW!
 [build-dependencies]

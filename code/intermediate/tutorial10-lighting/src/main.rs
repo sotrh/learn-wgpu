@@ -689,8 +689,7 @@ fn main() {
         .with_title(title)
         .build(&event_loop)
         .unwrap();
-    use futures::executor::block_on;
-    let mut state = block_on(State::new(&window));
+    let mut state = pollster::block_on(State::new(&window));
     event_loop.run(move |event, _, control_flow| {
         *control_flow = ControlFlow::Poll;
         match event {

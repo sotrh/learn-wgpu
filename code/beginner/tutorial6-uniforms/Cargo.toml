@@ -10,7 +10,7 @@ bytemuck = { version = "1.4", features = [ "derive" ] }
 cgmath = "0.18"
 env_logger = "0.8"
 log = "0.4"
-futures = "0.3"
+pollster = "0.2"
 image = "0.23"
 wgpu = "0.9"
 winit = "0.25"

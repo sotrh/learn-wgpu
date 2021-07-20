@@ -1,5 +1,4 @@
 use anyhow::*;
-use futures::executor::block_on;
 use imgui::*;
 use imgui_wgpu::{Renderer, RendererConfig};
 use std::time::Duration;
@@ -135,6 +134,6 @@ impl framework::Demo for ImguiDemo {
 }
 
 fn main() -> Result<()> {
-    block_on(framework::run::<ImguiDemo>())?;
+    pollster::block_on(framework::run::<ImguiDemo>())?;
     Ok(())
 }
