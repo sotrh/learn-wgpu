@@ -181,7 +181,11 @@ let texture_bind_group_layout = device.create_bind_group_layout(
                 binding: 1,
                 visibility: wgpu::ShaderStage::FRAGMENT,
                 ty: wgpu::BindingType::Sampler {
+                    // This is only for TextureSampleType::Depth
                     comparison: false,
+                    // This should be true if the sample_type of the texture is:
+                    //     TextureSampleType::Float { filterable: true }
+                    // Otherwise you'll get an error.
                     filtering: true,
                 },
                 count: None,
