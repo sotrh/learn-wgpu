@@ -199,7 +199,7 @@ pub async fn run<D: Demo>() -> Result<(), Error> {
         .with_title(env!("CARGO_PKG_NAME"))
         .build(&event_loop)?;
     let mut display = Display::new(window).await?;
-    let mut demo = D::init(&mut display)?;
+    let mut demo = D::init(&display)?;
     let mut last_update = Instant::now();
     let mut is_resumed = true;
     let mut is_focused = true;
@@ -221,7 +221,7 @@ pub async fn run<D: Demo>() -> Result<(), Error> {
                     let dt = now - last_update;
                     last_update = now;
 
-                    demo.update(&mut display, dt);
+                    demo.update(&display, dt);
                     demo.render(&mut display);
                     is_redraw_requested = false;
                 }
@@ -244,11 +244,11 @@ pub async fn run<D: Demo>() -> Result<(), Error> {
                         WindowEvent::Focused(f) => is_focused = f,
                         WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
                             display.resize(new_inner_size.width, new_inner_size.height);
-                            demo.resize(&mut display);
+                            demo.resize(&display);
                         }
                         WindowEvent::Resized(new_inner_size) => {
                             display.resize(new_inner_size.width, new_inner_size.height);
-                            demo.resize(&mut display);
+                            demo.resize(&display);
                         }
                         _ => {}
                     }
