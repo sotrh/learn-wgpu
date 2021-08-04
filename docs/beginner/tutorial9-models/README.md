@@ -293,18 +293,15 @@ impl Model {
 Before we can draw the model, we need to be able to draw an individual mesh. Let's create a trait called `DrawModel`, and implement it for `RenderPass`.
 
 ```rust
-pub trait DrawModel<'a, 'b>
-where
-    'b: 'a,
-{
-    fn draw_mesh(&mut self, mesh: &'b Mesh);
+pub trait DrawModel<'a> {
+    fn draw_mesh(&mut self, mesh: &'a Mesh);
     fn draw_mesh_instanced(
         &mut self,
-        mesh: &'b Mesh,
+        mesh: &'a Mesh,
         instances: Range<u32>,
     );
 }
-impl<'a, 'b> DrawModel<'a, 'b> for wgpu::RenderPass<'a>
+impl<'a, 'b> DrawModel<'b> for wgpu::RenderPass<'a>
 where
     'b: 'a,
 {
@@ -404,17 +401,14 @@ pub struct Material {
 We're going to add a material parameter to `DrawModel`.
 
 ```rust
-pub trait DrawModel<'a, 'b>
-where
-    'b: 'a,
-{
-    fn draw_mesh(&mut self, mesh: &'b Mesh, material: &'b Material, uniforms: &'b wgpu::BindGroup);
+pub trait DrawModel<'a> {
+    fn draw_mesh(&mut self, mesh: &'a Mesh, material: &'a Material, uniforms: &'a wgpu::BindGroup);
     fn draw_mesh_instanced(
         &mut self,
-        mesh: &'b Mesh,
-        material: &'b Material,
+        mesh: &'a Mesh,
+        material: &'a Material,
         instances: Range<u32>,
-        uniforms: &'b wgpu::BindGroup,
+        uniforms: &'a wgpu::BindGroup,
     );
 
 }
@@ -464,21 +458,18 @@ With all that in place we should get the following.
 Right now we are specifying the mesh and the material directly. This is useful if we want to draw a mesh with a different material. We're also not rendering other parts of the model (if we had some). Let's create a method for `DrawModel` that will draw all the parts of the model with their respective materials.
 
 ```rust
-pub trait DrawModel<'a, 'b>
-where
-    'b: 'a,
-{
+pub trait DrawModel<'a> {
     // ...
-    fn draw_model(&mut self, model: &'b Model, uniforms: &'b wgpu::BindGroup);
+    fn draw_model(&mut self, model: &'a Model, uniforms: &'a wgpu::BindGroup);
     fn draw_model_instanced(
         &mut self,
-        model: &'b Model,
+        model: &'a Model,
         instances: Range<u32>,
-        uniforms: &'b wgpu::BindGroup,
+        uniforms: &'a wgpu::BindGroup,
     );
 }
 
-impl<'a, 'b> DrawModel<'a, 'b> for wgpu::RenderPass<'a>
+impl<'a, 'b> DrawModel<'b> for wgpu::RenderPass<'a>
 where
     'b: 'a, {
     // ...

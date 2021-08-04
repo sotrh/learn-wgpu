@@ -71,7 +71,9 @@ impl Model {
         layout: &wgpu::BindGroupLayout,
         path: P,
     ) -> Result<Self> {
-        let (obj_models, obj_materials) = tobj::load_obj(path.as_ref(), &LoadOptions {
+        let (obj_models, obj_materials) = tobj::load_obj(
+            path.as_ref(),
+            &LoadOptions {
                 triangulate: true,
                 single_index: true,
                 ..Default::default()
@@ -154,29 +156,26 @@ impl Model {
     }
 }
 
-pub trait DrawModel<'a, 'b>
-where
-    'b: 'a,
-{
-    fn draw_mesh(&mut self, mesh: &'b Mesh, material: &'b Material, uniforms: &'b wgpu::BindGroup);
+pub trait DrawModel<'a> {
+    fn draw_mesh(&mut self, mesh: &'a Mesh, material: &'a Material, uniforms: &'a wgpu::BindGroup);
     fn draw_mesh_instanced(
         &mut self,
-        mesh: &'b Mesh,
-        material: &'b Material,
+        mesh: &'a Mesh,
+        material: &'a Material,
         instances: Range<u32>,
-        uniforms: &'b wgpu::BindGroup,
+        uniforms: &'a wgpu::BindGroup,
     );
 
-    fn draw_model(&mut self, model: &'b Model, uniforms: &'b wgpu::BindGroup);
+    fn draw_model(&mut self, model: &'a Model, uniforms: &'a wgpu::BindGroup);
     fn draw_model_instanced(
         &mut self,
-        model: &'b Model,
+        model: &'a Model,
         instances: Range<u32>,
-        uniforms: &'b wgpu::BindGroup,
+        uniforms: &'a wgpu::BindGroup,
     );
 }
 
-impl<'a, 'b> DrawModel<'a, 'b> for wgpu::RenderPass<'a>
+impl<'a, 'b> DrawModel<'b> for wgpu::RenderPass<'a>
 where
     'b: 'a,
 {
