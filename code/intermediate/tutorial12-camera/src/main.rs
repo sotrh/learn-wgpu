@@ -324,10 +324,7 @@ impl State {
                             cgmath::Deg(0.0),
                         )
                     } else {
-                        cgmath::Quaternion::from_axis_angle(
-                            position.clone().normalize(),
-                            cgmath::Deg(45.0),
-                        )
+                        cgmath::Quaternion::from_axis_angle(position.normalize(), cgmath::Deg(45.0))
                     };
 
                     Instance { position, rotation }
