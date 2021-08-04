@@ -431,11 +431,11 @@ For convenience sake, let's pull our texture code into its module. We'll first n
 image = "0.23"
 cgmath = "0.18"
 winit = "0.25"
-env_logger = "0.8"
+env_logger = "0.9"
 log = "0.4"
 pollster = "0.2"
-wgpu ="0.6"
-bytemuck = "1.4"
+wgpu = "0.9"
+bytemuck = { version = "1.4", features = [ "derive" ] }
 anyhow = "1.0" // NEW!
 ```
 
