@@ -122,7 +122,7 @@ fn create_render_pipeline(
 
     device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
         label: Some("Render Pipeline"),
-        layout: Some(&layout),
+        layout: Some(layout),
         vertex: wgpu::VertexState {
             module: &shader,
             entry_point: "main",
@@ -248,8 +248,8 @@ where
         self.set_vertex_buffer(0, &mesh.vertex_buffer, 0, 0);
         self.set_index_buffer(&mesh.index_buffer, 0, 0);
         self.set_bind_group(0, &material.bind_group, &[]);
-        self.set_bind_group(1, &uniforms, &[]);
-        self.set_bind_group(2, &light, &[]);
+        self.set_bind_group(1, uniforms, &[]);
+        self.set_bind_group(2, light, &[]);
         self.draw_indexed(0..mesh.num_elements, 0, instances);
     }
 
