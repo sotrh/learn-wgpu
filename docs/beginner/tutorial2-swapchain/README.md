@@ -144,11 +144,13 @@ If we want to support resizing in our application, we're going to need to recrea
 
 ```rust
 // impl State
-fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
-    self.size = new_size;
-    self.sc_desc.width = new_size.width;
-    self.sc_desc.height = new_size.height;
-    self.swap_chain = self.device.create_swap_chain(&self.surface, &self.sc_desc);
+pub fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
+    if new_size.width > 0 && new_size.height > 0 {
+        self.size = new_size;
+        self.sc_desc.width = new_size.width;
+        self.sc_desc.height = new_size.height;
+        self.swap_chain = self.device.create_swap_chain(&self.surface, &self.sc_desc);
+    }
 }
 ```
 
