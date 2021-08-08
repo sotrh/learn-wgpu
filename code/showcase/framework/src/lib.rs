@@ -74,12 +74,10 @@ impl Display {
         })
     }
 
-    pub fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
-        self.size = new_size;
-        self.sc_desc.width = new_size.width;
-        self.sc_desc.height = new_size.height;
-        self.swap_chain = self.device.create_swap_chain(&self.surface, &self.sc_desc);   
-    }
+    pub fn resize(&mut self, width: u32, height: u32) {
+        self.sc_desc.width = width;
+        self.sc_desc.height = height;
+        self.swap_chain = self.device.create_swap_chain(&self.surface, &self.sc_desc);
 }
 
 /**
