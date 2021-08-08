@@ -78,6 +78,7 @@ impl Display {
         self.sc_desc.width = width;
         self.sc_desc.height = height;
         self.swap_chain = self.device.create_swap_chain(&self.surface, &self.sc_desc);
+    }
 }
 
 /**
