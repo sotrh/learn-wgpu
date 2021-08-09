@@ -65,6 +65,25 @@ impl State {
 
 The `surface` is used to create the `swap_chain`. Our `window` needs to implement [raw-window-handle](https://crates.io/crates/raw-window-handle)'s `HasRawWindowHandle` trait to access the native window implementation for `wgpu` to properly create the graphics backend. Fortunately, winit's `Window` fits the bill. We also need it to request our `adapter`.
 
+<div class="note">
+
+The options I've passed to `request_adapter` aren't guaranteed to work for all devices, but will work for most of them. If you want to get all adapters for a particular backend you can use `enumerate_adapters`. This will give you an iterator that you can loop over to check if one of the adapters works for your needs.
+
+```rust
+let adapter = instance
+    .enumerate_adapters(wgpu::BackendBit::PRIMARY)
+    .filter(|adapter| {
+        // Check if this adapter supports our surface
+        adapter.get_swap_chain_preferred_format(&surface).is_some()
+    })
+    .first()
+    .unwrap()
+```
+
+For more fields you can use to refine you're search [check out the docs](https://docs.rs/wgpu/0.9.0/wgpu/struct.Adapter.html).
+
+</div>
+
 We need the `adapter` to create the device and queue.
 
 ```rust
