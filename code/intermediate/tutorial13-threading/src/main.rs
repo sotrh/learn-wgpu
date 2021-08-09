@@ -165,7 +165,7 @@ fn create_render_pipeline(
 
     device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
         label: Some(&format!("{:?}", shader)),
-        layout: Some(&layout),
+        layout: Some(layout),
         vertex: wgpu::VertexState {
             module: &shader,
             entry_point: "main",
@@ -325,10 +325,7 @@ impl State {
                             cgmath::Deg(0.0),
                         )
                     } else {
-                        cgmath::Quaternion::from_axis_angle(
-                            position.clone().normalize(),
-                            cgmath::Deg(45.0),
-                        )
+                        cgmath::Quaternion::from_axis_angle(position.normalize(), cgmath::Deg(45.0))
                     };
 
                     Instance { position, rotation }
@@ -661,17 +658,16 @@ fn main() {
                 window_id,
             } if window_id == window.id() => {
                 match event {
-                    WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
-                    WindowEvent::KeyboardInput { input, .. } => match input {
-                        KeyboardInput {
-                            state: ElementState::Pressed,
-                            virtual_keycode: Some(VirtualKeyCode::Escape),
-                            ..
-                        } => {
-                            *control_flow = ControlFlow::Exit;
-                        }
-                        _ => {}
-                    },
+                    WindowEvent::CloseRequested
+                    | WindowEvent::KeyboardInput {
+                        input:
+                            KeyboardInput {
+                                state: ElementState::Pressed,
+                                virtual_keycode: Some(VirtualKeyCode::Escape),
+                                ..
+                            },
+                        ..
+                    } => *control_flow = ControlFlow::Exit,
                     WindowEvent::Resized(physical_size) => {
                         state.resize(*physical_size);
                     }

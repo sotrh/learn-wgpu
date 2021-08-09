@@ -50,11 +50,11 @@ const VERTICES: &[Vertex] = &[
     }, // B
     Vertex {
         position: [-0.21918549, 0.44939706, 0.0],
-        tex_coords: [1.0 - 0.28081453, 1.0 - 0.949397057],
+        tex_coords: [1.0 - 0.28081453, 1.0 - 0.949397],
     }, // C
     Vertex {
         position: [0.35966998, 0.3473291, 0.0],
-        tex_coords: [1.0 - 0.85967, 1.0 - 0.84732911],
+        tex_coords: [1.0 - 0.85967, 1.0 - 0.84732914],
     }, // D
     Vertex {
         position: [0.44147372, -0.2347359, 0.0],
@@ -607,10 +607,7 @@ impl State {
                             cgmath::Deg(0.0),
                         )
                     } else {
-                        cgmath::Quaternion::from_axis_angle(
-                            position.clone().normalize(),
-                            cgmath::Deg(45.0),
-                        )
+                        cgmath::Quaternion::from_axis_angle(position.normalize(), cgmath::Deg(45.0))
                     };
 
                     Instance { position, rotation }
@@ -843,15 +840,16 @@ fn main() {
             } if window_id == window.id() => {
                 if !state.input(event) {
                     match event {
-                        WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
-                        WindowEvent::KeyboardInput { input, .. } => match input {
-                            KeyboardInput {
-                                state: ElementState::Pressed,
-                                virtual_keycode: Some(VirtualKeyCode::Escape),
-                                ..
-                            } => *control_flow = ControlFlow::Exit,
-                            _ => {}
-                        },
+                        WindowEvent::CloseRequested
+                        | WindowEvent::KeyboardInput {
+                            input:
+                                KeyboardInput {
+                                    state: ElementState::Pressed,
+                                    virtual_keycode: Some(VirtualKeyCode::Escape),
+                                    ..
+                                },
+                            ..
+                        } => *control_flow = ControlFlow::Exit,
                         WindowEvent::Resized(physical_size) => {
                             state.resize(*physical_size);
                         }

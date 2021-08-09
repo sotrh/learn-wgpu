@@ -10,7 +10,7 @@ image = "0.23"
 cgmath = "0.18"
 winit = "0.25"
 wgpu = "0.9"
-env_logger = "0.8"
+env_logger = "0.9"
 log = "0.4"
 pollster = "0.2"
 # NEW!

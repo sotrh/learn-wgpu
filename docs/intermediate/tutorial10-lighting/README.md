@@ -122,7 +122,7 @@ fn create_render_pipeline(
 
     device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
         label: Some("Render Pipeline"),
-        layout: Some(&layout),
+        layout: Some(layout),
         vertex: wgpu::VertexState {
             module: &shader,
             entry_point: "main",
@@ -191,42 +191,39 @@ let render_pipeline = {
 We're going to need to modify `model::DrawModel` to use our `light_bind_group`.
 
 ```rust
-pub trait DrawModel<'a, 'b>
-where
-    'b: 'a,
-{
+pub trait DrawModel<'a> {
     fn draw_mesh(
         &mut self,
-        mesh: &'b Mesh,
-        material: &'b Material,
-        uniforms: &'b wgpu::BindGroup,
-        light: &'b wgpu::BindGroup,
+        mesh: &'a Mesh,
+        material: &'a Material,
+        uniforms: &'a wgpu::BindGroup,
+        light: &'a wgpu::BindGroup,
     );
     fn draw_mesh_instanced(
         &mut self,
-        mesh: &'b Mesh,
-        material: &'b Material,
+        mesh: &'a Mesh,
+        material: &'a Material,
         instances: Range<u32>,
-        uniforms: &'b wgpu::BindGroup,
-        light: &'b wgpu::BindGroup,
+        uniforms: &'a wgpu::BindGroup,
+        light: &'a wgpu::BindGroup,
     );
 
     fn draw_model(
         &mut self,
-        model: &'b Model,
-        uniforms: &'b wgpu::BindGroup,
-        light: &'b wgpu::BindGroup,
+        model: &'a Model,
+        uniforms: &'a wgpu::BindGroup,
+        light: &'a wgpu::BindGroup,
     );
     fn draw_model_instanced(
         &mut self,
-        model: &'b Model,
+        model: &'a Model,
         instances: Range<u32>,
-        uniforms: &'b wgpu::BindGroup,
-        light: &'b wgpu::BindGroup,
+        uniforms: &'a wgpu::BindGroup,
+        light: &'a wgpu::BindGroup,
     );
 }
 
-impl<'a, 'b> DrawModel<'a, 'b> for wgpu::RenderPass<'a>
+impl<'a, 'b> DrawModel<'b> for wgpu::RenderPass<'a>
 where
     'b: 'a,
 {
@@ -251,8 +248,8 @@ where
         self.set_vertex_buffer(0, &mesh.vertex_buffer, 0, 0);
         self.set_index_buffer(&mesh.index_buffer, 0, 0);
         self.set_bind_group(0, &material.bind_group, &[]);
-        self.set_bind_group(1, &uniforms, &[]);
-        self.set_bind_group(2, &light, &[]);
+        self.set_bind_group(1, uniforms, &[]);
+        self.set_bind_group(2, light, &[]);
         self.draw_indexed(0..mesh.num_elements, 0, instances);
     }
 
@@ -358,41 +355,37 @@ fn main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
 Now we could manually implement the draw code for the light in `render()`, but to keep with the pattern we developed, let's create a new trait called `DrawLight`.
 
 ```rust
-pub trait DrawLight<'a, 'b>
-where
-    'b: 'a,
-{
+pub trait DrawLight<'a> {
     fn draw_light_mesh(
         &mut self,
-        mesh: &'b Mesh,
-        uniforms: &'b wgpu::BindGroup,
-        light: &'b wgpu::BindGroup,
+        mesh: &'a Mesh,
+        uniforms: &'a wgpu::BindGroup,
+        light: &'a wgpu::BindGroup,
     );
     fn draw_light_mesh_instanced(
         &mut self,
-        mesh: &'b Mesh,
+        mesh: &'a Mesh,
         instances: Range<u32>,
-        uniforms: &'b wgpu::BindGroup,
-        light: &'b wgpu::BindGroup,
-    ) where
-        'b: 'a;
+        uniforms: &'a wgpu::BindGroup,
+        light: &'a wgpu::BindGroup,
+    );
 
     fn draw_light_model(
         &mut self,
-        model: &'b Model,
-        uniforms: &'b wgpu::BindGroup,
-        light: &'b wgpu::BindGroup,
+        model: &'a Model,
+        uniforms: &'a wgpu::BindGroup,
+        light: &'a wgpu::BindGroup,
     );
     fn draw_light_model_instanced(
         &mut self,
-        model: &'b Model,
+        model: &'a Model,
         instances: Range<u32>,
-        uniforms: &'b wgpu::BindGroup,
-        light: &'b wgpu::BindGroup,
+        uniforms: &'a wgpu::BindGroup,
+        light: &'a wgpu::BindGroup,
     );
 }
 
-impl<'a, 'b> DrawLight<'a, 'b> for wgpu::RenderPass<'a>
+impl<'a, 'b> DrawLight<'b> for wgpu::RenderPass<'a>
 where
     'b: 'a,
 {

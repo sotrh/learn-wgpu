@@ -11,7 +11,7 @@ For the beginner stuff, we're going to keep things very simple, we'll add things
 image = "0.23"
 winit = "0.25"
 cgmath = "0.18"
-env_logger = "0.8"
+env_logger = "0.9"
 log = "0.4"
 wgpu = "0.9"
 pollster = "0.2"
@@ -37,15 +37,16 @@ fn main() {
             ref event,
             window_id,
         } if window_id == window.id() => match event {
-            WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
-            WindowEvent::KeyboardInput { input, .. } => match input {
-                KeyboardInput {
-                    state: ElementState::Pressed,
-                    virtual_keycode: Some(VirtualKeyCode::Escape),
-                    ..
-                } => *control_flow = ControlFlow::Exit,
-                _ => {}
-            },
+            WindowEvent::CloseRequested
+            | WindowEvent::KeyboardInput {
+                input:
+                    KeyboardInput {
+                        state: ElementState::Pressed,
+                        virtual_keycode: Some(VirtualKeyCode::Escape),
+                        ..
+                    },
+                ..
+            } => *control_flow = ControlFlow::Exit,
             _ => {}
         },
         _ => {}

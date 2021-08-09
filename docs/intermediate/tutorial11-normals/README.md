@@ -530,22 +530,19 @@ for mat in obj_materials {
 I also added a `draw_model_instanced_with_material()` to the `DrawModel` trait.
 
 ```rust
-pub trait DrawModel<'a, 'b>
-where
-    'b: 'a,
-{
+pub trait DrawModel<'a> {
     // ...
     fn draw_model_instanced_with_material(
         &mut self,
-        model: &'b Model,
-        material: &'b Material,
+        model: &'a Model,
+        material: &'a Material,
         instances: Range<u32>,
-        uniforms: &'b wgpu::BindGroup,
-        light: &'b wgpu::BindGroup,
+        uniforms: &'a wgpu::BindGroup,
+        light: &'a wgpu::BindGroup,
     );
 }
 
-impl<'a, 'b> DrawModel<'a, 'b> for wgpu::RenderPass<'a>
+impl<'a, 'b> DrawModel<'b> for wgpu::RenderPass<'a>
 where
     'b: 'a,
 {
