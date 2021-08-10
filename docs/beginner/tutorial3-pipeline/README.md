@@ -65,7 +65,7 @@ Vector types such as `vec4` are generic. Currently you must specify the type of 
 
 </div>
 
-The next part of the shader code is the `main` function. We using `[[stage(vertex)]]` to mark this function as a valid entry point for a vertex shader. We expect a `u32` called `in_vertex_index` which gets its value from `[[builtin(vertex_index)]]`.
+The next part of the shader code is the `main` function. We are using `[[stage(vertex)]]` to mark this function as a valid entry point for a vertex shader. We expect a `u32` called `in_vertex_index` which gets its value from `[[builtin(vertex_index)]]`.
 
 We then declare a variable called `out` using our `VertexOutput` struct. We create two other variables for the `x`, and `y`, of a triangle.
 
