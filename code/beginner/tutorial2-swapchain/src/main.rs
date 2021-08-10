@@ -63,9 +63,14 @@ impl State {
     }
 
     fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
+        // Check if we are positive for the new size value
+        // otherwise when minimise the window may crash
+        let safe_width = if new_size.width > 0 { new_size.width } else { 1 };
+        let safe_height = if new_size.height > 0 { new_size.height } else { 1 };
+
         self.size = new_size;
-        self.sc_desc.width = new_size.width;
-        self.sc_desc.height = new_size.height;
+        self.sc_desc.width = safe_width;
+        self.sc_desc.height = safe_height;
         self.swap_chain = self.device.create_swap_chain(&self.surface, &self.sc_desc);
     }
 
@@ -156,7 +161,10 @@ fn main() {
                     Err(wgpu::SwapChainError::Lost) => state.resize(state.size),
                     // The system is out of memory, we should probably quit
                     Err(wgpu::SwapChainError::OutOfMemory) => *control_flow = ControlFlow::Exit,
-                    // All other errors (Outdated, Timeout) should be resolved by the next frame
+                    // Add the match for the Outdated error otherwise a spam of this error will happen
+                    // if the window become minimise.
+                    Err(wgpu::SwapChainError::Outdated) => {}
+                    // All other errors (Timeout) should be resolved by the next frame
                     Err(e) => eprintln!("{:?}", e),
                 }
             }

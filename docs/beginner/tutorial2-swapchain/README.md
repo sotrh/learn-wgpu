@@ -319,7 +319,7 @@ event_loop.run(move |event, _, control_flow| {
                 Err(wgpu::SwapChainError::OutOfMemory) => *control_flow = ControlFlow::Exit,
                 // Add the match for the Outdated error otherwise a spam of this error will happen
                 // if the window become minimise.
-                Err(wgpu::SwapChainError::Outdated) => state.resize(state.size),
+                Err(wgpu::SwapChainError::Outdated) => {},
                 // All other errors (Timeout) should be resolved by the next frame
                 Err(e) => eprintln!("{:?}", e),
             }
