@@ -752,7 +752,7 @@ pub fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
             self.sc_desc.width = new_size.width;
             self.sc_desc.height = new_size.height;
             
-            self.swap_chain = self.device.create_swap_chain(&self.surface, &self.sc_desc)
+            self.swap_chain = self.device.create_swap_chain(&self.surface, &self.sc_desc);
             self.depth_pass.resize(&self.device, &self.sc_desc);
 
             self.camera.aspect = self.sc_desc.width as f32 / self.sc_desc.height as f32;
