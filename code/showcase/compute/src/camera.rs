@@ -40,11 +40,7 @@ impl Camera {
 
         Matrix4::look_to_rh(
             self.position,
-            Vector3::new(
-                cos_pitch * cos_yaw,
-                sin_pitch,
-                cos_pitch * sin_yaw
-            ).normalize(),
+            Vector3::new(cos_pitch * cos_yaw, sin_pitch, cos_pitch * sin_yaw).normalize(),
             Vector3::unit_y(),
         )
     }

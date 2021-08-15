@@ -198,7 +198,7 @@ impl State {
             self.swap_chain = self.device.create_swap_chain(&self.surface, &self.sc_desc);
         }
     }
-    
+
     #[allow(unused_variables)]
     fn input(&mut self, event: &WindowEvent) -> bool {
         false

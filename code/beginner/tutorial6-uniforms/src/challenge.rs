@@ -464,7 +464,8 @@ impl State {
             self.sc_desc.height = new_size.height;
             self.swap_chain = self.device.create_swap_chain(&self.surface, &self.sc_desc);
 
-            self.uniform_staging.camera.aspect = self.sc_desc.width as f32 / self.sc_desc.height as f32;
+            self.uniform_staging.camera.aspect =
+                self.sc_desc.width as f32 / self.sc_desc.height as f32;
         }
     }
 

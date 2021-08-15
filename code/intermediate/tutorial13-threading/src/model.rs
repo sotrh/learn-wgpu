@@ -1,5 +1,5 @@
 use anyhow::*;
-use rayon::prelude::*;
+use cgmath::InnerSpace;
 use std::ops::Range;
 use std::path::Path;
 use tobj::LoadOptions;
@@ -140,132 +140,138 @@ impl Model {
         // We're assuming that the texture files are stored with the obj file
         let containing_folder = path.as_ref().parent().context("Directory has no parent")?;
 
-        // UPDATED!
-        let materials = obj_materials
-            .par_iter()
-            .map(|mat| {
-                // We can also parallelize loading the textures!
-                let mut textures = [
-                    (containing_folder.join(&mat.diffuse_texture), false),
-                    (containing_folder.join(&mat.normal_texture), true),
-                ]
-                .par_iter()
-                .map(|(texture_path, is_normal_map)| {
-                    //
-                    texture::Texture::load(device, queue, texture_path, *is_normal_map)
-                })
-                .collect::<Result<Vec<_>>>()?;
+        let mut materials = Vec::new();
+        for mat in obj_materials {
+            let diffuse_path = mat.diffuse_texture;
+            let diffuse_texture =
+                texture::Texture::load(device, queue, containing_folder.join(diffuse_path), false)?;
 
-                // Pop removes from the end of the list.
-                let normal_texture = textures.pop().unwrap();
-                let diffuse_texture = textures.pop().unwrap();
+            let normal_path = mat.normal_texture;
+            let normal_texture =
+                texture::Texture::load(device, queue, containing_folder.join(normal_path), true)?;
 
-                Ok(Material::new(
-                    device,
-                    &mat.name,
-                    diffuse_texture,
-                    normal_texture,
-                    layout,
-                ))
-            })
-            .collect::<Result<Vec<Material>>>()?;
+            materials.push(Material::new(
+                device,
+                &mat.name,
+                diffuse_texture,
+                normal_texture,
+                layout,
+            ));
+        }
 
-        // UPDATED!
-        let meshes = obj_models
-            .par_iter()
-            .map(|m| {
-                let mut vertices = (0..m.mesh.positions.len() / 3)
-                    .into_par_iter()
-                    .map(|i| {
-                        ModelVertex {
-                            position: [
-                                m.mesh.positions[i * 3],
-                                m.mesh.positions[i * 3 + 1],
-                                m.mesh.positions[i * 3 + 2],
-                            ]
-                            .into(),
-                            tex_coords: [m.mesh.texcoords[i * 2], m.mesh.texcoords[i * 2 + 1]]
-                                .into(),
-                            normal: [
-                                m.mesh.normals[i * 3],
-                                m.mesh.normals[i * 3 + 1],
-                                m.mesh.normals[i * 3 + 2],
-                            ]
-                            .into(),
-                            // We'll calculate these later
-                            tangent: [0.0; 3].into(),
-                            bitangent: [0.0; 3].into(),
-                        }
-                    })
-                    .collect::<Vec<_>>();
-
-                let indices = &m.mesh.indices;
-
-                // Calculate tangents and bitangets. We're going to
-                // use the triangles, so we need to loop through the
-                // indices in chunks of 3
-                for c in indices.chunks(3) {
-                    let v0 = vertices[c[0] as usize];
-                    let v1 = vertices[c[1] as usize];
-                    let v2 = vertices[c[2] as usize];
-
-                    let pos0: cgmath::Vector3<_> = v0.position.into();
-                    let pos1: cgmath::Vector3<_> = v1.position.into();
-                    let pos2: cgmath::Vector3<_> = v2.position.into();
-
-                    let uv0: cgmath::Vector2<_> = v0.tex_coords.into();
-                    let uv1: cgmath::Vector2<_> = v1.tex_coords.into();
-                    let uv2: cgmath::Vector2<_> = v2.tex_coords.into();
-
-                    // Calculate the edges of the triangle
-                    let delta_pos1 = pos1 - pos0;
-                    let delta_pos2 = pos2 - pos0;
-
-                    // This will give us a direction to calculate the
-                    // tangent and bitangent
-                    let delta_uv1 = uv1 - uv0;
-                    let delta_uv2 = uv2 - uv0;
-
-                    // Solving the following system of equations will
-                    // give us the tangent and bitangent.
-                    //     delta_pos1 = delta_uv1.x * T + delta_u.y * B
-                    //     delta_pos2 = delta_uv2.x * T + delta_uv2.y * B
-                    // Luckily, the place I found this equation provided
-                    // the solution!
-                    let r = 1.0 / (delta_uv1.x * delta_uv2.y - delta_uv1.y * delta_uv2.x);
-                    let tangent = (delta_pos1 * delta_uv2.y - delta_pos2 * delta_uv1.y) * r;
-                    let bitangent = (delta_pos2 * delta_uv1.x - delta_pos1 * delta_uv2.x) * r;
-
-                    // We'll use the same tangent/bitangent for each vertex in the triangle
-                    vertices[c[0] as usize].tangent = tangent.into();
-                    vertices[c[1] as usize].tangent = tangent.into();
-                    vertices[c[2] as usize].tangent = tangent.into();
-
-                    vertices[c[0] as usize].bitangent = bitangent.into();
-                    vertices[c[1] as usize].bitangent = bitangent.into();
-                    vertices[c[2] as usize].bitangent = bitangent.into();
-                }
-
-                let vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-                    label: Some(&format!("{:?} Vertex Buffer", m.name)),
-                    contents: bytemuck::cast_slice(&vertices),
-                    usage: wgpu::BufferUsage::VERTEX,
+        let mut meshes = Vec::new();
+        for m in obj_models {
+            let mut vertices = Vec::new();
+            for i in 0..m.mesh.positions.len() / 3 {
+                vertices.push(ModelVertex {
+                    position: [
+                        m.mesh.positions[i * 3],
+                        m.mesh.positions[i * 3 + 1],
+                        m.mesh.positions[i * 3 + 2],
+                    ]
+                    .into(),
+                    tex_coords: [m.mesh.texcoords[i * 2], m.mesh.texcoords[i * 2 + 1]].into(),
+                    normal: [
+                        m.mesh.normals[i * 3],
+                        m.mesh.normals[i * 3 + 1],
+                        m.mesh.normals[i * 3 + 2],
+                    ]
+                    .into(),
+                    // We'll calculate these later
+                    tangent: [0.0; 3].into(),
+                    bitangent: [0.0; 3].into(),
                 });
-                let index_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-                    label: Some(&format!("{:?} Index Buffer", m.name)),
-                    contents: bytemuck::cast_slice(&m.mesh.indices),
-                    usage: wgpu::BufferUsage::INDEX,
-                });
+            }
 
-                Ok(Mesh {
-                    name: m.name.clone(),
-                    vertex_buffer,
-                    index_buffer,
-                    num_elements: m.mesh.indices.len() as u32,
-                    material: m.mesh.material_id.unwrap_or(0),
-                })
-            })
-            .collect::<Result<Vec<_>>>()?;
+            let indices = &m.mesh.indices;
+            let mut triangles_included = (0..vertices.len()).collect::<Vec<_>>();
+
+            // Calculate tangents and bitangets. We're going to
+            // use the triangles, so we need to loop through the
+            // indices in chunks of 3
+            for c in indices.chunks(3) {
+                let v0 = vertices[c[0] as usize];
+                let v1 = vertices[c[1] as usize];
+                let v2 = vertices[c[2] as usize];
+
+                let pos0: cgmath::Vector3<_> = v0.position.into();
+                let pos1: cgmath::Vector3<_> = v1.position.into();
+                let pos2: cgmath::Vector3<_> = v2.position.into();
+
+                let uv0: cgmath::Vector2<_> = v0.tex_coords.into();
+                let uv1: cgmath::Vector2<_> = v1.tex_coords.into();
+                let uv2: cgmath::Vector2<_> = v2.tex_coords.into();
+
+                // Calculate the edges of the triangle
+                let delta_pos1 = pos1 - pos0;
+                let delta_pos2 = pos2 - pos0;
+
+                // This will give us a direction to calculate the
+                // tangent and bitangent
+                let delta_uv1 = uv1 - uv0;
+                let delta_uv2 = uv2 - uv0;
+
+                // Solving the following system of equations will
+                // give us the tangent and bitangent.
+                //     delta_pos1 = delta_uv1.x * T + delta_u.y * B
+                //     delta_pos2 = delta_uv2.x * T + delta_uv2.y * B
+                // Luckily, the place I found this equation provided
+                // the solution!
+                let r = 1.0 / (delta_uv1.x * delta_uv2.y - delta_uv1.y * delta_uv2.x);
+                let tangent = (delta_pos1 * delta_uv2.y - delta_pos2 * delta_uv1.y) * r;
+                let bitangent = (delta_pos2 * delta_uv1.x - delta_pos1 * delta_uv2.x) * r;
+
+                // We'll use the same tangent/bitangent for each vertex in the triangle
+                vertices[c[0] as usize].tangent =
+                    (tangent + cgmath::Vector3::from(vertices[c[0] as usize].tangent)).into();
+                vertices[c[1] as usize].tangent =
+                    (tangent + cgmath::Vector3::from(vertices[c[1] as usize].tangent)).into();
+                vertices[c[2] as usize].tangent =
+                    (tangent + cgmath::Vector3::from(vertices[c[2] as usize].tangent)).into();
+                vertices[c[0] as usize].bitangent =
+                    (bitangent + cgmath::Vector3::from(vertices[c[0] as usize].bitangent)).into();
+                vertices[c[1] as usize].bitangent =
+                    (bitangent + cgmath::Vector3::from(vertices[c[1] as usize].bitangent)).into();
+                vertices[c[2] as usize].bitangent =
+                    (bitangent + cgmath::Vector3::from(vertices[c[2] as usize].bitangent)).into();
+
+                // Used to average the tangents/bitangents
+                triangles_included[c[0] as usize] += 1;
+                triangles_included[c[1] as usize] += 1;
+                triangles_included[c[2] as usize] += 1;
+            }
+
+            // Average the tangents/bitangents
+            for (i, n) in triangles_included.into_iter().enumerate() {
+                let denom = 1.0 / n as f32;
+                let mut v = &mut vertices[i];
+                v.tangent = (cgmath::Vector3::from(v.tangent) * denom)
+                    .normalize()
+                    .into();
+                v.bitangent = (cgmath::Vector3::from(v.bitangent) * denom)
+                    .normalize()
+                    .into();
+            }
+
+            let vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some(&format!("{:?} Vertex Buffer", path.as_ref())),
+                contents: bytemuck::cast_slice(&vertices),
+                usage: wgpu::BufferUsage::VERTEX,
+            });
+            let index_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some(&format!("{:?} Index Buffer", path.as_ref())),
+                contents: bytemuck::cast_slice(&m.mesh.indices),
+                usage: wgpu::BufferUsage::INDEX,
+            });
+
+            meshes.push(Mesh {
+                name: m.name,
+                vertex_buffer,
+                index_buffer,
+                num_elements: m.mesh.indices.len() as u32,
+                material: m.mesh.material_id.unwrap_or(0),
+            });
+        }
 
         Ok(Self { meshes, materials })
     }
