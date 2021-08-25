@@ -141,8 +141,8 @@ wgpu::VertexBufferLayout {
 2. `step_mode` tells the pipeline how often it should move to the next vertex. This seems redundant in our case, but we can specify `wgpu::InputStepMode::Instance` if we only want to change vertices when we start drawing a new instance. We'll cover instancing in a later tutorial.
 3. Vertex attributes describe the individual parts of the vertex. Generally this is a 1:1 mapping with a struct's fields, which it is in our case.
 4. This defines the `offset` in bytes that this attribute starts. The first attribute is usually zero, and any future attributes are the collective `size_of` the previous attributes data.
-5. This tells the shader what location to store this attribute at. For example `layout(location=0) in vec3 x` in the vertex shader would correspond to the position field of the struct, while `layout(location=1) in vec3 x` would be the color field.
-6. `format` tells the shader the shape of the attribute. `Float3` corresponds to `vec3` in shader code. The max value we can store in an attribute is `Float4` (`Uint4`, and `Int4` work as well). We'll keep this in mind for when we have to store things that are bigger than `Float4`.
+5. This tells the shader what location to store this attribute at. For example `[[location(0)]] x: vec3<f32>` in the vertex shader would correspond to the position field of the struct, while `[[location(1)]] x: vec3<f32>` would be the color field.
+6. `format` tells the shader the shape of the attribute. `Float32x3` corresponds to `vec3<f32>` in shader code. The max value we can store in an attribute is `Float32x4` (`Uint32x4`, and `Sint32x4` work as well). We'll keep this in mind for when we have to store things that are bigger than `Float32x4`.
 
 For you visually learners, our vertex buffer looks like this.
 
