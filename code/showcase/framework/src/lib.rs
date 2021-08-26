@@ -106,7 +106,7 @@ impl CameraUniform {
             view_proj: cgmath::Matrix4::identity(),
         };
         let buffer = device.create_buffer_init(&BufferInitDescriptor {
-            label: Some("Uniform Buffer"),
+            label: Some("Camera Buffer"),
             contents: bytemuck::cast_slice(&[data]),
             usage: wgpu::BufferUsage::COPY_DST | wgpu::BufferUsage::UNIFORM,
         });
@@ -121,7 +121,7 @@ impl CameraUniform {
 
     pub fn update_buffer(&self, device: &wgpu::Device, encoder: &mut wgpu::CommandEncoder) {
         let staging_buffer = device.create_buffer_init(&BufferInitDescriptor {
-            label: Some("Uniform Update Buffer"),
+            label: Some("Camera Update Buffer"),
             contents: bytemuck::cast_slice(&[self.data]),
             usage: wgpu::BufferUsage::COPY_SRC,
         });
@@ -157,7 +157,7 @@ impl UniformBinding {
                 },
                 count: None,
             }],
-            label: Some("UniformBinding::layout"),
+            label: Some("CameraBinding::layout"),
         });
         let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
             layout: &layout,
@@ -165,7 +165,7 @@ impl UniformBinding {
                 binding: 0,
                 resource: camera_uniform.buffer.as_entire_binding(),
             }],
-            label: Some("UniformBinding::bind_group"),
+            label: Some("CameraBinding::bind_group"),
         });
 
         Self { layout, bind_group }
@@ -178,7 +178,7 @@ impl UniformBinding {
                 binding: 0,
                 resource: camera_uniform.buffer.as_entire_binding(),
             }],
-            label: Some("UniformBinding::bind_group"),
+            label: Some("CameraBinding::bind_group"),
         });
     }
 }
