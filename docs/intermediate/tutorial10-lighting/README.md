@@ -22,7 +22,7 @@ Before we can get into that though, we need to add a light to our scene.
 // main.rs
 #[repr(C)]
 #[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
-struct Light {
+struct LightUniform {
     position: [f32; 3],
     // Due to uniforms requiring 16 byte (4 float) spacing, we need to use a padding field here
     _padding: u32,
@@ -30,12 +30,12 @@ struct Light {
 }
 ```
 
-Our `Light` represents a colored point in space. We're just going to use pure white light, but it's good to allow different colors of light.
+Our `LightUniform` represents a colored point in space. We're just going to use pure white light, but it's good to allow different colors of light.
 
 We're going to create another buffer to store our light in. 
 
 ```rust
-let light = Light {
+let light_uniform = LightUniform {
     position: [2.0, 2.0, 2.0],
     _padding: 0,
     color: [1.0, 1.0, 1.0],
@@ -45,13 +45,13 @@ let light = Light {
 let light_buffer = device.create_buffer_init(
     &wgpu::util::BufferInitDescriptor {
         label: Some("Light VB"),
-        contents: bytemuck::cast_slice(&[light]),
+        contents: bytemuck::cast_slice(&[light_uniform]),
         usage: wgpu::BufferUsage::UNIFORM | wgpu::BufferUsage::COPY_DST,
     }
 );
 ```
 
-Don't forget to add the `light` and `light_buffer` to `State`. After that we need to create a bind group layout and bind group for our light.
+Don't forget to add the `light_uniform` and `light_buffer` to `State`. After that we need to create a bind group layout and bind group for our light.
 
 ```rust
 let light_bind_group_layout =
@@ -85,7 +85,7 @@ Add those to `State`, and also update the `render_pipeline_layout`.
 let render_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
     bind_group_layouts: &[
         &texture_bind_group_layout, 
-        &uniform_bind_group_layout,
+        &camera_bind_group_layout,
         &light_bind_group_layout,
     ],
 });
@@ -95,11 +95,11 @@ Let's also update the lights position in the `update()` method, so we can see wh
 
 ```rust
 // Update the light
-let old_position: cgmath::Vector3<_> = self.light.position.into();
-self.light.position =
+let old_position: cgmath::Vector3<_> = self.light_uniform.position.into();
+self.light_uniform.position =
     cgmath::Quaternion::from_axis_angle((0.0, 1.0, 0.0).into(), cgmath::Deg(1.0))
         * old_position;
-self.queue.write_buffer(&self.light_buffer, 0, bytemuck::cast_slice(&[self.light]));
+self.queue.write_buffer(&self.light_buffer, 0, bytemuck::cast_slice(&[self.light_uniform]));
 ```
 
 This will have the light rotate around the origin one degree every frame.
@@ -196,7 +196,7 @@ pub trait DrawModel<'a> {
         &mut self,
         mesh: &'a Mesh,
         material: &'a Material,
-        uniforms: &'a wgpu::BindGroup,
+        camera: &'a wgpu::BindGroup,
         light: &'a wgpu::BindGroup,
     );
     fn draw_mesh_instanced(
@@ -204,21 +204,21 @@ pub trait DrawModel<'a> {
         mesh: &'a Mesh,
         material: &'a Material,
         instances: Range<u32>,
-        uniforms: &'a wgpu::BindGroup,
+        camera: &'a wgpu::BindGroup,
         light: &'a wgpu::BindGroup,
     );
 
     fn draw_model(
         &mut self,
         model: &'a Model,
-        uniforms: &'a wgpu::BindGroup,
+        camera: &'a wgpu::BindGroup,
         light: &'a wgpu::BindGroup,
     );
     fn draw_model_instanced(
         &mut self,
         model: &'a Model,
         instances: Range<u32>,
-        uniforms: &'a wgpu::BindGroup,
+        camera: &'a wgpu::BindGroup,
         light: &'a wgpu::BindGroup,
     );
 }
@@ -231,10 +231,10 @@ where
         &mut self,
         mesh: &'b Mesh,
         material: &'b Material,
-        uniforms: &'b wgpu::BindGroup,
+        camera: &'b wgpu::BindGroup,
         light: &'b wgpu::BindGroup,
     ) {
-        self.draw_mesh_instanced(mesh, material, 0..1, uniforms, light);
+        self.draw_mesh_instanced(mesh, material, 0..1, camera, light);
     }
 
     fn draw_mesh_instanced(
@@ -242,13 +242,13 @@ where
         mesh: &'b Mesh,
         material: &'b Material,
         instances: Range<u32>,
-        uniforms: &'b wgpu::BindGroup,
+        camera: &'b wgpu::BindGroup,
         light: &'b wgpu::BindGroup,
     ) {
         self.set_vertex_buffer(0, &mesh.vertex_buffer, 0, 0);
         self.set_index_buffer(&mesh.index_buffer, 0, 0);
         self.set_bind_group(0, &material.bind_group, &[]);
-        self.set_bind_group(1, uniforms, &[]);
+        self.set_bind_group(1, camera, &[]);
         self.set_bind_group(2, light, &[]);
         self.draw_indexed(0..mesh.num_elements, 0, instances);
     }
@@ -256,22 +256,22 @@ where
     fn draw_model(
         &mut self,
         model: &'b Model,
-        uniforms: &'b wgpu::BindGroup,
+        camera: &'b wgpu::BindGroup,
         light: &'b wgpu::BindGroup,
     ) {
-        self.draw_model_instanced(model, 0..1, uniforms, light);
+        self.draw_model_instanced(model, 0..1, camera, light);
     }
 
     fn draw_model_instanced(
         &mut self,
         model: &'b Model,
         instances: Range<u32>,
-        uniforms: &'b wgpu::BindGroup,
+        camera: &'b wgpu::BindGroup,
         light: &'b wgpu::BindGroup,
     ) {
         for mesh in &model.meshes {
             let material = &model.materials[mesh.material];
-            self.draw_mesh_instanced(mesh, material, instances.clone(), uniforms, light);
+            self.draw_mesh_instanced(mesh, material, instances.clone(), camera, light);
         }
     }
 }
@@ -283,7 +283,7 @@ With that done we can create another render pipeline for our light.
 let light_render_pipeline = {
     let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
         label: Some("Light Pipeline Layout"),
-        bind_group_layouts: &[&uniform_bind_group_layout, &light_bind_group_layout],
+        bind_group_layouts: &[&camera_bind_group_layout, &light_bind_group_layout],
         push_constant_ranges: &[],
     });
     let shader = wgpu::ShaderModuleDescriptor {
@@ -310,11 +310,11 @@ With that in place we need to write the actual shaders.
 // Vertex shader
 
 [[block]]
-struct Uniforms {
+struct Camera {
     view_proj: mat4x4<f32>;
 };
 [[group(0), binding(0)]]
-var<uniform> uniforms: Uniforms;
+var<uniform> camera: Camera;
 
 [[block]]
 struct Light {
@@ -339,7 +339,7 @@ fn main(
 ) -> VertexOutput {
     let scale = 0.25;
     var out: VertexOutput;
-    out.clip_position = uniforms.view_proj * vec4<f32>(model.position * scale + light.position, 1.0);
+    out.clip_position = camera.view_proj * vec4<f32>(model.position * scale + light.position, 1.0);
     out.color = light.color;
     return out;
 }
@@ -359,28 +359,28 @@ pub trait DrawLight<'a> {
     fn draw_light_mesh(
         &mut self,
         mesh: &'a Mesh,
-        uniforms: &'a wgpu::BindGroup,
+        camera: &'a wgpu::BindGroup,
         light: &'a wgpu::BindGroup,
     );
     fn draw_light_mesh_instanced(
         &mut self,
         mesh: &'a Mesh,
         instances: Range<u32>,
-        uniforms: &'a wgpu::BindGroup,
+        camera: &'a wgpu::BindGroup,
         light: &'a wgpu::BindGroup,
     );
 
     fn draw_light_model(
         &mut self,
         model: &'a Model,
-        uniforms: &'a wgpu::BindGroup,
+        camera: &'a wgpu::BindGroup,
         light: &'a wgpu::BindGroup,
     );
     fn draw_light_model_instanced(
         &mut self,
         model: &'a Model,
         instances: Range<u32>,
-        uniforms: &'a wgpu::BindGroup,
+        camera: &'a wgpu::BindGroup,
         light: &'a wgpu::BindGroup,
     );
 }
@@ -392,22 +392,22 @@ where
     fn draw_light_mesh(
         &mut self,
         mesh: &'b Mesh,
-        uniforms: &'b wgpu::BindGroup,
+        camera: &'b wgpu::BindGroup,
         light: &'b wgpu::BindGroup,
     ) {
-        self.draw_light_mesh_instanced(mesh, 0..1, uniforms, light);
+        self.draw_light_mesh_instanced(mesh, 0..1, camera, light);
     }
 
     fn draw_light_mesh_instanced(
         &mut self,
         mesh: &'b Mesh,
         instances: Range<u32>,
-        uniforms: &'b wgpu::BindGroup,
+        camera: &'b wgpu::BindGroup,
         light: &'b wgpu::BindGroup,
     ) {
         self.set_vertex_buffer(0, mesh.vertex_buffer.slice(..));
         self.set_index_buffer(mesh.index_buffer.slice(..), wgpu::IndexFormat::Uint32);
-        self.set_bind_group(0, uniforms, &[]);
+        self.set_bind_group(0, camera, &[]);
         self.set_bind_group(1, light, &[]);
         self.draw_indexed(0..mesh.num_elements, 0, instances);
     }
@@ -415,20 +415,20 @@ where
     fn draw_light_model(
         &mut self,
         model: &'b Model,
-        uniforms: &'b wgpu::BindGroup,
+        camera: &'b wgpu::BindGroup,
         light: &'b wgpu::BindGroup,
     ) {
-        self.draw_light_model_instanced(model, 0..1, uniforms, light);
+        self.draw_light_model_instanced(model, 0..1, camera, light);
     }
     fn draw_light_model_instanced(
         &mut self,
         model: &'b Model,
         instances: Range<u32>,
-        uniforms: &'b wgpu::BindGroup,
+        camera: &'b wgpu::BindGroup,
         light: &'b wgpu::BindGroup,
     ) {
         for mesh in &model.meshes {
-            self.draw_light_mesh_instanced(mesh, instances.clone(), uniforms, light);
+            self.draw_light_mesh_instanced(mesh, instances.clone(), camera, light);
         }
     }
 }
@@ -447,7 +447,7 @@ impl State {
         render_pass.set_pipeline(&self.light_render_pipeline); // NEW!
         render_pass.draw_light_model(
             &self.obj_model,
-            &self.uniform_bind_group,
+            &self.camera_bind_group,
             &self.light_bind_group,
         ); // NEW!
 
@@ -455,7 +455,7 @@ impl State {
         render_pass.draw_model_instanced(
             &self.obj_model,
             0..self.instances.len() as u32,
-            &self.uniform_bind_group,
+            &self.camera_bind_group,
             &self.light_bind_group,
         );
 }
@@ -550,7 +550,7 @@ fn main(
     out.world_normal = model.normal;
     var world_position: vec4<f32> = model_matrix * vec4<f32>(model.position, 1.0);
     out.world_position = world_position.xyz;
-    out.clip_position = uniforms.view_proj * world_position;
+    out.clip_position = camera.view_proj * world_position;
     return out;
 }
 ```
@@ -740,7 +740,7 @@ fn main(
     out.world_normal = normal_matrix * model.normal;
     var world_position: vec4<f32> = model_matrix * vec4<f32>(model.position, 1.0);
     out.world_position = world_position.xyz;
-    out.clip_position = uniforms.view_proj * world_position;
+    out.clip_position = camera.view_proj * world_position;
     return out;
 }
 ```
@@ -771,32 +771,32 @@ Because this is relative to the view angle, we are going to need to pass in the 
 
 ```wgsl
 [[block]]
-struct Uniforms {
+struct Camera {
     view_pos: vec4<f32>;
     view_proj: mat4x4<f32>;
 };
 [[group(1), binding(0)]]
-var<uniform> uniforms: Uniforms;
+var<uniform> camera: Camera;
 ```
 
 <div class="note">
 
-Don't forget to update the `Uniforms` struct in `light.wgsl` as well, as if it doesn't match the `Uniforms` struct in rust, the light will render wrong.
+Don't forget to update the `Camera` struct in `light.wgsl` as well, as if it doesn't match the `CameraUniform` struct in rust, the light will render wrong.
 
 </div>
 
-We're going to need to update the `Uniforms` struct as well.
+We're going to need to update the `CameraUniform` struct as well.
 
 ```rust
 // main.rs
 #[repr(C)]
 #[derive(Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
-struct Uniforms {
+struct CameraUniform {
     view_position: [f32; 4],
     view_proj: [[f32; 4]; 4],
 }
 
-impl Uniforms {
+impl CameraUniform {
     fn new() -> Self {
         Self {
             view_position: [0.0; 4],
@@ -816,7 +816,7 @@ Since we want to use our uniforms in the fragment shader now, we need to change 
 
 ```rust
 // main.rs
-let uniform_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+let camera_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
     entries: &[
         wgpu::BindGroupLayoutBinding {
             // ...
@@ -833,7 +833,7 @@ We're going to get the direction from the fragment's position to the camera, and
 
 ```wgsl
 // In the fragment shader...
-let view_dir = normalize(uniforms.view_pos.xyz - in.world_position);
+let view_dir = normalize(camera.view_pos.xyz - in.world_position);
 let reflect_dir = reflect(-light_dir, in.world_normal);
 ```
 
@@ -863,7 +863,7 @@ If we just look at the `specular_color` on it's own we get this.
 Up to this point we've actually only implemented the Phong part of Blinn-Phong. The Phong reflection model works well, but it can break down under [certain circumstances](https://learnopengl.com/Advanced-Lighting/Advanced-Lighting). The Blinn part of Blinn-Phong comes from the realization that if you add the `view_dir`, and `light_dir` together, normalize the result and use the dot product of that and the `normal`, you get roughly the same results without the issues that using `reflect_dir` had.
 
 ```wgsl
-let view_dir = normalize(uniforms.view_pos.xyz - in.world_position);
+let view_dir = normalize(camera.view_pos.xyz - in.world_position);
 let half_dir = normalize(view_dir + light_dir);
 
 let specular_strength = pow(max(dot(in.world_normal, half_dir), 0.0), 32.0);

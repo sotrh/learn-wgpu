@@ -248,7 +248,7 @@ We need to update `update_view_proj` to use our new `Camera` and `Projection`.
 
 ```rust
 
-impl Uniforms {
+impl CameraUniform {
     // ...
 
     // UPDATED!
@@ -289,7 +289,7 @@ impl State {
 
         // ...
 
-        uniforms.update_view_proj(&camera, &projection); // UPDATED!
+        camera_uniform.update_view_proj(&camera, &projection); // UPDATED!
 
         // ...
 
@@ -403,7 +403,7 @@ The `update` function requires a bit more explanation. The `update_camera` funct
 fn update(&mut self, dt: std::time::Duration) {
     // UPDATED!
     self.camera_controller.update_camera(&mut self.camera, dt);
-    self.uniforms.update_view_proj(&self.camera, &self.projection);
+    self.camera_uniform.update_view_proj(&self.camera, &self.projection);
 
     // ..
 }
@@ -412,7 +412,7 @@ fn update(&mut self, dt: std::time::Duration) {
 While we're at it, let's use `dt` for the light's rotation as well.
 
 ```rust
-self.light.position =
+self.light_uniform.position =
     cgmath::Quaternion::from_axis_angle((0.0, 1.0, 0.0).into(), cgmath::Deg(60.0 * dt.as_secs_f32()))
         * old_position; // UPDATED!
 ```

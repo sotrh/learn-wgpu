@@ -6,7 +6,7 @@ layout(location=1) in vec2 a_tex_coords;
 layout(location=0) out vec2 v_tex_coords;
 
 layout(set=1, binding=0) 
-uniform Uniforms {
+uniform Camera {
     mat4 u_view_proj;
 };
 

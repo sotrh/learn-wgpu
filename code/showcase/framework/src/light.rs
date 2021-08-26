@@ -11,14 +11,14 @@ pub struct LightData {
 unsafe impl bytemuck::Pod for LightData {}
 unsafe impl bytemuck::Zeroable for LightData {}
 
-pub struct Light {
+pub struct LightUniform {
     #[allow(dead_code)]
     data: LightData,
     #[allow(dead_code)]
     buffer: wgpu::Buffer,
 }
 
-impl Light {
+impl LightUniform {
     pub fn new(device: &wgpu::Device, position: Vector3<f32>, color: Vector3<f32>) -> Self {
         let data = LightData {
             position: Vector4::new(position.x, position.y, position.z, 1.0),

@@ -21,12 +21,12 @@ const NUM_INSTANCES_PER_ROW: u32 = 10;
 
 #[repr(C)]
 #[derive(Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
-struct Uniforms {
+struct CameraUniform {
     view_position: [f32; 4],
     view_proj: [[f32; 4]; 4],
 }
 
-impl Uniforms {
+impl CameraUniform {
     fn new() -> Self {
         Self {
             view_position: [0.0; 4],
@@ -104,7 +104,7 @@ impl model::Vertex for InstanceRaw {
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
-struct Light {
+struct LightUniform {
     position: [f32; 3],
     // Due to uniforms requiring 16 byte (4 float) spacing, we need to use a padding field here
     _padding: u32,
@@ -122,15 +122,15 @@ struct State {
     camera: camera::Camera,
     projection: camera::Projection,
     camera_controller: camera::CameraController,
-    uniforms: Uniforms,
-    uniform_buffer: wgpu::Buffer,
-    uniform_bind_group: wgpu::BindGroup,
+    camera_uniform: CameraUniform,
+    camera_buffer: wgpu::Buffer,
+    camera_bind_group: wgpu::BindGroup,
     instances: Vec<Instance>,
     #[allow(dead_code)]
     instance_buffer: wgpu::Buffer,
     depth_texture: texture::Texture,
     size: winit::dpi::PhysicalSize<u32>,
-    light: Light,
+    light_uniform: LightUniform,
     light_buffer: wgpu::Buffer,
     light_bind_group: wgpu::BindGroup,
     light_render_pipeline: wgpu::RenderPipeline,
@@ -230,12 +230,12 @@ impl State {
             camera::Projection::new(sc_desc.width, sc_desc.height, cgmath::Deg(45.0), 0.1, 100.0);
         let camera_controller = camera::CameraController::new(4.0, 0.4);
 
-        let mut uniforms = Uniforms::new();
-        uniforms.update_view_proj(&camera, &projection);
+        let mut camera_uniform = CameraUniform::new();
+        camera_uniform.update_view_proj(&camera, &projection);
 
-        let uniform_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("Uniform Buffer"),
-            contents: bytemuck::cast_slice(&[uniforms]),
+        let camera_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("Camera Buffer"),
+            contents: bytemuck::cast_slice(&[camera_uniform]),
             usage: wgpu::BufferUsage::UNIFORM | wgpu::BufferUsage::COPY_DST,
         });
 
@@ -271,7 +271,7 @@ impl State {
             usage: wgpu::BufferUsage::VERTEX,
         });
 
-        let uniform_bind_group_layout =
+        let camera_bind_group_layout =
             device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
                 entries: &[wgpu::BindGroupLayoutEntry {
                     binding: 0,
@@ -283,16 +283,16 @@ impl State {
                     },
                     count: None,
                 }],
-                label: Some("uniform_bind_group_layout"),
+                label: Some("camera_bind_group_layout"),
             });
 
-        let uniform_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
-            layout: &uniform_bind_group_layout,
+        let camera_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            layout: &camera_bind_group_layout,
             entries: &[wgpu::BindGroupEntry {
                 binding: 0,
-                resource: uniform_buffer.as_entire_binding(),
+                resource: camera_buffer.as_entire_binding(),
             }],
-            label: Some("uniform_bind_group"),
+            label: Some("camera_bind_group"),
         });
 
         let res_dir = std::path::Path::new(env!("OUT_DIR")).join("res");
@@ -308,7 +308,7 @@ impl State {
             )
             .unwrap();
 
-        let light = Light {
+        let light_uniform = LightUniform {
             position: [2.0, 2.0, 2.0],
             _padding: 0,
             color: [1.0, 1.0, 1.0],
@@ -316,7 +316,7 @@ impl State {
 
         let light_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("Light VB"),
-            contents: bytemuck::cast_slice(&[light]),
+            contents: bytemuck::cast_slice(&[light_uniform]),
             usage: wgpu::BufferUsage::UNIFORM | wgpu::BufferUsage::COPY_DST,
         });
 
@@ -352,7 +352,7 @@ impl State {
                 label: Some("Render Pipeline Layout"),
                 bind_group_layouts: &[
                     &texture_bind_group_layout,
-                    &uniform_bind_group_layout,
+                    &camera_bind_group_layout,
                     &light_bind_group_layout,
                 ],
                 push_constant_ranges: &[],
@@ -371,7 +371,7 @@ impl State {
         let light_render_pipeline = {
             let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("Light Pipeline Layout"),
-                bind_group_layouts: &[&uniform_bind_group_layout, &light_bind_group_layout],
+                bind_group_layouts: &[&camera_bind_group_layout, &light_bind_group_layout],
                 push_constant_ranges: &[],
             });
 
@@ -427,14 +427,14 @@ impl State {
             camera,
             projection,
             camera_controller,
-            uniform_buffer,
-            uniform_bind_group,
-            uniforms,
+            camera_buffer,
+            camera_bind_group,
+            camera_uniform,
             instances,
             instance_buffer,
             depth_texture,
             size,
-            light,
+            light_uniform,
             light_buffer,
             light_bind_group,
             light_render_pipeline,
@@ -498,22 +498,25 @@ impl State {
 
     fn update(&mut self, dt: std::time::Duration) {
         self.camera_controller.update_camera(&mut self.camera, dt);
-        self.uniforms
+        self.camera_uniform
             .update_view_proj(&self.camera, &self.projection);
         self.queue.write_buffer(
-            &self.uniform_buffer,
+            &self.camera_buffer,
             0,
-            bytemuck::cast_slice(&[self.uniforms]),
+            bytemuck::cast_slice(&[self.camera_uniform]),
         );
 
         // Update the light
-        let old_position: cgmath::Vector3<_> = self.light.position.into();
-        self.light.position =
+        let old_position: cgmath::Vector3<_> = self.light_uniform.position.into();
+        self.light_uniform.position =
             (cgmath::Quaternion::from_axis_angle((0.0, 1.0, 0.0).into(), cgmath::Deg(1.0))
                 * old_position)
                 .into();
-        self.queue
-            .write_buffer(&self.light_buffer, 0, bytemuck::cast_slice(&[self.light]));
+        self.queue.write_buffer(
+            &self.light_buffer,
+            0,
+            bytemuck::cast_slice(&[self.light_uniform]),
+        );
     }
 
     fn render(&mut self) {
@@ -558,7 +561,7 @@ impl State {
                     render_pass.set_pipeline(&self.light_render_pipeline);
                     render_pass.draw_light_model(
                         &self.obj_model,
-                        &self.uniform_bind_group,
+                        &self.camera_bind_group,
                         &self.light_bind_group,
                     );
 
@@ -566,7 +569,7 @@ impl State {
                     render_pass.draw_model_instanced(
                         &self.obj_model,
                         0..self.instances.len() as u32,
-                        &self.uniform_bind_group,
+                        &self.camera_bind_group,
                         &self.light_bind_group,
                     );
                 }

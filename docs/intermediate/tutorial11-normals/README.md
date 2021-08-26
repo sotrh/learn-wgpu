@@ -369,10 +369,10 @@ fn main(
     let world_position = model_matrix * vec4<f32>(model.position, 1.0);
 
     var out: VertexOutput;
-    out.clip_position = uniforms.view_proj * world_position;
+    out.clip_position = camera_uniform.view_proj * world_position;
     out.tex_coords = model.tex_coords;
     out.tangent_position = tangent_matrix * world_position.xyz;
-    out.tangent_view_position = tangent_matrix * uniforms.view_pos.xyz;
+    out.tangent_view_position = tangent_matrix * camera_uniform.view_pos.xyz;
     out.tangent_light_position = tangent_matrix * light.position;
     return out;
 }
@@ -557,7 +557,7 @@ pub trait DrawModel<'a> {
         model: &'a Model,
         material: &'a Material,
         instances: Range<u32>,
-        uniforms: &'a wgpu::BindGroup,
+        camera: &'a wgpu::BindGroup,
         light: &'a wgpu::BindGroup,
     );
 }
@@ -572,11 +572,11 @@ where
         model: &'b Model,
         material: &'b Material,
         instances: Range<u32>,
-        uniforms: &'b wgpu::BindGroup,
+        camera: &'b wgpu::BindGroup,
         light: &'b wgpu::BindGroup,
     ) {
         for mesh in &model.meshes {
-            self.draw_mesh_instanced(mesh, material, instances.clone(), uniforms, light);
+            self.draw_mesh_instanced(mesh, material, instances.clone(), camera, light);
         }
     }
 }
@@ -610,7 +610,7 @@ render_pass.draw_model_instanced_with_material(
     &self.obj_model,
     &self.debug_material,
     0..self.instances.len() as u32,
-    &self.uniform_bind_group,
+    &self.camera_bind_group,
     &self.light_bind_group,
 );
 ```

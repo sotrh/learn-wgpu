@@ -99,11 +99,11 @@ impl Camera {
 
 #[repr(C)]
 #[derive(Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
-struct Uniforms {
+struct CameraUniform {
     view_proj: [[f32; 4]; 4],
 }
 
-impl Uniforms {
+impl CameraUniform {
     fn new() -> Self {
         Self {
             view_proj: cgmath::Matrix4::identity().into(),
@@ -291,9 +291,9 @@ struct State {
     diffuse_bind_group: wgpu::BindGroup,
     camera: Camera,
     camera_controller: CameraController,
-    uniforms: Uniforms,
-    uniform_buffer: wgpu::Buffer,
-    uniform_bind_group: wgpu::BindGroup,
+    camera_uniform: CameraUniform,
+    camera_buffer: wgpu::Buffer,
+    camera_bind_group: wgpu::BindGroup,
     instances: Vec<Instance>,
     #[allow(dead_code)]
     instance_buffer: wgpu::Buffer,
@@ -393,12 +393,12 @@ impl State {
         };
         let camera_controller = CameraController::new(0.2);
 
-        let mut uniforms = Uniforms::new();
-        uniforms.update_view_proj(&camera);
+        let mut camera_uniform = CameraUniform::new();
+        camera_uniform.update_view_proj(&camera);
 
-        let uniform_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("Uniform Buffer"),
-            contents: bytemuck::cast_slice(&[uniforms]),
+        let camera_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("Camera Buffer"),
+            contents: bytemuck::cast_slice(&[camera_uniform]),
             usage: wgpu::BufferUsage::UNIFORM | wgpu::BufferUsage::COPY_DST,
         });
 
@@ -434,7 +434,7 @@ impl State {
             usage: wgpu::BufferUsage::VERTEX,
         });
 
-        let uniform_bind_group_layout =
+        let camera_bind_group_layout =
             device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
                 entries: &[wgpu::BindGroupLayoutEntry {
                     binding: 0,
@@ -446,16 +446,16 @@ impl State {
                     },
                     count: None,
                 }],
-                label: Some("uniform_bind_group_layout"),
+                label: Some("camera_bind_group_layout"),
             });
 
-        let uniform_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
-            layout: &uniform_bind_group_layout,
+        let camera_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            layout: &camera_bind_group_layout,
             entries: &[wgpu::BindGroupEntry {
                 binding: 0,
-                resource: uniform_buffer.as_entire_binding(),
+                resource: camera_buffer.as_entire_binding(),
             }],
-            label: Some("uniform_bind_group"),
+            label: Some("camera_bind_group"),
         });
 
         let shader = device.create_shader_module(&wgpu::ShaderModuleDescriptor {
@@ -470,7 +470,7 @@ impl State {
         let render_pipeline_layout =
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("Render Pipeline Layout"),
-                bind_group_layouts: &[&texture_bind_group_layout, &uniform_bind_group_layout],
+                bind_group_layouts: &[&texture_bind_group_layout, &camera_bind_group_layout],
                 push_constant_ranges: &[],
             });
 
@@ -547,9 +547,9 @@ impl State {
             diffuse_bind_group,
             camera,
             camera_controller,
-            uniform_buffer,
-            uniform_bind_group,
-            uniforms,
+            camera_buffer,
+            camera_bind_group,
+            camera_uniform,
             instances,
             instance_buffer,
             depth_texture,
@@ -578,11 +578,11 @@ impl State {
 
     fn update(&mut self) {
         self.camera_controller.update_camera(&mut self.camera);
-        self.uniforms.update_view_proj(&self.camera);
+        self.camera_uniform.update_view_proj(&self.camera);
         self.queue.write_buffer(
-            &self.uniform_buffer,
+            &self.camera_buffer,
             0,
-            bytemuck::cast_slice(&[self.uniforms]),
+            bytemuck::cast_slice(&[self.camera_uniform]),
         );
     }
 
@@ -624,7 +624,7 @@ impl State {
             render_pass.set_vertex_buffer(1, self.instance_buffer.slice(..));
             render_pass.set_pipeline(&self.render_pipeline);
             render_pass.set_bind_group(0, &self.diffuse_bind_group, &[]);
-            render_pass.set_bind_group(1, &self.uniform_bind_group, &[]);
+            render_pass.set_bind_group(1, &self.camera_bind_group, &[]);
             render_pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
             render_pass.set_index_buffer(self.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
             render_pass.draw_indexed(0..self.num_indices, 0, 0..self.instances.len() as u32);
