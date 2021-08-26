@@ -1,11 +1,11 @@
 // Vertex shader
 
 [[block]]
-struct Uniforms {
+struct Camera {
     view_proj: mat4x4<f32>;
 };
 [[group(1), binding(0)]]
-var<uniform> uniforms: Uniforms;
+var<uniform> camera: Camera;
 
 struct VertexInput {
     [[location(0)]] position: vec3<f32>;
@@ -23,7 +23,7 @@ fn main(
 ) -> VertexOutput {
     var out: VertexOutput;
     out.tex_coords = model.tex_coords;
-    out.clip_position = uniforms.view_proj * vec4<f32>(model.position, 1.0);
+    out.clip_position = camera.view_proj * vec4<f32>(model.position, 1.0);
     return out;
 }
 

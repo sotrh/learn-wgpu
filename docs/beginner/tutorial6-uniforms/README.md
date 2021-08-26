@@ -87,20 +87,20 @@ Now that we have our camera, and it can make us a view projection matrix, we nee
 
 ## The uniform buffer
 
-Up to this point we've used `Buffer`s to store our vertex and index data, and even to load our textures. We are going to use them again to create what's known as a uniform buffer. A uniform is a blob of data that is available to every invocation of a set of shaders. We've technically already used uniforms for our texture and sampler. We're going to use them again to store our view projection matrix. To start let's create a struct to hold our `Uniforms`.
+Up to this point we've used `Buffer`s to store our vertex and index data, and even to load our textures. We are going to use them again to create what's known as a uniform buffer. A uniform is a blob of data that is available to every invocation of a set of shaders. We've technically already used uniforms for our texture and sampler. We're going to use them again to store our view projection matrix. To start let's create a struct to hold our uniform.
 
 ```rust
 // We need this for Rust to store our data correctly for the shaders
 #[repr(C)]
 // This is so we can store this in a buffer
 #[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
-struct Uniforms {
+struct CameraUniform {
     // We can't use cgmath with bytemuck directly so we'll have
     // to convert the Matrix4 into a 4x4 f32 array
     view_proj: [[f32; 4]; 4],
 }
 
-impl Uniforms {
+impl CameraUniform {
     fn new() -> Self {
         use cgmath::SquareMatrix;
         Self {
@@ -114,18 +114,18 @@ impl Uniforms {
 }
 ```
 
-Now that we have our data structured, let's make our `uniform_buffer`.
+Now that we have our data structured, let's make our `camera_buffer`.
 
 ```rust
 // in new() after creating `camera`
 
-let mut uniforms = Uniforms::new();
-uniforms.update_view_proj(&camera);
+let mut camera_uniform = CameraUniform::new();
+camera_uniform.update_view_proj(&camera);
 
-let uniform_buffer = device.create_buffer_init(
+let camera_buffer = device.create_buffer_init(
     &wgpu::util::BufferInitDescriptor {
         label: Some("Uniform Buffer"),
-        contents: bytemuck::cast_slice(&[uniforms]),
+        contents: bytemuck::cast_slice(&[camera_uniform]),
         usage: wgpu::BufferUsage::UNIFORM | wgpu::BufferUsage::COPY_DST,
     }
 );
@@ -136,7 +136,7 @@ let uniform_buffer = device.create_buffer_init(
 Cool, now that we have a uniform buffer, what do we do with it? The answer is we create a bind group for it. First we have to create the bind group layout.
 
 ```rust
-let uniform_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+let camera_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
     entries: &[
         wgpu::BindGroupLayoutEntry {
             binding: 0,
@@ -149,7 +149,7 @@ let uniform_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroup
             count: None,
         }
     ],
-    label: Some("uniform_bind_group_layout"),
+    label: Some("camera_bind_group_layout"),
 });
 ```
 
@@ -159,19 +159,19 @@ let uniform_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroup
 Now we can create the actual bind group.
 
 ```rust
-let uniform_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
-    layout: &uniform_bind_group_layout,
+let camera_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+    layout: &camera_bind_group_layout,
     entries: &[
         wgpu::BindGroupEntry {
             binding: 0,
-            resource: uniform_buffer.as_entire_binding(),
+            resource: camera_buffer.as_entire_binding(),
         }
     ],
-    label: Some("uniform_bind_group"),
+    label: Some("camera_bind_group"),
 });
 ```
 
-Like with our texture, we need to register our `uniform_bind_group_layout` with the render pipeline.
+Like with our texture, we need to register our `camera_bind_group_layout` with the render pipeline.
 
 ```rust
 let render_pipeline_layout = device.create_pipeline_layout(
@@ -179,22 +179,22 @@ let render_pipeline_layout = device.create_pipeline_layout(
         label: Some("Render Pipeline Layout"),
         bind_group_layouts: &[
             &texture_bind_group_layout,
-            &uniform_bind_group_layout,
+            &camera_bind_group_layout,
         ],
         push_constant_ranges: &[],
     }
 );
 ```
 
-Now we need to add `uniform_buffer` and `uniform_bind_group` to `State`
+Now we need to add `camera_buffer` and `camera_bind_group` to `State`
 
 ```rust
 struct State {
     // ...
     camera: Camera,
-    uniforms: Uniforms,
-    uniform_buffer: wgpu::Buffer,
-    uniform_bind_group: wgpu::BindGroup,
+    camera_uniform: CameraUniform,
+    camera_buffer: wgpu::Buffer,
+    camera_bind_group: wgpu::BindGroup,
 }
 
 async fn new(window: &Window) -> Self {
@@ -202,9 +202,9 @@ async fn new(window: &Window) -> Self {
     Self {
         // ...
         camera,
-        uniforms,
-        uniform_buffer,
-        uniform_bind_group,
+        camera_uniform,
+        camera_buffer,
+        camera_bind_group,
     }
 }
 ```
@@ -215,14 +215,14 @@ The final thing we need to do before we get into shaders is use the bind group i
 render_pass.set_pipeline(&self.render_pipeline);
 render_pass.set_bind_group(0, &self.diffuse_bind_group, &[]);
 // NEW!
-render_pass.set_bind_group(1, &self.uniform_bind_group, &[]);
+render_pass.set_bind_group(1, &self.camera_bind_group, &[]);
 render_pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
 render_pass.set_index_buffer(self.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
 
 render_pass.draw_indexed(0..self.num_indices, 0, 0..1);
 ```
 
-## Using the uniforms in the vertex shader
+## Using the uniform in the vertex shader
 
 Modify the vertex shader to include the following.
 
@@ -230,11 +230,11 @@ Modify the vertex shader to include the following.
 // Vertex shader
 
 [[block]] // 1.
-struct Uniforms {
+struct CameraUniform {
     view_proj: mat4x4<f32>;
 };
 [[group(1), binding(0)]] // 2.
-var<uniform> uniforms: Uniforms;
+var<uniform> camera: Camera;
 
 struct VertexInput {
     [[location(0)]] position: vec3<f32>;
@@ -252,13 +252,13 @@ fn main(
 ) -> VertexOutput {
     var out: VertexOutput;
     out.tex_coords = model.tex_coords;
-    out.clip_position = uniforms.view_proj * vec4<f32>(model.position, 1.0); // 3.
+    out.clip_position = camera.view_proj * vec4<f32>(model.position, 1.0); // 3.
     return out;
 }
 ```
 
 1. According to the [WGSL Spec](https://gpuweb.github.io/gpuweb/wgsl/), The block decorator indicates this structure type represents the contents of a buffer resource occupying a single binding slot in the shader’s resource interface. Any structure used as a `uniform` must be annotated with `[[block]]`
-2. Because we've created a new bind group, we need to specify which one we're using in the shader. The number is determined by our `render_pipeline_layout`. The `texture_bind_group_layout` is listed first, thus it's `group(0)`, and `uniform_bind_group` is second, so it's `group(1)`.
+2. Because we've created a new bind group, we need to specify which one we're using in the shader. The number is determined by our `render_pipeline_layout`. The `texture_bind_group_layout` is listed first, thus it's `group(0)`, and `camera_bind_group` is second, so it's `group(1)`.
 3. Multiplication order is important when it comes to matrices. The vector goes on the right, and the matrices gone on the left in order of importance.
 
 ## A controller for our camera
@@ -407,7 +407,7 @@ fn input(&mut self, event: &WindowEvent) -> bool {
 ```
 
 Up to this point, the camera controller isn't actually doing anything. The values in our uniform buffer need to be updated. There are a few main methods to do that.
-1. We can create a separate buffer and copy it's contents to our `uniform_buffer`. The new buffer is known as a staging buffer. This method is usually how it's done as it allows the contents of the main buffer (in this case `uniform_buffer`) to only be accessible by the gpu. The gpu can do some speed optimizations which it couldn't if we could access the buffer via the cpu.
+1. We can create a separate buffer and copy it's contents to our `camera_buffer`. The new buffer is known as a staging buffer. This method is usually how it's done as it allows the contents of the main buffer (in this case `camera_buffer`) to only be accessible by the gpu. The gpu can do some speed optimizations which it couldn't if we could access the buffer via the cpu.
 2. We can call on of the mapping method's `map_read_async`, and `map_write_async` on the buffer itself. These allow us to access a buffer's contents directly, but requires us to deal with the `async` aspect of these methods this also requires our buffer to use the `BufferUsage::MAP_READ` and/or `BufferUsage::MAP_WRITE`. We won't talk about it here, but you check out [Wgpu without a window](../../showcase/windowless) tutorial if you want to know more.
 3. We can use `write_buffer` on `queue`.
 
@@ -416,8 +416,8 @@ We're going to use option number 3.
 ```rust
 fn update(&mut self) {
     self.camera_controller.update_camera(&mut self.camera);
-    self.uniforms.update_view_proj(&self.camera);
-    self.queue.write_buffer(&self.uniform_buffer, 0, bytemuck::cast_slice(&[self.uniforms]));
+    self.camera_uniform.update_view_proj(&self.camera);
+    self.queue.write_buffer(&self.camera_buffer, 0, bytemuck::cast_slice(&[self.camera_uniform]));
 }
 ```
 

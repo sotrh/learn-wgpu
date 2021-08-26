@@ -94,12 +94,12 @@ pub struct UniformData {
 unsafe impl bytemuck::Zeroable for UniformData {}
 unsafe impl bytemuck::Pod for UniformData {}
 
-pub struct Uniforms {
+pub struct CameraUniform {
     data: UniformData,
     buffer: wgpu::Buffer,
 }
 
-impl Uniforms {
+impl CameraUniform {
     pub fn new(device: &wgpu::Device) -> Self {
         let data = UniformData {
             view_position: Zero::zero(),
@@ -137,7 +137,7 @@ impl Uniforms {
 
 /**
  * Holds the wgpu::BindGroupLayout and one wgpu::BindGroup for the
- * just the Uniforms struct.
+ * just the CameraUniform struct.
  */
 pub struct UniformBinding {
     pub layout: wgpu::BindGroupLayout,
@@ -145,7 +145,7 @@ pub struct UniformBinding {
 }
 
 impl UniformBinding {
-    pub fn new(device: &wgpu::Device, uniforms: &Uniforms) -> Self {
+    pub fn new(device: &wgpu::Device, camera_uniform: &CameraUniform) -> Self {
         let layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
             entries: &[wgpu::BindGroupLayoutEntry {
                 binding: 0,
@@ -163,7 +163,7 @@ impl UniformBinding {
             layout: &layout,
             entries: &[wgpu::BindGroupEntry {
                 binding: 0,
-                resource: uniforms.buffer.as_entire_binding(),
+                resource: camera_uniform.buffer.as_entire_binding(),
             }],
             label: Some("UniformBinding::bind_group"),
         });
@@ -171,12 +171,12 @@ impl UniformBinding {
         Self { layout, bind_group }
     }
 
-    pub fn rebind(&mut self, device: &wgpu::Device, uniforms: &Uniforms) {
+    pub fn rebind(&mut self, device: &wgpu::Device, camera_uniform: &CameraUniform) {
         self.bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
             layout: &self.layout,
             entries: &[wgpu::BindGroupEntry {
                 binding: 0,
-                resource: uniforms.buffer.as_entire_binding(),
+                resource: camera_uniform.buffer.as_entire_binding(),
             }],
             label: Some("UniformBinding::bind_group"),
         });

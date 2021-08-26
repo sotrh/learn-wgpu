@@ -202,7 +202,7 @@ The last change we need to make is in the `render()` method. We need to bind our
 ```rust
 render_pass.set_pipeline(&self.render_pipeline);
 render_pass.set_bind_group(0, &self.diffuse_bind_group, &[]);
-render_pass.set_bind_group(1, &self.uniform_bind_group, &[]);
+render_pass.set_bind_group(1, &self.camera_bind_group, &[]);
 render_pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
 // NEW!
 render_pass.set_vertex_buffer(1, self.instance_buffer.slice(..));
@@ -214,7 +214,7 @@ render_pass.draw_indexed(0..self.num_indices, 0, 0..self.instances.len() as _);
 
 <div class="warning">
 
-Make sure if you add new instances to the `Vec`, that you recreate the `instance_buffer` and as well as `uniform_bind_group`, otherwise your new instances won't show up correctly.
+Make sure if you add new instances to the `Vec`, that you recreate the `instance_buffer` and as well as `camera_bind_group`, otherwise your new instances won't show up correctly.
 
 </div>
 
@@ -247,7 +247,7 @@ fn main(
 }
 ```
 
-We'll apply the `model_matrix` before we apply `uniforms.view_proj`. We do this because the `uniforms.view_proj` changes the coordinate system from `world space` to `camera space`. Our `model_matrix` is a `world space` transformation, so we don't want to be in `camera space` when using it.
+We'll apply the `model_matrix` before we apply `camera_uniform.view_proj`. We do this because the `camera_uniform.view_proj` changes the coordinate system from `world space` to `camera space`. Our `model_matrix` is a `world space` transformation, so we don't want to be in `camera space` when using it.
 
 ```wgsl
 [[stage(vertex)]]
@@ -258,7 +258,7 @@ fn main(
     // ...
     var out: VertexOutput;
     out.tex_coords = model.tex_coords;
-    out.clip_position = uniforms.view_proj * model_matrix * vec4<f32>(model.position, 1.0);
+    out.clip_position = camera.view_proj * model_matrix * vec4<f32>(model.position, 1.0);
     return out;
 }
 ```
