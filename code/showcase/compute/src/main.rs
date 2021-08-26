@@ -104,7 +104,7 @@ impl model::Vertex for InstanceRaw {
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
-struct Light {
+struct LightUniform {
     position: [f32; 3],
     // Due to uniforms requiring 16 byte (4 float) spacing, we need to use a padding field here
     _padding: u32,
@@ -130,7 +130,7 @@ struct State {
     instance_buffer: wgpu::Buffer,
     depth_texture: texture::Texture,
     size: winit::dpi::PhysicalSize<u32>,
-    light: Light,
+    light_uniform: LightUniform,
     light_buffer: wgpu::Buffer,
     light_bind_group: wgpu::BindGroup,
     light_render_pipeline: wgpu::RenderPipeline,
@@ -308,7 +308,7 @@ impl State {
             )
             .unwrap();
 
-        let light = Light {
+        let light_uniform = LightUniform {
             position: [2.0, 2.0, 2.0],
             _padding: 0,
             color: [1.0, 1.0, 1.0],
@@ -316,7 +316,7 @@ impl State {
 
         let light_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("Light VB"),
-            contents: bytemuck::cast_slice(&[light]),
+            contents: bytemuck::cast_slice(&[light_uniform]),
             usage: wgpu::BufferUsage::UNIFORM | wgpu::BufferUsage::COPY_DST,
         });
 
@@ -434,7 +434,7 @@ impl State {
             instance_buffer,
             depth_texture,
             size,
-            light,
+            light_uniform,
             light_buffer,
             light_bind_group,
             light_render_pipeline,
@@ -507,13 +507,16 @@ impl State {
         );
 
         // Update the light
-        let old_position: cgmath::Vector3<_> = self.light.position.into();
-        self.light.position =
+        let old_position: cgmath::Vector3<_> = self.light_uniform.position.into();
+        self.light_uniform.position =
             (cgmath::Quaternion::from_axis_angle((0.0, 1.0, 0.0).into(), cgmath::Deg(1.0))
                 * old_position)
                 .into();
-        self.queue
-            .write_buffer(&self.light_buffer, 0, bytemuck::cast_slice(&[self.light]));
+        self.queue.write_buffer(
+            &self.light_buffer,
+            0,
+            bytemuck::cast_slice(&[self.light_uniform]),
+        );
     }
 
     fn render(&mut self) {

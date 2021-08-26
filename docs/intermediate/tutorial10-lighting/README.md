@@ -22,7 +22,7 @@ Before we can get into that though, we need to add a light to our scene.
 // main.rs
 #[repr(C)]
 #[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
-struct Light {
+struct LightUniform {
     position: [f32; 3],
     // Due to uniforms requiring 16 byte (4 float) spacing, we need to use a padding field here
     _padding: u32,
@@ -30,12 +30,12 @@ struct Light {
 }
 ```
 
-Our `Light` represents a colored point in space. We're just going to use pure white light, but it's good to allow different colors of light.
+Our `LightUniform` represents a colored point in space. We're just going to use pure white light, but it's good to allow different colors of light.
 
 We're going to create another buffer to store our light in. 
 
 ```rust
-let light = Light {
+let light_uniform = LightUniform {
     position: [2.0, 2.0, 2.0],
     _padding: 0,
     color: [1.0, 1.0, 1.0],
@@ -45,13 +45,13 @@ let light = Light {
 let light_buffer = device.create_buffer_init(
     &wgpu::util::BufferInitDescriptor {
         label: Some("Light VB"),
-        contents: bytemuck::cast_slice(&[light]),
+        contents: bytemuck::cast_slice(&[light_uniform]),
         usage: wgpu::BufferUsage::UNIFORM | wgpu::BufferUsage::COPY_DST,
     }
 );
 ```
 
-Don't forget to add the `light` and `light_buffer` to `State`. After that we need to create a bind group layout and bind group for our light.
+Don't forget to add the `light_uniform` and `light_buffer` to `State`. After that we need to create a bind group layout and bind group for our light.
 
 ```rust
 let light_bind_group_layout =
@@ -95,11 +95,11 @@ Let's also update the lights position in the `update()` method, so we can see wh
 
 ```rust
 // Update the light
-let old_position: cgmath::Vector3<_> = self.light.position.into();
-self.light.position =
+let old_position: cgmath::Vector3<_> = self.light_uniform.position.into();
+self.light_uniform.position =
     cgmath::Quaternion::from_axis_angle((0.0, 1.0, 0.0).into(), cgmath::Deg(1.0))
         * old_position;
-self.queue.write_buffer(&self.light_buffer, 0, bytemuck::cast_slice(&[self.light]));
+self.queue.write_buffer(&self.light_buffer, 0, bytemuck::cast_slice(&[self.light_uniform]));
 ```
 
 This will have the light rotate around the origin one degree every frame.

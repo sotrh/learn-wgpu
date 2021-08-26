@@ -412,7 +412,7 @@ fn update(&mut self, dt: std::time::Duration) {
 While we're at it, let's use `dt` for the light's rotation as well.
 
 ```rust
-self.light.position =
+self.light_uniform.position =
     cgmath::Quaternion::from_axis_angle((0.0, 1.0, 0.0).into(), cgmath::Deg(60.0 * dt.as_secs_f32()))
         * old_position; // UPDATED!
 ```
