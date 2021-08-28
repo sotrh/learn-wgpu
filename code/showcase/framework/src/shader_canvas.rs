@@ -127,9 +127,9 @@ impl<'a> ShaderCanvasBuilder<'a> {
         self
     }
 
-    pub fn use_swap_chain_desc(&mut self, sc_desc: &wgpu::SwapChainDescriptor) -> &mut Self {
-        self.display_format(sc_desc.format);
-        self.canvas_size(sc_desc.width as f32, sc_desc.height as f32)
+    pub fn use_swap_chain_desc(&mut self, config: &wgpu::SurfaceConfiguration) -> &mut Self {
+        self.display_format(config.format);
+        self.canvas_size(config.width as f32, config.height as f32)
     }
 
     pub fn fragment_shader(&mut self, code: wgpu::ShaderModuleDescriptor<'a>) -> &mut Self {

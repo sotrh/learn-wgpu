@@ -22,7 +22,7 @@ let (device, queue) = adapter
 
 ## A triangle without a window
 
-Now we've talked about not needing to see what the gpu is doing, but we do need to see the results at some point. If we look back to talking about the [swap chain](/beginner/tutorial2-swapchain/#render) we see that we use `swap_chain.get_next_texture()` to grab a texture to draw to. We'll skip that step by creating the texture ourselves. One thing to note here is we need to specify `wgpu::TextureFormat::Rgba8UnormSrgb` to `format` instead of `adapter.get_swap_chain_preferred_format(&surface)` since PNG uses RGBA, not BGRA.
+Now we've talked about not needing to see what the gpu is doing, but we do need to see the results at some point. If we look back to talking about the [swap chain](/beginner/tutorial2-swapchain/#render) we see that we use `swap_chain.get_next_texture()` to grab a texture to draw to. We'll skip that step by creating the texture ourselves. One thing to note here is we need to specify `wgpu::TextureFormat::Rgba8UnormSrgb` to `format` instead of `surface.get_preferred_format(&adapter)` since PNG uses RGBA, not BGRA.
 
 ```rust
 let texture_size = 256u32;
@@ -37,8 +37,8 @@ let texture_desc = wgpu::TextureDescriptor {
     sample_count: 1,
     dimension: wgpu::TextureDimension::D2,
     format: wgpu::TextureFormat::Rgba8UnormSrgb,
-    usage: wgpu::TextureUsage::COPY_SRC
-        | wgpu::TextureUsage::RENDER_ATTACHMENT
+    usage: wgpu::TextureUsages::COPY_SRC
+        | wgpu::TextureUsages::RENDER_ATTACHMENT
         ,
     label: None,
 };
@@ -46,7 +46,7 @@ let texture = device.create_texture(&texture_desc);
 let texture_view = texture.create_view(&Default::default());
 ```
 
-We're using `TextureUsage::OUTPUT_ATTACHMENT` so wgpu can render to our texture. The `TextureUsage::COPY_SRC` is so we can pull data out of the texture so we can save it to a file.
+We're using `TextureUsages::OUTPUT_ATTACHMENT` so wgpu can render to our texture. The `TextureUsages::COPY_SRC` is so we can pull data out of the texture so we can save it to a file.
 
 While we can use this texture to draw our triangle, we need some way to get at the pixels inside it. Back in the [texture tutorial](/beginner/tutorial5-textures/) we used a buffer load color data from a file that we then copied into our buffer. Now we are going to do the reverse: copy data into a buffer from our texture to save into a file. We'll need a buffer big enough for our data.
 

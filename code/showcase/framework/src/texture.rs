@@ -88,7 +88,7 @@ impl<'a> Texture<'a> {
             } else {
                 wgpu::TextureFormat::Rgba8UnormSrgb
             },
-            usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::COPY_DST,
+            usage: wgpu::TextureUsages::SAMPLED | wgpu::TextureUsages::COPY_DST,
             label: None,
         };
         let texture = device.create_texture(&desc);
@@ -132,20 +132,20 @@ impl<'a> Texture<'a> {
 
     pub fn create_depth_texture(
         device: &wgpu::Device,
-        sc_desc: &wgpu::SwapChainDescriptor,
+        config: &wgpu::SurfaceConfiguration,
     ) -> Self {
         let desc = wgpu::TextureDescriptor {
             label: None,
             size: wgpu::Extent3d {
-                width: sc_desc.width,
-                height: sc_desc.height,
+                width: config.width,
+                height: config.height,
                 depth_or_array_layers: 1,
             },
             mip_level_count: 1,
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
             format: Self::DEPTH_FORMAT,
-            usage: wgpu::TextureUsage::RENDER_ATTACHMENT,
+            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
         };
         Self::from_descriptor(device, desc)
     }

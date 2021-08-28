@@ -130,8 +130,7 @@ struct State {
     surface: wgpu::Surface,
     device: wgpu::Device,
     queue: wgpu::Queue,
-    sc_desc: wgpu::SwapChainDescriptor,
-    swap_chain: wgpu::SwapChain,
+    config: wgpu::SurfaceConfiguration,
     size: winit::dpi::PhysicalSize<u32>,
     // NEW!
     render_pipeline: wgpu::RenderPipeline,
@@ -174,7 +173,7 @@ let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescrip
         module: &shader,
         entry_point: "main",
         targets: &[wgpu::ColorTargetState { // 4.
-            format: sc_desc.format,
+            format: config.format,
             blend: Some(wgpu::BlendState::REPLACE),
             write_mask: wgpu::ColorWrite::ALL,
         }],
@@ -235,7 +234,7 @@ Self {
     surface,
     device,
     queue,
-    sc_desc,
+    config,
     swap_chain,
     size,
     // NEW!
@@ -257,7 +256,7 @@ If you run your program now, it'll take a little longer to start, but it will st
         color_attachments: &[
             // This is what [[location(0)]] in the fragment shader targets
             wgpu::RenderPassColorAttachment {
-                view: &frame.view,
+                view: &frame,
                 resolve_target: None,
                 ops: wgpu::Operations {
                     load: wgpu::LoadOp::Clear(

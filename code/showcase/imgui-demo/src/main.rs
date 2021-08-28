@@ -14,7 +14,7 @@ struct ImguiDemo {
 impl framework::Demo for ImguiDemo {
     fn init(display: &framework::Display) -> Result<Self, Error> {
         let canvas = framework::ShaderCanvasBuilder::new()
-            .display_format(display.sc_desc.format)
+            .display_format(display.config.format)
             .build(&display.device)?;
 
         let mut imgui = imgui::Context::create();
@@ -39,7 +39,7 @@ impl framework::Demo for ImguiDemo {
         }]);
 
         let renderer_config = RendererConfig {
-            texture_format: display.sc_desc.format,
+            texture_format: display.config.format,
             ..Default::default()
         };
         let renderer = Renderer::new(&mut imgui, &display.device, &display.queue, renderer_config);
@@ -102,8 +102,8 @@ impl framework::Demo for ImguiDemo {
             &display.queue,
             &mut encoder,
             &output.view,
-            display.sc_desc.width as f32,
-            display.sc_desc.height as f32,
+            display.config.width as f32,
+            display.config.height as f32,
         );
 
         // Render the UI

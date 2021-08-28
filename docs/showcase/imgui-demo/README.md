@@ -53,7 +53,7 @@ Then you need to create the renderer. We need to use the swap chains `TextureFor
 
 ```rust
 let renderer_config = RendererConfig {
-    texture_format: display.sc_desc.format,
+    texture_format: display.config.format,
     ..Default::default()
 };
 let renderer = Renderer::new(&mut imgui, &display.device, &display.queue, renderer_config);
@@ -105,8 +105,8 @@ self.canvas.render(
     &display.queue, 
     &mut encoder, 
     &output.view, 
-    display.sc_desc.width as f32, 
-    display.sc_desc.height as f32
+    display.config.width as f32, 
+    display.config.height as f32
 );
 
 // Render the UI
@@ -118,7 +118,7 @@ if self.last_cursor != ui.mouse_cursor() {
 let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
     label: Some("UI RenderPass"),
     color_attachments: &[wgpu::RenderPassColorAttachment {
-                    view: &frame.view,
+                    view: &frame,
         attachment: &output.view,
         resolve_target: None,
         ops: wgpu::Operations {

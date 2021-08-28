@@ -180,7 +180,7 @@ let render_pipeline = {
     create_render_pipeline(
         &device,
         &render_pipeline_layout,
-        sc_desc.format,
+        config.format,
         Some(texture::Texture::DEPTH_FORMAT),
         &[model::ModelVertex::desc(), InstanceRaw::desc()],
         shader,
@@ -294,7 +294,7 @@ let light_render_pipeline = {
     create_render_pipeline(
         &device,
         &layout,
-        sc_desc.format,
+        config.format,
         Some(texture::Texture::DEPTH_FORMAT),
         &[model::ModelVertex::desc()],
         shader,
@@ -439,7 +439,7 @@ Finally we want to add Light rendering to our render passes.
 ```rust
 impl State {
     // ...
-   fn render(&mut self) -> Result<(), wgpu::SwapChainError> {
+   fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
         // ...
         render_pass.set_vertex_buffer(1, self.instance_buffer.slice(..));
 

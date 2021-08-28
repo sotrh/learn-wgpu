@@ -105,7 +105,7 @@ Self {
     surface,
     device,
     queue,
-    sc_desc,
+    config,
     swap_chain,
     size,
     render_pipeline,
@@ -241,7 +241,7 @@ impl State {
             surface,
             device,
             queue,
-            sc_desc,
+            config,
             swap_chain,
             render_pipeline,
             vertex_buffer,
@@ -371,8 +371,7 @@ struct State {
     surface: wgpu::Surface,
     device: wgpu::Device,
     queue: wgpu::Queue,
-    sc_desc: wgpu::SwapChainDescriptor,
-    swap_chain: wgpu::SwapChain,
+    config: wgpu::SurfaceConfiguration,
     size: winit::dpi::PhysicalSize<u32>,
     render_pipeline: wgpu::RenderPipeline,
     vertex_buffer: wgpu::Buffer,
@@ -389,7 +388,7 @@ Self {
     surface,
     device,
     queue,
-    sc_desc,
+    config,
     swap_chain,
     size,
     render_pipeline,
@@ -422,7 +421,7 @@ With all that you should have a garishly magenta pentagon in your window.
 
 If you use a color picker on the magenta pentagon, you'll get a hex value of #BC00BC. If you convert this to RGB values you'll get (188, 0, 188). Dividing these values by 255 to get them into the [0, 1] range we get roughly (0.737254902, 0, 0.737254902). This is not the same as we are using for our vertex colors which is (0.5, 0.0, 0.5). The reason for this has to do with color spaces.
 
-Most monitors use a color space know as sRGB. Our swap chain is (most likely depending on what is returned from `adapter.get_swap_chain_preferred_format()`) using an sRGB texture format. The sRGB format stores colors according to their relative brightness instead of their actual brightness. The reason for this is that our eyes don't perceive light linearly. We notice more differences in darker colors than we do lighter colors.
+Most monitors use a color space know as sRGB. Our swap chain is (most likely depending on what is returned from `adapter.get_preferred_format()`) using an sRGB texture format. The sRGB format stores colors according to their relative brightness instead of their actual brightness. The reason for this is that our eyes don't perceive light linearly. We notice more differences in darker colors than we do lighter colors.
 
 You get an approximation of the correct color using the following formula: `srgb_color = (rgb_color / 255) ^ 2.2`. Doing this with an RGB value of (188, 0, 188) will give us (0.511397819, 0.0, 0.511397819). A little off from our (0.5, 0.0, 0.5). While you could tweak the formula to get the desired values, you'll likely save a lot of time by using textures instead as they are stored as sRGB by default, so they don't suffer from the same color inaccuracies that vertex colors do. We'll cover textures in the next lesson.
 

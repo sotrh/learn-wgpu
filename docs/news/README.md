@@ -27,7 +27,7 @@ The `wgpu_glyph`, and `imgui-wgpu` crates currently depend on `wgpu` 0.7, which 
 * `CullMode` is no longer a thing, instead `PrimitiveState::cull_mode` will require an `Option<Face>`
 * Added `clamp_depth` and `conservative` to `PrimitiveState`. Part of this means that `DepthStencilState` no longer has a `clamp_depth` field.
 * `color_blend` and `alpha_blend` have been moved into the new `blend` field with accepts an `Option<wgpu::BlendState>`
-* `adapter.get_swap_chain_preferred_format()` now returns an `Option<wgpu::TextureFormat>`
+* `adapter.get_preferred_format()` now returns an `Option<wgpu::TextureFormat>`
 * `wgpu::RenderPassColorAttachmentDescriptor` has been renamed `wgpu::RenderPassColorAttachement` and the `attachment` field has been renamed to `view`
 * `wgpu::RenderPassDepthStencialAttachmentDescriptor` also loses the `Descriptor` part of it's name. `attachment` gets renamed to `view` as well.
 * `wgpu::TextureCopyView` has been renamed to `wgpu::ImageCopyTexture`. This is a typedef for `wgpu::ImageCopyTextureBase<T>`
@@ -42,7 +42,7 @@ There were a lot of changes particularly to the `RenderPipelineDescriptor`. Most
 
 School is starting to ramp up, so I haven't had as much time to work on the site as I would like to. Because of that there were some issues piling up. I decided to tackle a bunch of them in one go. Here's a snapshot of what I did:
 
-* The tutorial now handles `SwapChainError` properly
+* The tutorial now handles `SurfaceError` properly
 * I'm now using bytemuck's derive feature on all buffer data structs.
 * The [instancing tutorial](../beginner/tutorial7-instancing) now uses vertex buffers instead of storage buffers.
 * `build.rs` now updates when individual shaders are changed, not whenever `/src` is changed.
@@ -88,7 +88,7 @@ Up to this point, we created textures manually everytime. I've pulled out the te
 
 ## Fixed panics do to not specifying the correct `usage`
 
-Wgpu has become more strict about what `BufferUsage`s and `TextureUsage`s are required when performing certain operations. For example int the [Wgpu without a window example](/intermediate/windowless/), the `texture_desc` only specified the usage to by `COPY_SRC`. This caused a crash when the `texture` was used as a render target. Adding `OUTPUT_ATTACHMENT` fixed the issue.
+Wgpu has become more strict about what `BufferUsage`s and `TextureUsages`s are required when performing certain operations. For example int the [Wgpu without a window example](/intermediate/windowless/), the `texture_desc` only specified the usage to by `COPY_SRC`. This caused a crash when the `texture` was used as a render target. Adding `OUTPUT_ATTACHMENT` fixed the issue.
 
 ## Updating Winit from 0.20.0-alpha5 to 0.20
 

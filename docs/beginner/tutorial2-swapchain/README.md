@@ -11,8 +11,7 @@ struct State {
     surface: wgpu::Surface,
     device: wgpu::Device,
     queue: wgpu::Queue,
-    sc_desc: wgpu::SwapChainDescriptor,
-    swap_chain: wgpu::SwapChain,
+    config: wgpu::SurfaceConfiguration,
     size: winit::dpi::PhysicalSize<u32>,
 }
 
@@ -34,7 +33,7 @@ impl State {
         todo!()
     }
 
-    fn render(&mut self) -> Result<(), wgpu::SwapChainError> {
+    fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
         todo!()
     }
 }
@@ -53,7 +52,7 @@ impl State {
 
         // The instance is a handle to our GPU
         // BackendBit::PRIMARY => Vulkan + Metal + DX12 + Browser WebGPU
-        let instance = wgpu::Instance::new(wgpu::BackendBit::PRIMARY);
+        let instance = wgpu::Instance::new(wgpu::Backends::all());
         let surface = unsafe { instance.create_surface(window) };
         let adapter = instance.request_adapter(
             &wgpu::RequestAdapterOptions {
@@ -71,10 +70,10 @@ The options I've passed to `request_adapter` aren't guaranteed to work for all d
 
 ```rust
 let adapter = instance
-    .enumerate_adapters(wgpu::BackendBit::PRIMARY)
+    .enumerate_adapters(wgpu::Backends::all())
     .filter(|adapter| {
         // Check if this adapter supports our surface
-        adapter.get_swap_chain_preferred_format(&surface).is_some()
+        surface.get_preferred_format(&adapter).is_some()
     })
     .first()
     .unwrap()
@@ -112,18 +111,18 @@ You can view a full list of features [here](https://docs.rs/wgpu/0.7.0/wgpu/stru
 The `limits` field describes the limit of certain types of resource we can create. We'll use the defaults for this tutorial, so we can support most devices. You can view a list of limits [here](https://docs.rs/wgpu/0.7.0/wgpu/struct.Limits.html).
 
 ```rust
-        let sc_desc = wgpu::SwapChainDescriptor {
-            usage: wgpu::TextureUsage::RENDER_ATTACHMENT,
-            format: adapter.get_swap_chain_preferred_format(&surface).unwrap(),
+        let config = wgpu::SurfaceConfiguration {
+            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+            format: surface.get_preferred_format(&adapter).unwrap(),
             width: size.width,
             height: size.height,
             present_mode: wgpu::PresentMode::Fifo,
         };
-        let swap_chain = device.create_swap_chain(&surface, &sc_desc);
+        surface.configure(&device, &config);
 ```
-Here we are defining and creating the `swap_chain`. The `usage` field describes how the `swap_chain`'s underlying textures will be used. `RENDER_ATTACHMENT` specifies that the textures will be used to write to the screen (we'll talk about more `TextureUsage`s later).
+Here we are defining and creating the `swap_chain`. The `usage` field describes how the `swap_chain`'s underlying textures will be used. `RENDER_ATTACHMENT` specifies that the textures will be used to write to the screen (we'll talk about more `TextureUsages`s later).
 
-The `format` defines how the `swap_chain`s textures will be stored on the gpu. Different displays prefer different formats. We use `adapter.get_swap_chain_preferred_format()` to figure out the best format to use.
+The `format` defines how the `swap_chain`s textures will be stored on the gpu. Different displays prefer different formats. We use `adapter.get_preferred_format()` to figure out the best format to use.
 
 `width` and `height`, are the width and height in pixels of the swap chain. This should usually be the width and height of the window.
 
@@ -136,7 +135,7 @@ At the end of the method, we simply return the resulting struct.
             surface,
             device,
             queue,
-            sc_desc,
+            config,
             swap_chain,
             size,
         }
@@ -159,16 +158,16 @@ You can use heavier libraries like [async_std](https://docs.rs/async_std) and [t
 </div>
 
 ## resize()
-If we want to support resizing in our application, we're going to need to recreate the `swap_chain` everytime the window's size changes. That's the reason we stored the physical `size` and the `sc_desc` used to create the swapchain. With all of these, the resize method is very simple.
+If we want to support resizing in our application, we're going to need to recreate the `swap_chain` everytime the window's size changes. That's the reason we stored the physical `size` and the `config` used to create the swapchain. With all of these, the resize method is very simple.
 
 ```rust
 // impl State
 pub fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
     if new_size.width > 0 && new_size.height > 0 {
         self.size = new_size;
-        self.sc_desc.width = new_size.width;
-        self.sc_desc.height = new_size.height;
-        self.swap_chain = self.device.create_swap_chain(&self.surface, &self.sc_desc);
+        self.config.width = new_size.width;
+        self.config.height = new_size.height;
+        self.surface.configure(&self.device, &self.config);
     }
 }
 ```
@@ -261,7 +260,7 @@ Here's where the magic happens. First we need to get a frame to render to. This 
 ```rust
 // impl State
 
-fn render(&mut self) -> Result<(), wgpu::SwapChainError> {
+fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
     let frame = self
         .swap_chain
         .get_current_frame()?
@@ -284,7 +283,7 @@ Now we can actually get to clearing the screen (long time coming). We need to us
             label: Some("Render Pass"),
             color_attachments: &[
                 wgpu::RenderPassColorAttachment {
-                    view: &frame.view,
+                    view: &frame,
                     resolve_target: None,
                     ops: wgpu::Operations {
                         load: wgpu::LoadOp::Clear(wgpu::Color {
@@ -326,9 +325,9 @@ event_loop.run(move |event, _, control_flow| {
             match state.render() {
                 Ok(_) => {}
                 // Recreate the swap_chain if lost
-                Err(wgpu::SwapChainError::Lost) => state.resize(state.size),
+                Err(wgpu::SurfaceError::Lost) => state.resize(state.size),
                 // The system is out of memory, we should probably quit
-                Err(wgpu::SwapChainError::OutOfMemory) => *control_flow = ControlFlow::Exit,
+                Err(wgpu::SurfaceError::OutOfMemory) => *control_flow = ControlFlow::Exit,
                 // All other errors (Outdated, Timeout) should be resolved by the next frame
                 Err(e) => eprintln!("{:?}", e),
             }
@@ -365,7 +364,7 @@ A `RenderPassDescriptor` only has three fields: `label`, `color_attachments` and
 
 ```rust
 wgpu::RenderPassColorAttachment {
-    view: &frame.view,
+    view: &frame,
     resolve_target: None,
     ops: wgpu::Operations {
         load: wgpu::LoadOp::Clear(wgpu::Color {

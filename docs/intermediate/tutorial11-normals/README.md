@@ -425,7 +425,7 @@ pub fn from_image(
         } else {
             wgpu::TextureFormat::Rgba8UnormSrgb
         },
-        usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::COPY_DST,
+        usage: wgpu::TextureUsages::SAMPLED | wgpu::TextureUsages::COPY_DST,
     });
 
     // ...

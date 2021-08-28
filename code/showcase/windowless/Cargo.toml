@@ -12,7 +12,7 @@ raw-window-handle = "0.3"
 winit = "0.25"
 shaderc = "0.7"
 cgmath = "0.18"
-wgpu = "0.9"
+wgpu = "0.10"
 pollster = "0.2"
 
 [[bin]]

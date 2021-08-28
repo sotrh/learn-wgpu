@@ -4,7 +4,7 @@ use anyhow::*;
 use std::{iter, mem, num::NonZeroU32};
 
 async fn run() {
-    let instance = wgpu::Instance::new(wgpu::BackendBit::PRIMARY);
+    let instance = wgpu::Instance::new(wgpu::Backends::all());
     let adapter = instance
         .request_adapter(&wgpu::RequestAdapterOptions::default())
         .await
@@ -44,7 +44,7 @@ async fn run() {
         sample_count: 1,
         dimension: wgpu::TextureDimension::D2,
         format: wgpu::TextureFormat::Rgba8UnormSrgb,
-        usage: wgpu::TextureUsage::COPY_SRC | wgpu::TextureUsage::RENDER_ATTACHMENT,
+        usage: wgpu::TextureUsages::COPY_SRC | wgpu::TextureUsages::RENDER_ATTACHMENT,
         label: None,
     };
     let render_target = framework::Texture::from_descriptor(&device, rt_desc);

@@ -69,7 +69,7 @@ async fn new(window: &Window) -> Self {
         target: (0.0, 0.0, 0.0).into(),
         // which way is "up"
         up: cgmath::Vector3::unit_y(),
-        aspect: sc_desc.width as f32 / sc_desc.height as f32,
+        aspect: config.width as f32 / config.height as f32,
         fovy: 45.0,
         znear: 0.1,
         zfar: 100.0,
