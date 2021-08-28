@@ -1,14 +1,15 @@
 [workspace]
 resolver = "2"
 members = [
-    # beginner tutorials
-    "code/beginner/*",
+    # # beginner tutorials
+    # "code/beginner/*",
 
-    # intermediate tutorials
-    "code/intermediate/*",
+    # # intermediate tutorials
+    # "code/intermediate/*",
 
-    # showcase
-    "code/showcase/*",
+    # # showcase
+    # "code/showcase/*",
+    "code/beginner/tutorial2-swapchain"
 ]
 exclude = [
     "code/showcase/imgui-demo",

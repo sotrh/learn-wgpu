@@ -12,7 +12,7 @@ winit = "0.25"
 cgmath = "0.18"
 env_logger = "0.9"
 log = "0.4"
-wgpu = "0.10"
+wgpu = { git = "https://github.com/gfx-rs/wgpu/"}
 pollster = "0.2"
 
 
