@@ -401,7 +401,7 @@ If we run our program now we should get the following result:
 
 ![an upside down tree on a hexagon](./upside-down.png)
 
-That's weird, our tree is upside down! This is because wgpu's world coordinates have the y-axis pointing up, while texture coordinates have the y-axis pointing down. In other words, (0, 0) in texture coordinates coresponds to the top-left of the image, while (1, 1) is the bottom right.
+That's weird, our tree is upside down! This is because wgpu's world coordinates have the y-axis pointing up, while texture coordinates have the y-axis pointing down. In other words, (0, 0) in texture coordinates corresponds to the top-left of the image, while (1, 1) is the bottom right.
 
 ![happy-tree-uv-coords.png](./happy-tree-uv-coords.png)
 
