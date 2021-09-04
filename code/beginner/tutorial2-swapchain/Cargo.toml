@@ -12,7 +12,8 @@ winit = "0.25"
 cgmath = "0.18"
 env_logger = "0.9"
 log = "0.4"
-wgpu = { git = "https://github.com/gfx-rs/wgpu/"}
+# wgpu = { version = "0.10", features=["trace"]}
+wgpu = { git = "https://github.com/gfx-rs/wgpu/", rev = "d5ba0b4", features=["trace"]}
 pollster = "0.2"
 
 
