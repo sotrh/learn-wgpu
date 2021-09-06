@@ -230,11 +230,11 @@ Modify the vertex shader to include the following.
 // Vertex shader
 
 [[block]] // 1.
-struct CameraUniform {
+struct Camera {
     view_proj: mat4x4<f32>;
 };
 [[group(1), binding(0)]] // 2.
-var<uniform> camera: CameraUniform;
+var<uniform> camera: Camera;
 
 struct VertexInput {
     [[location(0)]] position: vec3<f32>;
