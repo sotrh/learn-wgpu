@@ -41,7 +41,8 @@ impl State {
                     features: wgpu::Features::empty(),
                     limits: wgpu::Limits::default(),
                 },
-                Some(&std::path::Path::new("trace")), // Trace path
+                // Some(&std::path::Path::new("trace")), // Trace path
+                None
             )
             .await
             .unwrap();
