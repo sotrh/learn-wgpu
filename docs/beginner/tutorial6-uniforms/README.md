@@ -234,7 +234,7 @@ struct CameraUniform {
     view_proj: mat4x4<f32>;
 };
 [[group(1), binding(0)]] // 2.
-var<uniform> camera: Camera;
+var<uniform> camera: CameraUniform;
 
 struct VertexInput {
     [[location(0)]] position: vec3<f32>;
