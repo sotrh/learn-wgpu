@@ -22,7 +22,7 @@ let (device, queue) = adapter
 
 ## A triangle without a window
 
-Now we've talked about not needing to see what the gpu is doing, but we do need to see the results at some point. If we look back to talking about the [swap chain](/beginner/tutorial2-swapchain/#render) we see that we use `swap_chain.get_next_texture()` to grab a texture to draw to. We'll skip that step by creating the texture ourselves. One thing to note here is we need to specify `wgpu::TextureFormat::Rgba8UnormSrgb` to `format` instead of `surface.get_preferred_format(&adapter)` since PNG uses RGBA, not BGRA.
+Now we've talked about not needing to see what the gpu is doing, but we do need to see the results at some point. If we look back to talking about the [surface](/beginner/tutorial2-surface/#render) we see that we use `surface.get_current_frame()` to grab a texture to draw to. We'll skip that step by creating the texture ourselves. One thing to note here is we need to specify `wgpu::TextureFormat::Rgba8UnormSrgb` to `format` instead of `surface.get_preferred_format(&adapter)` since PNG uses RGBA, not BGRA.
 
 ```rust
 let texture_size = 256u32;

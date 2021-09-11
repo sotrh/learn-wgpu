@@ -49,7 +49,7 @@ imgui.fonts().add_font(&[FontSource::DefaultFontData {
 }]);
 ```
 
-Then you need to create the renderer. We need to use the swap chains `TextureFormat` in order for things to work properly.
+Then you need to create the renderer. We need to use the surface's `TextureFormat` in order for things to work properly.
 
 ```rust
 let renderer_config = RendererConfig {
