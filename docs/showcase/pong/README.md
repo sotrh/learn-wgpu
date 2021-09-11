@@ -2,7 +2,7 @@
 
 <div class="warning">
 
-This example is currently broken for 0.8. Some of the dependecies used are still on wgpu 0.7 which causes some dependency conflicts. Once the `imgui-wgpu` crate has been updated to use wgpu 0.8 I'll update the dependencies and remove this warning.
+This example is currently broken. I'm planning on rewriting it to use `wgsl` as well as being more sound design wise.
 
 </div>
 

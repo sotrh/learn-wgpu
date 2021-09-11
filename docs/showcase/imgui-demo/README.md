@@ -2,7 +2,11 @@
 
 <div class="warning">
 
-This example is currently broken for 0.8. Some of the dependecies used are still on wgpu 0.7 which causes some dependency conflicts. Once the `imgui-wgpu` crate has been updated to use wgpu 0.8 I'll update the dependencies and remove this warning.
+This example is currently broken. It got behind when I was migrating the tutorial to 0.8 as the imgui_wgpu crate was still on 0.7 at the time. I haven't updated it since. While the fixing it wouldn't be too hard (feel free to send a PR), I'm considering removing this example entirely.
+
+This tutorial is focused how to use wgpu (and by extension the WebGPU standard). I'm looking to minimize the amount of wgpu-adjacent crates that I'm using. They can get in the way of keeping this tutorial as current as possible, and often a crate I'm using will have a different version of wgpu (or winit as is the case as of writing) preventing me from continuing with migration. Beyond dependency conflicts, I'd like to cover some of the topics that some of the existing crates implement such as text and guis.
+
+For the 0.10 migration I'll keep this example in and keep the showcase code excluded.
 
 </div>
 
