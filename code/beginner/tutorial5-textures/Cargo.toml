@@ -14,7 +14,7 @@ env_logger = "0.9"
 log = "0.4"
 pollster = "0.2"
 image = "0.23"
-wgpu = "0.9"
+wgpu = "0.10"
 winit = "0.25"
 
 [build-dependencies]

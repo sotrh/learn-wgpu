@@ -70,7 +70,7 @@ impl<'a> Texture<'a> {
         _label: Option<&str>,
         is_normal_map: bool,
     ) -> Result<Self> {
-        let rgba = img.to_rgba();
+        let rgba = img.to_rgba8();
         let dimensions = img.dimensions();
 
         let size = wgpu::Extent3d {
@@ -88,13 +88,14 @@ impl<'a> Texture<'a> {
             } else {
                 wgpu::TextureFormat::Rgba8UnormSrgb
             },
-            usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::COPY_DST,
+            usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
             label: None,
         };
         let texture = device.create_texture(&desc);
 
         queue.write_texture(
             wgpu::ImageCopyTexture {
+                aspect: wgpu::TextureAspect::All,
                 texture: &texture,
                 mip_level: 0,
                 origin: wgpu::Origin3d::ZERO,
@@ -132,20 +133,20 @@ impl<'a> Texture<'a> {
 
     pub fn create_depth_texture(
         device: &wgpu::Device,
-        sc_desc: &wgpu::SwapChainDescriptor,
+        config: &wgpu::SurfaceConfiguration,
     ) -> Self {
         let desc = wgpu::TextureDescriptor {
             label: None,
             size: wgpu::Extent3d {
-                width: sc_desc.width,
-                height: sc_desc.height,
+                width: config.width,
+                height: config.height,
                 depth_or_array_layers: 1,
             },
             mip_level_count: 1,
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
             format: Self::DEPTH_FORMAT,
-            usage: wgpu::TextureUsage::RENDER_ATTACHMENT,
+            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
         };
         Self::from_descriptor(device, desc)
     }
@@ -155,7 +156,7 @@ impl<'a> Texture<'a> {
             self.desc.size.width * self.desc.size.height * self.desc.size.depth_or_array_layers;
 
         let buffer_size = num_pixels * mem::size_of::<[f32; 4]>() as u32;
-        let buffer_usage = wgpu::BufferUsage::COPY_DST | wgpu::BufferUsage::MAP_READ;
+        let buffer_usage = wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ;
         let buffer_desc = wgpu::BufferDescriptor {
             size: buffer_size as wgpu::BufferAddress,
             usage: buffer_usage,

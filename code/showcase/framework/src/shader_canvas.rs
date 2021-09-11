@@ -127,9 +127,9 @@ impl<'a> ShaderCanvasBuilder<'a> {
         self
     }
 
-    pub fn use_swap_chain_desc(&mut self, sc_desc: &wgpu::SwapChainDescriptor) -> &mut Self {
-        self.display_format(sc_desc.format);
-        self.canvas_size(sc_desc.width as f32, sc_desc.height as f32)
+    pub fn use_swap_chain_desc(&mut self, config: &wgpu::SurfaceConfiguration) -> &mut Self {
+        self.display_format(config.format);
+        self.canvas_size(config.width as f32, config.height as f32)
     }
 
     pub fn fragment_shader(&mut self, code: wgpu::ShaderModuleDescriptor<'a>) -> &mut Self {
@@ -165,7 +165,7 @@ impl<'a> ShaderCanvasBuilder<'a> {
         let simulation_data_buffer = device.create_buffer_init(&BufferInitDescriptor {
             label: self.label,
             contents: bytemuck::cast_slice(&[simulation_data]),
-            usage: wgpu::BufferUsage::UNIFORM | wgpu::BufferUsage::COPY_DST,
+            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
         });
 
         let simulation_bind_group_layout =
@@ -175,7 +175,7 @@ impl<'a> ShaderCanvasBuilder<'a> {
                     // SimulationData
                     wgpu::BindGroupLayoutEntry {
                         binding: 0,
-                        visibility: wgpu::ShaderStage::FRAGMENT,
+                        visibility: wgpu::ShaderStages::FRAGMENT,
                         count: None,
                         ty: wgpu::BindingType::Buffer {
                             ty: wgpu::BufferBindingType::Uniform,
@@ -219,7 +219,7 @@ impl<'a> ShaderCanvasBuilder<'a> {
                         color: wgpu::BlendComponent::REPLACE,
                         alpha: wgpu::BlendComponent::REPLACE,
                     }),
-                    write_mask: wgpu::ColorWrite::ALL,
+                    write_mask: wgpu::ColorWrites::ALL,
                 }],
             }),
             primitive: wgpu::PrimitiveState {

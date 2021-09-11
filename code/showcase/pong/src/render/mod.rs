@@ -19,8 +19,7 @@ pub struct Render {
     adapter: wgpu::Adapter,
     device: wgpu::Device,
     queue: wgpu::Queue,
-    sc_desc: wgpu::SwapChainDescriptor,
-    swap_chain: wgpu::SwapChain,
+    config: wgpu::SurfaceConfiguration,
     pipeline: wgpu::RenderPipeline,
     vertex_buffer: wgpu::Buffer,
     index_buffer: wgpu::Buffer,
@@ -30,18 +29,18 @@ pub struct Render {
 
 impl Render {
     pub fn width(&self) -> f32 {
-        self.sc_desc.width as f32
+        self.config.width as f32
     }
 
     #[allow(dead_code)]
     pub fn height(&self) -> f32 {
-        self.sc_desc.height as f32
+        self.config.height as f32
     }
 
     pub async fn new(window: &Window, video_mode: &VideoMode) -> Self {
         // The instance is a handle to our GPU
         // BackendBit::PRIMARY => Vulkan + Metal + DX12 + Browser WebGPU
-        let instance = wgpu::Instance::new(wgpu::BackendBit::PRIMARY);
+        let instance = wgpu::Instance::new(wgpu::Backends::all());
         let surface = unsafe { instance.create_surface(window) };
         let adapter = instance
             .request_adapter(&wgpu::RequestAdapterOptions {
@@ -63,14 +62,14 @@ impl Render {
             .unwrap();
 
         let size = video_mode.size();
-        let sc_desc = wgpu::SwapChainDescriptor {
-            usage: wgpu::TextureUsage::RENDER_ATTACHMENT,
-            format: adapter.get_swap_chain_preferred_format(&surface).unwrap(),
+        let config = wgpu::SurfaceConfiguration {
+            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+            format: surface.get_preferred_format(&adapter).unwrap(),
             width: size.width,
             height: size.height,
             present_mode: wgpu::PresentMode::Fifo,
         };
-        let swap_chain = device.create_swap_chain(&surface, &sc_desc);
+        surface.configure(&device, &config);
 
         let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             bind_group_layouts: &[],
@@ -80,7 +79,7 @@ impl Render {
         let pipeline = create_render_pipeline(
             &device,
             &pipeline_layout,
-            sc_desc.format,
+            config.format,
             &[Vertex::DESC],
             wgpu::include_spirv!("../../res/shaders/textured.vert.spv"),
             wgpu::include_spirv!("../../res/shaders/textured.frag.spv"),
@@ -89,20 +88,20 @@ impl Render {
         let vertex_buffer = device.create_buffer(&wgpu::BufferDescriptor {
             label: None,
             size: Vertex::SIZE * 4 * 3,
-            usage: wgpu::BufferUsage::VERTEX | wgpu::BufferUsage::COPY_DST,
+            usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
             mapped_at_creation: false,
         });
 
         let index_buffer = device.create_buffer(&wgpu::BufferDescriptor {
             label: None,
             size: U32_SIZE * 6 * 3,
-            usage: wgpu::BufferUsage::INDEX | wgpu::BufferUsage::COPY_DST,
+            usage: wgpu::BufferUsages::INDEX | wgpu::BufferUsages::COPY_DST,
             mapped_at_creation: false,
         });
 
         let font = ab_glyph::FontArc::try_from_slice(FONT_BYTES).unwrap();
         let glyph_brush =
-            wgpu_glyph::GlyphBrushBuilder::using_font(font).build(&device, sc_desc.format);
+            wgpu_glyph::GlyphBrushBuilder::using_font(font).build(&device, config.format);
         let staging_belt = wgpu::util::StagingBelt::new(1024);
 
         Self {
@@ -110,8 +109,7 @@ impl Render {
             adapter,
             device,
             queue,
-            sc_desc,
-            swap_chain,
+            config,
             pipeline,
             vertex_buffer,
             index_buffer,
@@ -186,16 +184,16 @@ impl Render {
                         &mut self.staging_belt,
                         &mut encoder,
                         &frame.output.view,
-                        self.sc_desc.width,
-                        self.sc_desc.height,
+                        self.config.width,
+                        self.config.height,
                     )
                     .unwrap();
 
                 self.staging_belt.finish();
                 self.queue.submit(iter::once(encoder.finish()));
             }
-            Err(wgpu::SwapChainError::Outdated) => {
-                self.swap_chain = self.device.create_swap_chain(&self.surface, &self.sc_desc);
+            Err(wgpu::SurfaceError::Outdated) => {
+                self.surface.configure(&self.device, &self.config);
             }
             Err(e) => {
                 eprintln!("Error: {}", e);
@@ -257,7 +255,7 @@ fn create_render_pipeline(
                     alpha: wgpu::BlendComponent::REPLACE,
                     color: wgpu::BlendComponent::REPLACE,
                 }),
-                write_mask: wgpu::ColorWrite::ALL,
+                write_mask: wgpu::ColorWrites::ALL,
             }],
         }),
         primitive: wgpu::PrimitiveState {

@@ -4,7 +4,7 @@ use anyhow::*;
 use std::{iter, mem, num::NonZeroU32};
 
 async fn run() {
-    let instance = wgpu::Instance::new(wgpu::BackendBit::PRIMARY);
+    let instance = wgpu::Instance::new(wgpu::Backends::all());
     let adapter = instance
         .request_adapter(&wgpu::RequestAdapterOptions::default())
         .await
@@ -44,7 +44,7 @@ async fn run() {
         sample_count: 1,
         dimension: wgpu::TextureDimension::D2,
         format: wgpu::TextureFormat::Rgba8UnormSrgb,
-        usage: wgpu::TextureUsage::COPY_SRC | wgpu::TextureUsage::RENDER_ATTACHMENT,
+        usage: wgpu::TextureUsages::COPY_SRC | wgpu::TextureUsages::RENDER_ATTACHMENT,
         label: None,
     };
     let render_target = framework::Texture::from_descriptor(&device, rt_desc);
@@ -63,7 +63,7 @@ async fn run() {
     let buffer_size = (padded_bytes_per_row * texture_size) as wgpu::BufferAddress;
     let buffer_desc = wgpu::BufferDescriptor {
         size: buffer_size,
-        usage: wgpu::BufferUsage::COPY_DST | wgpu::BufferUsage::MAP_READ,
+        usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
         label: Some("Output Buffer"),
         mapped_at_creation: false,
     };
@@ -103,6 +103,7 @@ async fn run() {
 
         encoder.copy_texture_to_buffer(
             wgpu::ImageCopyTexture {
+                aspect: wgpu::TextureAspect::All,
                 texture: &render_target.texture,
                 mip_level: 0,
                 origin: wgpu::Origin3d::ZERO,
@@ -190,7 +191,7 @@ fn create_render_pipeline(
             targets: &[wgpu::ColorTargetState {
                 format: target.desc.format,
                 blend: Some(wgpu::BlendState::REPLACE),
-                write_mask: wgpu::ColorWrite::ALL,
+                write_mask: wgpu::ColorWrites::ALL,
             }],
         }),
         primitive: wgpu::PrimitiveState {

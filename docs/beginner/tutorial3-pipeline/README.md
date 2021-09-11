@@ -130,8 +130,7 @@ struct State {
     surface: wgpu::Surface,
     device: wgpu::Device,
     queue: wgpu::Queue,
-    sc_desc: wgpu::SwapChainDescriptor,
-    swap_chain: wgpu::SwapChain,
+    config: wgpu::SurfaceConfiguration,
     size: winit::dpi::PhysicalSize<u32>,
     // NEW!
     render_pipeline: wgpu::RenderPipeline,
@@ -174,9 +173,9 @@ let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescrip
         module: &shader,
         entry_point: "main",
         targets: &[wgpu::ColorTargetState { // 4.
-            format: sc_desc.format,
+            format: config.format,
             blend: Some(wgpu::BlendState::REPLACE),
-            write_mask: wgpu::ColorWrite::ALL,
+            write_mask: wgpu::ColorWrites::ALL,
         }],
     }),
     // continued ...
@@ -185,8 +184,8 @@ let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescrip
 Two things to note here:
 1. Here you can specify which function inside of the shader should be called, which is known as the `entry_point`. These are the functions we marked with `[[stage(vertex)]]` and `[[stage(fragment)]]`
 2. The `buffers` field tells `wgpu` what type of vertices we want to pass to the vertex shader. We're specifying the vertices in the vertex shader itself so we'll leave this empty. We'll put something there in the next tutorial.
-3. The `fragment` is technically optional, so you have to wrap it in `Some()`. We need it if we want to store color data to the `swap_chain`.
-4. The `targets` field tells `wgpu` what color outputs it should set up.Currently we only need one for the `swap_chain`. We use the `swap_chain`'s format so that copying to it is easy, and we specify that the blending should just replace old pixel data with new data. We also tell `wgpu` to write to all colors: red, blue, green, and alpha. *We'll talk more about*`color_state` *when we talk about textures.*
+3. The `fragment` is technically optional, so you have to wrap it in `Some()`. We need it if we want to store color data to the `surface`.
+4. The `targets` field tells `wgpu` what color outputs it should set up.Currently we only need one for the `surface`. We use the `surface`'s format so that copying to it is easy, and we specify that the blending should just replace old pixel data with new data. We also tell `wgpu` to write to all colors: red, blue, green, and alpha. *We'll talk more about*`color_state` *when we talk about textures.*
 
 ```rust
     primitive: wgpu::PrimitiveState {
@@ -235,8 +234,7 @@ Self {
     surface,
     device,
     queue,
-    sc_desc,
-    swap_chain,
+    config,
     size,
     // NEW!
     render_pipeline,
@@ -257,7 +255,7 @@ If you run your program now, it'll take a little longer to start, but it will st
         color_attachments: &[
             // This is what [[location(0)]] in the fragment shader targets
             wgpu::RenderPassColorAttachment {
-                view: &frame.view,
+                view: &view,
                 resolve_target: None,
                 ops: wgpu::Operations {
                     load: wgpu::LoadOp::Clear(

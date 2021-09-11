@@ -37,7 +37,7 @@ impl Vertex for ModelVertex {
         use std::mem;
         wgpu::VertexBufferLayout {
             array_stride: mem::size_of::<ModelVertex>() as wgpu::BufferAddress,
-            step_mode: wgpu::InputStepMode::Vertex,
+            step_mode: wgpu::VertexStepMode::Vertex,
             attributes: &[
                 wgpu::VertexAttribute {
                     offset: 0,
@@ -126,7 +126,15 @@ glob = "0.3"
 
 ## Loading models with TOBJ
 
-We're going to use the [tobj](https://docs.rs/tobj/0.1.12/tobj/) library to load our model. Before we can load our model though, we need somewhere to put it.
+We're going to use the [tobj](https://docs.rs/tobj/3.0/tobj/) library to load our model. Let's add it to our `Cargo.toml`.
+
+```toml
+[dependencies]
+# other dependencies...
+tobj = "3.0"
+```
+
+Before we can load our model though, we need somewhere to put it.
 
 ```rust
 // model.rs
@@ -263,14 +271,14 @@ impl Model {
                 &wgpu::util::BufferInitDescriptor {
                     label: Some(&format!("{:?} Vertex Buffer", path.as_ref())),
                     contents: bytemuck::cast_slice(&vertices),
-                    usage: wgpu::BufferUsage::VERTEX,
+                    usage: wgpu::BufferUsages::VERTEX,
                 }
             );
             let index_buffer = device.create_buffer_init(
                 &wgpu::util::BufferInitDescriptor {
                     label: Some(&format!("{:?} Index Buffer", path.as_ref())),
                     contents: bytemuck::cast_slice(&m.mesh.indices),
-                    usage: wgpu::BufferUsage::INDEX,
+                    usage: wgpu::BufferUsages::INDEX,
                 }
             );
 

@@ -103,7 +103,7 @@ impl<'a> RenderPipelineBuilder<'a> {
         self.color_state(wgpu::ColorTargetState {
             format,
             blend: None,
-            write_mask: wgpu::ColorWrite::ALL,
+            write_mask: wgpu::ColorWrites::ALL,
         })
     }
 

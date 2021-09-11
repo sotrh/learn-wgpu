@@ -27,7 +27,7 @@ impl Vertex for ModelVertex {
         use std::mem;
         wgpu::VertexBufferLayout {
             array_stride: mem::size_of::<ModelVertex>() as wgpu::BufferAddress,
-            step_mode: wgpu::InputStepMode::Vertex,
+            step_mode: wgpu::VertexStepMode::Vertex,
             attributes: &[
                 wgpu::VertexAttribute {
                     offset: 0,
@@ -141,7 +141,7 @@ impl pipeline::Bindable for BitangentComputeBinding {
             // We use these vertices to compute the tangent and bitangent
             wgpu::BindGroupLayoutEntry {
                 binding: 0,
-                visibility: wgpu::ShaderStage::COMPUTE,
+                visibility: wgpu::ShaderStages::COMPUTE,
                 ty: wgpu::BindingType::Buffer {
                     ty: wgpu::BufferBindingType::Storage { read_only: true },
                     has_dynamic_offset: false,
@@ -153,7 +153,7 @@ impl pipeline::Bindable for BitangentComputeBinding {
             // We'll store the computed tangent and bitangent here
             wgpu::BindGroupLayoutEntry {
                 binding: 1,
-                visibility: wgpu::ShaderStage::COMPUTE,
+                visibility: wgpu::ShaderStages::COMPUTE,
                 ty: wgpu::BindingType::Buffer {
                     ty: wgpu::BufferBindingType::Storage {
                         // We will change the values in this buffer
@@ -167,7 +167,7 @@ impl pipeline::Bindable for BitangentComputeBinding {
             // Indices
             wgpu::BindGroupLayoutEntry {
                 binding: 2,
-                visibility: wgpu::ShaderStage::COMPUTE,
+                visibility: wgpu::ShaderStages::COMPUTE,
                 ty: wgpu::BindingType::Buffer {
                     ty: wgpu::BufferBindingType::Storage {
                         // We won't change the indices
@@ -181,7 +181,7 @@ impl pipeline::Bindable for BitangentComputeBinding {
             // ComputeInfo
             wgpu::BindGroupLayoutEntry {
                 binding: 3,
-                visibility: wgpu::ShaderStage::COMPUTE,
+                visibility: wgpu::ShaderStages::COMPUTE,
                 ty: wgpu::BindingType::Buffer {
                     ty: wgpu::BufferBindingType::Uniform,
                     has_dynamic_offset: false,
@@ -232,8 +232,9 @@ pub struct ModelLoader {
 impl ModelLoader {
     // NEW!
     pub fn new(device: &wgpu::Device) -> Self {
+        println!("Creating MODELLOADER pipeline");
         let binder = pipeline::Binder::new(device, Some("ModelLoader Binder"));
-        let shader_src = wgpu::include_spirv!("model_load.comp.spv");
+        let shader_src = wgpu::include_wgsl!("model_load.comp.wgsl");
         let pipeline = pipeline::create_compute_pipeline(
             device,
             &[&binder.layout],
@@ -316,20 +317,20 @@ impl ModelLoader {
                         label: Some(&format!("{:?} Vertex Buffer", m.name)),
                         contents: bytemuck::cast_slice(&vertices),
                         // UPDATED!
-                        usage: wgpu::BufferUsage::STORAGE,
+                        usage: wgpu::BufferUsages::STORAGE,
                     });
                 let dst_vertex_buffer =
                     device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
                         label: Some(&format!("{:?} Vertex Buffer", m.name)),
                         contents: bytemuck::cast_slice(&vertices),
                         // UPDATED!
-                        usage: wgpu::BufferUsage::VERTEX | wgpu::BufferUsage::STORAGE,
+                        usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::STORAGE,
                     });
                 let index_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
                     label: Some(&format!("{:?} Index Buffer", m.name)),
                     contents: bytemuck::cast_slice(&m.mesh.indices),
                     // UPDATED!
-                    usage: wgpu::BufferUsage::INDEX | wgpu::BufferUsage::STORAGE,
+                    usage: wgpu::BufferUsages::INDEX | wgpu::BufferUsages::STORAGE,
                 });
                 let compute_info = ComputeInfo {
                     num_vertices: vertices.len() as _,
@@ -338,7 +339,7 @@ impl ModelLoader {
                 let info_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
                     label: Some(&format!("{:?} Compute Info Buffer", m.name)),
                     contents: bytemuck::cast_slice(&[compute_info]),
-                    usage: wgpu::BufferUsage::UNIFORM,
+                    usage: wgpu::BufferUsages::UNIFORM,
                 });
 
                 // NEW!

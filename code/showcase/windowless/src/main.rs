@@ -1,7 +1,7 @@
 use std::num::NonZeroU32;
 
 async fn run() {
-    let instance = wgpu::Instance::new(wgpu::BackendBit::PRIMARY);
+    let instance = wgpu::Instance::new(wgpu::Backends::all());
     let adapter = instance
         .request_adapter(&wgpu::RequestAdapterOptions {
             power_preference: wgpu::PowerPreference::default(),
@@ -25,7 +25,7 @@ async fn run() {
         sample_count: 1,
         dimension: wgpu::TextureDimension::D2,
         format: wgpu::TextureFormat::Rgba8UnormSrgb,
-        usage: wgpu::TextureUsage::COPY_SRC | wgpu::TextureUsage::RENDER_ATTACHMENT,
+        usage: wgpu::TextureUsages::COPY_SRC | wgpu::TextureUsages::RENDER_ATTACHMENT,
         label: None,
     };
     let texture = device.create_texture(&texture_desc);
@@ -37,9 +37,9 @@ async fn run() {
     let output_buffer_size = (u32_size * texture_size * texture_size) as wgpu::BufferAddress;
     let output_buffer_desc = wgpu::BufferDescriptor {
         size: output_buffer_size,
-        usage: wgpu::BufferUsage::COPY_DST
+        usage: wgpu::BufferUsages::COPY_DST
             // this tells wpgu that we want to read this buffer from the cpu
-            | wgpu::BufferUsage::MAP_READ,
+            | wgpu::BufferUsages::MAP_READ,
         label: None,
         mapped_at_creation: false,
     };
@@ -71,12 +71,10 @@ async fn run() {
     let vs_module = device.create_shader_module(&wgpu::ShaderModuleDescriptor {
         label: Some("Vertex Shader"),
         source: vs_data,
-        flags: wgpu::ShaderFlags::default(),
     });
     let fs_module = device.create_shader_module(&wgpu::ShaderModuleDescriptor {
         label: Some("Fragment Shader"),
         source: fs_data,
-        flags: wgpu::ShaderFlags::default(),
     });
 
     let render_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
@@ -102,7 +100,7 @@ async fn run() {
                     alpha: wgpu::BlendComponent::REPLACE,
                     color: wgpu::BlendComponent::REPLACE,
                 }),
-                write_mask: wgpu::ColorWrite::ALL,
+                write_mask: wgpu::ColorWrites::ALL,
             }],
         }),
         primitive: wgpu::PrimitiveState {
@@ -154,6 +152,7 @@ async fn run() {
 
     encoder.copy_texture_to_buffer(
         wgpu::ImageCopyTexture {
+            aspect: wgpu::TextureAspect::All,
             texture: &texture,
             mip_level: 0,
             origin: wgpu::Origin3d::ZERO,

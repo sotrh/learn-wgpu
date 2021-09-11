@@ -26,10 +26,10 @@ Let's make a function to create the depth texture in `texture.rs`.
 impl Texture {
     pub const DEPTH_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Depth32Float; // 1.
     
-    pub fn create_depth_texture(device: &wgpu::Device, sc_desc: &wgpu::SwapChainDescriptor, label: &str) -> Self {
+    pub fn create_depth_texture(device: &wgpu::Device, config: &wgpu::SurfaceConfiguration, label: &str) -> Self {
         let size = wgpu::Extent3d { // 2.
-            width: sc_desc.width,
-            height: sc_desc.height,
+            width: config.width,
+            height: config.height,
             depth_or_array_layers: 1,
         };
         let desc = wgpu::TextureDescriptor {
@@ -39,8 +39,8 @@ impl Texture {
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
             format: Self::DEPTH_FORMAT,
-            usage: wgpu::TextureUsage::RENDER_ATTACHMENT // 3.
-                | wgpu::TextureUsage::SAMPLED,
+            usage: wgpu::TextureUsages::RENDER_ATTACHMENT // 3.
+                | wgpu::TextureUsages::TEXTURE_BINDING,
         };
         let texture = device.create_texture(&desc);
 
@@ -66,7 +66,7 @@ impl Texture {
 ```
 
 1. We need the DEPTH_FORMAT for when we create the depth stage of the `render_pipeline` and creating the depth texture itself.
-2. Our depth texture needs to be the same size as our screen if we want things to render correctly. We can use our `sc_desc` to make sure that our depth texture is the same size as our swap chain images.
+2. Our depth texture needs to be the same size as our screen if we want things to render correctly. We can use our `config` to make sure that our depth texture is the same size as our surface textures.
 3. Since we are rendering to this texture, we need to add the `RENDER_ATTACHMENT` flag to it.
 4. We technically don't *need* a sampler for a depth texture, but our `Texture` struct requires it, and we need one if we ever want to sample it.
 5. If we do decide to render our depth texture, we need to use `CompareFunction::LessEqual`. This is due to how the `samplerShadow` and `sampler2DShadow()` interacts with the `texture()` function in GLSL.
@@ -74,7 +74,7 @@ impl Texture {
 We create our `depth_texture` in `State::new()`.
 
 ```rust
-let depth_texture = texture::Texture::create_depth_texture(&device, &sc_desc, "depth_texture");
+let depth_texture = texture::Texture::create_depth_texture(&device, &config, "depth_texture");
 ```
 
 We need to modify our `render_pipeline` to allow depth testing. 
@@ -129,13 +129,13 @@ We need to remember to change the `resize()` method to create a new `depth_textu
 fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
     // ...
 
-    self.depth_texture = texture::Texture::create_depth_texture(&self.device, &self.sc_desc, "depth_texture");
+    self.depth_texture = texture::Texture::create_depth_texture(&self.device, &self.config, "depth_texture");
 
     // ...
 }
 ```
 
-Make sure you update the `depth_texture` *after* you update `sc_desc`. If you don't, your program will crash as the `depth_texture` will be a different size than the `swap_chain` texture.
+Make sure you update the `depth_texture` *after* you update `config`. If you don't, your program will crash as the `depth_texture` will be a different size than the `surface` texture.
 
 The last change we need to make is in the `render()` function. We've created the `depth_texture`, but we're not currently using it. We use it by attaching it to the `depth_stencil_attachment` of a render pass.
 

@@ -14,7 +14,7 @@ pollster = "0.2"
 image = "0.23"
 log = "0.4"
 tobj = "3.1"
-wgpu = "0.9"
+wgpu = "0.10"
 winit = "0.25"
 gif = "0.10.3"
 

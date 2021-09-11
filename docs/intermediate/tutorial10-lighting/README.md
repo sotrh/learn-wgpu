@@ -46,7 +46,7 @@ let light_buffer = device.create_buffer_init(
     &wgpu::util::BufferInitDescriptor {
         label: Some("Light VB"),
         contents: bytemuck::cast_slice(&[light_uniform]),
-        usage: wgpu::BufferUsage::UNIFORM | wgpu::BufferUsage::COPY_DST,
+        usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
     }
 );
 ```
@@ -58,7 +58,7 @@ let light_bind_group_layout =
     device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
         entries: &[wgpu::BindGroupLayoutEntry {
             binding: 0,
-            visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+            visibility: wgpu::ShaderStages::VERTEX | wgpu::ShaderStages::FRAGMENT,
             ty: wgpu::BindingType::Buffer {
                 ty: wgpu::BufferBindingType::Uniform,
                 has_dynamic_offset: false,
@@ -137,7 +137,7 @@ fn create_render_pipeline(
                     alpha: wgpu::BlendComponent::REPLACE,
                     color: wgpu::BlendComponent::REPLACE,
                 }),
-                write_mask: wgpu::ColorWrite::ALL,
+                write_mask: wgpu::ColorWrites::ALL,
             }],
         }),
         primitive: wgpu::PrimitiveState {
@@ -180,7 +180,7 @@ let render_pipeline = {
     create_render_pipeline(
         &device,
         &render_pipeline_layout,
-        sc_desc.format,
+        config.format,
         Some(texture::Texture::DEPTH_FORMAT),
         &[model::ModelVertex::desc(), InstanceRaw::desc()],
         shader,
@@ -294,7 +294,7 @@ let light_render_pipeline = {
     create_render_pipeline(
         &device,
         &layout,
-        sc_desc.format,
+        config.format,
         Some(texture::Texture::DEPTH_FORMAT),
         &[model::ModelVertex::desc()],
         shader,
@@ -439,7 +439,7 @@ Finally we want to add Light rendering to our render passes.
 ```rust
 impl State {
     // ...
-   fn render(&mut self) -> Result<(), wgpu::SwapChainError> {
+   fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
         // ...
         render_pass.set_vertex_buffer(1, self.instance_buffer.slice(..));
 
@@ -628,7 +628,7 @@ impl model::Vertex for InstanceRaw {
             // We need to switch from using a step mode of Vertex to Instance
             // This means that our shaders will only change to use the next
             // instance when the shader starts processing a new instance
-            step_mode: wgpu::InputStepMode::Instance,
+            step_mode: wgpu::VertexStepMode::Instance,
             attributes: &[
                 wgpu::VertexAttribute {
                     offset: 0,
@@ -820,7 +820,7 @@ let camera_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupL
     entries: &[
         wgpu::BindGroupLayoutBinding {
             // ...
-            visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT, // Updated!
+            visibility: wgpu::ShaderStages::VERTEX | wgpu::ShaderStages::FRAGMENT, // Updated!
             // ...
         },
         // ...

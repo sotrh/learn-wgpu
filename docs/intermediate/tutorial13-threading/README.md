@@ -92,7 +92,7 @@ impl Model {
                 &wgpu::util::BufferInitDescriptor {
                     label: Some(&format!("{:?} Index Buffer", m.name)), // UPDATED!
                     contents: bytemuck::cast_slice(&m.mesh.indices),
-                    usage: wgpu::BufferUsage::INDEX,
+                    usage: wgpu::BufferUsages::INDEX,
                 }
             );
             // ...

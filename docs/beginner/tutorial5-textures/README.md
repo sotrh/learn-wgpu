@@ -12,10 +12,10 @@ If we want to map an image to our mesh, we first need an image. Let's use this h
 
 We'll use the [image crate](https://crates.io/crates/image) to load our tree. We already added to our dependencies in the first section, so all we have to do is use it.
 
-In `State`'s `new()` method add the following just after creating the `swap_chain`:
+In `State`'s `new()` method add the following just after configuring the `surface`:
 
 ```rust
-let swap_chain = device.create_swap_chain(&surface, &sc_desc);
+surface.configure(&device, &config);
 // NEW!
 
 let diffuse_bytes = include_bytes!("happy-tree.png");
@@ -48,7 +48,7 @@ let diffuse_texture = device.create_texture(
         format: wgpu::TextureFormat::Rgba8UnormSrgb,
         // SAMPLED tells wgpu that we want to use this texture in shaders
         // COPY_DST means that we want to copy data to this texture
-        usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::COPY_DST,
+        usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
         label: Some("diffuse_texture"),
     }
 );
@@ -87,7 +87,7 @@ let buffer = device.create_buffer_init(
     &wgpu::util::BufferInitDescriptor {
         label: Some("Temp Buffer"),
         contents: &diffuse_rgba,
-        usage: wgpu::BufferUsage::COPY_SRC,
+        usage: wgpu::BufferUsages::COPY_SRC,
     }
 );
 
@@ -169,7 +169,7 @@ let texture_bind_group_layout = device.create_bind_group_layout(
         entries: &[
             wgpu::BindGroupLayoutEntry {
                 binding: 0,
-                visibility: wgpu::ShaderStage::FRAGMENT,
+                visibility: wgpu::ShaderStages::FRAGMENT,
                 ty: wgpu::BindingType::Texture {
                     multisampled: false,
                     view_dimension: wgpu::TextureViewDimension::D2,
@@ -179,7 +179,7 @@ let texture_bind_group_layout = device.create_bind_group_layout(
             },
             wgpu::BindGroupLayoutEntry {
                 binding: 1,
-                visibility: wgpu::ShaderStage::FRAGMENT,
+                visibility: wgpu::ShaderStages::FRAGMENT,
                 ty: wgpu::BindingType::Sampler {
                     // This is only for TextureSampleType::Depth
                     comparison: false,
@@ -228,8 +228,7 @@ struct State {
     surface: wgpu::Surface,
     device: wgpu::Device,
     queue: wgpu::Queue,
-    sc_desc: wgpu::SwapChainDescriptor,
-    swap_chain: wgpu::SwapChain,
+    config: wgpu::SurfaceConfiguration,
     size: winit::dpi::PhysicalSize<u32>,
     render_pipeline: wgpu::RenderPipeline,
     vertex_buffer: wgpu::Buffer,
@@ -249,8 +248,7 @@ impl State {
             surface,
             device,
             queue,
-            sc_desc,
-            swap_chain,
+            config,
             size,
             render_pipeline,
             vertex_buffer,
@@ -318,7 +316,7 @@ impl Vertex {
         use std::mem;
         wgpu::VertexBufferLayout {
             array_stride: mem::size_of::<Vertex>() as wgpu::BufferAddress,
-            step_mode: wgpu::InputStepMode::Vertex,
+            step_mode: wgpu::VertexStepMode::Vertex,
             attributes: &[
                 wgpu::VertexAttribute {
                     offset: 0,
@@ -434,7 +432,7 @@ winit = "0.25"
 env_logger = "0.9"
 log = "0.4"
 pollster = "0.2"
-wgpu = "0.9"
+wgpu = "0.10"
 bytemuck = { version = "1.4", features = [ "derive" ] }
 anyhow = "1.0" // NEW!
 ```
@@ -484,12 +482,13 @@ impl Texture {
                 sample_count: 1,
                 dimension: wgpu::TextureDimension::D2,
                 format: wgpu::TextureFormat::Rgba8UnormSrgb,
-                usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::COPY_DST,
+                usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
             }
         );
 
         queue.write_texture(
             wgpu::ImageCopyTexture {
+                aspect: wgpu::TextureAspect::All,
                 texture: &texture,
                 mip_level: 0,
                 origin: wgpu::Origin3d::ZERO,
@@ -532,7 +531,7 @@ mod texture;
 The texture creation code in `new()` now gets a lot simpler:
 
 ```rust
-let swap_chain = device.create_swap_chain(&surface, &sc_desc);
+surface.configure(&device, &config);
 let diffuse_bytes = include_bytes!("happy-tree.png"); // CHANGED!
 let diffuse_texture = texture::Texture::from_bytes(&device, &queue, diffuse_bytes, "happy-tree.png").unwrap(); // CHANGED!
 

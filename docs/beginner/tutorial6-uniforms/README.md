@@ -69,7 +69,7 @@ async fn new(window: &Window) -> Self {
         target: (0.0, 0.0, 0.0).into(),
         // which way is "up"
         up: cgmath::Vector3::unit_y(),
-        aspect: sc_desc.width as f32 / sc_desc.height as f32,
+        aspect: config.width as f32 / config.height as f32,
         fovy: 45.0,
         znear: 0.1,
         zfar: 100.0,
@@ -126,7 +126,7 @@ let camera_buffer = device.create_buffer_init(
     &wgpu::util::BufferInitDescriptor {
         label: Some("Camera Buffer"),
         contents: bytemuck::cast_slice(&[camera_uniform]),
-        usage: wgpu::BufferUsage::UNIFORM | wgpu::BufferUsage::COPY_DST,
+        usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
     }
 );
 ```
@@ -140,7 +140,7 @@ let camera_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupL
     entries: &[
         wgpu::BindGroupLayoutEntry {
             binding: 0,
-            visibility: wgpu::ShaderStage::VERTEX,
+            visibility: wgpu::ShaderStages::VERTEX,
             ty: wgpu::BindingType::Buffer {
                 ty: wgpu::BufferBindingType::Uniform,
                 has_dynamic_offset: false,
@@ -408,7 +408,7 @@ fn input(&mut self, event: &WindowEvent) -> bool {
 
 Up to this point, the camera controller isn't actually doing anything. The values in our uniform buffer need to be updated. There are a few main methods to do that.
 1. We can create a separate buffer and copy it's contents to our `camera_buffer`. The new buffer is known as a staging buffer. This method is usually how it's done as it allows the contents of the main buffer (in this case `camera_buffer`) to only be accessible by the gpu. The gpu can do some speed optimizations which it couldn't if we could access the buffer via the cpu.
-2. We can call on of the mapping method's `map_read_async`, and `map_write_async` on the buffer itself. These allow us to access a buffer's contents directly, but requires us to deal with the `async` aspect of these methods this also requires our buffer to use the `BufferUsage::MAP_READ` and/or `BufferUsage::MAP_WRITE`. We won't talk about it here, but you check out [Wgpu without a window](../../showcase/windowless) tutorial if you want to know more.
+2. We can call on of the mapping method's `map_read_async`, and `map_write_async` on the buffer itself. These allow us to access a buffer's contents directly, but requires us to deal with the `async` aspect of these methods this also requires our buffer to use the `BufferUsages::MAP_READ` and/or `BufferUsages::MAP_WRITE`. We won't talk about it here, but you check out [Wgpu without a window](../../showcase/windowless) tutorial if you want to know more.
 3. We can use `write_buffer` on `queue`.
 
 We're going to use option number 3.
