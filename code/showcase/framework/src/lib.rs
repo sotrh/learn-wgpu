@@ -68,7 +68,6 @@ impl Display {
             surface,
             window,
             config,
-            swap_chain,
             device,
             queue,
         })

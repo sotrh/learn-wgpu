@@ -62,7 +62,7 @@ pub fn create_render_pipeline(
             targets: &[wgpu::ColorTargetState {
                 format: color_format,
                 blend: None,
-                write_mask: wgpu::ColorWrite::ALL,
+                write_mask: wgpu::ColorWrites::ALL,
             }],
         }),
         primitive: wgpu::PrimitiveState {

@@ -152,7 +152,7 @@ let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescrip
             format: texture_desc.format,
             alpha_blend: wgpu::BlendState::REPLACE,
             color_blend: wgpu::BlendState::REPLACE,
-            write_mask: wgpu::ColorWrite::ALL,
+            write_mask: wgpu::ColorWrites::ALL,
         }],
     }),
     primitive: wgpu::PrimitiveState {

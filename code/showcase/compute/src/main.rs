@@ -420,7 +420,6 @@ impl State {
             device,
             queue,
             config,
-            swap_chain,
             render_pipeline,
             obj_model,
             camera,
@@ -534,7 +533,7 @@ impl State {
                     let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                         label: Some("Render Pass"),
                         color_attachments: &[wgpu::RenderPassColorAttachment {
-                            view: &frame,
+                            view: &view,
                             resolve_target: None,
                             ops: wgpu::Operations {
                                 load: wgpu::LoadOp::Clear(wgpu::Color {

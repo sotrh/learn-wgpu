@@ -110,7 +110,6 @@ impl Render {
             device,
             queue,
             config,
-            swap_chain,
             pipeline,
             vertex_buffer,
             index_buffer,
@@ -256,7 +255,7 @@ fn create_render_pipeline(
                     alpha: wgpu::BlendComponent::REPLACE,
                     color: wgpu::BlendComponent::REPLACE,
                 }),
-                write_mask: wgpu::ColorWrite::ALL,
+                write_mask: wgpu::ColorWrites::ALL,
             }],
         }),
         primitive: wgpu::PrimitiveState {

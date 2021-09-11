@@ -370,7 +370,6 @@ impl DepthPass {
 
         let shader = device.create_shader_module(&wgpu::ShaderModuleDescriptor {
             label: Some("Shadow Display Shader"),
-            flags: wgpu::ShaderFlags::all(),
             source: wgpu::ShaderSource::Wgsl(include_str!("challenge.wgsl").into()),
         });
 
@@ -391,7 +390,7 @@ impl DepthPass {
                         color: wgpu::BlendComponent::REPLACE,
                         alpha: wgpu::BlendComponent::REPLACE,
                     }),
-                    write_mask: wgpu::ColorWrite::ALL,
+                    write_mask: wgpu::ColorWrites::ALL,
                 }],
             }),
             primitive: wgpu::PrimitiveState {
@@ -447,7 +446,7 @@ impl DepthPass {
         let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("Depth Visual Render Pass"),
             color_attachments: &[wgpu::RenderPassColorAttachment {
-                view: &frame,
+                view: &view,
                 resolve_target: None,
                 ops: wgpu::Operations {
                     load: wgpu::LoadOp::Load,
@@ -647,7 +646,6 @@ impl State {
 
         let shader = device.create_shader_module(&wgpu::ShaderModuleDescriptor {
             label: Some("Shader"),
-            flags: wgpu::ShaderFlags::all(),
             source: wgpu::ShaderSource::Wgsl(include_str!("shader.wgsl").into()),
         });
 
@@ -675,7 +673,7 @@ impl State {
                         color: wgpu::BlendComponent::REPLACE,
                         alpha: wgpu::BlendComponent::REPLACE,
                     }),
-                    write_mask: wgpu::ColorWrite::ALL,
+                    write_mask: wgpu::ColorWrites::ALL,
                 }],
             }),
             primitive: wgpu::PrimitiveState {
@@ -727,7 +725,6 @@ impl State {
             device,
             queue,
             config,
-            swap_chain,
             render_pipeline,
             vertex_buffer,
             index_buffer,
@@ -773,7 +770,8 @@ impl State {
     }
 
     fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
-        let frame = self.surface.get_current_frame()?.output.texture.create_view(&wgpu::TextureViewDescriptor::default());
+        let output = self.surface.get_current_frame()?.output;
+        let view = output.texture.create_view(&wgpu::TextureViewDescriptor::default());
 
         let mut encoder = self
             .device
@@ -785,7 +783,7 @@ impl State {
             let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: Some("Render Pass"),
                 color_attachments: &[wgpu::RenderPassColorAttachment {
-                    view: &frame,
+                    view: &view,
                     resolve_target: None,
                     ops: wgpu::Operations {
                         load: wgpu::LoadOp::Clear(wgpu::Color {

@@ -249,7 +249,6 @@ impl State {
             device,
             queue,
             config,
-            swap_chain,
             size,
             render_pipeline,
             vertex_buffer,

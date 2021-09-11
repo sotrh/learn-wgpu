@@ -190,7 +190,7 @@ fn create_render_pipeline(
             targets: &[wgpu::ColorTargetState {
                 format: target.desc.format,
                 blend: Some(wgpu::BlendState::REPLACE),
-                write_mask: wgpu::ColorWrite::ALL,
+                write_mask: wgpu::ColorWrites::ALL,
             }],
         }),
         primitive: wgpu::PrimitiveState {

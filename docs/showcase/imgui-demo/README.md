@@ -118,7 +118,7 @@ if self.last_cursor != ui.mouse_cursor() {
 let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
     label: Some("UI RenderPass"),
     color_attachments: &[wgpu::RenderPassColorAttachment {
-                    view: &frame,
+                    view: &view,
         attachment: &output.view,
         resolve_target: None,
         ops: wgpu::Operations {
