@@ -48,7 +48,7 @@ let diffuse_texture = device.create_texture(
         format: wgpu::TextureFormat::Rgba8UnormSrgb,
         // SAMPLED tells wgpu that we want to use this texture in shaders
         // COPY_DST means that we want to copy data to this texture
-        usage: wgpu::TextureUsages::SAMPLED | wgpu::TextureUsages::COPY_DST,
+        usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
         label: Some("diffuse_texture"),
     }
 );
@@ -169,7 +169,7 @@ let texture_bind_group_layout = device.create_bind_group_layout(
         entries: &[
             wgpu::BindGroupLayoutEntry {
                 binding: 0,
-                visibility: wgpu::ShaderStage::FRAGMENT,
+                visibility: wgpu::ShaderStages::FRAGMENT,
                 ty: wgpu::BindingType::Texture {
                     multisampled: false,
                     view_dimension: wgpu::TextureViewDimension::D2,
@@ -179,7 +179,7 @@ let texture_bind_group_layout = device.create_bind_group_layout(
             },
             wgpu::BindGroupLayoutEntry {
                 binding: 1,
-                visibility: wgpu::ShaderStage::FRAGMENT,
+                visibility: wgpu::ShaderStages::FRAGMENT,
                 ty: wgpu::BindingType::Sampler {
                     // This is only for TextureSampleType::Depth
                     comparison: false,
@@ -482,12 +482,13 @@ impl Texture {
                 sample_count: 1,
                 dimension: wgpu::TextureDimension::D2,
                 format: wgpu::TextureFormat::Rgba8UnormSrgb,
-                usage: wgpu::TextureUsages::SAMPLED | wgpu::TextureUsages::COPY_DST,
+                usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
             }
         );
 
         queue.write_texture(
             wgpu::ImageCopyTexture {
+                aspect: wgpu::TextureAspect::All,
                 texture: &texture,
                 mip_level: 0,
                 origin: wgpu::Origin3d::ZERO,

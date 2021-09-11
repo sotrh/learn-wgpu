@@ -215,7 +215,8 @@ There's not much we can do with the data when it's stuck in a `Texture`, so let'
 ```rust
 encoder.copy_texture_to_buffer(
     wgpu::ImageCopyTexture {
-        texture: &texture,
+        aspect: wgpu::TextureAspect::All,
+                texture: &texture,
         mip_level: 0,
         origin: wgpu::Origin3d::ZERO,
     },

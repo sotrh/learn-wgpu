@@ -30,7 +30,7 @@ let texture_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroup
         // normal map
         wgpu::BindGroupLayoutEntry {
             binding: 2,
-            visibility: wgpu::ShaderStage::FRAGMENT,
+            visibility: wgpu::ShaderStages::FRAGMENT,
             ty: wgpu::BindingType::Texture {
                 multisampled: false,
                 sample_type: wgpu::TextureSampleType::Float { filterable: true },
@@ -40,7 +40,7 @@ let texture_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroup
         },
         wgpu::BindGroupLayoutEntry {
             binding: 3,
-            visibility: wgpu::ShaderStage::FRAGMENT,
+            visibility: wgpu::ShaderStages::FRAGMENT,
             ty: wgpu::BindingType::Sampler { 
                 comparison: false,
                 filtering: true, 
@@ -425,7 +425,7 @@ pub fn from_image(
         } else {
             wgpu::TextureFormat::Rgba8UnormSrgb
         },
-        usage: wgpu::TextureUsages::SAMPLED | wgpu::TextureUsages::COPY_DST,
+        usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
     });
 
     // ...

@@ -88,13 +88,14 @@ impl<'a> Texture<'a> {
             } else {
                 wgpu::TextureFormat::Rgba8UnormSrgb
             },
-            usage: wgpu::TextureUsages::SAMPLED | wgpu::TextureUsages::COPY_DST,
+            usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
             label: None,
         };
         let texture = device.create_texture(&desc);
 
         queue.write_texture(
             wgpu::ImageCopyTexture {
+                aspect: wgpu::TextureAspect::All,
                 texture: &texture,
                 mip_level: 0,
                 origin: wgpu::Origin3d::ZERO,

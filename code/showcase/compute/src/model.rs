@@ -141,7 +141,7 @@ impl pipeline::Bindable for BitangentComputeBinding {
             // We use these vertices to compute the tangent and bitangent
             wgpu::BindGroupLayoutEntry {
                 binding: 0,
-                visibility: wgpu::ShaderStage::COMPUTE,
+                visibility: wgpu::ShaderStages::COMPUTE,
                 ty: wgpu::BindingType::Buffer {
                     ty: wgpu::BufferBindingType::Storage { read_only: true },
                     has_dynamic_offset: false,
@@ -153,7 +153,7 @@ impl pipeline::Bindable for BitangentComputeBinding {
             // We'll store the computed tangent and bitangent here
             wgpu::BindGroupLayoutEntry {
                 binding: 1,
-                visibility: wgpu::ShaderStage::COMPUTE,
+                visibility: wgpu::ShaderStages::COMPUTE,
                 ty: wgpu::BindingType::Buffer {
                     ty: wgpu::BufferBindingType::Storage {
                         // We will change the values in this buffer
@@ -167,7 +167,7 @@ impl pipeline::Bindable for BitangentComputeBinding {
             // Indices
             wgpu::BindGroupLayoutEntry {
                 binding: 2,
-                visibility: wgpu::ShaderStage::COMPUTE,
+                visibility: wgpu::ShaderStages::COMPUTE,
                 ty: wgpu::BindingType::Buffer {
                     ty: wgpu::BufferBindingType::Storage {
                         // We won't change the indices
@@ -181,7 +181,7 @@ impl pipeline::Bindable for BitangentComputeBinding {
             // ComputeInfo
             wgpu::BindGroupLayoutEntry {
                 binding: 3,
-                visibility: wgpu::ShaderStage::COMPUTE,
+                visibility: wgpu::ShaderStages::COMPUTE,
                 ty: wgpu::BindingType::Buffer {
                     ty: wgpu::BufferBindingType::Uniform,
                     has_dynamic_offset: false,
