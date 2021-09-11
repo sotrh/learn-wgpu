@@ -26,7 +26,7 @@ impl LightUniform {
         };
         let buffer = device.create_buffer_init(&BufferInitDescriptor {
             contents: bytemuck::cast_slice(&[data]),
-            usage: wgpu::BufferUsage::COPY_DST | wgpu::BufferUsage::UNIFORM,
+            usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::UNIFORM,
             label: Some("Light Buffer"),
         });
 

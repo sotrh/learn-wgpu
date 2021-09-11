@@ -63,7 +63,7 @@ async fn run() {
     let buffer_size = (padded_bytes_per_row * texture_size) as wgpu::BufferAddress;
     let buffer_desc = wgpu::BufferDescriptor {
         size: buffer_size,
-        usage: wgpu::BufferUsage::COPY_DST | wgpu::BufferUsage::MAP_READ,
+        usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
         label: Some("Output Buffer"),
         mapped_at_creation: false,
     };

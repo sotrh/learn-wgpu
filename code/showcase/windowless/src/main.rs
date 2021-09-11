@@ -37,9 +37,9 @@ async fn run() {
     let output_buffer_size = (u32_size * texture_size * texture_size) as wgpu::BufferAddress;
     let output_buffer_desc = wgpu::BufferDescriptor {
         size: output_buffer_size,
-        usage: wgpu::BufferUsage::COPY_DST
+        usage: wgpu::BufferUsages::COPY_DST
             // this tells wpgu that we want to read this buffer from the cpu
-            | wgpu::BufferUsage::MAP_READ,
+            | wgpu::BufferUsages::MAP_READ,
         label: None,
         mapped_at_creation: false,
     };

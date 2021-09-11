@@ -107,7 +107,7 @@ impl CameraUniform {
         let buffer = device.create_buffer_init(&BufferInitDescriptor {
             label: Some("Camera Buffer"),
             contents: bytemuck::cast_slice(&[data]),
-            usage: wgpu::BufferUsage::COPY_DST | wgpu::BufferUsage::UNIFORM,
+            usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::UNIFORM,
         });
 
         Self { data, buffer }
@@ -122,7 +122,7 @@ impl CameraUniform {
         let staging_buffer = device.create_buffer_init(&BufferInitDescriptor {
             label: Some("Camera Update Buffer"),
             contents: bytemuck::cast_slice(&[self.data]),
-            usage: wgpu::BufferUsage::COPY_SRC,
+            usage: wgpu::BufferUsages::COPY_SRC,
         });
         encoder.copy_buffer_to_buffer(
             &staging_buffer,

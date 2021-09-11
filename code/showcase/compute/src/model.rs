@@ -27,7 +27,7 @@ impl Vertex for ModelVertex {
         use std::mem;
         wgpu::VertexBufferLayout {
             array_stride: mem::size_of::<ModelVertex>() as wgpu::BufferAddress,
-            step_mode: wgpu::InputStepMode::Vertex,
+            step_mode: wgpu::VertexStepMode::Vertex,
             attributes: &[
                 wgpu::VertexAttribute {
                     offset: 0,
@@ -316,20 +316,20 @@ impl ModelLoader {
                         label: Some(&format!("{:?} Vertex Buffer", m.name)),
                         contents: bytemuck::cast_slice(&vertices),
                         // UPDATED!
-                        usage: wgpu::BufferUsage::STORAGE,
+                        usage: wgpu::BufferUsages::STORAGE,
                     });
                 let dst_vertex_buffer =
                     device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
                         label: Some(&format!("{:?} Vertex Buffer", m.name)),
                         contents: bytemuck::cast_slice(&vertices),
                         // UPDATED!
-                        usage: wgpu::BufferUsage::VERTEX | wgpu::BufferUsage::STORAGE,
+                        usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::STORAGE,
                     });
                 let index_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
                     label: Some(&format!("{:?} Index Buffer", m.name)),
                     contents: bytemuck::cast_slice(&m.mesh.indices),
                     // UPDATED!
-                    usage: wgpu::BufferUsage::INDEX | wgpu::BufferUsage::STORAGE,
+                    usage: wgpu::BufferUsages::INDEX | wgpu::BufferUsages::STORAGE,
                 });
                 let compute_info = ComputeInfo {
                     num_vertices: vertices.len() as _,
@@ -338,7 +338,7 @@ impl ModelLoader {
                 let info_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
                     label: Some(&format!("{:?} Compute Info Buffer", m.name)),
                     contents: bytemuck::cast_slice(&[compute_info]),
-                    usage: wgpu::BufferUsage::UNIFORM,
+                    usage: wgpu::BufferUsages::UNIFORM,
                 });
 
                 // NEW!

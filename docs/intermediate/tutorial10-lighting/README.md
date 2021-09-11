@@ -46,7 +46,7 @@ let light_buffer = device.create_buffer_init(
     &wgpu::util::BufferInitDescriptor {
         label: Some("Light VB"),
         contents: bytemuck::cast_slice(&[light_uniform]),
-        usage: wgpu::BufferUsage::UNIFORM | wgpu::BufferUsage::COPY_DST,
+        usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
     }
 );
 ```
@@ -628,7 +628,7 @@ impl model::Vertex for InstanceRaw {
             // We need to switch from using a step mode of Vertex to Instance
             // This means that our shaders will only change to use the next
             // instance when the shader starts processing a new instance
-            step_mode: wgpu::InputStepMode::Instance,
+            step_mode: wgpu::VertexStepMode::Instance,
             attributes: &[
                 wgpu::VertexAttribute {
                     offset: 0,

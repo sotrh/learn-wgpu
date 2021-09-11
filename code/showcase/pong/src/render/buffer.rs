@@ -17,7 +17,7 @@ impl Vertex {
     pub const SIZE: wgpu::BufferAddress = std::mem::size_of::<Self>() as wgpu::BufferAddress;
     pub const DESC: wgpu::VertexBufferLayout<'static> = wgpu::VertexBufferLayout {
         array_stride: Self::SIZE,
-        step_mode: wgpu::InputStepMode::Vertex,
+        step_mode: wgpu::VertexStepMode::Vertex,
         attributes: &wgpu::vertex_attr_array![
             0 => Float32x2
         ],
@@ -111,7 +111,7 @@ impl StagingBuffer {
         StagingBuffer {
             buffer: device.create_buffer_init(&BufferInitDescriptor {
                 contents: bytemuck::cast_slice(data),
-                usage: wgpu::BufferUsage::COPY_SRC,
+                usage: wgpu::BufferUsages::COPY_SRC,
                 label: Some("Staging Buffer"),
             }),
             size: size_of_slice(data) as wgpu::BufferAddress,

@@ -155,7 +155,7 @@ impl<'a> Texture<'a> {
             self.desc.size.width * self.desc.size.height * self.desc.size.depth_or_array_layers;
 
         let buffer_size = num_pixels * mem::size_of::<[f32; 4]>() as u32;
-        let buffer_usage = wgpu::BufferUsage::COPY_DST | wgpu::BufferUsage::MAP_READ;
+        let buffer_usage = wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ;
         let buffer_desc = wgpu::BufferDescriptor {
             size: buffer_size as wgpu::BufferAddress,
             usage: buffer_usage,

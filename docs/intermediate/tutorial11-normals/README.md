@@ -190,7 +190,7 @@ impl Vertex for ModelVertex {
         use std::mem;
         wgpu::VertexBufferLayout {
             array_stride: mem::size_of::<ModelVertex>() as wgpu::BufferAddress,
-            step_mode: wgpu::InputStepMode::Vertex,
+            step_mode: wgpu::VertexStepMode::Vertex,
             attributes: &[
                 // ...
 

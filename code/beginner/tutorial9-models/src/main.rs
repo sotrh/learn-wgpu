@@ -188,7 +188,7 @@ impl InstanceRaw {
             // We need to switch from using a step mode of Vertex to Instance
             // This means that our shaders will only change to use the next
             // instance when the shader starts processing a new instance
-            step_mode: wgpu::InputStepMode::Instance,
+            step_mode: wgpu::VertexStepMode::Instance,
             attributes: &[
                 wgpu::VertexAttribute {
                     offset: 0,
@@ -319,7 +319,7 @@ impl State {
         let camera_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("Camera Buffer"),
             contents: bytemuck::cast_slice(&[camera_uniform]),
-            usage: wgpu::BufferUsage::UNIFORM | wgpu::BufferUsage::COPY_DST,
+            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
         });
 
         const SPACE_BETWEEN: f32 = 3.0;
@@ -349,7 +349,7 @@ impl State {
         let instance_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("Instance Buffer"),
             contents: bytemuck::cast_slice(&instance_data),
-            usage: wgpu::BufferUsage::VERTEX,
+            usage: wgpu::BufferUsages::VERTEX,
         });
 
         let camera_bind_group_layout =

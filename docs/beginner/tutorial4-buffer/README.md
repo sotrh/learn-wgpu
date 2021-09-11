@@ -57,7 +57,7 @@ let vertex_buffer = device.create_buffer_init(
     &wgpu::util::BufferInitDescriptor {
         label: Some("Vertex Buffer"),
         contents: bytemuck::cast_slice(VERTICES),
-        usage: wgpu::BufferUsage::VERTEX,
+        usage: wgpu::BufferUsages::VERTEX,
     }
 );
 ```
@@ -120,7 +120,7 @@ A `VertexBufferLayout` defines how a buffer is layed out in memory. Without this
 ```rust
 wgpu::VertexBufferLayout {
     array_stride: std::mem::size_of::<Vertex>() as wgpu::BufferAddress, // 1.
-    step_mode: wgpu::InputStepMode::Vertex, // 2.
+    step_mode: wgpu::VertexStepMode::Vertex, // 2.
     attributes: &[ // 3.
         wgpu::VertexAttribute {
             offset: 0, // 4.
@@ -137,7 +137,7 @@ wgpu::VertexBufferLayout {
 ```
 
 1. The `array_stride` defines how wide a vertex is. When the shader goes to read the next vertex, it will skip over `array_stride` number of bytes. In our case, array_stride will probably be 24 bytes.
-2. `step_mode` tells the pipeline how often it should move to the next vertex. This seems redundant in our case, but we can specify `wgpu::InputStepMode::Instance` if we only want to change vertices when we start drawing a new instance. We'll cover instancing in a later tutorial.
+2. `step_mode` tells the pipeline how often it should move to the next vertex. This seems redundant in our case, but we can specify `wgpu::VertexStepMode::Instance` if we only want to change vertices when we start drawing a new instance. We'll cover instancing in a later tutorial.
 3. Vertex attributes describe the individual parts of the vertex. Generally this is a 1:1 mapping with a struct's fields, which it is in our case.
 4. This defines the `offset` in bytes that this attribute starts. The first attribute is usually zero, and any future attributes are the collective `size_of` the previous attributes data.
 5. This tells the shader what location to store this attribute at. For example `[[location(0)]] x: vec3<f32>` in the vertex shader would correspond to the position field of the struct, while `[[location(1)]] x: vec3<f32>` would be the color field.
@@ -155,7 +155,7 @@ impl Vertex {
     fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
         wgpu::VertexBufferLayout {
             array_stride: std::mem::size_of::<Vertex>() as wgpu::BufferAddress,
-            step_mode: wgpu::InputStepMode::Vertex,
+            step_mode: wgpu::VertexStepMode::Vertex,
             attributes: &[
                 wgpu::VertexAttribute {
                     offset: 0,
@@ -180,7 +180,7 @@ Specifying the attributes as we did now is quite verbose. We could use the `vert
 ```rust
 wgpu::VertexBufferLayout {
     array_stride: std::mem::size_of::<Vertex>() as wgpu::BufferAddress,
-    step_mode: wgpu::InputStepMode::Vertex,
+    step_mode: wgpu::VertexStepMode::Vertex,
     attributes: &wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x3],
 }
 ```
@@ -348,7 +348,7 @@ let vertex_buffer = device.create_buffer_init(
     &wgpu::util::BufferInitDescriptor {
         label: Some("Vertex Buffer"),
         contents: bytemuck::cast_slice(VERTICES),
-        usage: wgpu::BufferUsage::VERTEX,
+        usage: wgpu::BufferUsages::VERTEX,
     }
 );
 // NEW!
@@ -356,7 +356,7 @@ let index_buffer = device.create_buffer_init(
     &wgpu::util::BufferInitDescriptor {
         label: Some("Index Buffer"),
         contents: bytemuck::cast_slice(INDICES),
-        usage: wgpu::BufferUsage::INDEX,
+        usage: wgpu::BufferUsages::INDEX,
     }
 );
 let num_indices = INDICES.len() as u32;
@@ -418,7 +418,7 @@ With all that you should have a garishly magenta pentagon in your window.
 
 If you use a color picker on the magenta pentagon, you'll get a hex value of #BC00BC. If you convert this to RGB values you'll get (188, 0, 188). Dividing these values by 255 to get them into the [0, 1] range we get roughly (0.737254902, 0, 0.737254902). This is not the same as we are using for our vertex colors which is (0.5, 0.0, 0.5). The reason for this has to do with color spaces.
 
-Most monitors use a color space know as sRGB. Our swap chain is (most likely depending on what is returned from `adapter.get_preferred_format()`) using an sRGB texture format. The sRGB format stores colors according to their relative brightness instead of their actual brightness. The reason for this is that our eyes don't perceive light linearly. We notice more differences in darker colors than we do lighter colors.
+Most monitors use a color space know as sRGB. Our surface is (most likely depending on what is returned from `surface.get_preferred_format()`) using an sRGB texture format. The sRGB format stores colors according to their relative brightness instead of their actual brightness. The reason for this is that our eyes don't perceive light linearly. We notice more differences in darker colors than we do lighter colors.
 
 You get an approximation of the correct color using the following formula: `srgb_color = (rgb_color / 255) ^ 2.2`. Doing this with an RGB value of (188, 0, 188) will give us (0.511397819, 0.0, 0.511397819). A little off from our (0.5, 0.0, 0.5). While you could tweak the formula to get the desired values, you'll likely save a lot of time by using textures instead as they are stored as sRGB by default, so they don't suffer from the same color inaccuracies that vertex colors do. We'll cover textures in the next lesson.
 

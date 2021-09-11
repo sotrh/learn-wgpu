@@ -26,7 +26,7 @@ impl Vertex for ModelVertex {
         use std::mem;
         wgpu::VertexBufferLayout {
             array_stride: mem::size_of::<ModelVertex>() as wgpu::BufferAddress,
-            step_mode: wgpu::InputStepMode::Vertex,
+            step_mode: wgpu::VertexStepMode::Vertex,
             attributes: &[
                 wgpu::VertexAttribute {
                     offset: 0,
@@ -256,12 +256,12 @@ impl Model {
             let vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
                 label: Some(&format!("{:?} Vertex Buffer", path.as_ref())),
                 contents: bytemuck::cast_slice(&vertices),
-                usage: wgpu::BufferUsage::VERTEX,
+                usage: wgpu::BufferUsages::VERTEX,
             });
             let index_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
                 label: Some(&format!("{:?} Index Buffer", path.as_ref())),
                 contents: bytemuck::cast_slice(&m.mesh.indices),
-                usage: wgpu::BufferUsage::INDEX,
+                usage: wgpu::BufferUsages::INDEX,
             });
 
             meshes.push(Mesh {

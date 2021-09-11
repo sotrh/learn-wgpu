@@ -165,7 +165,7 @@ impl<'a> ShaderCanvasBuilder<'a> {
         let simulation_data_buffer = device.create_buffer_init(&BufferInitDescriptor {
             label: self.label,
             contents: bytemuck::cast_slice(&[simulation_data]),
-            usage: wgpu::BufferUsage::UNIFORM | wgpu::BufferUsage::COPY_DST,
+            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
         });
 
         let simulation_bind_group_layout =
