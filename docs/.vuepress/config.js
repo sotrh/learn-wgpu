@@ -10,7 +10,7 @@ module.exports = {
     },
     themeConfig: {
         author: {
-            name: 'Benjamin R Hansen',
+            name: 'Benjamin Hansen',
             twitter: 'https://twitter.com/sotrh760',
         },
         displayAllHeaders: false,
@@ -22,7 +22,7 @@ module.exports = {
                 collapsable: false,
                 children: [
                     '/beginner/tutorial1-window/',
-                    '/beginner/tutorial2-swapchain/',
+                    '/beginner/tutorial2-surface/',
                     '/beginner/tutorial3-pipeline/',
                     '/beginner/tutorial4-buffer/',
                     '/beginner/tutorial5-textures/',
