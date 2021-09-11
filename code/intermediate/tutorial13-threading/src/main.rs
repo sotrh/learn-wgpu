@@ -691,7 +691,7 @@ fn main() {
                 state.update(dt);
                 match state.render() {
                     Ok(_) => {}
-                    // Recreate the swap_chain if lost
+                    // Reconfigure the surface if lost
                     Err(wgpu::SurfaceError::Lost) => state.resize(state.size),
                     // The system is out of memory, we should probably quit
                     Err(wgpu::SurfaceError::OutOfMemory) => *control_flow = ControlFlow::Exit,

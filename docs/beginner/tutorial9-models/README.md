@@ -126,7 +126,15 @@ glob = "0.3"
 
 ## Loading models with TOBJ
 
-We're going to use the [tobj](https://docs.rs/tobj/0.1.12/tobj/) library to load our model. Before we can load our model though, we need somewhere to put it.
+We're going to use the [tobj](https://docs.rs/tobj/3.0/tobj/) library to load our model. Let's add it to our `Cargo.toml`.
+
+```toml
+[dependencies]
+# other dependencies...
+tobj = "3.0"
+```
+
+Before we can load our model though, we need somewhere to put it.
 
 ```rust
 // model.rs

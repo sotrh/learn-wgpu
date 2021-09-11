@@ -442,7 +442,7 @@ impl DepthPass {
         });
     }
 
-    fn render(&self, frame: &wgpu::SwapChainTexture, encoder: &mut wgpu::CommandEncoder) {
+    fn render(&self, view: &wgpu::TextureView, encoder: &mut wgpu::CommandEncoder) {
         let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("Depth Visual Render Pass"),
             color_attachments: &[wgpu::RenderPassColorAttachment {
@@ -814,7 +814,7 @@ impl State {
             render_pass.draw_indexed(0..self.num_indices, 0, 0..self.instances.len() as u32);
         }
 
-        self.depth_pass.render(&frame, &mut encoder);
+        self.depth_pass.render(&view, &mut encoder);
 
         self.queue.submit(iter::once(encoder.finish()));
 
@@ -863,7 +863,7 @@ fn main() {
                 state.update();
                 match state.render() {
                     Ok(_) => {}
-                    // Recreate the swap_chain if lost
+                    // Reconfigure the surface if lost
                     Err(wgpu::SurfaceError::Lost) => state.resize(state.size),
                     // The system is out of memory, we should probably quit
                     Err(wgpu::SurfaceError::OutOfMemory) => *control_flow = ControlFlow::Exit,

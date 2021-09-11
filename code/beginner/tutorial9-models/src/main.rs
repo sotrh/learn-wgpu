@@ -385,12 +385,9 @@ impl State {
         )
         .unwrap();
 
-        // let vs_module = device.create_shader_module(&wgpu::include_spirv!("shader.vert.spv"));
-        // let fs_module = device.create_shader_module(&wgpu::include_spirv!("shader.frag.spv"));
         let shader = device.create_shader_module(&wgpu::ShaderModuleDescriptor {
             label: Some("shader.wgsl"),
             source: wgpu::ShaderSource::Wgsl(include_str!("shader.wgsl").into()),
-            flags: wgpu::ShaderFlags::VALIDATION,
         });
 
         let depth_texture =
@@ -593,7 +590,7 @@ fn main() {
                 state.update();
                 match state.render() {
                     Ok(_) => {}
-                    // Recreate the swap_chain if lost
+                    // Reconfigure the surface if lost
                     Err(wgpu::SurfaceError::Lost) => state.resize(state.size),
                     // The system is out of memory, we should probably quit
                     Err(wgpu::SurfaceError::OutOfMemory) => *control_flow = ControlFlow::Exit,

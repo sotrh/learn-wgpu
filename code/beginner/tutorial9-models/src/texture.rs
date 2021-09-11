@@ -83,7 +83,7 @@ impl Texture {
         label: Option<&str>,
     ) -> Result<Self> {
         let dimensions = img.dimensions();
-        let rgba = img.to_rgba();
+        let rgba = img.to_rgba8();
 
         let size = wgpu::Extent3d {
             width: dimensions.0,
