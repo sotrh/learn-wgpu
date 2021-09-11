@@ -71,12 +71,10 @@ async fn run() {
     let vs_module = device.create_shader_module(&wgpu::ShaderModuleDescriptor {
         label: Some("Vertex Shader"),
         source: vs_data,
-        flags: wgpu::ShaderFlags::default(),
     });
     let fs_module = device.create_shader_module(&wgpu::ShaderModuleDescriptor {
         label: Some("Fragment Shader"),
         source: fs_data,
-        flags: wgpu::ShaderFlags::default(),
     });
 
     let render_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
@@ -155,7 +153,7 @@ async fn run() {
     encoder.copy_texture_to_buffer(
         wgpu::ImageCopyTexture {
             aspect: wgpu::TextureAspect::All,
-                texture: &texture,
+            texture: &texture,
             mip_level: 0,
             origin: wgpu::Origin3d::ZERO,
         },

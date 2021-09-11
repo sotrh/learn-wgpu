@@ -52,15 +52,17 @@ impl Instance {
             model: (cgmath::Matrix4::from_translation(self.position)
                 * cgmath::Matrix4::from(self.rotation))
             .into(),
+            normal: cgmath::Matrix3::from(self.rotation).into(),
         }
     }
 }
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
+#[allow(dead_code)]
 struct InstanceRaw {
-    #[allow(dead_code)]
     model: [[f32; 4]; 4],
+    normal: [[f32; 3]; 3],
 }
 
 impl model::Vertex for InstanceRaw {
@@ -96,6 +98,21 @@ impl model::Vertex for InstanceRaw {
                     offset: mem::size_of::<[f32; 12]>() as wgpu::BufferAddress,
                     shader_location: 8,
                     format: wgpu::VertexFormat::Float32x4,
+                },
+                wgpu::VertexAttribute {
+                    offset: mem::size_of::<[f32; 16]>() as wgpu::BufferAddress,
+                    shader_location: 9,
+                    format: wgpu::VertexFormat::Float32x3,
+                },
+                wgpu::VertexAttribute {
+                    offset: mem::size_of::<[f32; 19]>() as wgpu::BufferAddress,
+                    shader_location: 10,
+                    format: wgpu::VertexFormat::Float32x3,
+                },
+                wgpu::VertexAttribute {
+                    offset: mem::size_of::<[f32; 22]>() as wgpu::BufferAddress,
+                    shader_location: 11,
+                    format: wgpu::VertexFormat::Float32x3,
                 },
             ],
         }
@@ -357,16 +374,18 @@ impl State {
                 push_constant_ranges: &[],
             });
 
+        println!("Creating RENDER pipeline");
         let render_pipeline = create_render_pipeline(
             &device,
             &render_pipeline_layout,
             config.format,
             Some(texture::Texture::DEPTH_FORMAT),
             &[model::ModelVertex::desc(), InstanceRaw::desc()],
-            wgpu::include_spirv!("shader.vert.spv"),
-            wgpu::include_spirv!("shader.frag.spv"),
+            wgpu::include_wgsl!("shader.vert.wgsl"),
+            wgpu::include_wgsl!("shader.frag.wgsl"),
         );
 
+        println!("Creating LIGHT pipeline");
         let light_render_pipeline = {
             let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("Light Pipeline Layout"),
@@ -380,8 +399,8 @@ impl State {
                 config.format,
                 Some(texture::Texture::DEPTH_FORMAT),
                 &[model::ModelVertex::desc()],
-                wgpu::include_spirv!("light.vert.spv"),
-                wgpu::include_spirv!("light.frag.spv"),
+                wgpu::include_wgsl!("light.vert.wgsl"),
+                wgpu::include_wgsl!("light.frag.wgsl"),
             )
         };
 
@@ -450,11 +469,8 @@ impl State {
             self.config.width = new_size.width;
             self.config.height = new_size.height;
             self.surface.configure(&self.device, &self.config);
-            self.depth_texture = texture::Texture::create_depth_texture(
-                &self.device,
-                &self.config,
-                "depth_texture",
-            );
+            self.depth_texture =
+                texture::Texture::create_depth_texture(&self.device, &self.config, "depth_texture");
         }
     }
 
@@ -518,11 +534,14 @@ impl State {
     }
 
     fn render(&mut self) {
-        let frame = self.swap_chain.get_current_frame();
+        let frame = self.surface.get_current_frame();
 
         match frame {
             Ok(frame) => {
-                let frame = frame.output;
+                let output = frame.output;
+                let view = output
+                    .texture
+                    .create_view(&wgpu::TextureViewDescriptor::default());
                 let mut encoder =
                     self.device
                         .create_command_encoder(&wgpu::CommandEncoderDescriptor {

@@ -103,6 +103,7 @@ async fn run() {
 
         encoder.copy_texture_to_buffer(
             wgpu::ImageCopyTexture {
+                aspect: wgpu::TextureAspect::All,
                 texture: &render_target.texture,
                 mip_level: 0,
                 origin: wgpu::Origin3d::ZERO,

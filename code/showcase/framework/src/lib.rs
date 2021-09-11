@@ -27,7 +27,6 @@ pub struct Display {
     surface: wgpu::Surface,
     pub window: Window,
     pub config: wgpu::SurfaceConfiguration,
-    pub swap_chain: wgpu::SwapChain,
     pub device: wgpu::Device,
     pub queue: wgpu::Queue,
 }

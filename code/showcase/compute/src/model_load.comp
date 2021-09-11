@@ -11,13 +11,13 @@ struct ModelVertex {
     uint pad0; uint pad1;
 };
 
-layout(std430, set=0, binding=0) buffer SrcVertexBuffer {
+layout(std430, set=0, binding=0) readonly buffer SrcVertexBuffer {
     ModelVertex srcVertices[];
 };
 layout(std430, set=0, binding=1) buffer DstVertexBuffer {
     ModelVertex dstVertices[];
 };
-layout(std430, set=0, binding=2) buffer IndexBuffer {
+layout(std430, set=0, binding=2) readonly buffer IndexBuffer {
     uint indices[];
 };
 

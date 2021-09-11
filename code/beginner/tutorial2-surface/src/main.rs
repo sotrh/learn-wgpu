@@ -38,7 +38,7 @@ impl State {
                     limits: wgpu::Limits::default(),
                 },
                 // Some(&std::path::Path::new("trace")), // Trace path
-                None
+                None,
             )
             .await
             .unwrap();
@@ -79,7 +79,9 @@ impl State {
 
     fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
         let output = self.surface.get_current_frame()?.output;
-        let view = output.texture.create_view(&wgpu::TextureViewDescriptor::default());
+        let view = output
+            .texture
+            .create_view(&wgpu::TextureViewDescriptor::default());
 
         let mut encoder = self
             .device

@@ -40,12 +40,12 @@ pub fn create_render_pipeline(
     color_format: wgpu::TextureFormat,
     depth_format: Option<wgpu::TextureFormat>,
     vertex_layouts: &[wgpu::VertexBufferLayout],
-    mut vs_src: wgpu::ShaderModuleDescriptor,
-    mut fs_src: wgpu::ShaderModuleDescriptor,
+    vs_src: wgpu::ShaderModuleDescriptor,
+    fs_src: wgpu::ShaderModuleDescriptor,
 ) -> wgpu::RenderPipeline {
-    vs_src.flags &= wgpu::ShaderFlags::VALIDATION;
-    fs_src.flags &= wgpu::ShaderFlags::VALIDATION;
+    println!("Creating VS Module =======");
     let vs_module = device.create_shader_module(&vs_src);
+    println!("Creating FS Module =======");
     let fs_module = device.create_shader_module(&fs_src);
 
     device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {

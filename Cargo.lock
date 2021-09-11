@@ -311,9 +311,9 @@ dependencies = [
  "glob",
  "image",
  "log",
+ "naga",
  "pollster",
  "rayon",
- "shaderc",
  "tobj 2.0.4",
  "wgpu",
  "winit",
@@ -1083,6 +1083,8 @@ dependencies = [
  "log",
  "num-traits",
  "petgraph",
+ "pp-rs",
+ "rose_tree",
  "serde",
  "spirv",
  "thiserror",
@@ -1356,6 +1358,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bb20dcc30536a1508e75d47dd0e399bb2fe7354dcf35cda9127f2bf1ed92e30e"
 
 [[package]]
+name = "pp-rs"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bb458bb7f6e250e6eb79d5026badc10a3ebb8f9a15d1fff0f13d17c71f4d6dee"
+dependencies = [
+ "unicode-xid",
+]
+
+[[package]]
 name = "proc-macro-crate"
 version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1494,6 +1505,15 @@ dependencies = [
  "base64",
  "bitflags",
  "serde",
+]
+
+[[package]]
+name = "rose_tree"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fcd16c61e9205949fa4f8a22096705b4c2f8b8025b2ff67ff6c86afd854039ae"
+dependencies = [
+ "petgraph",
 ]
 
 [[package]]
@@ -2230,6 +2250,7 @@ dependencies = [
  "arrayvec",
  "js-sys",
  "log",
+ "naga",
  "parking_lot",
  "raw-window-handle",
  "serde",

@@ -232,8 +232,9 @@ pub struct ModelLoader {
 impl ModelLoader {
     // NEW!
     pub fn new(device: &wgpu::Device) -> Self {
+        println!("Creating MODELLOADER pipeline");
         let binder = pipeline::Binder::new(device, Some("ModelLoader Binder"));
-        let shader_src = wgpu::include_spirv!("model_load.comp.spv");
+        let shader_src = wgpu::include_wgsl!("model_load.comp.wgsl");
         let pipeline = pipeline::create_compute_pipeline(
             device,
             &[&binder.layout],
