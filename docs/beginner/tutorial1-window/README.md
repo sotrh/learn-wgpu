@@ -17,6 +17,9 @@ wgpu = "0.10"
 pollster = "0.2"
 ```
 
+## Using Rust's new resolver
+As of version 0.10, wgpu require's cargo's [newest feature resolver](https://doc.rust-lang.org/cargo/reference/resolver.html#feature-resolver-version-2). As a result you must include `resolver = 2` in either the `[package]` section of `Cargo.toml` if you are working on a single crate, or the `[workspace]` section of the root `Cargo.toml` in a workspace.
+
 ## The code
 There's not much going on here yet, so I'm just going to post the code in full. Just paste this into your `main.rs` or equivalent.
 

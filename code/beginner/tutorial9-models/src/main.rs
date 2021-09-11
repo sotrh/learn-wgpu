@@ -556,7 +556,7 @@ fn main() {
         .build(&event_loop)
         .unwrap();
 
-    // Since main can't be async, we're going to need to block
+    // State::new uses async code, so we're going to wait for it to finish
     let mut state = pollster::block_on(State::new(&window));
 
     event_loop.run(move |event, _, control_flow| {

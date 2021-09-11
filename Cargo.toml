@@ -2,14 +2,13 @@
 resolver = "2"
 members = [
     # # beginner tutorials
-    # "code/beginner/*",
+    "code/beginner/*",
 
     # # intermediate tutorials
-    # "code/intermediate/*",
+    "code/intermediate/*",
 
     # # showcase
-    # "code/showcase/*",
-    "code/beginner/tutorial2-swapchain"
+    "code/showcase/*",
 ]
 exclude = [
     "code/showcase/imgui-demo",

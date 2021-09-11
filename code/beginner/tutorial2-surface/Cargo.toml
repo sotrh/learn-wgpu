@@ -1,5 +1,5 @@
 [package]
-name = "tutorial2-swapchain"
+name = "tutorial2-surface"
 version = "0.1.0"
 authors = ["Ben Hansen <bhbenjaminhansen@gmail.com>"]
 edition = "2018"
@@ -12,15 +12,15 @@ winit = "0.25"
 cgmath = "0.18"
 env_logger = "0.9"
 log = "0.4"
-# wgpu = "0.10"
+wgpu = "0.10"
 # wgpu = { version = "0.10", features=["trace"]}
-wgpu = { git = "https://github.com/gfx-rs/wgpu/"}
+# wgpu = { git = "https://github.com/gfx-rs/wgpu/"}
 # wgpu = { git = "https://github.com/gfx-rs/wgpu/", features=["trace"]}
 pollster = "0.2"
 
 
 [[bin]]
-name = "tutorial2-swapchain"
+name = "tutorial2-surface"
 path = "src/main.rs"
 
 [[bin]]

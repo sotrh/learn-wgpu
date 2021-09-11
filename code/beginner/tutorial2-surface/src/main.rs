@@ -7,10 +7,6 @@ use winit::{
 };
 
 struct State {
-    #[allow(dead_code)]
-    instance: wgpu::Instance,
-    #[allow(dead_code)]
-    adapter: wgpu::Adapter,
     surface: wgpu::Surface,
     device: wgpu::Device,
     queue: wgpu::Queue,
@@ -57,8 +53,6 @@ impl State {
         surface.configure(&device, &config);
 
         Self {
-            instance,
-            adapter,
             surface,
             device,
             queue,
@@ -124,7 +118,7 @@ fn main() {
     let event_loop = EventLoop::new();
     let window = WindowBuilder::new().build(&event_loop).unwrap();
 
-    // Since main can't be async, we're going to need to block
+    // State::new uses async code, so we're going to wait for it to finish
     let mut state: State = pollster::block_on(State::new(&window));
 
     event_loop.run(move |event, _, control_flow| {
