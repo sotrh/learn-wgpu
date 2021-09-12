@@ -1,5 +1,42 @@
 # News
 
+## 0.10 SwapChain is dead, long live the Surface!
+
+`SwapChain` and all related code has been removed from wgpu. All code pertaining to obtaining textures to draw to from the window will be available from the `Surface` instead. That means configuring `SurfaceTexture`s will look something like this:
+
+```rust
+let config = wgpu::SurfaceConfiguration {
+    usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+    format: surface.get_preferred_format(&adapter).unwrap(),
+    width: size.width,
+    height: size.height,
+    present_mode: wgpu::PresentMode::Fifo,
+};
+surface.configure(&device, &config);
+```
+
+Resizing the surface will use similar code:
+
+```rust
+if new_size.width > 0 && new_size.height > 0 {
+    self.size = new_size;
+    self.config.width = new_size.width;
+    self.config.height = new_size.height;
+    self.surface.configure(&self.device, &self.config);
+}
+```
+
+Finally, getting a `SurfaceTexture` to draw to will use the surface directly.
+
+```rust
+let output = self.surface.get_current_frame()?.output;
+let view = output
+    .texture
+    .create_view(&wgpu::TextureViewDescriptor::default());
+```
+
+The Pong and imgui examples are broken again. I may remove the imgui example as the corresponding crate already has examples on how to use it. I'm also considering reworking the Pong example, but I may end up just updating it.
+
 ## Pong and imgui demos are fixed!
 
 The `imgui_wgpu` and `wgpu_glyph` crates have been updated to `wgpu` 0.8 so I was able to fixed the demos! They both still use GLSL, and I don't think I'll be changing that for now. I may switch them over to `naga` at some point.
