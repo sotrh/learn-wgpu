@@ -206,11 +206,11 @@ match event {
             // ...
 
             WindowEvent::Resized(physical_size) => {
-                state.resize(*physical_size);
+                state.resize(physical_size);
             }
             WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
                 // new_inner_size is &&mut so we have to dereference it twice
-                state.resize(**new_inner_size);
+                state.resize(*new_inner_size);
             }
             // ...
 }
@@ -251,10 +251,10 @@ event_loop.run(move |event, _, control_flow| {
                     ..
                 } => *control_flow = ControlFlow::Exit,
                 WindowEvent::Resized(physical_size) => {
-                    state.resize(*physical_size);
+                    state.resize(physical_size);
                 }
                 WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
-                    state.resize(**new_inner_size);
+                    state.resize(*new_inner_size);
                 }
                 _ => {}
             }
