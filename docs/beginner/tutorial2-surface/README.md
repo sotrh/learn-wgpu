@@ -64,7 +64,7 @@ impl State {
 
 ### Instance and Adapter
 
-The `instance` is the first thing you create when using wgpu. It's may purpose
+The `instance` is the first thing you create when using wgpu. It's main purpose
 is to create `Adapter`s and `Surface`s.
 
 The `adapter` is a handle to our actual graphics card. You can use this get information about the graphics card such as its name and what backend the adapter uses. We use this to create our `Device` and `Queue` later.
