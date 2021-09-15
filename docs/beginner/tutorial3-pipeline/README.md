@@ -220,7 +220,7 @@ The `primitive` field describes how to interpret our vertices when converting th
 The rest of the method is pretty simple:
 1. We're not using a depth/stencil buffer currently, so we leave `depth_stencil` as `None`. *This will change later*.
 2. This determines how many samples this pipeline will use. Multisampling is a complex topic, so we won't get into it here.
-3. `sample_mask` specifies which samples should be active. In this case we are using all of them.
+3. `mask` specifies which samples should be active. In this case we are using all of them.
 4. `alpha_to_coverage_enabled` has to do with anti-aliasing. We're not covering anti-aliasing here, so we'll leave this as false now.
 
 <!-- https://gamedev.stackexchange.com/questions/22507/what-is-the-alphatocoverage-blend-state-useful-for -->
