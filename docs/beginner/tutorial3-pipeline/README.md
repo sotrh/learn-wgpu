@@ -142,7 +142,6 @@ Now let's move to the `new()` method, and start making the pipeline. We'll have 
 ```rust
 let shader = device.create_shader_module(&wgpu::ShaderModuleDescriptor {
     label: Some("Shader"),
-    flags: wgpu::ShaderFlags::all(),
     source: wgpu::ShaderSource::Wgsl(include_str!("shader.wgsl").into()),
 });
 ```
