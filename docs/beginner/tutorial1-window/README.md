@@ -20,6 +20,11 @@ pollster = "0.2"
 ## Using Rust's new resolver
 As of version 0.10, wgpu require's cargo's [newest feature resolver](https://doc.rust-lang.org/cargo/reference/resolver.html#feature-resolver-version-2). As a result you must include `resolver = "2"` in either the `[package]` section of `Cargo.toml` if you are working on a single crate, or the `[workspace]` section of the root `Cargo.toml` in a workspace.
 
+## env_logger
+It is very important to enable logging via `env_logger::init();`.
+When wgpu hits any error it panics with a generic message, while logging the real error via the log crate.
+This means if you dont include `env_logger::init()` wgpu will fail silently, leaving you very confused!
+
 ## The code
 There's not much going on here yet, so I'm just going to post the code in full. Just paste this into your `main.rs` or equivalent.
 
