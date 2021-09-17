@@ -152,8 +152,6 @@ Now that we've configured our surface properly we can add these new fields at th
 
 ```rust
         Self {
-            instance,
-            adapter,
             surface,
             device,
             queue,
