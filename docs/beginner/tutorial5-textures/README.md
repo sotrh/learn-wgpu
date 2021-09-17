@@ -65,6 +65,7 @@ queue.write_texture(
         texture: &diffuse_texture,
         mip_level: 0,
         origin: wgpu::Origin3d::ZERO,
+        aspect: wgpu::TextureAspect::All,
     },
     // The actual pixel data
     diffuse_rgba,
