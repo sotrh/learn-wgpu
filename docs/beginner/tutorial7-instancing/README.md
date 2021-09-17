@@ -6,7 +6,7 @@ Instancing allows us to draw the same object multiple times with different prope
 
 We don't want to use this method for performance reasons. Updating the uniform buffer for each instance would require multiple buffer copies each frame. On top of that, our method to update the uniform buffer currently requires use to create a new buffer to store the updated data. That's a lot of time wasted between draw calls.
 
-If we look at the parameters for the `draw_indexed` function [in the wgpu docs](https://docs.rs/wgpu/0.5.2/wgpu/struct.RenderPass.html#method.draw_indexed), we can see a solution to our problem.
+If we look at the parameters for the `draw_indexed` function [in the wgpu docs](https://docs.rs/wgpu/0.10.1/wgpu/struct.RenderPass.html#method.draw_indexed), we can see a solution to our problem.
 
 ```rust
 pub fn draw_indexed(
