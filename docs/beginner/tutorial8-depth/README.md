@@ -1,8 +1,8 @@
 # The Depth Buffer
 
-Let's take a closer look at the last example.
+Let's take a closer look at the last example at an angle.
 
-![forest_with_zoom.png](./forest_with_zoom.png)
+![depth_problems.png](./depth_problems.png)
 
 Models that should be in the back are getting rendered ahead of ones that should be in the front. This is caused by the draw order. By default, pixel data from a new object will replace old pixel data.
 
