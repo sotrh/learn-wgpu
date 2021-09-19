@@ -121,7 +121,7 @@ You can view a full list of features [here](https://docs.rs/wgpu/0.10.1/wgpu/str
 
 </div>
 
-The `limits` field describes the limit of certain types of resource we can create. We'll use the defaults for this tutorial, so we can support most devices. You can view a list of limits [here](https://docs.rs/wgpu/0.7.0/wgpu/struct.Limits.html).
+The `limits` field describes the limit of certain types of resource we can create. We'll use the defaults for this tutorial, so we can support most devices. You can view a list of limits [here](https://docs.rs/wgpu/0.10.1/wgpu/struct.Limits.html).
 
 ```rust
         let config = wgpu::SurfaceConfiguration {
