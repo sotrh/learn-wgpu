@@ -46,7 +46,7 @@ let diffuse_texture = device.create_texture(
         dimension: wgpu::TextureDimension::D2,
         // Most images are stored using sRGB so we need to reflect that here.
         format: wgpu::TextureFormat::Rgba8UnormSrgb,
-        // SAMPLED tells wgpu that we want to use this texture in shaders
+        // TEXTURE_BINDING tells wgpu that we want to use this texture in shaders
         // COPY_DST means that we want to copy data to this texture
         usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
         label: Some("diffuse_texture"),
