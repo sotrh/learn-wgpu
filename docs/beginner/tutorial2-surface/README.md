@@ -121,7 +121,7 @@ You can view a full list of features [here](https://docs.rs/wgpu/0.10.1/wgpu/str
 
 </div>
 
-The `limits` field describes the limit of certain types of resource we can create. We'll use the defaults for this tutorial, so we can support most devices. You can view a list of limits [here](https://docs.rs/wgpu/0.7.0/wgpu/struct.Limits.html).
+The `limits` field describes the limit of certain types of resource we can create. We'll use the defaults for this tutorial, so we can support most devices. You can view a list of limits [here](https://docs.rs/wgpu/0.10.1/wgpu/struct.Limits.html).
 
 ```rust
         let config = wgpu::SurfaceConfiguration {
@@ -406,7 +406,7 @@ wgpu::RenderPassColorAttachment {
 
 The `RenderPassColorAttachment` has the `view` field which informs `wgpu` what texture to save the colors to. In this case we specify `frame.view` that we created using `surface.get_current_frame()`. This means that any colors we draw to this attachment will get drawn to the screen.
 
-The `resolve_target` is the texture that will receive the resolved output. This will be the same as `attachment` unless multisampling is enabled. We don't need to specify this, so we leave it as `None`.
+The `resolve_target` is the texture that will receive the resolved output. This will be the same as `view` unless multisampling is enabled. We don't need to specify this, so we leave it as `None`.
 
 The `ops` field takes a `wpgu::Operations` object. This tells wgpu what to do with the colors on the screen (specified by `frame.view`). The `load` field tells wgpu how to handle colors stored from the previous frame. Currently we are clearing the screen with a bluish color. The `store` field tells wgpu with we want to store the rendered results to the `Texture` behind our `TextureView` (in this case it's the `SurfaceTexture`). We use `true` as we do want to store our render results. There are cases when you wouldn't want to but those 
 

@@ -119,7 +119,7 @@ Notice that this function is also called `main`. Because this function is marked
 
 </div>
 
-The `[[location(0)]]` bit tells WGPU to store the value the `vec4` returned by this function in the first color target. We'll get into what this is later.
+The `[[location(0)]]` bit tells WGPU to store the `vec4` value returned by this function in the first color target. We'll get into what this is later.
 
 ## How do we use the shaders?
 This is the part where we finally make the thing in the title: the pipeline. First let's modify `State` to include the following.
