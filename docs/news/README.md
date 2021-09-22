@@ -1,5 +1,9 @@
 # News
 
+## Pong is fixed for 0.10
+
+It wasn't actually that hard of a fix. I only really use the swapchain directly in the render module, and the only other change required me to include the `spirv` feature to wgpu in Cargo.toml.
+
 ## 0.10 SwapChain is dead, long live the Surface!
 
 `SwapChain` and all related code has been removed from wgpu. All code pertaining to obtaining textures to draw to from the window will be available from the `Surface` instead. That means configuring `SurfaceTexture`s will look something like this:

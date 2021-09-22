@@ -1,16 +1,16 @@
 [workspace]
 resolver = "2"
 members = [
-    # # beginner tutorials
+    # beginner tutorials
     "code/beginner/*",
 
-    # # intermediate tutorials
+    # intermediate tutorials
     "code/intermediate/*",
 
-    # # showcase
+    # showcase
     "code/showcase/*",
 ]
 exclude = [
     "code/showcase/imgui-demo",
-    "code/showcase/pong",
+    # "code/showcase/pong",
 ]

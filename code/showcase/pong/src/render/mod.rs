@@ -13,13 +13,12 @@ use crate::state;
 const FONT_BYTES: &[u8] = include_bytes!("../../res/fonts/PressStart2P-Regular.ttf");
 
 pub struct Render {
-    #[allow(dead_code)]
     surface: wgpu::Surface,
+    config: wgpu::SurfaceConfiguration,
     #[allow(dead_code)]
     adapter: wgpu::Adapter,
     device: wgpu::Device,
     queue: wgpu::Queue,
-    config: wgpu::SurfaceConfiguration,
     pipeline: wgpu::RenderPipeline,
     vertex_buffer: wgpu::Buffer,
     index_buffer: wgpu::Buffer,
@@ -137,12 +136,13 @@ impl Render {
             0
         };
 
-        match self.swap_chain.get_current_frame() {
+        match self.surface.get_current_frame() {
             Ok(frame) => {
+                let view = frame.output.texture.create_view(&Default::default());
                 let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                     label: Some("Main Render Pass"),
                     color_attachments: &[wgpu::RenderPassColorAttachment {
-                        view: &frame.output.view,
+                        view: &view,
                         resolve_target: None,
                         ops: wgpu::Operations::default(),
                     }],
@@ -183,7 +183,7 @@ impl Render {
                         &self.device,
                         &mut self.staging_belt,
                         &mut encoder,
-                        &frame.output.view,
+                        &view,
                         self.config.width,
                         self.config.height,
                     )
