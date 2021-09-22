@@ -64,7 +64,7 @@ impl State {
 
 ### Instance and Adapter
 
-The `instance` is the first thing you create when using wgpu. It's main purpose
+The `instance` is the first thing you create when using wgpu. Its main purpose
 is to create `Adapter`s and `Surface`s.
 
 The `adapter` is a handle to our actual graphics card. You can use this get information about the graphics card such as its name and what backend the adapter uses. We use this to create our `Device` and `Queue` later.
@@ -86,7 +86,7 @@ let adapter = instance
 
 Another thing to note is that `Adapter`s are locked to a specific backend. If you are on Windows and have 2 graphics cards you'll have at least 4 adapters available to use, 2 Vulkan and 2 DirectX.
 
-For more fields you can use to refine you're search [check out the docs](https://docs.rs/wgpu/0.10.1/wgpu/struct.Adapter.html).
+For more fields you can use to refine your search [check out the docs](https://docs.rs/wgpu/0.10.1/wgpu/struct.Adapter.html).
 
 </div>
 
@@ -134,7 +134,7 @@ The `limits` field describes the limit of certain types of resource we can creat
         surface.configure(&device, &config);
 ```
 
-Here we are defining a config for our surface. This will define how the surface creates it's underlying `SurfaceTexture`s. We will talk about `SurfaceTexture` when we get to the `render` function. For now lets talk about some of the our configs fields.
+Here we are defining a config for our surface. This will define how the surface creates its underlying `SurfaceTexture`s. We will talk about `SurfaceTexture` when we get to the `render` function. For now lets talk about some of the our configs fields.
 
 The `usage` field describes how the `SurfaceTexture`s will be used. `RENDER_ATTACHMENT` specifies that the textures will be used to write to the screen (we'll talk about more `TextureUsages`s later).
 
