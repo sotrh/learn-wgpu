@@ -80,7 +80,7 @@ let adapter = instance
         // Check if this adapter supports our surface
         surface.get_preferred_format(&adapter).is_some()
     })
-    .first()
+    .next()
     .unwrap()
 ```
 
