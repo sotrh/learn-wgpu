@@ -557,8 +557,8 @@ pub trait DrawModel<'a> {
         model: &'a Model,
         material: &'a Material,
         instances: Range<u32>,
-        camera: &'a wgpu::BindGroup,
-        light: &'a wgpu::BindGroup,
+        camera_bind_group: &'a wgpu::BindGroup,
+        light_bind_group: &'a wgpu::BindGroup,
     );
 }
 
@@ -572,11 +572,11 @@ where
         model: &'b Model,
         material: &'b Material,
         instances: Range<u32>,
-        camera: &'b wgpu::BindGroup,
-        light: &'b wgpu::BindGroup,
+        camera_bind_group: &'b wgpu::BindGroup,
+        light_bind_group: &'b wgpu::BindGroup,
     ) {
         for mesh in &model.meshes {
-            self.draw_mesh_instanced(mesh, material, instances.clone(), camera, light);
+            self.draw_mesh_instanced(mesh, material, instances.clone(), camera_bind_group, light_bind_group);
         }
     }
 }
