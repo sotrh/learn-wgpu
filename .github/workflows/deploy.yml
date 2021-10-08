@@ -2,13 +2,19 @@ name: Deploy to GH Pages
 on:
   push:
     branches: [ master ]
-  workflow_dispatch:
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Install Dependencies
-        run: npm install
-      - name: Run deploy.sh
-        run: sh deploy.sh
+
+      - name: Install and Build
+        run: |
+          npm install
+          npm run build
+
+      - name: Deploy
+        uses: JamesIves/github-pages-deploy-action@4.1.5
+        with:
+          branch: gh-pages
+          folder: docs/.vuepress/dist
