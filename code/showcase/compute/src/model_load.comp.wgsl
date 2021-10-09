@@ -52,29 +52,29 @@ fn getPos(v: ModelVertex) -> vec3<f32> {
     var v1: ModelVertex;
 
     v1 = v;
-    let _e12: ModelVertex = v1;
-    let _e14: ModelVertex = v1;
-    let _e16: ModelVertex = v1;
-    return vec3<f32>(_e12.x, _e14.y, _e16.z);
+    let e12: ModelVertex = v1;
+    let e14: ModelVertex = v1;
+    let e16: ModelVertex = v1;
+    return vec3<f32>(e12.x, e14.y, e16.z);
 }
 
 fn getUV(v2: ModelVertex) -> vec2<f32> {
     var v3: ModelVertex;
 
     v3 = v2;
-    let _e12: ModelVertex = v3;
-    let _e14: ModelVertex = v3;
-    return vec2<f32>(_e12.uv, _e14.uw);
+    let e12: ModelVertex = v3;
+    let e14: ModelVertex = v3;
+    return vec2<f32>(e12.uv, e14.uw);
 }
 
 fn getNormal(v4: ModelVertex) -> vec3<f32> {
     var v5: ModelVertex;
 
     v5 = v4;
-    let _e12: ModelVertex = v5;
-    let _e14: ModelVertex = v5;
-    let _e16: ModelVertex = v5;
-    return vec3<f32>(_e12.nx, _e14.ny, _e16.nz);
+    let e12: ModelVertex = v5;
+    let e14: ModelVertex = v5;
+    let e16: ModelVertex = v5;
+    return vec3<f32>(e12.nx, e14.ny, e16.nz);
 }
 
 fn calcTangentBitangent(vertexIndex: u32) -> ModelVertex {
@@ -103,144 +103,144 @@ fn calcTangentBitangent(vertexIndex: u32) -> ModelVertex {
     var r: f32;
 
     vertexIndex1 = vertexIndex;
-    let _e12: u32 = vertexIndex1;
-    let _e14: ModelVertex = global.srcVertices[_e12];
-    v6 = _e14;
+    let e12: u32 = vertexIndex1;
+    let e14: ModelVertex = global.srcVertices[e12];
+    v6 = e14;
     loop {
-        let _e30: u32 = i;
-        let _e31: u32 = global3.numIndices;
-        if (!((_e30 < _e31))) {
+        let e30: u32 = i;
+        let e31: u32 = global3.numIndices;
+        if (!((e30 < e31))) {
             break;
         }
         {
-            let _e38: u32 = i;
-            let _e40: u32 = global2.indices[_e38];
-            index0_ = _e40;
-            let _e42: u32 = i;
-            let _e47: u32 = global2.indices[(_e42 + u32(1))];
-            index1_ = _e47;
-            let _e49: u32 = i;
-            let _e54: u32 = global2.indices[(_e49 + u32(2))];
-            index2_ = _e54;
-            let _e56: u32 = index0_;
-            let _e57: u32 = vertexIndex1;
-            let _e59: u32 = index1_;
-            let _e60: u32 = vertexIndex1;
-            let _e63: u32 = index2_;
-            let _e64: u32 = vertexIndex1;
-            if ((((_e56 == _e57) || (_e59 == _e60)) || (_e63 == _e64))) {
+            let e38: u32 = i;
+            let e40: u32 = global2.indices[e38];
+            index0_ = e40;
+            let e42: u32 = i;
+            let e47: u32 = global2.indices[(e42 + u32(1))];
+            index1_ = e47;
+            let e49: u32 = i;
+            let e54: u32 = global2.indices[(e49 + u32(2))];
+            index2_ = e54;
+            let e56: u32 = index0_;
+            let e57: u32 = vertexIndex1;
+            let e59: u32 = index1_;
+            let e60: u32 = vertexIndex1;
+            let e63: u32 = index2_;
+            let e64: u32 = vertexIndex1;
+            if ((((e56 == e57) || (e59 == e60)) || (e63 == e64))) {
                 {
-                    let _e67: u32 = index0_;
-                    let _e69: ModelVertex = global.srcVertices[_e67];
-                    v0_ = _e69;
-                    let _e71: u32 = index1_;
-                    let _e73: ModelVertex = global.srcVertices[_e71];
-                    v1_ = _e73;
-                    let _e75: u32 = index2_;
-                    let _e77: ModelVertex = global.srcVertices[_e75];
-                    v2_ = _e77;
-                    let _e80: ModelVertex = v0_;
-                    let _e81: vec3<f32> = getPos(_e80);
-                    pos0_ = _e81;
-                    let _e84: ModelVertex = v1_;
-                    let _e85: vec3<f32> = getPos(_e84);
-                    pos1_ = _e85;
-                    let _e88: ModelVertex = v2_;
-                    let _e89: vec3<f32> = getPos(_e88);
-                    pos2_ = _e89;
-                    let _e92: ModelVertex = v0_;
-                    let _e93: vec2<f32> = getUV(_e92);
-                    uv0_ = _e93;
-                    let _e96: ModelVertex = v1_;
-                    let _e97: vec2<f32> = getUV(_e96);
-                    uv1_ = _e97;
-                    let _e100: ModelVertex = v2_;
-                    let _e101: vec2<f32> = getUV(_e100);
-                    uv2_ = _e101;
-                    let _e103: vec3<f32> = pos1_;
-                    let _e104: vec3<f32> = pos0_;
-                    delta_pos1_ = (_e103 - _e104);
-                    let _e107: vec3<f32> = pos2_;
-                    let _e108: vec3<f32> = pos0_;
-                    delta_pos2_ = (_e107 - _e108);
-                    let _e111: vec2<f32> = uv1_;
-                    let _e112: vec2<f32> = uv0_;
-                    delta_uv1_ = (_e111 - _e112);
-                    let _e115: vec2<f32> = uv2_;
-                    let _e116: vec2<f32> = uv0_;
-                    delta_uv2_ = (_e115 - _e116);
-                    let _e120: vec2<f32> = delta_uv1_;
-                    let _e122: vec2<f32> = delta_uv2_;
-                    let _e125: vec2<f32> = delta_uv1_;
-                    let _e127: vec2<f32> = delta_uv2_;
-                    r = (1.0 / ((_e120.x * _e122.y) - (_e125.y * _e127.x)));
-                    let _e133: vec3<f32> = tangent;
-                    let _e134: vec3<f32> = delta_pos1_;
-                    let _e135: vec2<f32> = delta_uv2_;
-                    let _e138: vec3<f32> = delta_pos2_;
-                    let _e139: vec2<f32> = delta_uv1_;
-                    let _e143: f32 = r;
-                    tangent = (_e133 + (((_e134 * _e135.y) - (_e138 * _e139.y)) * _e143));
-                    let _e146: vec3<f32> = bitangent;
-                    let _e147: vec3<f32> = delta_pos2_;
-                    let _e148: vec2<f32> = delta_uv1_;
-                    let _e151: vec3<f32> = delta_pos1_;
-                    let _e152: vec2<f32> = delta_uv2_;
-                    let _e156: f32 = r;
-                    bitangent = (_e146 + (((_e147 * _e148.x) - (_e151 * _e152.x)) * _e156));
-                    let _e159: u32 = trianglesIncluded;
-                    trianglesIncluded = (_e159 + u32(1));
+                    let e67: u32 = index0_;
+                    let e69: ModelVertex = global.srcVertices[e67];
+                    v0_ = e69;
+                    let e71: u32 = index1_;
+                    let e73: ModelVertex = global.srcVertices[e71];
+                    v1_ = e73;
+                    let e75: u32 = index2_;
+                    let e77: ModelVertex = global.srcVertices[e75];
+                    v2_ = e77;
+                    let e80: ModelVertex = v0_;
+                    let e81: vec3<f32> = getPos(e80);
+                    pos0_ = e81;
+                    let e84: ModelVertex = v1_;
+                    let e85: vec3<f32> = getPos(e84);
+                    pos1_ = e85;
+                    let e88: ModelVertex = v2_;
+                    let e89: vec3<f32> = getPos(e88);
+                    pos2_ = e89;
+                    let e92: ModelVertex = v0_;
+                    let e93: vec2<f32> = getUV(e92);
+                    uv0_ = e93;
+                    let e96: ModelVertex = v1_;
+                    let e97: vec2<f32> = getUV(e96);
+                    uv1_ = e97;
+                    let e100: ModelVertex = v2_;
+                    let e101: vec2<f32> = getUV(e100);
+                    uv2_ = e101;
+                    let e103: vec3<f32> = pos1_;
+                    let e104: vec3<f32> = pos0_;
+                    delta_pos1_ = (e103 - e104);
+                    let e107: vec3<f32> = pos2_;
+                    let e108: vec3<f32> = pos0_;
+                    delta_pos2_ = (e107 - e108);
+                    let e111: vec2<f32> = uv1_;
+                    let e112: vec2<f32> = uv0_;
+                    delta_uv1_ = (e111 - e112);
+                    let e115: vec2<f32> = uv2_;
+                    let e116: vec2<f32> = uv0_;
+                    delta_uv2_ = (e115 - e116);
+                    let e120: vec2<f32> = delta_uv1_;
+                    let e122: vec2<f32> = delta_uv2_;
+                    let e125: vec2<f32> = delta_uv1_;
+                    let e127: vec2<f32> = delta_uv2_;
+                    r = (1.0 / ((e120.x * e122.y) - (e125.y * e127.x)));
+                    let e133: vec3<f32> = tangent;
+                    let e134: vec3<f32> = delta_pos1_;
+                    let e135: vec2<f32> = delta_uv2_;
+                    let e138: vec3<f32> = delta_pos2_;
+                    let e139: vec2<f32> = delta_uv1_;
+                    let e143: f32 = r;
+                    tangent = (e133 + (((e134 * e135.y) - (e138 * e139.y)) * e143));
+                    let e146: vec3<f32> = bitangent;
+                    let e147: vec3<f32> = delta_pos2_;
+                    let e148: vec2<f32> = delta_uv1_;
+                    let e151: vec3<f32> = delta_pos1_;
+                    let e152: vec2<f32> = delta_uv2_;
+                    let e156: f32 = r;
+                    bitangent = (e146 + (((e147 * e148.x) - (e151 * e152.x)) * e156));
+                    let e159: u32 = trianglesIncluded;
+                    trianglesIncluded = (e159 + u32(1));
                 }
             }
         }
         continuing {
-            let _e34: u32 = i;
-            i = (_e34 + u32(3));
+            let e34: u32 = i;
+            i = (e34 + u32(3));
         }
     }
-    let _e163: u32 = trianglesIncluded;
-    if ((_e163 > u32(0))) {
+    let e163: u32 = trianglesIncluded;
+    if ((e163 > u32(0))) {
         {
-            let _e167: vec3<f32> = tangent;
-            let _e168: u32 = trianglesIncluded;
-            tangent = (_e167 / vec3<f32>(f32(_e168)));
-            let _e172: vec3<f32> = bitangent;
-            let _e173: u32 = trianglesIncluded;
-            bitangent = (_e172 / vec3<f32>(f32(_e173)));
-            let _e178: vec3<f32> = tangent;
-            tangent = normalize(_e178);
-            let _e181: vec3<f32> = bitangent;
-            bitangent = normalize(_e181);
+            let e167: vec3<f32> = tangent;
+            let e168: u32 = trianglesIncluded;
+            tangent = (e167 / vec3<f32>(f32(e168)));
+            let e172: vec3<f32> = bitangent;
+            let e173: u32 = trianglesIncluded;
+            bitangent = (e172 / vec3<f32>(f32(e173)));
+            let e178: vec3<f32> = tangent;
+            tangent = normalize(e178);
+            let e181: vec3<f32> = bitangent;
+            bitangent = normalize(e181);
         }
     }
-    let _e184: vec3<f32> = tangent;
-    v6.tx = _e184.x;
-    let _e187: vec3<f32> = tangent;
-    v6.ty = _e187.y;
-    let _e190: vec3<f32> = tangent;
-    v6.tz = _e190.z;
-    let _e193: vec3<f32> = bitangent;
-    v6.bx = _e193.x;
-    let _e196: vec3<f32> = bitangent;
-    v6.by = _e196.y;
-    let _e199: vec3<f32> = bitangent;
-    v6.bz = _e199.z;
-    let _e201: ModelVertex = v6;
-    return _e201;
+    let e184: vec3<f32> = tangent;
+    v6.tx = e184.x;
+    let e187: vec3<f32> = tangent;
+    v6.ty = e187.y;
+    let e190: vec3<f32> = tangent;
+    v6.tz = e190.z;
+    let e193: vec3<f32> = bitangent;
+    v6.bx = e193.x;
+    let e196: vec3<f32> = bitangent;
+    v6.by = e196.y;
+    let e199: vec3<f32> = bitangent;
+    v6.bz = e199.z;
+    let e201: ModelVertex = v6;
+    return e201;
 }
 
 fn main1() {
     var vertexIndex2: u32;
     var result: ModelVertex;
 
-    let _e11: vec3<u32> = gl_GlobalInvocationID;
-    vertexIndex2 = _e11.x;
-    let _e15: u32 = vertexIndex2;
-    let _e16: ModelVertex = calcTangentBitangent(_e15);
-    result = _e16;
-    let _e18: u32 = vertexIndex2;
-    let _e20: ModelVertex = result;
-    global1.dstVertices[_e18] = _e20;
+    let e11: vec3<u32> = gl_GlobalInvocationID;
+    vertexIndex2 = e11.x;
+    let e15: u32 = vertexIndex2;
+    let e16: ModelVertex = calcTangentBitangent(e15);
+    result = e16;
+    let e18: u32 = vertexIndex2;
+    let e20: ModelVertex = result;
+    global1.dstVertices[e18] = e20;
     return;
 }
 

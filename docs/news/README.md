@@ -33,7 +33,7 @@ if new_size.width > 0 && new_size.height > 0 {
 Finally, getting a `SurfaceTexture` to draw to will use the surface directly.
 
 ```rust
-let output = self.surface.get_current_frame()?.output;
+let output = self.surface.get_current_texture()?;
 let view = output
     .texture
     .create_view(&wgpu::TextureViewDescriptor::default());

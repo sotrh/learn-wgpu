@@ -45,6 +45,7 @@ impl Render {
             .request_adapter(&wgpu::RequestAdapterOptions {
                 power_preference: wgpu::PowerPreference::default(),
                 compatible_surface: Some(&surface),
+                force_fallback_adapter: false,
             })
             .await
             .unwrap();
@@ -136,7 +137,7 @@ impl Render {
             0
         };
 
-        match self.surface.get_current_frame() {
+        match self.surface.get_current_texture() {
             Ok(frame) => {
                 let view = frame.output.texture.create_view(&Default::default());
                 let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
