@@ -330,6 +330,7 @@ Now we can actually get to clearing the screen (long time coming). We need to us
         });
     }
 
+    // submit will accept anything that implements IntoIter
     self.queue.submit(std::iter::once(encoder.finish()));
     output.present();
 
