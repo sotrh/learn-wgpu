@@ -96,7 +96,7 @@ let ui = self.imgui.frame();
 
 // Prepare to render
 let mut encoder = display.device.create_command_encoder(&Default::default());
-let output = match display.swap_chain.get_current_frame() {
+let output = match display.swap_chain.get_current_texture() {
     Ok(frame) => frame,
     Err(e) => {
         eprintln!("Error getting frame: {:?}", e);

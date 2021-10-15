@@ -27,15 +27,15 @@ var<private> gl_Position: vec4<f32>;
 fn main1() {
     var v_position: vec3<f32>;
 
-    let _e11: vec3<f32> = a_position1;
-    let _e12: f32 = scale;
-    let _e14: vec3<f32> = global1.u_position;
-    v_position = ((_e11 * _e12) + _e14);
-    let _e18: mat4x4<f32> = global.u_view_proj;
-    let _e19: vec3<f32> = v_position;
-    gl_Position = (_e18 * vec4<f32>(_e19, f32(1)));
-    let _e24: vec3<f32> = global1.u_color;
-    v_color = _e24;
+    let e11: vec3<f32> = a_position1;
+    let e12: f32 = scale;
+    let e14: vec3<f32> = global1.u_position;
+    v_position = ((e11 * e12) + e14);
+    let e18: mat4x4<f32> = global.u_view_proj;
+    let e19: vec3<f32> = v_position;
+    gl_Position = (e18 * vec4<f32>(e19, f32(1)));
+    let e24: vec3<f32> = global1.u_color;
+    v_color = e24;
     return;
 }
 
@@ -43,7 +43,7 @@ fn main1() {
 fn main([[location(0)]] a_position: vec3<f32>) -> VertexOutput {
     a_position1 = a_position;
     main1();
-    let _e18: vec3<f32> = v_color;
-    let _e20: vec4<f32> = gl_Position;
-    return VertexOutput(_e18, _e20);
+    let e18: vec3<f32> = v_color;
+    let e20: vec4<f32> = gl_Position;
+    return VertexOutput(e18, e20);
 }

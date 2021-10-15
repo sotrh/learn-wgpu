@@ -6,6 +6,7 @@ async fn run() {
         .request_adapter(&wgpu::RequestAdapterOptions {
             power_preference: wgpu::PowerPreference::default(),
             compatible_surface: None,
+            force_fallback_adapter: false,
         })
         .await
         .unwrap();

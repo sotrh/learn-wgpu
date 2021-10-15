@@ -45,6 +45,7 @@ impl Render {
             .request_adapter(&wgpu::RequestAdapterOptions {
                 power_preference: wgpu::PowerPreference::default(),
                 compatible_surface: Some(&surface),
+                force_fallback_adapter: false,
             })
             .await
             .unwrap();
@@ -136,9 +137,9 @@ impl Render {
             0
         };
 
-        match self.surface.get_current_frame() {
+        match self.surface.get_current_texture() {
             Ok(frame) => {
-                let view = frame.output.texture.create_view(&Default::default());
+                let view = frame.texture.create_view(&Default::default());
                 let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                     label: Some("Main Render Pass"),
                     color_attachments: &[wgpu::RenderPassColorAttachment {
@@ -191,6 +192,7 @@ impl Render {
 
                 self.staging_belt.finish();
                 self.queue.submit(iter::once(encoder.finish()));
+                frame.present();
             }
             Err(wgpu::SurfaceError::Outdated) => {
                 self.surface.configure(&self.device, &self.config);

@@ -24,8 +24,9 @@ impl State {
         let surface = unsafe { instance.create_surface(window) };
         let adapter = instance
             .request_adapter(&wgpu::RequestAdapterOptions {
-                power_preference: wgpu::PowerPreference::default(),
+                power_preference: wgpu::PowerPreference::HighPerformance,
                 compatible_surface: Some(&surface),
+                force_fallback_adapter: false,
             })
             .await
             .unwrap();
@@ -78,7 +79,7 @@ impl State {
     fn update(&mut self) {}
 
     fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
-        let output = self.surface.get_current_frame()?.output;
+        let output = self.surface.get_current_texture()?;
         let view = output
             .texture
             .create_view(&wgpu::TextureViewDescriptor::default());
@@ -110,6 +111,7 @@ impl State {
         }
 
         self.queue.submit(iter::once(encoder.finish()));
+        output.present();
 
         Ok(())
     }
@@ -165,7 +167,7 @@ fn main() {
                     Err(e) => eprintln!("{:?}", e),
                 }
             }
-            Event::MainEventsCleared => {
+            Event::RedrawEventsCleared => {
                 // RedrawRequested will only trigger once, unless we manually
                 // request it.
                 window.request_redraw();

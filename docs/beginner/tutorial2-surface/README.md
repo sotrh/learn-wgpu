@@ -58,6 +58,7 @@ impl State {
             &wgpu::RequestAdapterOptions {
                 power_preference: wgpu::PowerPreference::default(),
                 compatible_surface: Some(&surface),
+                force_fallback_adapter: false,
             },
         ).await.unwrap();
 ```
@@ -67,11 +68,15 @@ impl State {
 The `instance` is the first thing you create when using wgpu. Its main purpose
 is to create `Adapter`s and `Surface`s.
 
-The `adapter` is a handle to our actual graphics card. You can use this get information about the graphics card such as its name and what backend the adapter uses. We use this to create our `Device` and `Queue` later.
+The `adapter` is a handle to our actual graphics card. You can use this get information about the graphics card such as its name and what backend the adapter uses. We use this to create our `Device` and `Queue` later. Let's discuss the fields of `RequestAdapterOptions`.
+
+* `power_preference` has two variants: `LowPower`, and `HighPerformance`. This means will pick an adapter that favors battery life such as a integrated GPU when using `LowPower`. `HighPerformance` as will pick an adapter for more power hungry yet more performant GPU's such as your dedicated graphics card. WGPU will favor `LowPower` if there is no adapter for the `HighPerformance` option.
+* The `compatible_surface` field tells wgpu to find an adapter that can present to the supplied surface.
+* The `force_fallback_adapter` forces wgpu to pick an adapter that will work on all harware. This usually means that the rendering backend will use a "software" system, instead of hardware such as a GPU.
 
 <div class="note">
 
-The options I've passed to `request_adapter` aren't guaranteed to work for all devices, but will work for most of them. If you want to get all adapters for a particular backend you can use `enumerate_adapters`. This will give you an iterator that you can loop over to check if one of the adapters works for your needs.
+The options I've passed to `request_adapter` aren't guaranteed to work for all devices, but will work for most of them. If wgpu can't find an adapter with the required permissions, `request_adapter` will return `None`. If you want to get all adapters for a particular backend you can use `enumerate_adapters`. This will give you an iterator that you can loop over to check if one of the adapters works for your needs.
 
 ```rust
 let adapter = instance
@@ -89,6 +94,7 @@ Another thing to note is that `Adapter`s are locked to a specific backend. If yo
 For more fields you can use to refine your search [check out the docs](https://docs.rs/wgpu/0.10.1/wgpu/struct.Adapter.html).
 
 </div>
+
 
 ### The Surface
 
@@ -282,10 +288,10 @@ Here's where the magic happens. First we need to get a frame to render to.
 // impl State
 
 fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
-    let output = self.surface.get_current_frame()?.output;
+    let output = self.surface.get_current_texture()?;
 ```
 
-The `get_current_frame` function will wait for the `surface` to provide a new `SurfaceTexture` that we will render to. We'll store this in `output` for later.
+The `get_current_texture` function will wait for the `surface` to provide a new `SurfaceTexture` that we will render to. We'll store this in `output` for later.
 
 ```rust
     let view = output.texture.create_view(&wgpu::TextureViewDescriptor::default());
@@ -326,6 +332,7 @@ Now we can actually get to clearing the screen (long time coming). We need to us
 
     // submit will accept anything that implements IntoIter
     self.queue.submit(std::iter::once(encoder.finish()));
+    output.present();
 
     Ok(())
 }
@@ -404,7 +411,7 @@ wgpu::RenderPassColorAttachment {
 }
 ```
 
-The `RenderPassColorAttachment` has the `view` field which informs `wgpu` what texture to save the colors to. In this case we specify `frame.view` that we created using `surface.get_current_frame()`. This means that any colors we draw to this attachment will get drawn to the screen.
+The `RenderPassColorAttachment` has the `view` field which informs `wgpu` what texture to save the colors to. In this case we specify `frame.view` that we created using `surface.get_current_texture()`. This means that any colors we draw to this attachment will get drawn to the screen.
 
 The `resolve_target` is the texture that will receive the resolved output. This will be the same as `view` unless multisampling is enabled. We don't need to specify this, so we leave it as `None`.
 
