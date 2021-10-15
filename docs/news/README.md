@@ -1,5 +1,25 @@
 # News
 
+## 0.11 further changes to Surface
+
+`SwapchainFrame` is no longer a thing. Instead `get_current_texture` will return a `SurfaceTexture` directly. This means that getting a frame to draw to looks somethings like this:
+
+```rust
+let output = self.surface.get_current_texture()?;
+let view = output
+    .texture
+    .create_view(&wgpu::TextureViewDescriptor::default());
+```
+
+Another change is that you must call `SurfaceTexture::present()` after you submit your render command buffers to the `queue`. It goes something like this:
+
+```rust
+self.queue.submit(iter::once(encoder.finish()));
+output.present();
+```
+
+There a good deal of internal changes such as WebGL support (which I really need to cover). You can check out more on wgpu's [changelog](https://github.com/gfx-rs/wgpu/blob/master/CHANGELOG.md#wgpu-011-2021-10-07).
+
 ## Pong is fixed for 0.10
 
 It wasn't actually that hard of a fix. I only really use the swapchain directly in the render module, and the only other change required me to include the `spirv` feature to wgpu in Cargo.toml.
