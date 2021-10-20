@@ -21,7 +21,7 @@ The vertices are then converted into fragments. Every pixel in the result image 
 
 ## WGSL
 
-WebGPU supports two shader languages natively: SPIR-V, and WGSL. SPIR-V is actually a binary format developed by Kronos to be a compilation target for other languages such as GLSL and HLSL. It allows for easy porting of code. The only problem is that it's not human readable as it's a binary language. WGSL is meant to fix that. WGSL's development focuses on getting it to easily convert into SPIR-V. WGPU even allows us to supply WGSL for our shaders. 
+WebGPU supports two shader languages natively: SPIR-V, and WGSL. SPIR-V is actually a binary format developed by Khronos to be a compilation target for other languages such as GLSL and HLSL. It allows for easy porting of code. The only problem is that it's not human readable as it's a binary language. WGSL is meant to fix that. WGSL's development focuses on getting it to easily convert into SPIR-V. WGPU even allows us to supply WGSL for our shaders. 
 
 <div class="note">
 
