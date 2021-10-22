@@ -24,6 +24,22 @@ fn main() {
         .unwrap();
     window.set_cursor_visible(false);
 
+    #[cfg(target_arch = "wasm32")]
+    {
+        use winit::platform::web::WindowExtWebSys;
+        console_log::init_with_level(log::Level::Info).expect("Could't initialize logger");
+        std::panic::set_hook(Box::new(console_error_panic_hook::hook));
+        web_sys::window()
+            .and_then(|win| win.document())
+            .and_then(|doc| doc.body())
+            .and_then(|body| {
+                body.append_child(&web_sys::Element::from(window.canvas())).ok()
+            })
+            .expect("Couldn't append cavas to document body.");
+    }
+
+    log::info!("Setup...");
+
     let mut render = pollster::block_on(render::Render::new(&window, &video_mode));
     let mut state = state::State {
         ball: state::Ball {
@@ -90,10 +106,14 @@ fn main() {
         game_state: state::GameState::MainMenu,
     };
 
+    log::info!("Sound...");
+
     let sound_system = sound::SoundSystem::new();
     let sound_pack = sound::SoundPack::new();
     let mut events = Vec::new();
     let mut input = Input::new();
+
+    log::info!("Initializing Systems...");
 
     let mut menu_system = system::MenuSystem;
     let mut serving_system = system::ServingSystem::new();
@@ -107,6 +127,8 @@ fn main() {
     menu_system.start(&mut state);
 
     window.set_visible(true);
+
+    log::info!("Event Loop...");
 
     event_loop.run(move |event, _, control_flow| {
         *control_flow = if state.game_state == state::GameState::Quiting {
@@ -154,7 +176,7 @@ fn main() {
                         }
                         state::Event::Score(_) => {
                             sound_system.queue(sound_pack.bounce());
-                        } // _ => {}
+                        }
                     }
                 }
                 events.clear();

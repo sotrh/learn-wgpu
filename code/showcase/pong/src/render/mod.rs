@@ -81,8 +81,8 @@ impl Render {
             &pipeline_layout,
             config.format,
             &[Vertex::DESC],
-            wgpu::include_spirv!("../../res/shaders/textured.vert.spv"),
-            wgpu::include_spirv!("../../res/shaders/textured.frag.spv"),
+            wgpu::include_wgsl!("../../res/shaders/textured.vert.wgsl"),
+            wgpu::include_wgsl!("../../res/shaders/textured.frag.wgsl"),
         );
 
         let vertex_buffer = device.create_buffer(&wgpu::BufferDescriptor {

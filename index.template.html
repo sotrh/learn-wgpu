@@ -1,0 +1,23 @@
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+</head>
+
+<body>
+    <!-- 
+        This is adapted from https://github.com/gfx-rs/wgpu/blob/master/run-wasm-example.sh 
+        
+        Eventually I'll have all the examples create there own components for vuepress to
+        use, but this will do for now.
+    -->
+    <script type="module">
+        import init from "./pong.js";
+        window.addEventListener("load", () => {
+            init();
+        });
+    </script>
+</body>
+
+</html>
