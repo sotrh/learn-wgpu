@@ -4,6 +4,9 @@ version = "0.1.0"
 authors = ["Ben Hansen <bhbenjaminhansen@gmail.com>"]
 edition = "2018"
 
+[lib]
+crate-type = ["cdylib", "rlib"]
+
 [dependencies]
 winit = "0.25"
 anyhow = "1.0"
@@ -15,6 +18,7 @@ wgpu_glyph = "0.15"
 rand = "0.8"
 rodio = { version = "0.14", default-features = false, features = ["wav"] }
 log = "0.4"
+instant = "0.1"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 console_error_panic_hook = "0.1.6"
