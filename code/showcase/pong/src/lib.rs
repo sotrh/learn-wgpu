@@ -18,15 +18,19 @@ use winit::window::{Fullscreen, WindowBuilder};
 
 #[cfg_attr(target_arch="wasm32", wasm_bindgen(start))]
 pub fn start() {
-    #[cfg(target_arch = "wasm32")]
-    {
-        console_log::init_with_level(log::Level::Info).expect("Could't initialize logger");
-        std::panic::set_hook(Box::new(console_error_panic_hook::hook));
+    cfg_if::cfg_if! {
+        if #[cfg(target_arch = "wasm32")] {
+            console_log::init_with_level(log::Level::Info).expect("Could't initialize logger");
+            std::panic::set_hook(Box::new(console_error_panic_hook::hook));
+        } else {
+            env_logger::init();
+        }
     }
 
     let event_loop = EventLoop::new();
     let monitor = event_loop.primary_monitor().unwrap();
     let video_mode = monitor.video_modes().next();
+    let size = video_mode.clone().map_or(PhysicalSize::new(800, 600), |vm| vm.size());
     let window = WindowBuilder::new()
         .with_visible(false)
         .with_title("Pong")
@@ -54,7 +58,7 @@ pub fn start() {
 
     log::info!("Setup...");
 
-    let mut render = pollster::block_on(render::Render::new(&window, window.inner_size()));
+    let mut render = pollster::block_on(render::Render::new(&window, size));
     let mut state = state::State {
         ball: state::Ball {
             position: (0.0, 0.0).into(),

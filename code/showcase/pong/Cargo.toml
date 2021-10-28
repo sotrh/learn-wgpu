@@ -8,6 +8,8 @@ edition = "2018"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
+cfg-if = "1"
+env_logger = "0.9"
 winit = "0.25"
 anyhow = "1.0"
 bytemuck = { version = "1.4", features = [ "derive" ] }

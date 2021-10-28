@@ -1754,9 +1754,11 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bytemuck",
+ "cfg-if 1.0.0",
  "cgmath",
  "console_error_panic_hook",
  "console_log",
+ "env_logger",
  "fs_extra",
  "getrandom",
  "glob",
