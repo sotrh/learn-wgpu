@@ -18,7 +18,7 @@ pollster = "0.2"
 ```
 
 ## Using Rust's new resolver
-As of version 0.10, wgpu require's cargo's [newest feature resolver](https://doc.rust-lang.org/cargo/reference/resolver.html#feature-resolver-version-2). As a result you must include `resolver = "2"` in either the `[package]` section of `Cargo.toml` if you are working on a single crate, or the `[workspace]` section of the root `Cargo.toml` in a workspace.
+As of version 0.10, wgpu require's cargo's [newest feature resolver](https://doc.rust-lang.org/cargo/reference/resolver.html#feature-resolver-version-2), which is the default in the 2021 edition (any new project started with Rust version 1.56.0 or newer). However, if you are still using the 2018 edition, you must include `resolver = "2"` in either the `[package]` section of `Cargo.toml` if you are working on a single crate, or the `[workspace]` section of the root `Cargo.toml` in a workspace.
 
 ## env_logger
 It is very important to enable logging via `env_logger::init();`.
