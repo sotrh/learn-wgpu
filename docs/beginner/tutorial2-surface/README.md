@@ -68,7 +68,7 @@ impl State {
 The `instance` is the first thing you create when using wgpu. Its main purpose
 is to create `Adapter`s and `Surface`s.
 
-The `adapter` is a handle to our actual graphics card. You can use this get information about the graphics card such as its name and what backend the adapter uses. We use this to create our `Device` and `Queue` later. Let's discuss the fields of `RequestAdapterOptions`.
+The `adapter` is a handle to our actual graphics card. You can use this to get information about the graphics card such as its name and what backend the adapter uses. We use this to create our `Device` and `Queue` later. Let's discuss the fields of `RequestAdapterOptions`.
 
 * `power_preference` has two variants: `LowPower`, and `HighPerformance`. This means will pick an adapter that favors battery life such as a integrated GPU when using `LowPower`. `HighPerformance` as will pick an adapter for more power hungry yet more performant GPU's such as your dedicated graphics card. WGPU will favor `LowPower` if there is no adapter for the `HighPerformance` option.
 * The `compatible_surface` field tells wgpu to find an adapter that can present to the supplied surface.
