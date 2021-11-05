@@ -7,8 +7,8 @@
     <meta name="description" content="">
     <meta name="generator" content="VuePress 1.4.0">
     
-    <meta property="article:modified_time" content="2021-11-01T19:59:35.000Z"><meta property="og:site_name" content="Learn Wgpu"><meta property="og:title" content="Working with Lights"><meta property="og:type" content="website"><meta property="og:url" content="/intermediate/tutorial10-lighting/"><meta name="twitter:title" content="Working with Lights"><meta name="twitter:url" content="/intermediate/tutorial10-lighting/"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:label1" content="Written by"><meta name="twitter:data2" content="Benjamin Hansen"><meta name="twitter:creator" content="https://twitter.com/sotrh760">
-    <link rel="preload" href="/learn-wgpu/assets/css/0.styles.e2608c6d.css" as="style"><link rel="preload" href="/learn-wgpu/assets/js/app.891bf48f.js" as="script"><link rel="preload" href="/learn-wgpu/assets/js/2.2694e6b4.js" as="script"><link rel="preload" href="/learn-wgpu/assets/js/3.a1beb244.js" as="script"><link rel="preload" href="/learn-wgpu/assets/js/22.2132e362.js" as="script"><link rel="prefetch" href="/learn-wgpu/assets/js/10.634b5397.js"><link rel="prefetch" href="/learn-wgpu/assets/js/11.031b1ca8.js"><link rel="prefetch" href="/learn-wgpu/assets/js/12.e9f8b41b.js"><link rel="prefetch" href="/learn-wgpu/assets/js/13.ec63c87c.js"><link rel="prefetch" href="/learn-wgpu/assets/js/14.1c03a39b.js"><link rel="prefetch" href="/learn-wgpu/assets/js/15.2bb0019d.js"><link rel="prefetch" href="/learn-wgpu/assets/js/16.dd0f84af.js"><link rel="prefetch" href="/learn-wgpu/assets/js/17.115758a0.js"><link rel="prefetch" href="/learn-wgpu/assets/js/18.4b7a320e.js"><link rel="prefetch" href="/learn-wgpu/assets/js/19.1f0de2c3.js"><link rel="prefetch" href="/learn-wgpu/assets/js/20.1cd966d6.js"><link rel="prefetch" href="/learn-wgpu/assets/js/21.28a170da.js"><link rel="prefetch" href="/learn-wgpu/assets/js/23.1a88f225.js"><link rel="prefetch" href="/learn-wgpu/assets/js/24.5e2c93e5.js"><link rel="prefetch" href="/learn-wgpu/assets/js/25.87991ea0.js"><link rel="prefetch" href="/learn-wgpu/assets/js/26.8eefda0f.js"><link rel="prefetch" href="/learn-wgpu/assets/js/27.d7f5cf22.js"><link rel="prefetch" href="/learn-wgpu/assets/js/28.476932c1.js"><link rel="prefetch" href="/learn-wgpu/assets/js/29.adc9c96e.js"><link rel="prefetch" href="/learn-wgpu/assets/js/30.35a5043b.js"><link rel="prefetch" href="/learn-wgpu/assets/js/31.ba2bca1b.js"><link rel="prefetch" href="/learn-wgpu/assets/js/4.067fdf38.js"><link rel="prefetch" href="/learn-wgpu/assets/js/5.26eff44c.js"><link rel="prefetch" href="/learn-wgpu/assets/js/6.426853b4.js"><link rel="prefetch" href="/learn-wgpu/assets/js/7.2856f422.js"><link rel="prefetch" href="/learn-wgpu/assets/js/8.82833106.js"><link rel="prefetch" href="/learn-wgpu/assets/js/9.ecb6e79c.js">
+    <meta property="article:modified_time" content="2021-11-05T17:22:03.000Z"><meta property="og:site_name" content="Learn Wgpu"><meta property="og:title" content="Working with Lights"><meta property="og:type" content="website"><meta property="og:url" content="/intermediate/tutorial10-lighting/"><meta name="twitter:title" content="Working with Lights"><meta name="twitter:url" content="/intermediate/tutorial10-lighting/"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:label1" content="Written by"><meta name="twitter:data2" content="Benjamin Hansen"><meta name="twitter:creator" content="https://twitter.com/sotrh760">
+    <link rel="preload" href="/learn-wgpu/assets/css/0.styles.e2608c6d.css" as="style"><link rel="preload" href="/learn-wgpu/assets/js/app.4b831c3b.js" as="script"><link rel="preload" href="/learn-wgpu/assets/js/2.2694e6b4.js" as="script"><link rel="preload" href="/learn-wgpu/assets/js/3.6161787d.js" as="script"><link rel="preload" href="/learn-wgpu/assets/js/22.2132e362.js" as="script"><link rel="prefetch" href="/learn-wgpu/assets/js/10.634b5397.js"><link rel="prefetch" href="/learn-wgpu/assets/js/11.031b1ca8.js"><link rel="prefetch" href="/learn-wgpu/assets/js/12.0b1d538c.js"><link rel="prefetch" href="/learn-wgpu/assets/js/13.ec63c87c.js"><link rel="prefetch" href="/learn-wgpu/assets/js/14.1c03a39b.js"><link rel="prefetch" href="/learn-wgpu/assets/js/15.a0495455.js"><link rel="prefetch" href="/learn-wgpu/assets/js/16.2ff52c68.js"><link rel="prefetch" href="/learn-wgpu/assets/js/17.115758a0.js"><link rel="prefetch" href="/learn-wgpu/assets/js/18.4b7a320e.js"><link rel="prefetch" href="/learn-wgpu/assets/js/19.1f0de2c3.js"><link rel="prefetch" href="/learn-wgpu/assets/js/20.1cd966d6.js"><link rel="prefetch" href="/learn-wgpu/assets/js/21.28a170da.js"><link rel="prefetch" href="/learn-wgpu/assets/js/23.1a88f225.js"><link rel="prefetch" href="/learn-wgpu/assets/js/24.5e2c93e5.js"><link rel="prefetch" href="/learn-wgpu/assets/js/25.87991ea0.js"><link rel="prefetch" href="/learn-wgpu/assets/js/26.8eefda0f.js"><link rel="prefetch" href="/learn-wgpu/assets/js/27.d7f5cf22.js"><link rel="prefetch" href="/learn-wgpu/assets/js/28.476932c1.js"><link rel="prefetch" href="/learn-wgpu/assets/js/29.adc9c96e.js"><link rel="prefetch" href="/learn-wgpu/assets/js/30.35a5043b.js"><link rel="prefetch" href="/learn-wgpu/assets/js/31.ba2bca1b.js"><link rel="prefetch" href="/learn-wgpu/assets/js/4.0947bf2a.js"><link rel="prefetch" href="/learn-wgpu/assets/js/5.b67ab1a0.js"><link rel="prefetch" href="/learn-wgpu/assets/js/6.bc35a8a9.js"><link rel="prefetch" href="/learn-wgpu/assets/js/7.2856f422.js"><link rel="prefetch" href="/learn-wgpu/assets/js/8.82833106.js"><link rel="prefetch" href="/learn-wgpu/assets/js/9.ecb6e79c.js">
     <link rel="stylesheet" href="/learn-wgpu/assets/css/0.styles.e2608c6d.css">
   </head>
   <body>
@@ -86,12 +86,12 @@
         layout<span class="token punctuation">:</span> <span class="token class-name">Some</span><span class="token punctuation">(</span>layout<span class="token punctuation">)</span><span class="token punctuation">,</span>
         vertex<span class="token punctuation">:</span> <span class="token namespace">wgpu<span class="token punctuation">::</span></span><span class="token class-name">VertexState</span> <span class="token punctuation">{</span>
             module<span class="token punctuation">:</span> <span class="token operator">&amp;</span>shader<span class="token punctuation">,</span>
-            entry_point<span class="token punctuation">:</span> <span class="token string">&quot;main&quot;</span><span class="token punctuation">,</span>
+            entry_point<span class="token punctuation">:</span> <span class="token string">&quot;vs_main&quot;</span><span class="token punctuation">,</span>
             buffers<span class="token punctuation">:</span> vertex_layouts<span class="token punctuation">,</span>
         <span class="token punctuation">}</span><span class="token punctuation">,</span>
         fragment<span class="token punctuation">:</span> <span class="token class-name">Some</span><span class="token punctuation">(</span><span class="token namespace">wgpu<span class="token punctuation">::</span></span><span class="token class-name">FragmentState</span> <span class="token punctuation">{</span>
             module<span class="token punctuation">:</span> <span class="token operator">&amp;</span>shader<span class="token punctuation">,</span>
-            entry_point<span class="token punctuation">:</span> <span class="token string">&quot;main&quot;</span><span class="token punctuation">,</span>
+            entry_point<span class="token punctuation">:</span> <span class="token string">&quot;fs_main&quot;</span><span class="token punctuation">,</span>
             targets<span class="token punctuation">:</span> <span class="token operator">&amp;</span><span class="token punctuation">[</span><span class="token namespace">wgpu<span class="token punctuation">::</span></span><span class="token class-name">ColorTargetState</span> <span class="token punctuation">{</span>
                 format<span class="token punctuation">:</span> color_format<span class="token punctuation">,</span>
                 blend<span class="token punctuation">:</span> <span class="token class-name">Some</span><span class="token punctuation">(</span><span class="token namespace">wgpu<span class="token punctuation">::</span></span><span class="token class-name">BlendState</span> <span class="token punctuation">{</span>
@@ -273,7 +273,7 @@ struct VertexOutput {
 };
 
 [[stage(vertex)]]
-fn main(
+fn vs_main(
     model: VertexInput,
 ) -&gt; VertexOutput {
     let scale = 0.25;
@@ -286,7 +286,7 @@ fn main(
 // Fragment shader
 
 [[stage(fragment)]]
-fn main(in: VertexOutput) -&gt; [[location(0)]] vec4&lt;f32&gt; {
+fn fs_main(in: VertexOutput) -&gt; [[location(0)]] vec4&lt;f32&gt; {
     return vec4&lt;f32&gt;(in.color, 1.0);
 }
 </code></pre></div><p>Now we could manually implement the draw code for the light in <code>render()</code>, but to keep with the pattern we developed, let's create a new trait called <code>DrawLight</code>.</p> <div class="language-rust extra-class"><pre class="language-rust"><code><span class="token keyword">pub</span> <span class="token keyword">trait</span> <span class="token class-name">DrawLight</span><span class="token operator">&lt;</span><span class="token lifetime-annotation symbol">'a</span><span class="token operator">&gt;</span> <span class="token punctuation">{</span>
@@ -396,7 +396,7 @@ struct Light {
 [[group(2), binding(0)]]
 var&lt;uniform&gt; light: Light;
 </code></pre></div><p>Then we need to update our main shader code to calculate and use the ambient color value.</p> <div class="language-wgsl extra-class"><pre class="language-text"><code>[[stage(fragment)]]
-fn main(in: VertexOutput) -&gt; [[location(0)]] vec4&lt;f32&gt; {
+fn fs_main(in: VertexOutput) -&gt; [[location(0)]] vec4&lt;f32&gt; {
     let object_color: vec4&lt;f32&gt; = textureSample(t_diffuse, s_diffuse, in.tex_coords);
     
     // We don't need (or want) much ambient light, so 0.1 is fine
@@ -419,7 +419,7 @@ fn main(in: VertexOutput) -&gt; [[location(0)]] vec4&lt;f32&gt; {
     [[location(2)]] world_position: vec3&lt;f32&gt;;
 };
 </code></pre></div><p>For now let's just pass the normal directly as is. This is wrong, but we'll fix it later.</p> <div class="language-wgsl extra-class"><pre class="language-text"><code>[[stage(vertex)]]
-fn main(
+fn vs_main(
     model: VertexInput,
     instance: InstanceInput,
 ) -&gt; VertexOutput {
@@ -544,7 +544,7 @@ struct VertexOutput {
 };
 
 [[stage(vertex)]]
-fn main(
+fn vs_main(
     model: VertexInput,
     instance: InstanceInput,
 ) -&gt; VertexOutput {
@@ -619,7 +619,7 @@ let specular_color = specular_strength * light.color;
 let half_dir = normalize(view_dir + light_dir);
 
 let specular_strength = pow(max(dot(in.world_normal, half_dir), 0.0), 32.0);
-</code></pre></div><p>It's hard to tell the difference, but here's the results.</p> <p><img src="/learn-wgpu/assets/img/half_dir.bbcc23b8.png" alt="./half_dir.png"></p> <div class="auto-github-link"><a href="https://github.com/sotrh/learn-wgpu/tree/master/code/intermediate/tutorial10-lighting/" target="_blank" rel="noopener noreferrer">Check out the code!</a> <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></div></div> <footer class="page-edit"><!----> <div class="last-updated"><span class="prefix">Last Updated: </span> <span class="time">11/1/2021, 7:59:35 PM</span></div></footer> <div class="page-nav"><p class="inner"><span class="prev">
+</code></pre></div><p>It's hard to tell the difference, but here's the results.</p> <p><img src="/learn-wgpu/assets/img/half_dir.bbcc23b8.png" alt="./half_dir.png"></p> <div class="auto-github-link"><a href="https://github.com/sotrh/learn-wgpu/tree/master/code/intermediate/tutorial10-lighting/" target="_blank" rel="noopener noreferrer">Check out the code!</a> <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></div></div> <footer class="page-edit"><!----> <div class="last-updated"><span class="prefix">Last Updated: </span> <span class="time">11/5/2021, 5:22:03 PM</span></div></footer> <div class="page-nav"><p class="inner"><span class="prev">
         ←
         <a href="/learn-wgpu/beginner/tutorial9-models/" class="prev">
           Model Loading
@@ -628,6 +628,6 @@ let specular_strength = pow(max(dot(in.world_normal, half_dir), 0.0), 32.0);
         </a>
         →
       </span></p></div> </main></div></div><div class="global-ui"><!----></div></div>
-    <script src="/learn-wgpu/assets/js/app.891bf48f.js" defer></script><script src="/learn-wgpu/assets/js/2.2694e6b4.js" defer></script><script src="/learn-wgpu/assets/js/3.a1beb244.js" defer></script><script src="/learn-wgpu/assets/js/22.2132e362.js" defer></script>
+    <script src="/learn-wgpu/assets/js/app.4b831c3b.js" defer></script><script src="/learn-wgpu/assets/js/2.2694e6b4.js" defer></script><script src="/learn-wgpu/assets/js/3.6161787d.js" defer></script><script src="/learn-wgpu/assets/js/22.2132e362.js" defer></script>
   </body>
 </html>
