@@ -26,7 +26,7 @@ struct VertexOutput {
 };
 
 [[stage(vertex)]]
-fn main(
+fn vs_main(
     model: VertexInput,
 ) -> VertexOutput {
     let scale = 0.25;
@@ -39,6 +39,6 @@ fn main(
 // Fragment shader
 
 [[stage(fragment)]]
-fn main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
+fn fs_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
     return vec4<f32>(in.color, 1.0);
 }

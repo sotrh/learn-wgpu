@@ -247,7 +247,7 @@ struct VertexOutput {
 };
 
 [[stage(vertex)]]
-fn main(
+fn vs_main(
     model: VertexInput,
 ) -> VertexOutput {
     var out: VertexOutput;

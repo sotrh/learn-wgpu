@@ -233,7 +233,7 @@ We need to reassemble the matrix before we can use it.
 
 ```wgsl
 [[stage(vertex)]]
-fn main(
+fn vs_main(
     model: VertexInput,
     instance: InstanceInput,
 ) -> VertexOutput {
@@ -251,7 +251,7 @@ We'll apply the `model_matrix` before we apply `camera_uniform.view_proj`. We do
 
 ```wgsl
 [[stage(vertex)]]
-fn main(
+fn vs_main(
     model: VertexInput,
     instance: InstanceInput,
 ) -> VertexOutput {

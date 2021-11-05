@@ -46,7 +46,7 @@ struct VertexOutput {
 };
 
 [[stage(vertex)]]
-fn main(
+fn vs_main(
     [[builtin(vertex_index)]] in_vertex_index: u32,
 ) -> VertexOutput {
     var out: VertexOutput;
@@ -65,7 +65,7 @@ Vector types such as `vec4` are generic. Currently you must specify the type of 
 
 </div>
 
-The next part of the shader code is the `main` function. We are using `[[stage(vertex)]]` to mark this function as a valid entry point for a vertex shader. We expect a `u32` called `in_vertex_index` which gets its value from `[[builtin(vertex_index)]]`.
+The next part of the shader code is the `vs_main` function. We are using `[[stage(vertex)]]` to mark this function as a valid entry point for a vertex shader. We expect a `u32` called `in_vertex_index` which gets its value from `[[builtin(vertex_index)]]`.
 
 We then declare a variable called `out` using our `VertexOutput` struct. We create two other variables for the `x`, and `y`, of a triangle.
 
@@ -89,7 +89,7 @@ We technically didn't need a struct for this example, and could have just done s
 
 ```wgsl
 [[stage(vertex)]]
-fn main(
+fn vs_main(
     [[builtin(vertex_index)]] in_vertex_index: u32
 ) -> [[builtin(position)]] vec4<f32> {
     // Vertex shader code...
@@ -106,7 +106,7 @@ Next up the fragment shader. Still in `shader.wgsl` add the follow:
 // Fragment shader
 
 [[stage(fragment)]]
-fn main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
+fn fs_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
     return vec4<f32>(0.3, 0.2, 0.1, 1.0);
 }
 ```
@@ -115,7 +115,7 @@ All this does is set the color of the current fragment to brown color.
 
 <div class="note">
 
-Notice that this function is also called `main`. Because this function is marked as a fragment shader entry point, this is ok. You can change the names around if you like, but I've opted to keep them the same.
+Notice that the entry point for the vertex shader was named `vs_main` and that the entry point for the fragment shader is called `fs_main`. In earlier versions of wgpu it was ok to both name these functions the same, but newer versions of the [WGSL spec](https://www.w3.org/TR/WGSL/#declaration-and-scope) require these names to be different. Therefore the above mentioned naming scheme (which is adopted from the `wgpu` examples) is used throughout the tutorial.
 
 </div>
 
@@ -165,12 +165,12 @@ let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescrip
     layout: Some(&render_pipeline_layout),
     vertex: wgpu::VertexState {
         module: &shader,
-        entry_point: "main", // 1.
+        entry_point: "vs_main", // 1.
         buffers: &[], // 2.
     },
     fragment: Some(wgpu::FragmentState { // 3.
         module: &shader,
-        entry_point: "main",
+        entry_point: "fs_main",
         targets: &[wgpu::ColorTargetState { // 4.
             format: config.format,
             blend: Some(wgpu::BlendState::REPLACE),

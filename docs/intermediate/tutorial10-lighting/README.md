@@ -125,12 +125,12 @@ fn create_render_pipeline(
         layout: Some(layout),
         vertex: wgpu::VertexState {
             module: &shader,
-            entry_point: "main",
+            entry_point: "vs_main",
             buffers: vertex_layouts,
         },
         fragment: Some(wgpu::FragmentState {
             module: &shader,
-            entry_point: "main",
+            entry_point: "fs_main",
             targets: &[wgpu::ColorTargetState {
                 format: color_format,
                 blend: Some(wgpu::BlendState {
@@ -334,7 +334,7 @@ struct VertexOutput {
 };
 
 [[stage(vertex)]]
-fn main(
+fn vs_main(
     model: VertexInput,
 ) -> VertexOutput {
     let scale = 0.25;
@@ -347,7 +347,7 @@ fn main(
 // Fragment shader
 
 [[stage(fragment)]]
-fn main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
+fn fs_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
     return vec4<f32>(in.color, 1.0);
 }
 ```
@@ -485,7 +485,7 @@ Then we need to update our main shader code to calculate and use the ambient col
 
 ```wgsl
 [[stage(fragment)]]
-fn main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
+fn fs_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
     let object_color: vec4<f32> = textureSample(t_diffuse, s_diffuse, in.tex_coords);
     
     // We don't need (or want) much ambient light, so 0.1 is fine
@@ -535,7 +535,7 @@ For now let's just pass the normal directly as is. This is wrong, but we'll fix 
 
 ```wgsl
 [[stage(vertex)]]
-fn main(
+fn vs_main(
     model: VertexInput,
     instance: InstanceInput,
 ) -> VertexOutput {
@@ -719,7 +719,7 @@ struct VertexOutput {
 };
 
 [[stage(vertex)]]
-fn main(
+fn vs_main(
     model: VertexInput,
     instance: InstanceInput,
 ) -> VertexOutput {
