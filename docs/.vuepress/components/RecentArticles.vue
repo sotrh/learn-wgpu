@@ -3,7 +3,7 @@
 <template>
 <div>
 	<ul>
-		<li v-for="post in recentFiles">
+		<li v-for="i, post in recentFiles" :key="i">
 			<a :href="post.path">{{post.title}}</a>
 		</li>
 	</ul>
