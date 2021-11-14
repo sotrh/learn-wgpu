@@ -100,7 +100,7 @@ We'll be adding more fields to `VertexOutput` later, so we might as well start u
 
 </div>
 
-Next up the fragment shader. Still in `shader.wgsl` add the follow:
+Next up the fragment shader. Still in `shader.wgsl` add the following:
 
 ```wgsl
 // Fragment shader
