@@ -97,8 +97,9 @@ Let's also update the lights position in the `update()` method, so we can see wh
 // Update the light
 let old_position: cgmath::Vector3<_> = self.light_uniform.position.into();
 self.light_uniform.position =
-    cgmath::Quaternion::from_axis_angle((0.0, 1.0, 0.0).into(), cgmath::Deg(1.0))
-        * old_position;
+    (cgmath::Quaternion::from_axis_angle((0.0, 1.0, 0.0).into(), cgmath::Deg(1.0))
+        * old_position)
+        .into();
 self.queue.write_buffer(&self.light_buffer, 0, bytemuck::cast_slice(&[self.light_uniform]));
 ```
 
@@ -174,7 +175,6 @@ We also need to change `State::new()` to use this function.
 let render_pipeline = {
     let shader = wgpu::ShaderModuleDescriptor {
         label: Some("Normal Shader"),
-        flags: wgpu::ShaderFlags::all(),
         source: wgpu::ShaderSource::Wgsl(include_str!("shader.wgsl").into()),
     };
     create_render_pipeline(
@@ -191,6 +191,7 @@ let render_pipeline = {
 We're going to need to modify `model::DrawModel` to use our `light_bind_group`.
 
 ```rust
+// model.rs
 pub trait DrawModel<'a> {
     fn draw_mesh(
         &mut self,
@@ -245,8 +246,8 @@ where
         camera_bind_group: &'b wgpu::BindGroup,
         light_bind_group: &'b wgpu::BindGroup,
     ) {
-        self.set_vertex_buffer(0, &mesh.vertex_buffer, 0, 0);
-        self.set_index_buffer(&mesh.index_buffer, 0, 0);
+        self.set_vertex_buffer(0, mesh.vertex_buffer.slice(..));
+        self.set_index_buffer(mesh.index_buffer.slice(..), wgpu::IndexFormat::Uint32);
         self.set_bind_group(0, &material.bind_group, &[]);
         self.set_bind_group(1, camera_bind_group, &[]);
         self.set_bind_group(2, light_bind_group, &[]);
@@ -280,6 +281,7 @@ where
 With that done we can create another render pipeline for our light.
 
 ```rust
+// main.rs
 let light_render_pipeline = {
     let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
         label: Some("Light Pipeline Layout"),
@@ -288,7 +290,6 @@ let light_render_pipeline = {
     });
     let shader = wgpu::ShaderModuleDescriptor {
         label: Some("Light Shader"),
-        flags: wgpu::ShaderFlags::all(),
         source: wgpu::ShaderSource::Wgsl(include_str!("light.wgsl").into()),
     };
     create_render_pipeline(
@@ -307,6 +308,7 @@ I chose to create a seperate layout for the `light_render_pipeline`, as it doesn
 With that in place we need to write the actual shaders.
 
 ```wgsl
+// light.wgsl
 // Vertex shader
 
 [[block]]
@@ -355,6 +357,7 @@ fn fs_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
 Now we could manually implement the draw code for the light in `render()`, but to keep with the pattern we developed, let's create a new trait called `DrawLight`.
 
 ```rust
+// model.rs
 pub trait DrawLight<'a> {
     fn draw_light_mesh(
         &mut self,
@@ -456,7 +459,7 @@ impl State {
             &self.obj_model,
             0..self.instances.len() as u32,
             &self.camera_bind_group,
-            &self.light_bind_group,
+            &self.light_bind_group, // NEW
         );
 }
 ```
@@ -737,7 +740,7 @@ fn vs_main(
     );
     var out: VertexOutput;
     out.tex_coords = model.tex_coords;
-    out.world_normal = normal_matrix * model.normal;
+    out.world_normal = normal_matrix * model.normal; // UPDATED!
     var world_position: vec4<f32> = model_matrix * vec4<f32>(model.position, 1.0);
     out.world_position = world_position.xyz;
     out.clip_position = camera.view_proj * world_position;
@@ -806,8 +809,8 @@ impl CameraUniform {
 
     fn update_view_proj(&mut self, camera: &Camera) {
         // We're using Vector4 because of the uniforms 16 byte spacing requirement
-        self.view_position = camera.eye.to_homogeneous();
-        self.view_proj = OPENGL_TO_WGPU_MATRIX * camera.build_view_projection_matrix();
+        self.view_position = camera.eye.to_homogeneous().into();
+        self.view_proj = (OPENGL_TO_WGPU_MATRIX * camera.build_view_projection_matrix()).into();
     }
 }
 ```
@@ -832,6 +835,7 @@ let camera_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupL
 We're going to get the direction from the fragment's position to the camera, and use that with the normal to calculate the `reflect_dir`.
 
 ```wgsl
+// shader.wgsl
 // In the fragment shader...
 let view_dir = normalize(camera.view_pos.xyz - in.world_position);
 let reflect_dir = reflect(-light_dir, in.world_normal);
