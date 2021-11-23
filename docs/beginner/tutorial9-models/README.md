@@ -190,10 +190,18 @@ While we're at it let's import `texture.rs` in `model.rs`.
 use crate::texture;
 ```
 
-We also need to make a subtle change on `from_image()` method in `texture.rs`. PNGs work fine with `as_rgba8()`, as they have an alpha channel. But, JPEGs don't have an alpha channel, and the code would panic if we try to call `as_rgba8()` on the JPEG texture image we are going to use. Instead, we can use `to_rgba8()` to handle such an image.
+We also need to make a subtle change on `from_image()` method in `texture.rs`. PNGs work fine with `as_rgba8()`, as they have an alpha channel. But, JPEGs don't have an alpha channel, and the code would panic if we try to call `as_rgba8()` on the JPEG texture image we are going to use. Instead, we can use `to_rgba8()` to handle such an image, which will generate a new image buffer with alpha channel even if the original image does not have one.
 
 ```rust
 let rgba = img.to_rgba8(); 
+```
+
+Since `rgba` is now a new image buffer, and not a reference to the original image's buffer, when it is used in the call to `write_texture` later, it needs to be passed as a reference instead.
+
+```rust
+    //...
+    &rgba,  // UPDATED!
+    wgpu::ImageDataLayout {
 ```
 
 `Mesh` holds a vertex buffer, an index buffer, and the number of indices in the mesh. We're using an `usize` for the material. This `usize` will be used to index the `materials` list when it comes time to draw.
