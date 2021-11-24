@@ -79,6 +79,14 @@ struct State {
 }
 ```
 
+The `cgmath` crate uses traits to provide common mathematical methods across its structs such as `Vector3`, and these traits must be imported before these methods can be called.  For convenience, the `prelude` module within the crate provides the most common of these extension crates when it is imported.
+
+To import this prelude module, put this line near the top of `main.rs`.
+
+```rust
+use cgmath::prelude::*;
+```
+
 We'll create the instances in `new()`. We'll use some constants to simplify things. We'll display our instances in 10 rows of 10, and they'll be spaced evenly apart.
 
 ```rust
