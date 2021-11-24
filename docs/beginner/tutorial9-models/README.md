@@ -150,6 +150,7 @@ You'll notice that our `Model` struct has a `Vec` for the `meshes`, and for `mat
 pub struct Material {
     pub name: String,
     pub diffuse_texture: texture::Texture,
+    pub bind_group: wgpu::BindGroup,
 }
 
 pub struct Mesh {
@@ -396,15 +397,7 @@ If you look at the texture files for our obj, you'll see that they don't match u
 
 but we're still getting our happy tree texture.
 
-The reason for this is quite simple. Though we've created our textures we haven't created a bind group to give to the `RenderPass`. We're still using our old `diffuse_bind_group`. If we want to change that we need to create a bind group for our materials. Add a `bind_group` field to `Material`.
-
-```rust
-pub struct Material {
-    pub name: String,
-    pub diffuse_texture: texture::Texture,
-    pub bind_group: wgpu::BindGroup, // NEW!
-}
-```
+The reason for this is quite simple. Though we've created our textures we haven't created a bind group to give to the `RenderPass`. We're still using our old `diffuse_bind_group`. If we want to change that we need to use the bind group from our materials - the `bind_group` member of the `Material` struct.
 
 We're going to add a material parameter to `DrawModel`.
 
@@ -421,7 +414,7 @@ pub trait DrawModel<'a> {
 
 }
 
-impl<'a, 'b> DrawModel<'a, 'b> for wgpu::RenderPass<'a>
+impl<'a, 'b> DrawModel<'b> for wgpu::RenderPass<'a>
 where
     'b: 'a,
 {
