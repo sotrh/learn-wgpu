@@ -16,7 +16,7 @@ We'll need to modify our `Material` struct in `model.rs` to include a `normal_te
 pub struct Material {
     pub name: String,
     pub diffuse_texture: texture::Texture,
-    pub normal_texture: texture::Texture,
+    pub normal_texture: texture::Texture, // UPDATED!
     pub bind_group: wgpu::BindGroup,
 }
 ```
@@ -121,6 +121,8 @@ fn fs_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
 
     // Create the lighting vectors
     let tangent_normal = object_normal.xyz * 2.0 - 1.0;
+    let light_dir = normalize(light.position - in.world_position);
+    let view_dir = normalize(camera.view_pos.xyz - in.world_position);
 
     let diffuse_strength = max(dot(tangent_normal, light_dir), 0.0);
     let diffuse_color = light.color * diffuse_strength;
@@ -226,20 +228,19 @@ impl Model {
             let mut vertices = Vec::new();
             for i in 0..m.mesh.positions.len() / 3 {
                 vertices.push(ModelVertex {
-                    // Add .into() to convert arrays to cgmath::VectorN
                     position: [
                         // ...
-                    ].into(),
+                    ],
                     tex_coords: [
                         // ...
-                    ].into(),
+                    ],
                     normal: [
                         // ...
-                    ].into(),
+                    ],
                     // ...
                     // We'll calculate these later
-                    tangent: [0.0; 3].into(),
-                    bitangent: [0.0; 3].into(),
+                    tangent: [0.0; 3],
+                    bitangent: [0.0; 3],
                 });
             }
 
@@ -369,10 +370,10 @@ fn vs_main(
     let world_position = model_matrix * vec4<f32>(model.position, 1.0);
 
     var out: VertexOutput;
-    out.clip_position = camera_uniform.view_proj * world_position;
+    out.clip_position = camera.view_proj * world_position;
     out.tex_coords = model.tex_coords;
     out.tangent_position = tangent_matrix * world_position.xyz;
-    out.tangent_view_position = tangent_matrix * camera_uniform.view_pos.xyz;
+    out.tangent_view_position = tangent_matrix * camera.view_pos.xyz;
     out.tangent_light_position = tangent_matrix * light.position;
     return out;
 }
@@ -585,20 +586,25 @@ where
 I found a cobblestone texture with matching normal map, and created a `debug_material` for that.
 
 ```rust
-// new()
-let debug_material = {
-    let diffuse_bytes = include_bytes!("../res/cobble-diffuse.png");
-    let normal_bytes = include_bytes!("../res/cobble-normal.png");
+// main.rs
+impl State {
+    async fn new(window: &Window) -> Result<Self> {
+        // ...
+        let debug_material = {
+            let diffuse_bytes = include_bytes!("../res/cobble-diffuse.png");
+            let normal_bytes = include_bytes!("../res/cobble-normal.png");
 
-    let diffuse_texture = texture::Texture::from_bytes(&device, &queue, diffuse_bytes, "res/alt-diffuse.png", false).unwrap();
-    let normal_texture = texture::Texture::from_bytes(&device, &queue, normal_bytes, "res/alt-normal.png", true).unwrap();
-    
-    model::Material::new(&device, "alt-material", diffuse_texture, normal_texture, &texture_bind_group_layout)
-};
-Self {
-    // ...
-    #[allow(dead_code)]
-    debug_material,
+            let diffuse_texture = texture::Texture::from_bytes(&device, &queue, diffuse_bytes, "res/alt-diffuse.png", false).unwrap();
+            let normal_texture = texture::Texture::from_bytes(&device, &queue, normal_bytes, "res/alt-normal.png", true).unwrap();
+            
+            model::Material::new(&device, "alt-material", diffuse_texture, normal_texture, &texture_bind_group_layout)
+        };
+        Self {
+            // ...
+            #[allow(dead_code)]
+            debug_material,
+        }
+    }
 }
 ```
 
