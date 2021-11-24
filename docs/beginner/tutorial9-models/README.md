@@ -73,6 +73,12 @@ let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescrip
 });
 ```
 
+Since the `desc` method is implemented on the `Vertex` trait, the trait needs to be imported before the method will be accessible.  Put the import towards the top of the file with the others.
+
+```rust
+use model::Vertex;
+```
+
 With all that in place we need a model to render. If you have one already that's great, but I've supplied a [zip file](https://github.com/sotrh/learn-wgpu/blob/master/code/beginner/tutorial9-models/res/cube.zip) with the model and all of it's textures. We're going to put this model in a new `res` folder next to the existing `src` folder.
 
 ## Accessing files in the res folder
