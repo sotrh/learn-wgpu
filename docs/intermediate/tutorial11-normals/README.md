@@ -121,6 +121,8 @@ fn fs_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
 
     // Create the lighting vectors
     let tangent_normal = object_normal.xyz * 2.0 - 1.0;
+    let light_dir = normalize(light.position - in.world_position);
+    let view_dir = normalize(camera.view_pos.xyz - in.world_position);
 
     let diffuse_strength = max(dot(tangent_normal, light_dir), 0.0);
     let diffuse_color = light.color * diffuse_strength;
@@ -369,10 +371,10 @@ fn vs_main(
     let world_position = model_matrix * vec4<f32>(model.position, 1.0);
 
     var out: VertexOutput;
-    out.clip_position = camera_uniform.view_proj * world_position;
+    out.clip_position = camera.view_proj * world_position;
     out.tex_coords = model.tex_coords;
     out.tangent_position = tangent_matrix * world_position.xyz;
-    out.tangent_view_position = tangent_matrix * camera_uniform.view_pos.xyz;
+    out.tangent_view_position = tangent_matrix * camera.view_pos.xyz;
     out.tangent_light_position = tangent_matrix * light.position;
     return out;
 }
