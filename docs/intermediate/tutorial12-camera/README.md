@@ -18,6 +18,8 @@ pub const OPENGL_TO_WGPU_MATRIX: cgmath::Matrix4<f32> = cgmath::Matrix4::new(
     0.0, 0.0, 0.5, 0.0,
     0.0, 0.0, 0.5, 1.0,
 );
+
+const SAFE_FRAC_PI_2: f32 = FRAC_PI_2 - 0.0001;
 ```
 
 ## The Camera
@@ -329,7 +331,7 @@ fn input(&mut self, event: &DeviceEvent) -> bool {
             }
         ) => self.camera_controller.process_keyboard(*key, *state),
         DeviceEvent::MouseWheel { delta, .. } => {
-            self.camera_controller.process_scroll(*delta);
+            self.camera_controller.process_scroll(delta);
             true
         }
         DeviceEvent::Button {
@@ -413,8 +415,8 @@ While we're at it, let's use `dt` for the light's rotation as well.
 
 ```rust
 self.light_uniform.position =
-    cgmath::Quaternion::from_axis_angle((0.0, 1.0, 0.0).into(), cgmath::Deg(60.0 * dt.as_secs_f32()))
-        * old_position; // UPDATED!
+    (cgmath::Quaternion::from_axis_angle((0.0, 1.0, 0.0).into(), cgmath::Deg(60.0 * dt.as_secs_f32()))
+    * old_position).into(); // UPDATED!
 ```
 
 We still need to calculate `dt`. Let's do that in the `main` function.
@@ -423,7 +425,7 @@ We still need to calculate `dt`. Let's do that in the `main` function.
 fn main() {
     // ...
     let mut state = pollster::block_on(State::new(&window));
-    let mut last_render_time = std::time::Instant::now();
+    let mut last_render_time = std::time::Instant::now();  // NEW!
     event_loop.run(move |event, _, control_flow| {
         *control_flow = ControlFlow::Poll;
         match event {
