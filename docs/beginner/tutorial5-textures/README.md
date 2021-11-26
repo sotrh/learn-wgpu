@@ -303,8 +303,9 @@ First, we'll change the `Vertex` struct:
 ```rust
 #[repr(C)]
 #[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
-struct Vertex  position: [f32; 3],
-    tex ords: [f32; 2],   NEW!
+struct Vertex {
+    position: [f32; 3],
+    tex_coords: [f32; 2], // NEW!
 }
 ```
 
