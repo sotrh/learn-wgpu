@@ -263,3 +263,5 @@ I was going to have `BallBounce` play a positioned sound using a `SpatialSink`, 
 ## Summary
 
 A fun project to work on. It was overly architected, and kinda hard to make changes, but a good experience none the less.
+
+<WasmExample example="pong"></WasmExample>

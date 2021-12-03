@@ -3,7 +3,7 @@ mod buffer;
 use std::iter;
 
 use wgpu_glyph::{ab_glyph, Section, Text};
-use winit::monitor::VideoMode;
+use winit::dpi::PhysicalSize;
 use winit::window::Window;
 
 use buffer::*;
@@ -36,7 +36,7 @@ impl Render {
         self.config.height as f32
     }
 
-    pub async fn new(window: &Window, video_mode: &VideoMode) -> Self {
+    pub async fn new(window: &Window, size: PhysicalSize<u32>) -> Self {
         // The instance is a handle to our GPU
         // BackendBit::PRIMARY => Vulkan + Metal + DX12 + Browser WebGPU
         let instance = wgpu::Instance::new(wgpu::Backends::all());
@@ -54,14 +54,13 @@ impl Render {
                 &wgpu::DeviceDescriptor {
                     label: None,
                     features: wgpu::Features::empty(),
-                    limits: wgpu::Limits::default(),
+                    limits: wgpu::Limits::downlevel_webgl2_defaults(),
                 },
                 None, // Trace path
             )
             .await
             .unwrap();
 
-        let size = video_mode.size();
         let config = wgpu::SurfaceConfiguration {
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
             format: surface.get_preferred_format(&adapter).unwrap(),
@@ -81,8 +80,8 @@ impl Render {
             &pipeline_layout,
             config.format,
             &[Vertex::DESC],
-            wgpu::include_spirv!("../../res/shaders/textured.vert.spv"),
-            wgpu::include_spirv!("../../res/shaders/textured.frag.spv"),
+            wgpu::include_wgsl!("../../res/shaders/textured.vert.wgsl"),
+            wgpu::include_wgsl!("../../res/shaders/textured.frag.wgsl"),
         );
 
         let vertex_buffer = device.create_buffer(&wgpu::BufferDescriptor {
@@ -193,12 +192,14 @@ impl Render {
                 self.staging_belt.finish();
                 self.queue.submit(iter::once(encoder.finish()));
                 frame.present();
+
             }
             Err(wgpu::SurfaceError::Outdated) => {
+                log::info!("Outdated surface texture");
                 self.surface.configure(&self.device, &self.config);
             }
             Err(e) => {
-                eprintln!("Error: {}", e);
+                log::error!("Error: {}", e);
             }
         }
     }

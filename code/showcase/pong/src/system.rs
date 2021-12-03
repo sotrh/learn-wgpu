@@ -67,15 +67,19 @@ impl System for MenuSystem {
             events.push(state::Event::FocusChanged);
             state.play_button.focused = false;
             state.quit_button.focused = true;
+            log::info!("Quit selected");
         } else if state.quit_button.focused && input.ui_up_pressed() {
             events.push(state::Event::FocusChanged);
             state.quit_button.focused = false;
             state.play_button.focused = true;
+            log::info!("Play selected");
         }
 
         if state.play_button.focused && input.enter_pressed {
+            log::info!("Starting game");
             events.push(state::Event::ButtonPressed);
             state.game_state = state::GameState::Serving;
+            log::info!("Quitting");
         } else if state.quit_button.focused && input.enter_pressed {
             events.push(state::Event::ButtonPressed);
             state.game_state = state::GameState::Quiting;
@@ -118,6 +122,7 @@ impl System for PlaySystem {
         }
 
         if state.player1.score > 2 || state.player2.score > 2 {
+            log::info!("Gameover");
             state.game_state = state::GameState::GameOver;
         }
     }
@@ -156,10 +161,12 @@ impl System for BallSystem {
         }
 
         if state.ball.position.x > 1.0 {
+            log::info!("Player 1 scored");
             state.player1.score += 1;
             state.game_state = state::GameState::Serving;
             events.push(state::Event::Score(0));
         } else if state.ball.position.x < -1.0 {
+            log::info!("Player 1 scored");
             state.player2.score += 1;
             state.game_state = state::GameState::Serving;
             events.push(state::Event::Score(1));
@@ -168,20 +175,20 @@ impl System for BallSystem {
 }
 
 pub struct ServingSystem {
-    last_time: std::time::Instant,
+    last_time: instant::Instant,
 }
 
 impl ServingSystem {
     pub fn new() -> Self {
         Self {
-            last_time: std::time::Instant::now(),
+            last_time: instant::Instant::now(),
         }
     }
 }
 
 impl System for ServingSystem {
     fn start(&mut self, state: &mut state::State) {
-        self.last_time = std::time::Instant::now();
+        self.last_time = instant::Instant::now();
         let direction = state.ball.position.x.signum();
         state.ball.position = (0.0, 0.0).into();
         state.ball.velocity = cgmath::Vector2::unit_x() * direction * -util::BALL_SPEED;
@@ -195,29 +202,30 @@ impl System for ServingSystem {
         state: &mut state::State,
         _events: &mut Vec<state::Event>,
     ) {
-        let current_time = std::time::Instant::now();
+        let current_time = instant::Instant::now();
         let delta_time = current_time - self.last_time;
         if delta_time.as_secs_f32() > 2.0 {
+            log::info!("Serving...");
             state.game_state = state::GameState::Playing;
         }
     }
 }
 
 pub struct GameOverSystem {
-    last_time: std::time::Instant,
+    last_time: instant::Instant,
 }
 
 impl GameOverSystem {
     pub fn new() -> Self {
         Self {
-            last_time: std::time::Instant::now(),
+            last_time: instant::Instant::now(),
         }
     }
 }
 
 impl System for GameOverSystem {
     fn start(&mut self, state: &mut state::State) {
-        self.last_time = std::time::Instant::now();
+        self.last_time = instant::Instant::now();
 
         state.player1_score.text = format!("{}", state.player1.score);
         state.player2_score.text = format!("{}", state.player2.score);
@@ -227,6 +235,8 @@ impl System for GameOverSystem {
         } else {
             String::from("Player 2 wins!")
         };
+
+        log::info!("{}", state.win_text.text);
     }
 
     fn update_state(
@@ -235,7 +245,7 @@ impl System for GameOverSystem {
         state: &mut state::State,
         _events: &mut Vec<state::Event>,
     ) {
-        let current_time = std::time::Instant::now();
+        let current_time = instant::Instant::now();
         let delta_time = current_time - self.last_time;
         if delta_time.as_secs_f32() > 1.0 {
             state.game_state = state::GameState::MainMenu;
