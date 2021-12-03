@@ -1,34 +1,72 @@
 <template>
-  <div class="wasm-example">
+  <div id="wasm-example">
     <div class="error" v-if="error">
       {{ error }}
     </div>
+    <button v-if="!exampleStarted && !autoLoad" @click="loadExample()" :disabled="loading">Try {{exampleName}}!</button>
   </div>
 </template>
 
 <script>
+// Found at https://stackoverflow.com/questions/196972/convert-string-to-title-case-with-javascript
+function toTitleCase(str) {
+  return str.replace(
+    /\w\S*/g,
+    function(txt) {
+      return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+    }
+  );
+}
+
 export default {
-  props: { example: "" },
+  props: { 
+    example: "",
+    autoLoad: false,
+  },
   data() {
     return {
-      error: {
-        value: "",
-        required: true,
-      },
+      error: "",
+      loading: false,
+      exampleStarted: false,
     };
   },
-  async mounted() {
-    await this.$nextTick();
-
-    try {
-      const init = await import(`./wasm/${this.example}/${this.example}.js`);
-      init().then(() => {
-        console.log("WASM Loaded");
-      });
-    } catch (e) {
-      this.error = `An error occurred loading "${this.example}": ${e}`;
-      console.error(e);
+  computed: {
+    exampleName() {
+      return toTitleCase(this.example);
     }
   },
+  methods: {
+    async loadExample() {
+      this.loading = true;
+      try {
+        const init = await import(`./wasm/${this.example}/${this.example}.js`);
+        init().then(() => {
+          console.log("WASM Loaded");
+        });
+      } catch (e) {
+        // TODO: Figure out a better way to ignore "control flow" errors
+        if (`${e}` != "Error: Using exceptions for control flow, don't mind me. This isn't actually an error!") {
+          this.error = `An error occurred loading "${this.example}": ${e}`;
+          console.error(e);
+          this.exampleStarted = false;
+        } else {
+          this.exampleStarted = true;
+        }
+      }
+      this.loading = false;
+    },
+  },
+  async mounted() {
+    await this.$nextTick()
+    if (this.autoLoad) {
+      await this.loadExample()
+    }
+  }
 };
 </script>
+
+<style>
+#wasm-example canvas {
+  background-color: black;
+}
+</style>

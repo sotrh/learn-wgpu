@@ -6,6 +6,5 @@
 
 ## Things I'd like
 * Screen shots
-* Create gifs
+* Create gifs of examples running (?)
 * Displaying random models as wireframe and solid
-* loading obj models
