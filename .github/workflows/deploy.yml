@@ -9,7 +9,9 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Build WASM
-        run: sh build-wasm.sh
+        run: |
+          curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+          sh build-wasm.sh
 
       - name: Install and Build Vuepress
         run: |
