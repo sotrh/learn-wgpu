@@ -20,7 +20,7 @@ use winit::window::{Fullscreen, WindowBuilder};
 pub fn start() {
     cfg_if::cfg_if! {
         if #[cfg(target_arch = "wasm32")] {
-            console_log::init_with_level(log::Level::Info).expect("Could't initialize logger");
+            console_log::init_with_level(log::Level::Warn).expect("Could't initialize logger");
             std::panic::set_hook(Box::new(console_error_panic_hook::hook));
         } else {
             env_logger::init();
@@ -49,11 +49,20 @@ pub fn start() {
         use winit::platform::web::WindowExtWebSys;
         web_sys::window()
             .and_then(|win| win.document())
-            .and_then(|doc| doc.body())
-            .and_then(|body| {
-                body.append_child(&web_sys::Element::from(window.canvas())).ok()
+            .and_then(|doc| {
+                let dst = doc.get_element_by_id("wasm-example")?;
+                let canvas = web_sys::Element::from(window.canvas());
+                dst.append_child(&canvas).ok()?;
+
+                // Request fullscreen, if denied, continue as normal
+                match canvas.request_fullscreen() {
+                    Ok(_) => {},
+                    Err(_) => ()
+                }
+
+                Some(())
             })
-            .expect("Couldn't append cavas to document body.");
+            .expect("Couldn't append canvas to document body.");
     }
 
     log::info!("Setup...");
@@ -183,6 +192,12 @@ pub fn start() {
                     process_input(element_state, key, control_flow);
                 }
             }
+            Event::WindowEvent {
+                event: WindowEvent::Resized(size), ..
+            } => {
+                render.resize(size);
+                events.push(state::Event::Resize(size.width as f32, size.height as f32));
+            }
             Event::RedrawRequested(_) => {
                 for event in &events {
                     match event {
@@ -194,6 +209,12 @@ pub fn start() {
                         }
                         state::Event::Score(_) => {
                             sound_system.queue(sound_pack.bounce());
+                        }
+                        state::Event::Resize(width, height) => {
+                            // TODO: their should be a system that handles this
+                            state.player1_score.position = (width * 0.25, 20.0).into();
+                            state.player2_score.position = (width * 0.75, 20.0).into();
+                            state.win_text.position = (width * 0.5, height * 0.5).into();
                         }
                     }
                 }

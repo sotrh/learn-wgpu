@@ -88,6 +88,7 @@ pub enum Event {
     FocusChanged,
     BallBounce(cgmath::Vector2<f32>),
     Score(u32),
+    Resize(f32, f32),
 }
 
 #[cfg(test)]

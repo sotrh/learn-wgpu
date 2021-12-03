@@ -37,6 +37,7 @@ impl Render {
     }
 
     pub async fn new(window: &Window, size: PhysicalSize<u32>) -> Self {
+        log::warn!("size: {:?}", size);
         // The instance is a handle to our GPU
         // BackendBit::PRIMARY => Vulkan + Metal + DX12 + Browser WebGPU
         let instance = wgpu::Instance::new(wgpu::Backends::all());
@@ -115,6 +116,12 @@ impl Render {
             glyph_brush,
             staging_belt,
         }
+    }
+
+    pub fn resize(&mut self, size: PhysicalSize<u32>) {
+        self.config.width = size.width;
+        self.config.height = size.height;
+        self.surface.configure(&self.device, &self.config);
     }
 
     pub fn render_state(&mut self, state: &state::State) {
