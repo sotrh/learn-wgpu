@@ -140,7 +140,7 @@ The `limits` field describes the limit of certain types of resource we can creat
         surface.configure(&device, &config);
 ```
 
-Here we are defining a config for our surface. This will define how the surface creates its underlying `SurfaceTexture`s. We will talk about `SurfaceTexture` when we get to the `render` function. For now lets talk about some of the our configs fields.
+Here we are defining a config for our surface. This will define how the surface creates its underlying `SurfaceTexture`s. We will talk about `SurfaceTexture` when we get to the `render` function. For now lets talk about some of the config fields.
 
 The `usage` field describes how the `SurfaceTexture`s will be used. `RENDER_ATTACHMENT` specifies that the textures will be used to write to the screen (we'll talk about more `TextureUsages`s later).
 
@@ -297,7 +297,7 @@ The `get_current_texture` function will wait for the `surface` to provide a new 
     let view = output.texture.create_view(&wgpu::TextureViewDescriptor::default());
 ```
 
-This line creates a `TextureView` with default settings. We need to do this because we want to control how the render code interacts with the texture. 
+This line creates a `TextureView` with default settings. We need to do this because we want to control how the render code interacts with the texture.
 
 We also need to create a `CommandEncoder` to create the actual commands to send to the gpu. Most modern graphics frameworks expect commands to be stored in a command buffer before being sent to the gpu. The `encoder` builds a command buffer that we can then send to the gpu.
 
@@ -391,7 +391,7 @@ Some of you may be able to tell what's going on just by looking at it, but I'd b
 }
 ```
 
-A `RenderPassDescriptor` only has three fields: `label`, `color_attachments` and `depth_stencil_attachment`. The `color_attachements` describe where we are going to draw our color to. We use the `TextureView` we created earlier to make sure that we render to the screen. 
+A `RenderPassDescriptor` only has three fields: `label`, `color_attachments` and `depth_stencil_attachment`. The `color_attachements` describe where we are going to draw our color to. We use the `TextureView` we created earlier to make sure that we render to the screen.
 
 We'll use `depth_stencil_attachment` later, but we'll set it to `None` for now.
 
@@ -415,7 +415,7 @@ The `RenderPassColorAttachment` has the `view` field which informs `wgpu` what t
 
 The `resolve_target` is the texture that will receive the resolved output. This will be the same as `view` unless multisampling is enabled. We don't need to specify this, so we leave it as `None`.
 
-The `ops` field takes a `wpgu::Operations` object. This tells wgpu what to do with the colors on the screen (specified by `frame.view`). The `load` field tells wgpu how to handle colors stored from the previous frame. Currently we are clearing the screen with a bluish color. The `store` field tells wgpu with we want to store the rendered results to the `Texture` behind our `TextureView` (in this case it's the `SurfaceTexture`). We use `true` as we do want to store our render results. There are cases when you wouldn't want to but those 
+The `ops` field takes a `wpgu::Operations` object. This tells wgpu what to do with the colors on the screen (specified by `frame.view`). The `load` field tells wgpu how to handle colors stored from the previous frame. Currently we are clearing the screen with a bluish color. The `store` field tells wgpu with we want to store the rendered results to the `Texture` behind our `TextureView` (in this case it's the `SurfaceTexture`). We use `true` as we do want to store our render results. There are cases when you wouldn't want to but those
 
 <div class="note">
 
