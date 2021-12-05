@@ -142,11 +142,11 @@ The `limits` field describes the limit of certain types of resource we can creat
 
 Here we are defining a config for our surface. This will define how the surface creates its underlying `SurfaceTexture`s. We will talk about `SurfaceTexture` when we get to the `render` function. For now lets talk about some of the config fields.
 
-The `usage` field describes how the `SurfaceTexture`s will be used. `RENDER_ATTACHMENT` specifies that the textures will be used to write to the screen (we'll talk about more `TextureUsages`s later).
+The `usage` field describes how `SurfaceTexture`s will be used. `RENDER_ATTACHMENT` specifies that the textures will be used to write to the screen (we'll talk about more `TextureUsages`s later).
 
-The `format` defines how the `SurfaceTexture`s will be stored on the gpu. Different displays prefer different formats. We use `surface.get_preferred_format(&adapter)` to figure out the best format to use based on the display you're using.
+The `format` defines how `SurfaceTexture`s will be stored on the gpu. Different displays prefer different formats. We use `surface.get_preferred_format(&adapter)` to figure out the best format to use based on the display you're using.
 
-`width` and `height`, are the width and height in pixels of the `SurfaceTexture`. This should usually be the width and height of the window.
+`width` and `height` are the width and the height in pixels of a `SurfaceTexture`. This should usually be the width and the height of the window.
 
 <div class="warning">
 Make sure that the width and height of the `SurfaceTexture` are not 0, as that can cause your app to crash.
