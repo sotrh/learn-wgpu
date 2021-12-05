@@ -8,9 +8,9 @@ Wgpu is still in development, so some of this doc is subject to change.
 ## Why Rust?
 Wgpu actually has C bindings to allow you to write C/C++ code with it, as well as use other languages that interface with C. That being said, wgpu is written in Rust, and it has some convenient Rust bindings that don't have to jump through any hoops. On top of that, I've been enjoying writing in Rust.
 
-You should be fairly familiar with Rust before using this tutorial as I won't go into much detail on Rust syntax. If you're not super comfortable with Rust you can review the [Rust tutorial](https://www.rust-lang.org/learn). You should also be familiar about [Cargo](https://doc.rust-lang.org/cargo/).
+You should be fairly familiar with Rust before using this tutorial as I won't go into much detail on Rust syntax. If you're not super comfortable with Rust you can review the [Rust tutorial](https://www.rust-lang.org/learn). You should also be familiar with [Cargo](https://doc.rust-lang.org/cargo/).
 
-I'm using this project as a way to learn wgpu myself, so I might miss some important details, or explain things wrong. I'm always open to constructive feedback.
+I'm using this project to learn wgpu myself, so I might miss some important details, or explain things badly. I'm always open to constructive feedback.
 
 ## Contribution and Support
 
