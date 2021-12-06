@@ -1,11 +1,5 @@
 # Pong
 
-<div class="warning">
-
-This example is currently broken. I'm planning on rewriting it to use `wgsl` as well as being more sound design wise.
-
-</div>
-
 ![](./pong.png)
 
 Practically the "Hello World!" of games. Pong has been remade thousands of times. I know Pong. You know Pong. We all know Pong. That being said, this time I wanted to put a little more effort than most people do. This showcase has a basic menu system, sounds, and different game states.
@@ -260,8 +254,133 @@ pub enum Event {
 
 I was going to have `BallBounce` play a positioned sound using a `SpatialSink`, but I was getting clipping issues, and I wanted to be done with the project. Aside from that, the events system worked nicely.
 
+## WASM Support
+
+This example works on the web, but their are a few steps that I needed to take to make things work. The first one was that I needed to switch to using a `lib.rs` instead of just `main.rs`. I opted to use [wasm-pack](https://rustwasm.github.io/wasm-pack/) to create the web assembly. I could have kept the old format by using wasm-bindgen directly, but I ran into issues with using the wrong version of wasm-bindgen, so I elected to stick with wasm-pack.
+
+In order for wasm-pack to work properly I first needed to add some dependencies:
+
+```toml
+[dependencies]
+cfg-if = "1"
+env_logger = "0.9"
+winit = "0.25"
+anyhow = "1.0"
+bytemuck = { version = "1.4", features = [ "derive" ] }
+cgmath = "0.18"
+pollster = "0.2"
+wgpu = { version = "0.11", features = ["spirv"]}
+wgpu_glyph = "0.15"
+rand = "0.8"
+rodio = { version = "0.14", default-features = false, features = ["wav"] }
+log = "0.4"
+instant = "0.1"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+console_error_panic_hook = "0.1.6"
+console_log = "0.2.0"
+getrandom = { version = "0.2", features = ["js"] }
+rodio = { version = "0.14", default-features = false, features = ["wasm-bindgen", "wav"] }
+wasm-bindgen-futures = "0.4.20"
+wasm-bindgen = "0.2.76"
+web-sys = { version = "0.3.53", features = [
+    "Document",
+    "Window",
+    "Element",
+]}
+winit = { version = "0.25", features = ["web-sys"] }
+wgpu = { version = "0.11", features = ["spirv", "webgl"]}
+```
+
+I'll highlight a few of these:
+
+- rand: If you want to use rand on the web, you need to include getrandom directly and enable it's `js` feature.
+- rodio: I had to disable all of the features for the WASM build, and then enabled them separately. The `mp3` feature specifically wasn't working for me. There might have been a work around, but since I'm not using mp3 in this example I just elected to only use wav.
+- instant: This crate is basically just a wrapper around `std::time::Instant`. In a normal build it's just a type alias. In web builds it uses the browsers time functions.
+- cfg-if: This is a convient crate for making platform specific code less horrible to write.
+- env_logger and console_log: env_logger doesn't work on web assembly so we need to use a different logger. console_log is the one used in the web assembly tutorials, so I went with that one.
+- wasm-bindgen: This crate is the glue that makes Rust code work on the web. If you are building using the wasm-bindgen command you need to make sure that the command version of wasm-bindgen matches the version in Cargo.toml **exactly** otherwise you'll have problems. If you use wasm-pack it will download the appopriate wasm-bindgen binary to use for your crate.
+- web-sys: This is has functions and types that allow you to use different methods available in js such as "getElementById()". 
+
+Now that that's out of the way lets talk about some code. First we need to create a function that will start our event loop.
+
+```rust
+#[cfg(target_arch="wasm32")]
+use wasm_bindgen::prelude::*;
+
+#[cfg_attr(target_arch="wasm32", wasm_bindgen(start))]
+pub fn start() {
+    // Snipped...
+}
+```
+
+The `wasm_bindgen(start)` tell's wasm-bindgen that this function should be started as soon as the web assembly module is loaded by javascript. Most of the code inside this function is the same as what you'd find in other examples on this site, but there is some specific stuff we need to do on the web.
+
+```rust
+cfg_if::cfg_if! {
+    if #[cfg(target_arch = "wasm32")] {
+        console_log::init_with_level(log::Level::Warn).expect("Could't initialize logger");
+        std::panic::set_hook(Box::new(console_error_panic_hook::hook));
+    } else {
+        env_logger::init();
+    }
+}
+```
+
+This code should run before you try to do anything significant. It sets up the logger based on what architecture you're building for. Most architectures will use `env_logger`. The `wasm32` architecture will use `console_log`. It's also important that we tell Rust to forward panics to javascript. If we didn't do this we would have no idea when our Rust code panics.
+
+Next we create a window. Much of it is like we've done before, but since we are supporting fullscreen we need to do some extra steps.
+
+```rust
+let event_loop = EventLoop::new();
+let monitor = event_loop.primary_monitor().unwrap();
+let video_mode = monitor.video_modes().next();
+let size = video_mode.clone().map_or(PhysicalSize::new(800, 600), |vm| vm.size());
+let window = WindowBuilder::new()
+    .with_visible(false)
+    .with_title("Pong")
+    .with_fullscreen(video_mode.map(|vm| Fullscreen::Exclusive(vm)))
+    .build(&event_loop)
+    .unwrap();
+
+// WASM builds don't have access to monitor information, so
+// we should specify a fallback resolution
+if window.fullscreen().is_none() {
+    window.set_inner_size(PhysicalSize::new(512, 512));
+}
+```
+
+We then have to do some web specific stuff if we are on that platform.
+
+```rust
+#[cfg(target_arch = "wasm32")]
+{
+    use winit::platform::web::WindowExtWebSys;
+    web_sys::window()
+        .and_then(|win| win.document())
+        .and_then(|doc| {
+            let dst = doc.get_element_by_id("wasm-example")?;
+            let canvas = web_sys::Element::from(window.canvas());
+            dst.append_child(&canvas).ok()?;
+
+            // Request fullscreen, if denied, continue as normal
+            match canvas.request_fullscreen() {
+                Ok(_) => {},
+                Err(_) => ()
+            }
+
+            Some(())
+        })
+        .expect("Couldn't append canvas to document body.");
+}
+```
+
+Everything else works the same.
+
 ## Summary
 
 A fun project to work on. It was overly architected, and kinda hard to make changes, but a good experience none the less.
+
+Try the code down below! (Controls currently require a keyboard.)
 
 <WasmExample example="pong"></WasmExample>

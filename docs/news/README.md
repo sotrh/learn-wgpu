@@ -1,5 +1,13 @@
 # News
 
+## Pong working on the web
+
+This took a little while to figure out. I ended up using wasm-pack to create the wasm as I was having trouble with getting wasm-bindgen to work. I figured it out eventually but decided to keep using wasm-pack as I felt that the work flow would be more friendly to readers.
+
+I would have released this sooner, but I wanted to add support for touch so that people on their phones could play the game. It appears that winit doesn't record touch events for WASM, so I shelved that idea.
+
+If you want to check out the demo, just head over to [the write up](../showcase/pong/#wasm-support)
+
 ## 0.11 further changes to Surface
 
 `SwapchainFrame` is no longer a thing. Instead `get_current_texture` will return a `SurfaceTexture` directly. This means that getting a frame to draw to looks somethings like this:
