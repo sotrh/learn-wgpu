@@ -1,7 +1,7 @@
 # The Surface
 
-## First, some house keeping: State
-For convenience we're going to pack all the fields into a struct, and create some methods on that.
+## First, some housekeeping: State
+For convenience, we're going to pack all the fields into a struct and create some methods on that.
 
 ```rust
 // main.rs
@@ -119,7 +119,7 @@ The `features` field on `DeviceDescriptor`, allows us to specify what extra feat
 
 <div class="note">
 
-The graphics card you have limits the features you can use. If you want to use certain features you may need to limit what devices you support, or provide work arounds.
+The graphics card you have limits the features you can use. If you want to use certain features you may need to limit what devices you support, or provide workarounds.
 
 You can get a list of features supported by your device using `adapter.features()`, or `device.features()`.
 
@@ -127,7 +127,7 @@ You can view a full list of features [here](https://docs.rs/wgpu/0.10.1/wgpu/str
 
 </div>
 
-The `limits` field describes the limit of certain types of resource we can create. We'll use the defaults for this tutorial, so we can support most devices. You can view a list of limits [here](https://docs.rs/wgpu/0.10.1/wgpu/struct.Limits.html).
+The `limits` field describes the limit of certain types of resources that we can create. We'll use the defaults for this tutorial, so we can support most devices. You can view a list of limits [here](https://docs.rs/wgpu/0.10.1/wgpu/struct.Limits.html).
 
 ```rust
         let config = wgpu::SurfaceConfiguration {
@@ -140,7 +140,7 @@ The `limits` field describes the limit of certain types of resource we can creat
         surface.configure(&device, &config);
 ```
 
-Here we are defining a config for our surface. This will define how the surface creates its underlying `SurfaceTexture`s. We will talk about `SurfaceTexture` when we get to the `render` function. For now lets talk about some of the config fields.
+Here we are defining a config for our surface. This will define how the surface creates its underlying `SurfaceTexture`s. We will talk about `SurfaceTexture` when we get to the `render` function. For now lets talk about the config's fields.
 
 The `usage` field describes how `SurfaceTexture`s will be used. `RENDER_ATTACHMENT` specifies that the textures will be used to write to the screen (we'll talk about more `TextureUsages`s later).
 
@@ -197,7 +197,7 @@ pub fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
 }
 ```
 
-There's nothing really different here from configurating the `surface` initially, so I won't get into it.
+There's nothing really different here from the initial `surface` configuration, so I won't get into it.
 
 We call this method in `main()` in the event loop for the following events.
 
@@ -307,7 +307,7 @@ We also need to create a `CommandEncoder` to create the actual commands to send 
     });
 ```
 
-Now we can actually get to clearing the screen (long time coming). We need to use the `encoder` to create a `RenderPass`. The `RenderPass` has all the methods for the actual drawing. The code for creating a `RenderPass` is a bit nested, so I'll copy it all here beafore talking about its pieces.
+Now we can actually get to clearing the screen (long time coming). We need to use the `encoder` to create a `RenderPass`. The `RenderPass` has all the methods for the actual drawing. The code for creating a `RenderPass` is a bit nested, so I'll copy it all here before talking about its pieces.
 
 ```rust
     {
@@ -338,7 +338,7 @@ Now we can actually get to clearing the screen (long time coming). We need to us
 }
 ```
 
-First things first, let's talk about the `{}`. `encoder.begin_render_pass(...)` borrows `encoder` mutably (aka `&mut self`). We can't call `encoder.finish()` until we release that mutable borrow. The block (`{}`) around `encoder.begin_render_pass(...)` tells rust to drop any variables within them when the code leaves that scope thus releasing the mutable borrow on `encoder` and allowing us to `finish()` it. If you don't like the `{}`, you can also use `drop(render_pass)` to achieve the same effect.
+First things first, let's talk about the extra block (`{}`) around `encoder.begin_render_pass(...)`. `begin_render_pass()` borrows `encoder` mutably (aka `&mut self`). We can't call `encoder.finish()` until we release that mutable borrow. The block tells rust to drop any variables within it when the code leaves that scope thus releasing the mutable borrow on `encoder` and allowing us to `finish()` it. If you don't like the `{}`, you can also use `drop(render_pass)` to achieve the same effect.
 
 We can get the same results by removing the `{}`, and the `let _render_pass =` line, but we need access to the `_render_pass` in the next tutorial, so we'll leave it as is.
 
@@ -415,7 +415,7 @@ The `RenderPassColorAttachment` has the `view` field which informs `wgpu` what t
 
 The `resolve_target` is the texture that will receive the resolved output. This will be the same as `view` unless multisampling is enabled. We don't need to specify this, so we leave it as `None`.
 
-The `ops` field takes a `wpgu::Operations` object. This tells wgpu what to do with the colors on the screen (specified by `frame.view`). The `load` field tells wgpu how to handle colors stored from the previous frame. Currently we are clearing the screen with a bluish color. The `store` field tells wgpu with we want to store the rendered results to the `Texture` behind our `TextureView` (in this case it's the `SurfaceTexture`). We use `true` as we do want to store our render results. There are cases when you wouldn't want to but those
+The `ops` field takes a `wpgu::Operations` object. This tells wgpu what to do with the colors on the screen (specified by `frame.view`). The `load` field tells wgpu how to handle colors stored from the previous frame. Currently, we are clearing the screen with a bluish color. The `store` field tells wgpu whether we want to store the rendered results to the `Texture` behind our `TextureView` (in this case it's the `SurfaceTexture`). We use `true` as we do want to store our render results. There are cases when you wouldn't want to but those
 
 <div class="note">
 

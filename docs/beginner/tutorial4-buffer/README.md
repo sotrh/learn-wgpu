@@ -7,7 +7,7 @@ You were probably getting sick of me saying stuff like "we'll get to that when w
 A buffer is a blob of data on the GPU. A buffer is guaranteed to be contiguous, meaning that all the data is stored sequentially in memory. Buffers are generally used to store simple things like structs or arrays, but it can store more complex stuff such as graph structures like trees (provided all the nodes are stored together and don't reference anything outside of the buffer). We are going to use buffers a lot, so let's get started with two of the most important ones: the vertex buffer, and the index buffer.
 
 ## The vertex buffer
-Previously we've stored vertex data directly in the vertex shader. While that worked fine to get our bootstraps on, it simply won't do for the long-term. The types of objects we need to draw will vary in size, and recompiling the shader whenever we need to update the model would massively slow down our program. Instead we are going to use buffers to store the vertex data we want to draw. Before we do that though we need to describe what a vertex looks like. We'll do this by creating a new struct.
+Previously we've stored vertex data directly in the vertex shader. While that worked fine to get our bootstraps on, it simply won't do for the long-term. The types of objects we need to draw will vary in size, and recompiling the shader whenever we need to update the model would massively slow down our program. Instead, we are going to use buffers to store the vertex data we want to draw. Before we do that though we need to describe what a vertex looks like. We'll do this by creating a new struct.
 
 ```rust
 // main.rs
@@ -19,7 +19,7 @@ struct Vertex {
 }
 ```
 
-Our vertices will all have a position and a color. The position represents the x, y, and z of the vertex in 3d space. The color is the red, green, and blue values for the vertex. We need the `Vertex` to be copyable so we can create a buffer with it.
+Our vertices will all have a position and a color. The position represents the x, y, and z of the vertex in 3d space. The color is the red, green, and blue values for the vertex. We need the `Vertex` to be `Copy` so we can create a buffer with it.
 
 Next we need the actual data that will make up our triangle. Below `Vertex` add the following.
 
@@ -32,7 +32,7 @@ const VERTICES: &[Vertex] = &[
 ];
 ```
 
-We arrange the vertices in counter clockwise order: top, bottom left, bottom right. We do it this way partially out of tradition, but mostly because we specified in the `rasterization_state` of the `render_pipeline` that we want the `front_face` of our triangle to be `wgpu::FrontFace::Ccw` so that we cull the back face. This means that any triangle that should be facing us should have its vertices in counter clockwise order.
+We arrange the vertices in counter-clockwise order: top, bottom left, bottom right. We do it this way partially out of tradition, but mostly because we specified in the `rasterization_state` of the `render_pipeline` that we want the `front_face` of our triangle to be `wgpu::FrontFace::Ccw` so that we cull the back face. This means that any triangle that should be facing us should have its vertices in counter-clockwise order.
 
 Now that we have our vertex data, we need to store it in a buffer. Let's add a `vertex_buffer` field to `State`.
 
@@ -76,7 +76,7 @@ You'll note that we're using [bytemuck](https://docs.rs/bytemuck/1.2.0/bytemuck/
 bytemuck = { version = "1.4", features = [ "derive" ] }
 ```
 
-We're also going to need to implement two traits to get `bytemuck` to work. These are [bytemuck::Pod](https://docs.rs/bytemuck/1.3.0/bytemuck/trait.Pod.html) and [bytemuck::Zeroable](https://docs.rs/bytemuck/1.3.0/bytemuck/trait.Zeroable.html). `Pod` indicates that our `Vertex` is "Plain Old Data", and thus can be interpretted as a `&[u8]`. `Zeroable` indicates that we can use `std::mem::zeroed()`. We can modify our `Vertex` struct to derive these methods.
+We're also going to need to implement two traits to get `bytemuck` to work. These are [bytemuck::Pod](https://docs.rs/bytemuck/1.3.0/bytemuck/trait.Pod.html) and [bytemuck::Zeroable](https://docs.rs/bytemuck/1.3.0/bytemuck/trait.Zeroable.html). `Pod` indicates that our `Vertex` is "Plain Old Data", and thus can be interpreted as a `&[u8]`. `Zeroable` indicates that we can use `std::mem::zeroed()`. We can modify our `Vertex` struct to derive these methods.
 
 ```rust
 #[repr(C)]
@@ -98,7 +98,7 @@ unsafe impl bytemuck::Zeroable for Vertex {}
 
 </div>
 
-Finally we can add our `vertex_buffer` to our `State` struct.
+Finally, we can add our `vertex_buffer` to our `State` struct.
 
 ```rust
 Self {
@@ -115,7 +115,7 @@ Self {
 ## So what do I do with it?
 We need to tell the `render_pipeline` to use this buffer when we are drawing, but first we need to tell the `render_pipeline` how to read the buffer. We do this using `VertexBufferLayout`s and the `vertex_buffers` field that I promised we'd talk about when we created the `render_pipeline`.
 
-A `VertexBufferLayout` defines how a buffer is layed out in memory. Without this, the render_pipeline has no idea how to map the buffer in the shader. Here's what the descriptor for a buffer full of `Vertex` would look like.
+A `VertexBufferLayout` defines how a buffer is represented in memory. Without this, the render_pipeline has no idea how to map the buffer in the shader. Here's what the descriptor for a buffer full of `Vertex` would look like.
 
 ```rust
 wgpu::VertexBufferLayout {
@@ -139,11 +139,11 @@ wgpu::VertexBufferLayout {
 1. The `array_stride` defines how wide a vertex is. When the shader goes to read the next vertex, it will skip over `array_stride` number of bytes. In our case, array_stride will probably be 24 bytes.
 2. `step_mode` tells the pipeline how often it should move to the next vertex. This seems redundant in our case, but we can specify `wgpu::VertexStepMode::Instance` if we only want to change vertices when we start drawing a new instance. We'll cover instancing in a later tutorial.
 3. Vertex attributes describe the individual parts of the vertex. Generally this is a 1:1 mapping with a struct's fields, which it is in our case.
-4. This defines the `offset` in bytes that this attribute starts. The first attribute is usually zero, and any future attributes are the collective `size_of` the previous attributes data.
-5. This tells the shader what location to store this attribute at. For example `[[location(0)]] x: vec3<f32>` in the vertex shader would correspond to the position field of the struct, while `[[location(1)]] x: vec3<f32>` would be the color field.
+4. This defines the `offset` in bytes until the attribute starts. For the first attribute the offset is usually zero. For any later attributes, the offset is the sum over `size_of` of the previous attributes' data.
+5. This tells the shader what location to store this attribute at. For example `[[location(0)]] x: vec3<f32>` in the vertex shader would correspond to the `position` field of the `Vertex` struct, while `[[location(1)]] x: vec3<f32>` would be the `color` field.
 6. `format` tells the shader the shape of the attribute. `Float32x3` corresponds to `vec3<f32>` in shader code. The max value we can store in an attribute is `Float32x4` (`Uint32x4`, and `Sint32x4` work as well). We'll keep this in mind for when we have to store things that are bigger than `Float32x4`.
 
-For you visually learners, our vertex buffer looks like this.
+For you visual learners, our vertex buffer looks like this.
 
 ![A figure of the VertexBufferLayout](./vb_desc.png)
 
@@ -259,7 +259,7 @@ render_pass.draw(0..self.num_vertices, 0..1);
 
 Before our changes will have any effect, we need to update our vertex shader to get its data from the vertex buffer. We'll also have it include the vertex color as well.
 
-```glsl
+```wgsl
 // Vertex shader
 
 struct VertexInput {
