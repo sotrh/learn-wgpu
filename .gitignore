@@ -1,6 +1,7 @@
 node_modules/
 target/
 .vscode/
+.idea/
 
 /image.png
 /output*.*
