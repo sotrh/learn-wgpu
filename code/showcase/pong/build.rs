@@ -1,4 +1,4 @@
-use anyhow::*;
+use anyhow::{Context, bail, Result};
 use fs_extra::copy_items;
 use fs_extra::dir::CopyOptions;
 use glob::glob;
@@ -8,7 +8,6 @@ use naga::front::glsl::Parser;
 use rayon::prelude::*;
 use std::env;
 use std::{fs::read_to_string, path::PathBuf};
-use std::result::Result::Ok;
 
 pub fn load_shader(src_path: PathBuf) -> anyhow::Result<()> {
     let extension = src_path
@@ -46,17 +45,6 @@ pub fn load_shader(src_path: PathBuf) -> anyhow::Result<()> {
     )
     .validate(&module)?;
     std::fs::write(wgsl_path, wgsl::write_string(&module, &info)?)?;
-
-    // let flags = spv::WriterFlags::DEBUG | spv::WriterFlags::ADJUST_COORDINATE_SPACE;
-    // let options = spv::Options {
-    //     flags,
-    //     ..Default::default()
-    // };
-    // let spv = spv::write_vec(&module, &info, &options)?;
-    // let dis = rspirv::dr::load_words(spv)
-    //     .expect("Unable to disassemble shader")
-    //     .disassemble();
-    // std::fs::write(spv_path, &spv)?;
 
     Ok(())
 }

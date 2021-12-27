@@ -1,4 +1,4 @@
-use anyhow::*;
+use anyhow::{Result, Error};
 
 struct Snow {
 

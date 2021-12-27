@@ -94,8 +94,8 @@ impl QuadBufferBuilder {
 
     pub fn build(self, device: &wgpu::Device) -> (StagingBuffer, StagingBuffer, u32) {
         (
-            StagingBuffer::new(device, &self.vertex_data),
-            StagingBuffer::new(device, &self.index_data),
+            StagingBuffer::new(device, &self.vertex_data, false),
+            StagingBuffer::new(device, &self.index_data, true),
             self.index_data.len() as u32,
         )
     }
@@ -107,11 +107,11 @@ pub struct StagingBuffer {
 }
 
 impl StagingBuffer {
-    pub fn new<T: bytemuck::Pod + Sized>(device: &wgpu::Device, data: &[T]) -> StagingBuffer {
+    pub fn new<T: bytemuck::Pod + Sized>(device: &wgpu::Device, data: &[T], is_index_buffer: bool) -> StagingBuffer {
         StagingBuffer {
             buffer: device.create_buffer_init(&BufferInitDescriptor {
                 contents: bytemuck::cast_slice(data),
-                usage: wgpu::BufferUsages::COPY_SRC,
+                usage: wgpu::BufferUsages::COPY_SRC | if is_index_buffer { wgpu::BufferUsages::INDEX } else { wgpu::BufferUsages::empty() },
                 label: Some("Staging Buffer"),
             }),
             size: size_of_slice(data) as wgpu::BufferAddress,
