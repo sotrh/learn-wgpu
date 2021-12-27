@@ -311,14 +311,12 @@ With that in place we need to write the actual shaders.
 // light.wgsl
 // Vertex shader
 
-[[block]]
 struct Camera {
     view_proj: mat4x4<f32>;
 };
 [[group(0), binding(0)]]
 var<uniform> camera: Camera;
 
-[[block]]
 struct Light {
     position: vec3<f32>;
     color: vec3<f32>;
@@ -475,7 +473,6 @@ Light has a tendency to bounce around before entering our eyes. That's why you c
 The ambient part is based on the light color as well as the object color. We've already added our `light_bind_group`, so we just need to use it in our shader. In `shader.wgsl`, add the following below the texture uniforms.
 
 ```wgsl
-[[block]]
 struct Light {
     position: vec3<f32>;
     color: vec3<f32>;
@@ -773,7 +770,6 @@ Specular lighting describes the highlights that appear on objects when viewed fr
 Because this is relative to the view angle, we are going to need to pass in the camera's position both into the fragment shader and into the vertex shader.
 
 ```wgsl
-[[block]]
 struct Camera {
     view_pos: vec4<f32>;
     view_proj: mat4x4<f32>;

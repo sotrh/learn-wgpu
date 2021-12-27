@@ -407,7 +407,7 @@ dependencies = [
  "glob",
  "image",
  "log",
- "naga 0.7.3",
+ "naga 0.8.0",
  "pollster",
  "rayon",
  "tobj 2.0.4",

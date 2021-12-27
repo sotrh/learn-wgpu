@@ -1,6 +1,5 @@
 // Vertex shader
 
-[[block]]
 struct Camera {
     view_proj: mat4x4<f32>;
 };

@@ -228,8 +228,7 @@ Modify the vertex shader to include the following.
 
 ```wgsl
 // Vertex shader
-
-[[block]] // 1.
+ // 1.
 struct CameraUniform {
     view_proj: mat4x4<f32>;
 };

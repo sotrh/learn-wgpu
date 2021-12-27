@@ -45,7 +45,8 @@ pub fn load_shader(src_path: PathBuf) -> Result<()> {
         naga::valid::Capabilities::empty(),
     )
     .validate(&module)?;
-    std::fs::write(wgsl_path, wgsl::write_string(&module, &info)?)?;
+    let flags = wgsl::WriterFlags::empty();
+    std::fs::write(wgsl_path, wgsl::write_string(&module, &info, flags)?)?;
 
     // let flags = spv::WriterFlags::DEBUG | spv::WriterFlags::ADJUST_COORDINATE_SPACE;
     // let options = spv::Options {
