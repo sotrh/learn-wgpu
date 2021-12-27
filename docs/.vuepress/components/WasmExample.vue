@@ -67,6 +67,6 @@ export default {
 
 <style>
 #wasm-example canvas {
-  background-color: black;
+  background-color: #abcdef;
 }
 </style>

@@ -94,8 +94,8 @@ impl State {
                 cull_mode: Some(wgpu::Face::Back),
                 // Setting this to anything other than Fill requires Features::NON_FILL_POLYGON_MODE
                 polygon_mode: wgpu::PolygonMode::Fill,
-                // Requires Features::DEPTH_CLAMPING
-                clamp_depth: false,
+                // Requires Features::DEPTH_CLIP_CONTROL
+                unclipped_depth: false,
                 // Requires Features::CONSERVATIVE_RASTERIZATION
                 conservative: false,
             },
@@ -105,6 +105,9 @@ impl State {
                 mask: !0,
                 alpha_to_coverage_enabled: false,
             },
+            // If the pipeline will be used with a multiview render pass, this
+            // indicates how many array layers the attachments will have.
+            multiview: None,
         });
 
         let shader = device.create_shader_module(&wgpu::ShaderModuleDescriptor {
@@ -145,6 +148,9 @@ impl State {
                     mask: !0,
                     alpha_to_coverage_enabled: false,
                 },
+                // If the pipeline will be used with a multiview render pass, this
+                // indicates how many array layers the attachments will have.
+                multiview: None,
             });
 
         let use_color = true;

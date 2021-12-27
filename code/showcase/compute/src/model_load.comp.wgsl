@@ -41,45 +41,45 @@ struct ComputeInfo {
 [[group(0), binding(0)]]
 var<storage> global: SrcVertexBuffer;
 [[group(0), binding(1)]]
-var<storage, read_write> global1: DstVertexBuffer;
+var<storage, read_write> global_1: DstVertexBuffer;
 [[group(0), binding(2)]]
-var<storage> global2: IndexBuffer;
+var<storage> global_2: IndexBuffer;
 [[group(0), binding(3)]]
-var<uniform> global3: ComputeInfo;
+var<uniform> global_3: ComputeInfo;
 var<private> gl_GlobalInvocationID: vec3<u32>;
 
 fn getPos(v: ModelVertex) -> vec3<f32> {
-    var v1: ModelVertex;
+    var v_1: ModelVertex;
 
-    v1 = v;
-    let e12: ModelVertex = v1;
-    let e14: ModelVertex = v1;
-    let e16: ModelVertex = v1;
+    v_1 = v;
+    let e12: ModelVertex = v_1;
+    let e14: ModelVertex = v_1;
+    let e16: ModelVertex = v_1;
     return vec3<f32>(e12.x, e14.y, e16.z);
 }
 
-fn getUV(v2: ModelVertex) -> vec2<f32> {
-    var v3: ModelVertex;
+fn getUV(v_2: ModelVertex) -> vec2<f32> {
+    var v_3: ModelVertex;
 
-    v3 = v2;
-    let e12: ModelVertex = v3;
-    let e14: ModelVertex = v3;
+    v_3 = v_2;
+    let e12: ModelVertex = v_3;
+    let e14: ModelVertex = v_3;
     return vec2<f32>(e12.uv, e14.uw);
 }
 
-fn getNormal(v4: ModelVertex) -> vec3<f32> {
-    var v5: ModelVertex;
+fn getNormal(v_4: ModelVertex) -> vec3<f32> {
+    var v_5: ModelVertex;
 
-    v5 = v4;
-    let e12: ModelVertex = v5;
-    let e14: ModelVertex = v5;
-    let e16: ModelVertex = v5;
+    v_5 = v_4;
+    let e12: ModelVertex = v_5;
+    let e14: ModelVertex = v_5;
+    let e16: ModelVertex = v_5;
     return vec3<f32>(e12.nx, e14.ny, e16.nz);
 }
 
 fn calcTangentBitangent(vertexIndex: u32) -> ModelVertex {
-    var vertexIndex1: u32;
-    var v6: ModelVertex;
+    var vertexIndex_1: u32;
+    var v_6: ModelVertex;
     var tangent: vec3<f32> = vec3<f32>(0.0, 0.0, 0.0);
     var bitangent: vec3<f32> = vec3<f32>(0.0, 0.0, 0.0);
     var trianglesIncluded: u32 = 0u;
@@ -102,32 +102,32 @@ fn calcTangentBitangent(vertexIndex: u32) -> ModelVertex {
     var delta_uv2_: vec2<f32>;
     var r: f32;
 
-    vertexIndex1 = vertexIndex;
-    let e12: u32 = vertexIndex1;
+    vertexIndex_1 = vertexIndex;
+    let e12: u32 = vertexIndex_1;
     let e14: ModelVertex = global.srcVertices[e12];
-    v6 = e14;
+    v_6 = e14;
     loop {
         let e30: u32 = i;
-        let e31: u32 = global3.numIndices;
+        let e31: u32 = global_3.numIndices;
         if (!((e30 < e31))) {
             break;
         }
         {
             let e38: u32 = i;
-            let e40: u32 = global2.indices[e38];
+            let e40: u32 = global_2.indices[e38];
             index0_ = e40;
             let e42: u32 = i;
-            let e47: u32 = global2.indices[(e42 + u32(1))];
+            let e47: u32 = global_2.indices[(e42 + u32(1))];
             index1_ = e47;
             let e49: u32 = i;
-            let e54: u32 = global2.indices[(e49 + u32(2))];
+            let e54: u32 = global_2.indices[(e49 + u32(2))];
             index2_ = e54;
             let e56: u32 = index0_;
-            let e57: u32 = vertexIndex1;
+            let e57: u32 = vertexIndex_1;
             let e59: u32 = index1_;
-            let e60: u32 = vertexIndex1;
+            let e60: u32 = vertexIndex_1;
             let e63: u32 = index2_;
-            let e64: u32 = vertexIndex1;
+            let e64: u32 = vertexIndex_1;
             if ((((e56 == e57) || (e59 == e60)) || (e63 == e64))) {
                 {
                     let e67: u32 = index0_;
@@ -214,39 +214,39 @@ fn calcTangentBitangent(vertexIndex: u32) -> ModelVertex {
         }
     }
     let e184: vec3<f32> = tangent;
-    v6.tx = e184.x;
+    v_6.tx = e184.x;
     let e187: vec3<f32> = tangent;
-    v6.ty = e187.y;
+    v_6.ty = e187.y;
     let e190: vec3<f32> = tangent;
-    v6.tz = e190.z;
+    v_6.tz = e190.z;
     let e193: vec3<f32> = bitangent;
-    v6.bx = e193.x;
+    v_6.bx = e193.x;
     let e196: vec3<f32> = bitangent;
-    v6.by = e196.y;
+    v_6.by = e196.y;
     let e199: vec3<f32> = bitangent;
-    v6.bz = e199.z;
-    let e201: ModelVertex = v6;
+    v_6.bz = e199.z;
+    let e201: ModelVertex = v_6;
     return e201;
 }
 
-fn main1() {
-    var vertexIndex2: u32;
+fn main_1() {
+    var vertexIndex_2: u32;
     var result: ModelVertex;
 
     let e11: vec3<u32> = gl_GlobalInvocationID;
-    vertexIndex2 = e11.x;
-    let e15: u32 = vertexIndex2;
+    vertexIndex_2 = e11.x;
+    let e15: u32 = vertexIndex_2;
     let e16: ModelVertex = calcTangentBitangent(e15);
     result = e16;
-    let e18: u32 = vertexIndex2;
+    let e18: u32 = vertexIndex_2;
     let e20: ModelVertex = result;
-    global1.dstVertices[e18] = e20;
+    global_1.dstVertices[e18] = e20;
     return;
 }
 
 [[stage(compute), workgroup_size(64, 1, 1)]]
 fn main([[builtin(global_invocation_id)]] param: vec3<u32>) {
     gl_GlobalInvocationID = param;
-    main1();
+    main_1();
     return;
 }

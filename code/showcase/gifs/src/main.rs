@@ -1,6 +1,6 @@
 extern crate framework;
 
-use anyhow::*;
+// use anyhow::*;
 use std::{iter, mem, num::NonZeroU32};
 
 async fn run() {
@@ -148,7 +148,7 @@ async fn run() {
     save_gif("output.gif", &mut frames, 10, texture_size as u16).unwrap();
 }
 
-fn save_gif(path: &str, frames: &mut Vec<Vec<u8>>, speed: i32, size: u16) -> Result<()> {
+fn save_gif(path: &str, frames: &mut Vec<Vec<u8>>, speed: i32, size: u16) -> anyhow::Result<()> {
     use gif::{Encoder, Frame, Repeat, SetParameter};
 
     let mut image = std::fs::File::create(path)?;
@@ -201,8 +201,8 @@ fn create_render_pipeline(
             cull_mode: Some(wgpu::Face::Back),
             // Setting this to anything other than Fill requires Features::NON_FILL_POLYGON_MODE
             polygon_mode: wgpu::PolygonMode::Fill,
-            // Requires Features::DEPTH_CLAMPING
-            clamp_depth: false,
+            // Requires Features::DEPTH_CLIP_CONTROL
+            unclipped_depth: false,
             // Requires Features::CONSERVATIVE_RASTERIZATION
             conservative: false,
         },
@@ -212,6 +212,9 @@ fn create_render_pipeline(
             mask: !0,
             alpha_to_coverage_enabled: false,
         },
+        // If the pipeline will be used with a multiview render pass, this
+        // indicates how many array layers the attachments will have.
+        multiview: None,
     });
 
     render_pipeline

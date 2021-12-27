@@ -156,7 +156,7 @@ There are 2 options:
 
 Mipmaps are a complex topic, and will require [their own section in the future](/todo). For now, we can say that `mipmap_filter` functions similar to `(mag/min)_filter` as it tells the sampler how to blend between mipmaps.
 
-I'm using some defaults for the other fields. If you want to see what they are, check [the wgpu docs](https://docs.rs/wgpu/0.11.0/wgpu/struct.SamplerDescriptor.html).
+I'm using some defaults for the other fields. If you want to see what they are, check [the wgpu docs](https://docs.rs/wgpu/0.12.0/wgpu/struct.SamplerDescriptor.html).
 
 All these different resources are nice and all, but they don't do us much good if we can't plug them in anywhere. This is where `BindGroup`s and `PipelineLayout`s come in.
 
@@ -429,11 +429,11 @@ For convenience sake, let's pull our texture code into its module. We'll first n
 [dependencies]
 image = "0.23"
 cgmath = "0.18"
-winit = "0.25"
+winit = "0.26"
 env_logger = "0.9"
 log = "0.4"
 pollster = "0.2"
-wgpu = "0.11"
+wgpu = "0.12"
 bytemuck = { version = "1.4", features = [ "derive" ] }
 anyhow = "1.0" // NEW!
 ```

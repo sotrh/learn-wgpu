@@ -13,9 +13,9 @@ path = "src/main.rs"
 
 [dependencies]
 image = "0.23"
-winit = "0.25"
+winit = "0.26"
 cgmath = "0.18"
 env_logger = "0.9"
 log = "0.4"
-wgpu = "0.11"
+wgpu = "0.12"
 pollster = "0.2"

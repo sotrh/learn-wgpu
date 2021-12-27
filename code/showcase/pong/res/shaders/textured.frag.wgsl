@@ -4,14 +4,14 @@ struct FragmentOutput {
 
 var<private> fColor: vec4<f32>;
 
-fn main1() {
+fn main_1() {
     fColor = vec4<f32>(f32(1));
     return;
 }
 
 [[stage(fragment)]]
 fn main() -> FragmentOutput {
-    main1();
+    main_1();
     let e3: vec4<f32> = fColor;
     return FragmentOutput(e3);
 }

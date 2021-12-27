@@ -8,12 +8,12 @@ edition = "2018"
 
 [dependencies]
 image = "0.23"
-winit = "0.25"
+winit = "0.26"
 cgmath = "0.18"
 env_logger = "0.9"
 log = "0.4"
-wgpu = "0.11"
-# wgpu = { version = "0.11", features=["trace"]}
+wgpu = "0.12"
+# wgpu = { version = "0.12", features=["trace"]}
 # wgpu = { git = "https://github.com/gfx-rs/wgpu/" }
 # wgpu = { git = "https://github.com/gfx-rs/wgpu/", features=["trace"]}
 pollster = "0.2"

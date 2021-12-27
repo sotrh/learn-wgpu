@@ -1,3 +1,5 @@
+use std::num::NonZeroU32;
+
 use crate::model::Vertex;
 use anyhow::*;
 
@@ -18,6 +20,7 @@ pub struct RenderPipelineBuilder<'a> {
     sample_count: u32,
     sample_mask: u64,
     alpha_to_coverage_enabled: bool,
+    multiview: Option<NonZeroU32>,
 }
 
 impl<'a> RenderPipelineBuilder<'a> {
@@ -39,6 +42,7 @@ impl<'a> RenderPipelineBuilder<'a> {
             sample_count: 1,
             sample_mask: !0,
             alpha_to_coverage_enabled: false,
+            multiview: None,
         }
     }
 
@@ -167,6 +171,11 @@ impl<'a> RenderPipelineBuilder<'a> {
         self
     }
 
+    pub fn multiview(&mut self, value: Option<NonZeroU32>) -> &mut Self {
+        self.multiview = value;
+        self
+    }
+
     pub fn build(&mut self, device: &wgpu::Device) -> Result<wgpu::RenderPipeline> {
         // We need a layout
         if self.layout.is_none() {
@@ -229,6 +238,7 @@ impl<'a> RenderPipelineBuilder<'a> {
                 mask: self.sample_mask,
                 alpha_to_coverage_enabled: self.alpha_to_coverage_enabled,
             },
+            multiview: self.multiview,
         });
         Ok(pipeline)
     }

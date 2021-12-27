@@ -8,7 +8,7 @@ I would have released this sooner, but I wanted to add support for touch so that
 
 If you want to check out the demo, just head over to [the write up](../showcase/pong/#wasm-support)
 
-## 0.11 further changes to Surface
+## 0.12 further changes to Surface
 
 `SwapchainFrame` is no longer a thing. Instead `get_current_texture` will return a `SurfaceTexture` directly. This means that getting a frame to draw to looks somethings like this:
 

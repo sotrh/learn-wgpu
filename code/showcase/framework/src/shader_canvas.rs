@@ -107,13 +107,14 @@ pub struct ShaderCanvasBuilder<'a> {
 
 impl<'a> ShaderCanvasBuilder<'a> {
     pub fn new() -> Self {
+        
         Self {
             canvas_size: [256.0; 2],
             clear_color: [0.0, 0.0, 0.0, 1.0],
             label: None,
             display_format: None,
-            frag_code: Some(wgpu::include_spirv!("shader_canvas.frag.spv")),
-            vert_code: Some(wgpu::include_spirv!("shader_canvas.vert.spv")),
+            frag_code: Some(wgpu::include_wgsl!("shader_canvas.frag.wgsl")),
+            vert_code: Some(wgpu::include_wgsl!("shader_canvas.vert.wgsl")),
         }
     }
 
@@ -229,8 +230,8 @@ impl<'a> ShaderCanvasBuilder<'a> {
                 cull_mode: Some(wgpu::Face::Back),
                 // Setting this to anything other than Fill requires Features::NON_FILL_POLYGON_MODE
                 polygon_mode: wgpu::PolygonMode::Fill,
-                // Requires Features::DEPTH_CLAMPING
-                clamp_depth: false,
+                // Requires Features::DEPTH_CLIP_CONTROL
+                unclipped_depth: false,
                 // Requires Features::CONSERVATIVE_RASTERIZATION
                 conservative: false,
             },
@@ -240,6 +241,9 @@ impl<'a> ShaderCanvasBuilder<'a> {
                 mask: !0,
                 alpha_to_coverage_enabled: false,
             },
+            // If the pipeline will be used with a multiview render pass, this
+            // indicates how many array layers the attachments will have.
+            multiview: None,
         });
 
         Ok(ShaderCanvas {
