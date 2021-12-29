@@ -214,6 +214,7 @@ The `primitive` field describes how to interpret our vertices when converting th
         mask: !0, // 3.
         alpha_to_coverage_enabled: false, // 4.
     },
+    multiview: None, // 5.
 });
 ```
 
@@ -222,6 +223,7 @@ The rest of the method is pretty simple:
 2. `count` determines how many samples the pipeline will use. Multisampling is a complex topic, so we won't get into it here.
 3. `mask` specifies which samples should be active. In this case we are using all of them.
 4. `alpha_to_coverage_enabled` has to do with anti-aliasing. We're not covering anti-aliasing here, so we'll leave this as false now.
+5. `multiview` indicates how many array layers the render attachments can have. We won't be rendering to array textures so we can set this to `None`.
 
 <!-- https://gamedev.stackexchange.com/questions/22507/what-is-the-alphatocoverage-blend-state-useful-for -->
 
