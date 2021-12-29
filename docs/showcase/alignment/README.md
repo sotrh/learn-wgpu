@@ -1,5 +1,12 @@
 # Memory Layout in WGSL
 
+<div class="warn">
+
+This page is currently being reworked. I want to understand the topics a bit better, but
+as 0.12 is out I want to release what I have for now.
+
+</div>
+
 ## Alignment of vertex and index buffers
 
 Vertex buffers require defining a `VertexBufferLayout`, so the memory alignment is whatever
@@ -85,9 +92,20 @@ struct LightUniform {
 
 But this won't compile. The [bytemuck crate](https://docs.rs/bytemuck/) doesn't work with
 structs with implicit padding bytes. Rust can't guarantee that the memory between the fields
-has been initialized properly. The are potential security 
+has been initialized properly. This gave be an error when I tried it:
 
-## In WGPU
+```
+error[E0512]: cannot transmute between types of different sizes, or dependently-sized types
+   --> code/intermediate/tutorial10-lighting/src/main.rs:246:8
+    |
+246 | struct LightUniform {
+    |        ^^^^^^^^^^^^
+    |
+    = note: source type: `LightUniform` (256 bits)
+    = note: target type: `_::{closure#0}::TypeWithoutPadding` (192 bits)
+```
+
+<!-- ## In WGPU
 
 To make *uniform buffers* portable they have to be std140 and not std430.
 *Uniform structs* have to be std140.
@@ -129,7 +147,7 @@ Struct
 [glsl_layout issue](https://github.com/rustgd/glsl-layout/issues/9)
 [crevice issue](https://github.com/LPGhatguy/crevice/issues/1)
 
-----
+---- -->
 
 <!-- ## memory qualifiers
 
