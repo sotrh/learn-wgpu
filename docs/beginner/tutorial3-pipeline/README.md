@@ -21,11 +21,11 @@ The vertices are then converted into fragments. Every pixel in the result image 
 
 ## WGSL
 
-WebGPU supports two shader languages natively: SPIR-V, and WGSL. SPIR-V is actually a binary format developed by Khronos to be a compilation target for other languages such as GLSL and HLSL. It allows for easy porting of code. The only problem is that it's not human readable as it's a binary language. WGSL is meant to fix that. WGSL's development focuses on getting it to easily convert into SPIR-V. WGPU even allows us to supply WGSL for our shaders. 
+WebGPU supports two shader languages natively: SPIR-V, and WGSL. SPIR-V is actually a binary format developed by Khronos to be a compilation target for other languages such as GLSL and HLSL. It allows for easy porting of code. The only problem is that it's not human-readable as it's a binary language. WGSL is meant to fix that. WGSL's development focuses on getting it to easily convert into SPIR-V. WGPU even allows us to supply WGSL for our shaders. 
 
 <div class="note">
 
-If you've gone through this tutorial before you'll likely notice that I've switched from using GLSL to using WGSL. Given that GLSL support is a secondary concern and that WGSL is the first class language of WGPU, I've elected to convert all the tutorials to use WGSL. Some of the showcase examples still use GLSL, but the main tutorial and all examples going forward will be using WGSL.
+If you've gone through this tutorial before you'll likely notice that I've switched from using GLSL to using WGSL. Given that GLSL support is a secondary concern and that WGSL is the first class language of WGPU, I've elected to convert all the tutorials to use WGSL. Some showcase examples still use GLSL, but the main tutorial and all examples going forward will be using WGSL.
 
 </div>
 
@@ -61,7 +61,7 @@ First we declare `struct` to store the output of our vertex shader. This consist
 
 <div class="note">
 
-Vector types such as `vec4` are generic. Currently you must specify the type of value the vector will contain. Thus a 3D vector using 32bit floats would be `vec3<f32>`.
+Vector types such as `vec4` are generic. Currently, you must specify the type of value the vector will contain. Thus, a 3D vector using 32bit floats would be `vec3<f32>`.
 
 </div>
 
@@ -111,11 +111,11 @@ fn fs_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
 }
 ```
 
-All this does is set the color of the current fragment to brown color.
+This sets the color of the current fragment to brown.
 
 <div class="note">
 
-Notice that the entry point for the vertex shader was named `vs_main` and that the entry point for the fragment shader is called `fs_main`. In earlier versions of wgpu it was ok to both name these functions the same, but newer versions of the [WGSL spec](https://www.w3.org/TR/WGSL/#declaration-and-scope) require these names to be different. Therefore the above mentioned naming scheme (which is adopted from the `wgpu` examples) is used throughout the tutorial.
+Notice that the entry point for the vertex shader was named `vs_main` and that the entry point for the fragment shader is called `fs_main`. In earlier versions of wgpu it was ok to both name these functions the same, but newer versions of the [WGSL spec](https://www.w3.org/TR/WGSL/#declaration-and-scope) require these names to be different. Therefore, the above mentioned naming scheme (which is adopted from the `wgpu` examples) is used throughout the tutorial.
 
 </div>
 
@@ -181,10 +181,10 @@ let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescrip
 ```
 
 Two things to note here:
-1. Here you can specify which function inside of the shader should be called, which is known as the `entry_point`. These are the functions we marked with `[[stage(vertex)]]` and `[[stage(fragment)]]`
-2. The `buffers` field tells `wgpu` what type of vertices we want to pass to the vertex shader. We're specifying the vertices in the vertex shader itself so we'll leave this empty. We'll put something there in the next tutorial.
+1. Here you can specify which function inside the shader should be the `entry_point`. These are the functions we marked with `[[stage(vertex)]]` and `[[stage(fragment)]]`
+2. The `buffers` field tells `wgpu` what type of vertices we want to pass to the vertex shader. We're specifying the vertices in the vertex shader itself, so we'll leave this empty. We'll put something there in the next tutorial.
 3. The `fragment` is technically optional, so you have to wrap it in `Some()`. We need it if we want to store color data to the `surface`.
-4. The `targets` field tells `wgpu` what color outputs it should set up.Currently we only need one for the `surface`. We use the `surface`'s format so that copying to it is easy, and we specify that the blending should just replace old pixel data with new data. We also tell `wgpu` to write to all colors: red, blue, green, and alpha. *We'll talk more about*`color_state` *when we talk about textures.*
+4. The `targets` field tells `wgpu` what color outputs it should set up.Currently, we only need one for the `surface`. We use the `surface`'s format so that copying to it is easy, and we specify that the blending should just replace old pixel data with new data. We also tell `wgpu` to write to all colors: red, blue, green, and alpha. *We'll talk more about*`color_state` *when we talk about textures.*
 
 ```rust
     primitive: wgpu::PrimitiveState {
@@ -205,7 +205,7 @@ Two things to note here:
 The `primitive` field describes how to interpret our vertices when converting them into triangles.
 
 1. Using `PrimitiveTopology::TriangleList` means that each three vertices will correspond to one triangle.
-2. The `front_face` and `cull_mode` fields tell `wgpu` how to determine whether a given triangle is facing forward or not. `FrontFace::Ccw` means that a triangle is facing forward if the vertices are arranged in a counter clockwise direction. Triangles that are not considered facing forward are culled (not included in the render) as specified by `CullMode::Back`. We'll cover culling a bit more when we cover `Buffer`s.
+2. The `front_face` and `cull_mode` fields tell `wgpu` how to determine whether a given triangle is facing forward or not. `FrontFace::Ccw` means that a triangle is facing forward if the vertices are arranged in a counter-clockwise direction. Triangles that are not considered facing forward are culled (not included in the render) as specified by `CullMode::Back`. We'll cover culling a bit more when we cover `Buffer`s.
 
 ```rust
     depth_stencil: None, // 1.
@@ -219,13 +219,13 @@ The `primitive` field describes how to interpret our vertices when converting th
 
 The rest of the method is pretty simple:
 1. We're not using a depth/stencil buffer currently, so we leave `depth_stencil` as `None`. *This will change later*.
-2. This determines how many samples this pipeline will use. Multisampling is a complex topic, so we won't get into it here.
+2. `count` determines how many samples the pipeline will use. Multisampling is a complex topic, so we won't get into it here.
 3. `mask` specifies which samples should be active. In this case we are using all of them.
 4. `alpha_to_coverage_enabled` has to do with anti-aliasing. We're not covering anti-aliasing here, so we'll leave this as false now.
 
 <!-- https://gamedev.stackexchange.com/questions/22507/what-is-the-alphatocoverage-blend-state-useful-for -->
 
-Now all we have to do is save the `render_pipeline` to `State` and then we can use it!
+Now all we have to do is add the `render_pipeline` to `State` and then we can use it!
 
 ```rust
 // new()

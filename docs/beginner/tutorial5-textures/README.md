@@ -81,7 +81,7 @@ queue.write_texture(
 
 <div class="note">
 
-The old way of writing data to a texture was to copy the pixel data to a buffer and then copy it to the texture. Using `write_texture` is a bit more efficient as it uses one less buffer - I'll leave it here though in case you need it.
+The old way of writing data to a texture was to copy the pixel data to a buffer and then copy it to the texture. Using `write_texture` is a bit more efficient as it uses one buffer less - I'll leave it here though in case you need it.
 
 ```rust
 let buffer = device.create_buffer_init(
@@ -140,7 +140,7 @@ let diffuse_sampler = device.create_sampler(&wgpu::SamplerDescriptor {
 });
 ```
 
-The `address_mode_*` parameters determine what to do if the sampler gets a texture coordinate that's outside of the texture itself. We have a few options to choose from:
+The `address_mode_*` parameters determine what to do if the sampler gets a texture coordinate that's outside the texture itself. We have a few options to choose from:
 
 * `ClampToEdge`: Any texture coordinates outside the texture will return the color of the nearest pixel on the edges of the texture.
 * `Repeat`: The texture will repeat as texture coordinates exceed the textures dimensions.
@@ -220,7 +220,7 @@ let diffuse_bind_group = device.create_bind_group(
 );
 ```
 
-Looking at this you might get a bit of déjà vu! That's because a `BindGroup` is a more specific declaration of the `BindGroupLayout`. The reason why they're separate is it allows us to swap out `BindGroup`s on the fly, so long as they all share the same `BindGroupLayout`. Each texture and sampler we create will need to be added to a `BindGroup`. For our purposes, we'll create a new bind group for each texture.
+Looking at this you might get a bit of déjà vu! That's because a `BindGroup` is a more specific declaration of the `BindGroupLayout`. The reason they're separate is that it allows us to swap out `BindGroup`s on the fly, so long as they all share the same `BindGroupLayout`. Each texture and sampler we create will need to be added to a `BindGroup`. For our purposes, we'll create a new bind group for each texture.
 
 Now that we have our `diffuse_bind_group`, let's add it to our `State` struct:
 
@@ -234,12 +234,12 @@ struct State {
     render_pipeline: wgpu::RenderPipeline,
     vertex_buffer: wgpu::Buffer,
     index_buffer: wgpu::Buffer,
-    num_indicies: u32,
+    num_indices: u32,
     diffuse_bind_group: wgpu::BindGroup, // NEW!
 }
 ```
 
-And make sure we return these fields in the `new` method:
+Make sure we return these fields in the `new` method:
 
 ```rust
 impl State {
@@ -340,11 +340,11 @@ Lastly we need to change `VERTICES` itself. Replace the existing definition with
 ```rust
 // Changed
 const VERTICES: &[Vertex] = &[
-    Vertex { position: [-0.0868241, 0.49240386, 0.0], tex_coords: [0.4131759, 0.00759614], }, // A
-    Vertex { position: [-0.49513406, 0.06958647, 0.0], tex_coords: [0.0048659444, 0.43041354], }, // B
-    Vertex { position: [-0.21918549, -0.44939706, 0.0], tex_coords: [0.28081453, 0.949397], }, // C
-    Vertex { position: [0.35966998, -0.3473291, 0.0], tex_coords: [0.85967, 0.84732914], }, // D
-    Vertex { position: [0.44147372, 0.2347359, 0.0], tex_coords: [0.9414737, 0.2652641], }, // E
+    Vertex { position: [-0.0868241, 0.49240386, 0.0], tex_coords: [0.4131759, 0.99240386], }, // A
+    Vertex { position: [-0.49513406, 0.06958647, 0.0], tex_coords: [0.0048659444, 0.56958647], }, // B
+    Vertex { position: [-0.21918549, -0.44939706, 0.0], tex_coords: [0.28081453, 0.05060294], }, // C
+    Vertex { position: [0.35966998, -0.3473291, 0.0], tex_coords: [0.85967, 0.1526709], }, // D
+    Vertex { position: [0.44147372, 0.2347359, 0.0], tex_coords: [0.9414737, 0.7347359], }, // E
 ];
 ```
 
@@ -378,7 +378,7 @@ fn vs_main(
 
 Now that we have our vertex shader outputting our `tex_coords`, we need to change the fragment shader to take them in. With these coordinates, we'll finally be able to use our sampler to get a color from our texture.
 
-```glsl
+```wgsl
 // Fragment shader
 
 [[group(0), binding(0)]]
@@ -404,7 +404,7 @@ That's weird, our tree is upside down! This is because wgpu's world coordinates 
 
 ![happy-tree-uv-coords.png](./happy-tree-uv-coords.png)
 
-We can get our triangle right-side up by inverting the y coordinate of each texture coordinate:
+We can get our triangle right-side up by replacing the y coordinate `y` of each texture coordinate with `1 - y`:
 
 ```rust
 const VERTICES: &[Vertex] = &[
@@ -423,7 +423,7 @@ With that in place, we now have our tree right-side up on our hexagon:
 
 ## Cleaning things up
 
-For convenience sake, let's pull our texture code into its module. We'll first need to add the [anyhow](https://docs.rs/anyhow/) crate to our `Cargo.toml` file to simplify error handling;
+For convenience, let's pull our texture code into its own module. We'll first need to add the [anyhow](https://docs.rs/anyhow/) crate to our `Cargo.toml` file to simplify error handling;
 
 ```toml
 [dependencies]
@@ -539,7 +539,7 @@ let diffuse_texture = texture::Texture::from_bytes(&device, &queue, diffuse_byte
 // Everything up until `let texture_bind_group_layout = ...` can now be removed.
 ```
 
-We still need to store the bind group separately so that `Texture` doesn't need know how the `BindGroup` is laid out. Creating the `diffuse_bind_group` changes slightly to use the `view` and `sampler` fields of our `diffuse_texture`:
+We still need to store the bind group separately so that `Texture` doesn't need know how the `BindGroup` is laid out. The creation of `diffuse_bind_group` slightly changes to use the `view` and `sampler` fields of `diffuse_texture`:
 
 ```rust
 let diffuse_bind_group = device.create_bind_group(

@@ -23,7 +23,7 @@ As of version 0.10, wgpu require's cargo's [newest feature resolver](https://doc
 ## env_logger
 It is very important to enable logging via `env_logger::init();`.
 When wgpu hits any error it panics with a generic message, while logging the real error via the log crate.
-This means if you dont include `env_logger::init()` wgpu will fail silently, leaving you very confused!
+This means if you don't include `env_logger::init()` wgpu will fail silently, leaving you very confused!
 
 ## The code
 There's not much going on here yet, so I'm just going to post the code in full. Just paste this into your `main.rs` or equivalent.
@@ -63,6 +63,6 @@ fn main() {
 
 ```
 
-All this does is create a window, and keep it open until user closes it, or presses escape. Next tutorial we'll actually start using wgpu!
+All this does is create a window, and keep it open until the user closes it, or presses escape. In the next tutorial we'll actually start using wgpu!
 
 <AutoGithubLink/>
