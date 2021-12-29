@@ -5,6 +5,10 @@ wasn't too painful.
 
 ## Multi view added
 
+The `RenderPipelineDescriptor` now includes a `multiview` field that
+indicates the number of array textures if array textures are used
+as render attachments.
+
 ## No more block attribute
 
 The WGSL spec has changed and the `block` attribute is no longer a thing.
@@ -60,15 +64,14 @@ struct LightUniform {
 }
 ```
 
-I updated the [lighting tutorial](../../intermediate/tutorial10-lighting) to reflect
-this change.
+I updated the [lighting tutorial](../../intermediate/tutorial10-lighting) to reflect this change.
 
 ## Misc
 
 Due to the recent deploy to [anyhow](https://docs.rs/anyhow/latest/) that
 breaks glob imports (aka. `use anyhow::*`), I had to switch qualified
 imports and uses (ie. `anyhow::Result`). This was mostly an issue on my
-build scripts for some of showcase examples.
+build scripts for some of the showcase examples.
 
 The main tutorial examples weren't affected, and the changes are minor, so
 if your curious feel free to look at the repo.
