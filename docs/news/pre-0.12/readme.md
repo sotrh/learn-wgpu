@@ -1,4 +1,4 @@
-# News
+# News (Pre 0.12)
 
 ## Pong working on the web
 

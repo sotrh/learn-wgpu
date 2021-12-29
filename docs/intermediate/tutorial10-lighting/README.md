@@ -27,10 +27,26 @@ struct LightUniform {
     // Due to uniforms requiring 16 byte (4 float) spacing, we need to use a padding field here
     _padding: u32,
     color: [f32; 3],
+    // Due to uniforms requiring 16 byte (4 float) spacing, we need to use a padding field here
+    _padding2: u32,
 }
 ```
 
 Our `LightUniform` represents a colored point in space. We're just going to use pure white light, but it's good to allow different colors of light.
+
+
+<div class="note">
+
+The rule of thumb for alignment with WGSL structs is field alignments are
+always powers of 2. For example a `vec3` may only have 3 float fields giving
+it a size of 12, the alignment will be bumped up to the next power of 2 being
+16. This means that you have to be more careful with how you layout your struct
+in Rust.
+
+Some developers choose the use `vec4`s instead of `vec3`s to avoid alignment
+issues. You can learn more about the alignment rules in the [wgsl spec](https://www.w3.org/TR/WGSL/#alignment-and-size)
+
+</div>
 
 We're going to create another buffer to store our light in. 
 
@@ -39,6 +55,7 @@ let light_uniform = LightUniform {
     position: [2.0, 2.0, 2.0],
     _padding: 0,
     color: [1.0, 1.0, 1.0],
+    _padding2: 0,
 };
 
  // We'll want to update our lights position, so we use COPY_DST
@@ -50,6 +67,7 @@ let light_buffer = device.create_buffer_init(
     }
 );
 ```
+
 
 Don't forget to add the `light_uniform` and `light_buffer` to `State`. After that we need to create a bind group layout and bind group for our light.
 

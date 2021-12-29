@@ -52,10 +52,17 @@ module.exports = {
                     '/showcase/pong/',
                     '/showcase/compute/',
                     '/showcase/alignment/',
-                    '/showcase/imgui-demo/',
+                    // '/showcase/imgui-demo/',
                 ]
             },
-            '/news/'
+            {
+                title: 'News',
+                collapsable: true,
+                children: [
+                    '/news/0.12/',
+                    '/news/pre-0.12/',
+                ]
+            }
         ]
     }
 }

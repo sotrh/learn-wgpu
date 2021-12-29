@@ -1,29 +1,91 @@
-# Memory Layout in GLSL
+# Memory Layout in WGSL
 
-## Alignments
+## Alignment of vertex and index buffers
 
-The address of the position of an instance in memory has to a multiple of its alignment.
+Vertex buffers require defining a `VertexBufferLayout`, so the memory alignment is whatever
+you tell WebGPU it should be. This can be really convenient for keeping down memory usage
+on the GPU.
 
-Normally alignment is the same as size. Exceptions are vec3, structs and arrays.
+The Index Buffer use the alignment of whatever primitive type you specify via the `IndexFormat`
+you pass into `RenderEncoder::set_index_buffer()`.
 
-A vec3 is padded to be a vec4 which means it behaves as if it was a vec4 just that the last entry is not used.
+## Alignment of Uniform and Storage buffers
 
-`{i,u,b}vec` is shorthand for `ivec`, `uvec`, `bvec` so a vector of `int` or `uint` or `bool`. A `vec` is a vec of `float`.
+GPUs are designed to process thousands of pixels in parallel. In order to achieve this,
+some sacrifices had to be made. Graphics hardware likes to have all the bytes you intend
+on processing aligned by powers of 2. The exact specifics of why this is are beyond 
+my level of knowledge, but it's important to know so that you can trouble shoot why your
+shaders aren't working.
 
-| type                        | Alignment in bytes | size in bytes |
-| --------------------------- | ------------------ | ------------- |
-| int, uint, float, bool      | 4                  | 4             |
-| double                      | 8                  | 8             |
-| {i,u,b}vec2                 | 8                  | 8             |
-| dvec2                       | 16                 | 16            |
-| {i,u,b}vec3                 | **16**             | 12            |
-| {i,u,b}vec4                 | 16                 | 16            |
-| dvec3                       | **32**             | 24            |
-| dvec4                       | 32                 | 32            |
-| mat3 (like array of 3 vec3) | **16**             | 3*16          |
-| mat4 (like array of 4 vec4) | 16                 | 4*16          |
+<!-- The The address of the position of an instance in memory has to a multiple of its alignment.
+Normally alignment is the same as size. Exceptions are vec3, structs and arrays. A vec3
+is padded to be a vec4 which means it behaves as if it was a vec4 just that the last entry
+is not used. -->
 
-[Reference](https://www.khronos.org/registry/OpenGL/specs/gl/glspec45.core.pdf#page=159) section 7.6.2.2
+Let's take a look at the following table:
+
+---------------------------------------------------------------
+| Type                   | Alignment in Bytes | Size in Bytes |
+|------------------------|--------------------|---------------|
+| scalar (i32, u32, f32) |                  4 |             4 |
+| vec2&lt;T&gt;          |                  8 |             8 |
+| vec3&lt;T&gt;          |             **16** |            12 |
+| vec4&lt;T&gt;          |                 16 |            16 |
+
+You can see for `vec3` the alignment is the next power of 2 from the size, 16. This can
+catche beginners (and even veterans) as it's not the most intuitive. This becomes especially
+important when we start laying out structs. Take the light struct from the [lighting tutorial](../../intermediate/tutorial10-lighting/#seeing-the-light):
+
+You can see the full table of the alignments in section [4.3.7.1 of the WGSL spec](https://www.w3.org/TR/WGSL/#alignment-and-size)
+
+```wgsl
+struct Light {
+    position: vec3<f32>;
+    color: vec3<f32>;
+};
+```
+
+So what's the alignment of this scruct? Your first guess would be that it's the sum of
+the alignments of the individual fields. That might make sense if we were in Rust-land,
+but in shader-land, it's a little more involved. The alignment for a given struct is given
+by the following equation:
+
+```
+// S is the struct in question
+// M is a member of the struct
+AlignOf(S) = max(AlignOfMember(S, M1), ... , AlignOfMember(S, Mn))
+```
+
+Basically the alignment of the struct is the maximum of the alignments of the members of
+the struct. This means that: 
+
+```
+AlignOf(Light) 
+    = max(AlignOfMember(Light, position), AlignOfMember(Light, color))
+    = max(16, 16)
+    = 16
+```
+
+This is why the `LightUniform` has those padding fields. WGPU won't accept it if the data
+is not aligned correctly.
+
+## How to deal with alignment issues
+
+In general 16, is the max alignment you'll see. In that case you might think that we should
+be able to do something like the following:
+
+```rust
+#[repr(C, align(16))]
+#[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
+struct LightUniform {
+    position: [f32; 3],
+    color: [f32; 3],
+}
+```
+
+But this won't compile. The [bytemuck crate](https://docs.rs/bytemuck/) doesn't work with
+structs with implicit padding bytes. Rust can't guarantee that the memory between the fields
+has been initialized properly. The are potential security 
 
 ## In WGPU
 
