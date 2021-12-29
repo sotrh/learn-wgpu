@@ -40,7 +40,7 @@ Let's take a look at the following table:
 | vec4&lt;T&gt;          |                 16 |            16 |
 
 You can see for `vec3` the alignment is the next power of 2 from the size, 16. This can
-catche beginners (and even veterans) as it's not the most intuitive. This becomes especially
+catch beginners (and even veterans) off guard as it's not the most intuitive. This becomes especially
 important when we start laying out structs. Take the light struct from the [lighting tutorial](../../intermediate/tutorial10-lighting/#seeing-the-light):
 
 You can see the full table of the alignments in section [4.3.7.1 of the WGSL spec](https://www.w3.org/TR/WGSL/#alignment-and-size)
