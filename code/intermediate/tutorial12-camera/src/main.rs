@@ -689,7 +689,7 @@ fn main() {
                 }
             }
             // UPDATED!
-            Event::RedrawRequested(_) => {
+            Event::RedrawRequested(window_id) if window_id == window.id() => {
                 let now = std::time::Instant::now();
                 let dt = now - last_render_time;
                 last_render_time = now;

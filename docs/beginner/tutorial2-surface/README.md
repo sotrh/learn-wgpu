@@ -351,7 +351,7 @@ We need to update the event loop again to call this method. We'll also call upda
 event_loop.run(move |event, _, control_flow| {
     match event {
         // ...
-        Event::RedrawRequested(_) => {
+        Event::RedrawRequested(window_id) if window_id == window.id() => {
             state.update();
             match state.render() {
                 Ok(_) => {}

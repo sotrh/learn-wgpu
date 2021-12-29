@@ -47,7 +47,7 @@ impl State {
 
         let config = wgpu::SurfaceConfiguration {
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-            format: wgpu::TextureFormat::Bgra8UnormSrgb,
+            format: surface.get_preferred_format(&adapter).unwrap(),
             width: size.width,
             height: size.height,
             present_mode: wgpu::PresentMode::Fifo,
@@ -214,7 +214,7 @@ fn main() {
                     }
                 }
             }
-            Event::RedrawRequested(_) => {
+            Event::RedrawRequested(window_id) if window_id == window.id() => {
                 state.update();
                 match state.render() {
                     Ok(_) => {}

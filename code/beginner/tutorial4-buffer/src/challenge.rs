@@ -356,7 +356,7 @@ fn main() {
                     }
                 }
             }
-            Event::RedrawRequested(_) => {
+            Event::RedrawRequested(window_id) if window_id == window.id() => {
                 state.update();
                 match state.render() {
                     Ok(_) => {}

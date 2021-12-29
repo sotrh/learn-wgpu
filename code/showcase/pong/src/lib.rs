@@ -198,7 +198,7 @@ pub fn start() {
                 render.resize(size);
                 events.push(state::Event::Resize(size.width as f32, size.height as f32));
             }
-            Event::RedrawRequested(_) => {
+            Event::RedrawRequested(window_id) if window_id == window.id() => {
                 for event in &events {
                     match event {
                         state::Event::FocusChanged | state::Event::ButtonPressed => {
