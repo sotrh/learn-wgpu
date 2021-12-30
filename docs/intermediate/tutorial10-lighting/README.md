@@ -321,7 +321,7 @@ let light_render_pipeline = {
 };
 ```
 
-I chose to create a seperate layout for the `light_render_pipeline`, as it doesn't need all the resources that the regular `render_pipeline` needs (main just the textures).
+I chose to create a separate layout for the `light_render_pipeline`, as it doesn't need all the resources that the regular `render_pipeline` needs (main just the textures).
 
 With that in place we need to write the actual shaders.
 
