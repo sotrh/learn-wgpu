@@ -22,12 +22,11 @@ I'm using this project to learn wgpu myself, so I might miss some important deta
 
 *In no particular order*
 
+* Zeh Fernando
+* The toddling chaos
 * Jan Šipr
-* Danny McGee
 * Bernard Llanos
-* Ken Kochis
 * Aron Granberg
-* Ben Anderson
 * Ian Gowen
 * Paul E Hansen
 * Lennart
