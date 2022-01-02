@@ -11,7 +11,8 @@
     "dev": "./build-wasm.sh && vuepress dev docs",
     "build": "./build-wasm.sh && vuepress build docs",
     "deploy": "sh deploy.sh",
-    "just-build": "vuepress build docs"
+    "just-build": "vuepress build docs",
+    "just-dev": "vuepress dev docs"
   },
   "author": "",
   "license": "ISC",

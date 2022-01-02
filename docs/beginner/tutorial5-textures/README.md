@@ -586,4 +586,6 @@ With these changes in place, the code should be working the same as it was befor
 
 Create another texture and swap it out when you press the space key.
 
+<WasmExample example="tutorial5_textures"></WasmExample>
+
 <AutoGithubLink/>

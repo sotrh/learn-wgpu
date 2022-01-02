@@ -108,7 +108,13 @@ Let's use the `adapter` to create the device and queue.
         let (device, queue) = adapter.request_device(
             &wgpu::DeviceDescriptor {
                 features: wgpu::Features::empty(),
-                limits: wgpu::Limits::default(),
+                // WebGL doesn't support all of wgpu's features, so if
+                    // we're building for the web we'll have to disable some.
+                    limits: if cfg!(target_arch = "wasm32") {
+                        wgpu::Limits::downlevel_webgl2_defaults()
+                    } else {
+                        wgpu::Limits::default()
+                    },
                 label: None,
             },
             None, // Trace path
@@ -432,5 +438,8 @@ If wgpu is using Vulkan on your machine, you may run into validation errors if y
 ## Challenge
 
 Modify the `input()` method to capture mouse events, and update the clear color using that. *Hint: you'll probably need to use `WindowEvent::CursorMoved`*.
+
+
+<WasmExample example="tutorial2_surface"></WasmExample>
 
 <AutoGithubLink/>

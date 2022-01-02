@@ -4,7 +4,11 @@ version = "0.1.0"
 authors = ["Ben Hansen <bhbenjaminhansen@gmail.com>"]
 edition = "2018"
 
+[lib]
+crate-type = ["cdylib", "rlib"]
+
 [dependencies]
+cfg-if = "1"
 image = "0.23"
 winit = "0.26"
 cgmath = "0.18"
@@ -12,6 +16,17 @@ env_logger = "0.9"
 log = "0.4"
 wgpu = "0.12"
 pollster = "0.2"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+console_error_panic_hook = "0.1.6"
+console_log = "0.2.0"
+wgpu = { version = "0.12", features = ["webgl"]}
+wasm-bindgen = "0.2.76"
+web-sys = { version = "0.3.53", features = [
+    "Document",
+    "Window",
+    "Element",
+]}
 
 # NEW!
 [build-dependencies]

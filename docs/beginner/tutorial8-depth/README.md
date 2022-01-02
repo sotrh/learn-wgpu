@@ -161,4 +161,6 @@ And that's all we have to do! No shader code needed! If you run the application,
 
 Since the depth buffer is a texture, we can sample it in the shader. Because it's a depth texture, we'll have to use the `samplerShadow` uniform type and the `sampler2DShadow` function instead of `sampler`, and `sampler2D` respectively. Create a bind group for the depth texture (or reuse an existing one), and render it to the screen.
 
+<WasmExample example="tutorial8_depth"></WasmExample>
+
 <AutoGithubLink/>
