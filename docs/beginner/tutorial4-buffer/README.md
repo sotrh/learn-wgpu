@@ -317,7 +317,7 @@ const VERTICES: &[Vertex] = &[
 ];
 ```
 
-You'll note though that some of the vertices are used more than once. C, and B get used twice, and E is repeated 3 times. Assuming that each float is 4 bytes, then that means of the 216 bytes we use for `VERTICES`, 96 of them are duplicate data. Wouldn't it be nice if we could list these vertices once? Well we can! That's were an index buffer comes into play.
+You'll note though that some of the vertices are used more than once. C, and B get used twice, and E is repeated 3 times. Assuming that each float is 4 bytes, then that means of the 216 bytes we use for `VERTICES`, 96 of them are duplicate data. Wouldn't it be nice if we could list these vertices once? Well we can! That's where an index buffer comes into play.
 
 Basically we store all the unique vertices in `VERTICES` and we create another buffer that stores indices to elements in `VERTICES` to create the triangles. Here's an example of that with our pentagon.
 
