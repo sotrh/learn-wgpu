@@ -2332,11 +2332,16 @@ checksum = "76dacc724328b3d5e2ed67f9e30cdb56893a34ab239032502cc8f19f8dae4bbc"
 name = "tutorial1-window"
 version = "0.1.0"
 dependencies = [
+ "cfg-if 1.0.0",
  "cgmath",
+ "console_error_panic_hook",
+ "console_log",
  "env_logger",
  "image",
  "log",
  "pollster",
+ "wasm-bindgen",
+ "web-sys",
  "wgpu",
  "winit",
 ]

@@ -15,3 +15,9 @@ export default {
     }
 }
 </script>
+
+<style>
+.auto-github-link {
+    margin-top: 1rem;
+}
+</style>

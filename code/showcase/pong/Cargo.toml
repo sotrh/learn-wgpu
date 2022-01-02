@@ -34,7 +34,6 @@ web-sys = { version = "0.3.53", features = [
     "Window",
     "Element",
 ]}
-# winit = { version = "0.26", features = ["web-sys"] }
 wgpu = { version = "0.12", features = ["spirv", "webgl"]}
 
 [build-dependencies]
