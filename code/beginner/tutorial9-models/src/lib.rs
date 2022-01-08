@@ -10,6 +10,7 @@ use winit::{
 
 mod model;
 mod texture;
+mod loader;
 
 use model::{DrawModel, Vertex};
 
@@ -381,13 +382,13 @@ impl State {
         });
 
         let res_dir = std::path::Path::new(env!("OUT_DIR")).join("res");
-        let obj_model = model::Model::load(
+        let loader = loader::Loader::new(res_dir).unwrap();
+        let obj_model = loader.load_model(
             &device,
             &queue,
             &texture_bind_group_layout,
-            res_dir.join("cube.obj"),
-        )
-        .unwrap();
+            "cube.obj",
+        ).unwrap();
 
         let shader = device.create_shader_module(&wgpu::ShaderModuleDescriptor {
             label: Some("shader.wgsl"),
