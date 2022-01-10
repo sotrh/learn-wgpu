@@ -72,7 +72,7 @@ The `adapter` is a handle to our actual graphics card. You can use this to get i
 
 * `power_preference` has two variants: `LowPower`, and `HighPerformance`. This means will pick an adapter that favors battery life such as a integrated GPU when using `LowPower`. `HighPerformance` as will pick an adapter for more power hungry yet more performant GPU's such as your dedicated graphics card. WGPU will favor `LowPower` if there is no adapter for the `HighPerformance` option.
 * The `compatible_surface` field tells wgpu to find an adapter that can present to the supplied surface.
-* The `force_fallback_adapter` forces wgpu to pick an adapter that will work on all harware. This usually means that the rendering backend will use a "software" system, instead of hardware such as a GPU.
+* The `force_fallback_adapter` forces wgpu to pick an adapter that will work on all hardware. This usually means that the rendering backend will use a "software" system, instead of hardware such as a GPU.
 
 <div class="note">
 
@@ -391,7 +391,7 @@ Some of you may be able to tell what's going on just by looking at it, but I'd b
 }
 ```
 
-A `RenderPassDescriptor` only has three fields: `label`, `color_attachments` and `depth_stencil_attachment`. The `color_attachements` describe where we are going to draw our color to. We use the `TextureView` we created earlier to make sure that we render to the screen.
+A `RenderPassDescriptor` only has three fields: `label`, `color_attachments` and `depth_stencil_attachment`. The `color_attachments` describe where we are going to draw our color to. We use the `TextureView` we created earlier to make sure that we render to the screen.
 
 We'll use `depth_stencil_attachment` later, but we'll set it to `None` for now.
 

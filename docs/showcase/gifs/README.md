@@ -41,7 +41,7 @@ fn save_gif(path: &str, frames: &mut Vec<Vec<u8>>, speed: i32, size: u16) -> Res
 }
 ``` -->
 
-All we need to use this code is the frames of the GIF, how fast it should run, and the size of the GIF (you could use width and height seperately, but I didn't).
+All we need to use this code is the frames of the GIF, how fast it should run, and the size of the GIF (you could use width and height separately, but I didn't).
 
 ## How do we make the frames?
 

@@ -130,7 +130,7 @@ ModelVertex calcTangentBitangent(uint vertexIndex) {
 
 ## Possible Improvements
 
-Looping over every triangle for every vertex is likely raising some red flags for some of you. In a single threaded context, this algorithm would end up being O(N*M). As we are utilizing the high number of threads availble to our GPU, this is less of an issue, but it still means our GPU is burning more cycles than it needs to.
+Looping over every triangle for every vertex is likely raising some red flags for some of you. In a single threaded context, this algorithm would end up being O(N*M). As we are utilizing the high number of threads available to our GPU, this is less of an issue, but it still means our GPU is burning more cycles than it needs to.
 
 One way I came up with to possibly improve performance is to store the index of each triangle in a hash map like structure with the vertex index as keys. Here's some pseudo code:
 
