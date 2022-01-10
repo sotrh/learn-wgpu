@@ -146,6 +146,17 @@ let shader = device.create_shader_module(&wgpu::ShaderModuleDescriptor {
 });
 ```
 
+<div class="note">
+
+You can also use `include_wgsl!` macro as a small shortcut to create the `ShaderModuleDescriptor`.
+
+```rust
+let shader = device.create_shader_module(&include_wgsl!("shader.wgsl"));
+```
+
+</div>
+
+
 One more thing, we need to create a `PipelineLayout`. We'll get more into this after we cover `Buffer`s.
 
 ```rust
