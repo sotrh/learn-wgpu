@@ -91,7 +91,7 @@ let adapter = instance
 
 Another thing to note is that `Adapter`s are locked to a specific backend. If you are on Windows and have 2 graphics cards you'll have at least 4 adapters available to use, 2 Vulkan and 2 DirectX.
 
-For more fields you can use to refine your search [check out the docs](https://docs.rs/wgpu/0.10.1/wgpu/struct.Adapter.html).
+For more fields you can use to refine your search [check out the docs](https://docs.rs/wgpu/0.12.0/wgpu/struct.Adapter.html).
 
 </div>
 
@@ -123,11 +123,11 @@ The graphics card you have limits the features you can use. If you want to use c
 
 You can get a list of features supported by your device using `adapter.features()`, or `device.features()`.
 
-You can view a full list of features [here](https://docs.rs/wgpu/0.10.1/wgpu/struct.Features.html).
+You can view a full list of features [here](https://docs.rs/wgpu/0.12.0/wgpu/struct.Features.html).
 
 </div>
 
-The `limits` field describes the limit of certain types of resources that we can create. We'll use the defaults for this tutorial, so we can support most devices. You can view a list of limits [here](https://docs.rs/wgpu/0.10.1/wgpu/struct.Limits.html).
+The `limits` field describes the limit of certain types of resources that we can create. We'll use the defaults for this tutorial, so we can support most devices. You can view a list of limits [here](https://docs.rs/wgpu/0.12.0/wgpu/struct.Limits.html).
 
 ```rust
         let config = wgpu::SurfaceConfiguration {
@@ -152,7 +152,7 @@ The `format` defines how `SurfaceTexture`s will be stored on the gpu. Different 
 Make sure that the width and height of the `SurfaceTexture` are not 0, as that can cause your app to crash.
 </div>
 
-`present_mode` uses `wgpu::PresentMode` enum which determines how to sync the surface with the display. The option we picked, `FIFO`, will cap the display rate at the displays framerate. This is essentially VSync. This is also the most optimal mode on mobile. There are other options and you can see all of them [in the docs](https://docs.rs/wgpu/0.10.1/wgpu/enum.PresentMode.html)
+`present_mode` uses `wgpu::PresentMode` enum which determines how to sync the surface with the display. The option we picked, `FIFO`, will cap the display rate at the displays framerate. This is essentially VSync. This is also the most optimal mode on mobile. There are other options and you can see all of them [in the docs](https://docs.rs/wgpu/0.12.0/wgpu/enum.PresentMode.html)
 
 Now that we've configured our surface properly we can add these new fields at the end of the method.
 
