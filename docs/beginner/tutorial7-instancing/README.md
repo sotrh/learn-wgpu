@@ -1,6 +1,6 @@
 # Instancing
 
-Our scene right now is very simple: we have one object centered at (0,0,0). What if we wanted more objects? This is were instancing comes in. 
+Our scene right now is very simple: we have one object centered at (0,0,0). What if we wanted more objects? This is where instancing comes in.
 
 Instancing allows us to draw the same object multiple times with different properties (position, orientation, size, color, etc.). There are multiple ways of doing instancing. One way would be to modify the uniform buffer to include these properties and then update it before we draw each instance of our object.
 
@@ -91,7 +91,6 @@ We'll create the instances in `new()`. We'll use some constants to simplify thin
 
 ```rust
 const NUM_INSTANCES_PER_ROW: u32 = 10;
-const NUM_INSTANCES: u32 = NUM_INSTANCES_PER_ROW * NUM_INSTANCES_PER_ROW;
 const INSTANCE_DISPLACEMENT: cgmath::Vector3<f32> = cgmath::Vector3::new(NUM_INSTANCES_PER_ROW as f32 * 0.5, 0.0, NUM_INSTANCES_PER_ROW as f32 * 0.5);
 ```
 
