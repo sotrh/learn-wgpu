@@ -58,7 +58,7 @@ const VERTICES: &[Vertex] = &[
     }, // E
 ];
 
-const INDICES: &[u16] = &[0, 1, 4, 1, 2, 4, 2, 3, 4, /* padding */ 0];
+const INDICES: &[u16] = &[0, 1, 4, 1, 2, 4, 2, 3, 4];
 
 struct State {
     surface: wgpu::Surface,
