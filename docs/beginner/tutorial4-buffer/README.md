@@ -185,7 +185,7 @@ wgpu::VertexBufferLayout {
 }
 ```
 
-While this is definitely nice, we would have to change the lifetime on `wgpu::VertexBufferLayout` to `'static` as rust wouldn't compile the code because the result of `vertex_attr_array` is a temporary value, which we can't return from a function.
+While this is definitely nice, because the result of `vertex_attr_array` is a temporary value, some tweak is required to return it from a function (e.g. changing the lifetime on `wgpu::VertexBufferLayout` to `'static`, or [make it `const`](https://github.com/gfx-rs/wgpu/discussions/1790#discussioncomment-1160378)).
 
 Beyond that, I feel it's good to show how the data gets mapped, so I'll forgo using this macro for now.
 
