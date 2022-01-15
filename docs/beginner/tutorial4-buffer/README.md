@@ -185,9 +185,26 @@ wgpu::VertexBufferLayout {
 }
 ```
 
-While this is definitely nice, we would have to change the lifetime on `wgpu::VertexBufferLayout` to `'static` as rust wouldn't compile the code because the result of `vertex_attr_array` is a temporary value, which we can't return from a function.
+While this is definitely nice, Rust sees the result of `vertex_attr_array` is a temporary value, so a tweak is required to return it from a function. We could change the lifetime on `wgpu::VertexBufferLayout` to `'static`, or [make it `const`](https://github.com/gfx-rs/wgpu/discussions/1790#discussioncomment-1160378). You can see an example below:
+    
+```rust
+impl Vertex {
+    const ATTRIBS: [wgpu::VertexAttribute; 2] =
+        wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x3];
 
-Beyond that, I feel it's good to show how the data gets mapped, so I'll forgo using this macro for now.
+    fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
+        use std::mem;
+
+        wgpu::VertexBufferLayout {
+            array_stride: mem::size_of::<Self>() as wgpu::BufferAddress,
+            step_mode: wgpu::VertexStepMode::Vertex,
+            attributes: &Self::ATTRIBS,
+        }
+    }
+}
+```
+
+Regardless I feel it's good to show how the data gets mapped, so I'll forgo using this macro for now.
 
 </div>
 
