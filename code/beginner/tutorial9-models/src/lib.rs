@@ -1,4 +1,4 @@
-use std::iter;
+use std::{iter, str::FromStr};
 
 use cgmath::prelude::*;
 use wgpu::util::DeviceExt;
@@ -7,6 +7,9 @@ use winit::{
     event_loop::{ControlFlow, EventLoop},
     window::Window,
 };
+
+#[cfg(target_arch="wasm32")]
+use wasm_bindgen::prelude::*;
 
 mod model;
 mod texture;
@@ -381,7 +384,11 @@ impl State {
             label: Some("camera_bind_group"),
         });
 
-        let res_dir = std::path::Path::new(env!("OUT_DIR")).join("res");
+        let res_dir = if cfg!(target_arch = "wasm32") {
+            std::path::PathBuf::from_str("/").unwrap()
+        } else {
+            std::path::Path::new(env!("OUT_DIR")).join("res")
+        };
         let loader = loader::Loader::new(res_dir).unwrap();
         let obj_model = loader.load_model(
             &device,
@@ -552,14 +559,43 @@ impl State {
     }
 }
 
+#[cfg_attr(target_arch="wasm32", wasm_bindgen(start))]
 pub fn run() {
-    env_logger::init();
+    cfg_if::cfg_if! {
+        if #[cfg(target_arch = "wasm32")] {
+            std::panic::set_hook(Box::new(console_error_panic_hook::hook));
+            console_log::init_with_level(log::Level::Warn).expect("Could't initialize logger");
+        } else {
+            env_logger::init();
+        }
+    }
+
     let event_loop = EventLoop::new();
     let title = env!("CARGO_PKG_NAME");
     let window = winit::window::WindowBuilder::new()
         .with_title(title)
         .build(&event_loop)
         .unwrap();
+
+    
+    #[cfg(target_arch = "wasm32")]
+    {
+        // Winit prevents sizing with CSS, so we have to set
+        // the size manually when on web.
+        use winit::dpi::PhysicalSize;
+        window.set_inner_size(PhysicalSize::new(450, 400));
+        
+        use winit::platform::web::WindowExtWebSys;
+        web_sys::window()
+            .and_then(|win| win.document())
+            .and_then(|doc| {
+                let dst = doc.get_element_by_id("wasm-example")?;
+                let canvas = web_sys::Element::from(window.canvas());
+                dst.append_child(&canvas).ok()?;
+                Some(())
+            })
+            .expect("Couldn't append canvas to document body.");
+    }
 
     // State::new uses async code, so we're going to wait for it to finish
     let mut state = pollster::block_on(State::new(&window));

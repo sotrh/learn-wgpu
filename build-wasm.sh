@@ -7,3 +7,4 @@ wasm-pack build --out-dir ../../../docs/.vuepress/components/wasm/tutorial5_text
 wasm-pack build --out-dir ../../../docs/.vuepress/components/wasm/tutorial6_uniforms code/beginner/tutorial6-uniforms
 wasm-pack build --out-dir ../../../docs/.vuepress/components/wasm/tutorial7_instancing code/beginner/tutorial7-instancing
 wasm-pack build --out-dir ../../../docs/.vuepress/components/wasm/tutorial8_depth code/beginner/tutorial8-depth
+wasm-pack build --out-dir ../../../docs/.vuepress/components/wasm/tutorial9_models code/beginner/tutorial9-models

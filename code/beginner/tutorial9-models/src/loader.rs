@@ -1,4 +1,4 @@
-use std::{path::{Path, PathBuf}};
+use std::{path::{Path, PathBuf}, io::{BufReader, Cursor}};
 
 use anyhow::Context;
 use wgpu::util::DeviceExt;
@@ -12,7 +12,7 @@ pub struct Loader {
 impl Loader {
     pub fn new<P: AsRef<Path>>(path: P) -> anyhow::Result<Self> {
         let base_path: PathBuf = path.as_ref().to_path_buf();
-        if !base_path.exists() {
+        if cfg!(not(target_arch = "wasm32")) && !base_path.exists() {
             anyhow::bail!("Supplied path does not exist: {:?}", base_path);
         } else {
             Ok(Self {
@@ -30,13 +30,20 @@ impl Loader {
         }
     }
 
-    pub fn load_texture(
+
+    pub async fn load_texture(
         &self,
         device: &wgpu::Device,
         queue: &wgpu::Queue,
         path: impl AsRef<Path>
     ) -> anyhow::Result<Texture> {
         let path = self.get_full_path(path);
+
+        let res = reqwest::get(path).await?;
+        let bytes = res.bytes().await?;
+        let reader = imgage::io::Reader::new(Cursor::new(bytes));
+        let img = reader.decode()?;
+
         let img = image::open(&path)?;
         Texture::from_image(device, queue, &img, path.to_str())
     }
@@ -49,6 +56,9 @@ impl Loader {
         path: impl AsRef<Path>,
     ) -> anyhow::Result<Model> {
         let path = self.get_full_path(path);
+
+
+
         let (obj_models, obj_materials) = tobj::load_obj(
             &path,
             &tobj::LoadOptions {
