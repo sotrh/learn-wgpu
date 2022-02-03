@@ -228,11 +228,10 @@ Modify the vertex shader to include the following.
 
 ```wgsl
 // Vertex shader
- // 1.
 struct CameraUniform {
     view_proj: mat4x4<f32>;
 };
-[[group(1), binding(0)]] // 2.
+[[group(1), binding(0)]] // 1.
 var<uniform> camera: CameraUniform;
 
 struct VertexInput {
@@ -251,14 +250,13 @@ fn vs_main(
 ) -> VertexOutput {
     var out: VertexOutput;
     out.tex_coords = model.tex_coords;
-    out.clip_position = camera.view_proj * vec4<f32>(model.position, 1.0); // 3.
+    out.clip_position = camera.view_proj * vec4<f32>(model.position, 1.0); // 2.
     return out;
 }
 ```
 
-1. According to the [WGSL Spec](https://gpuweb.github.io/gpuweb/wgsl/), The block decorator indicates this structure type represents the contents of a buffer resource occupying a single binding slot in the shader’s resource interface. Any structure used as a `uniform` must be annotated with `[[block]]`
-2. Because we've created a new bind group, we need to specify which one we're using in the shader. The number is determined by our `render_pipeline_layout`. The `texture_bind_group_layout` is listed first, thus it's `group(0)`, and `camera_bind_group` is second, so it's `group(1)`.
-3. Multiplication order is important when it comes to matrices. The vector goes on the right, and the matrices gone on the left in order of importance.
+1. Because we've created a new bind group, we need to specify which one we're using in the shader. The number is determined by our `render_pipeline_layout`. The `texture_bind_group_layout` is listed first, thus it's `group(0)`, and `camera_bind_group` is second, so it's `group(1)`.
+2. Multiplication order is important when it comes to matrices. The vector goes on the right, and the matrices gone on the left in order of importance.
 
 ## A controller for our camera
 
