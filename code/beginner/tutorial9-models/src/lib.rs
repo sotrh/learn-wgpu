@@ -13,7 +13,7 @@ use wasm_bindgen::prelude::*;
 
 mod model;
 mod texture;
-mod loader;
+mod resources;
 
 use model::{DrawModel, Vertex};
 
@@ -384,18 +384,12 @@ impl State {
             label: Some("camera_bind_group"),
         });
 
-        let res_dir = if cfg!(target_arch = "wasm32") {
-            std::path::PathBuf::from_str("/").unwrap()
-        } else {
-            std::path::Path::new(env!("OUT_DIR")).join("res")
-        };
-        let loader = loader::Loader::new(res_dir).unwrap();
-        let obj_model = loader.load_model(
+        let obj_model = resources::load_model(
+            "cube.obj",
             &device,
             &queue,
             &texture_bind_group_layout,
-            "cube.obj",
-        ).unwrap();
+        ).await.unwrap();
 
         let shader = device.create_shader_module(&wgpu::ShaderModuleDescriptor {
             label: Some("shader.wgsl"),

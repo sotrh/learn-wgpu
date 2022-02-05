@@ -8,6 +8,7 @@ edition = "2018"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
+
 anyhow = "1.0"
 bytemuck = { version = "1.4", features = [ "derive" ] }
 cfg-if = "1"
@@ -16,12 +17,12 @@ env_logger = "0.9"
 pollster = "0.2"
 image = "0.23"
 log = "0.4"
-reqwest = "0.11"
 tobj = "3.0"
 wgpu = "0.12"
 winit = "0.26"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
+reqwest = { version = "0.11", features = ["blocking"] }
 console_error_panic_hook = "0.1.6"
 console_log = "0.2.0"
 wgpu = { version = "0.12", features = ["webgl"]}
@@ -40,8 +41,3 @@ glob = "0.3"
 [[bin]]
 name = "tutorial9-models"
 path = "src/main.rs"
-
-
-# [[bin]]
-# name = "tutorial9-challenge"
-# path = "src/challenge.rs"
