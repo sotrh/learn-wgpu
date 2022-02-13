@@ -868,12 +868,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d0c8ff0461b82559810cdccfde3215c3f373807f5e5232b71479bff7bb2583d7"
 
 [[package]]
-name = "futures-io"
-version = "0.3.19"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b1f9d34af5a1aac6fb380f735fe510746c38067c5bf16c7fd250280503c971b2"
-
-[[package]]
 name = "futures-sink"
 version = "0.3.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -892,12 +886,9 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d9b5cf40b47a271f77a8b1bec03ca09044d99d2372c0de244e66430761127164"
 dependencies = [
  "futures-core",
- "futures-io",
  "futures-task",
- "memchr",
  "pin-project-lite",
  "pin-utils",
- "slab",
 ]
 
 [[package]]
@@ -2666,7 +2657,6 @@ dependencies = [
  "libc",
  "memchr",
  "mio 0.7.14",
- "num_cpus",
  "pin-project-lite",
  "winapi",
 ]

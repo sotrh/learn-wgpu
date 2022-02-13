@@ -1,4 +1,4 @@
-use std::{iter, str::FromStr};
+use std::iter;
 
 use cgmath::prelude::*;
 use wgpu::util::DeviceExt;
@@ -248,6 +248,7 @@ impl State {
 
         // The instance is a handle to our GPU
         // BackendBit::PRIMARY => Vulkan + Metal + DX12 + Browser WebGPU
+        log::warn!("WGPU setup");
         let instance = wgpu::Instance::new(wgpu::Backends::all());
         let surface = unsafe { instance.create_surface(window) };
         let adapter = instance
@@ -258,6 +259,7 @@ impl State {
             })
             .await
             .unwrap();
+        log::warn!("device and queue");
         let (device, queue) = adapter
             .request_device(
                 &wgpu::DeviceDescriptor {
@@ -277,6 +279,7 @@ impl State {
             .await
             .unwrap();
 
+        log::warn!("Surface");
         let config = wgpu::SurfaceConfiguration {
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
             format: surface.get_preferred_format(&adapter).unwrap(),
@@ -384,6 +387,7 @@ impl State {
             label: Some("camera_bind_group"),
         });
 
+        log::warn!("Load model");
         let obj_model = resources::load_model(
             "cube.obj",
             &device,
@@ -592,6 +596,7 @@ pub fn run() {
     }
 
     // State::new uses async code, so we're going to wait for it to finish
+    log::warn!("Creating State");
     let mut state = pollster::block_on(State::new(&window));
 
     event_loop.run(move |event, _, control_flow| {
