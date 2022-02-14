@@ -8,13 +8,11 @@ use crate::{model, texture};
 pub async fn load_string(file_name: &str) -> anyhow::Result<String> {
     cfg_if! {
         if #[cfg(target_arch = "wasm32")] {
-            log::warn!("Creating url for {}", file_name);
             let url = format!("http://127.0.0.1:8080/learn-wgpu/{}", file_name);
-            log::warn!("Making request for {}", url);
-            let res = reqwest::get(&url).await?;
-            log::warn!("Recieved response");
-            let txt = res.text().await?;
-            log::warn!("Finished request for {}", url);
+            let txt = reqwest::get(&url)
+                .await?
+                .text()
+                .await?;
         } else {
             let path = std::path::Path::new(env!("OUT_DIR"))
                 .join("res")
@@ -51,7 +49,9 @@ pub async fn load_texture(
     device: &wgpu::Device,
     queue: &wgpu::Queue,
 ) -> anyhow::Result<texture::Texture> {
+    log::warn!("Loading binary file {}", file_name);
     let data = load_binary(file_name).await?;
+    log::warn!("Creating texture");
     texture::Texture::from_bytes(device, queue, &data, file_name)
 }
 
@@ -85,7 +85,9 @@ pub async fn load_model(
     log::warn!("Processing materials");
     let mut materials = Vec::new();
     for m in obj_materials? {
+        log::warn!("Loading diffuse texture");
         let diffuse_texture = load_texture(&m.diffuse_texture, device, queue).await?;
+        log::warn!("Creating bind group");
         let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
             layout,
             entries: &[

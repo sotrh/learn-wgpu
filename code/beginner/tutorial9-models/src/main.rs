@@ -1,5 +1,5 @@
 use tutorial9_models::run;
 
 fn main() {
-    run();
+    pollster::block_on(run());
 }
