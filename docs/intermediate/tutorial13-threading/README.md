@@ -107,7 +107,7 @@ impl Model {
 }
 ```
 
-We've parallelized loading the meshes, and making the vertex array for them. Propably a bit overkill, but `rayon` should prevent us from using too many threads.
+We've parallelized loading the meshes, and making the vertex array for them. Probably a bit overkill, but `rayon` should prevent us from using too many threads.
 
 <div class="note">
 
