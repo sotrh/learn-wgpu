@@ -434,7 +434,7 @@ log = "0.4"
 pollster = "0.2"
 wgpu = "0.12"
 bytemuck = { version = "1.4", features = [ "derive" ] }
-anyhow = "1.0" // NEW!
+anyhow = "1.0" # NEW!
 ```
 
 Then, in a new file called `src/texture.rs`, add the following:
