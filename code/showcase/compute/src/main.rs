@@ -603,6 +603,10 @@ impl State {
 }
 
 fn main() {
+    pollster::block_on(run());
+}
+
+async fn run() {
     env_logger::init();
     let event_loop = EventLoop::new();
     let title = env!("CARGO_PKG_NAME");
@@ -610,7 +614,7 @@ fn main() {
         .with_title(title)
         .build(&event_loop)
         .unwrap();
-    let mut state = pollster::block_on(State::new(&window)); // NEW!
+    let mut state = State::new(&window).await; // NEW!
     let mut last_render_time = std::time::Instant::now();
     event_loop.run(move |event, _, control_flow| {
         *control_flow = ControlFlow::Poll;

@@ -8,13 +8,10 @@ For the beginner stuff, we're going to keep things very simple, we'll add things
 
 ```toml
 [dependencies]
-image = "0.23"
 winit = "0.26"
-cgmath = "0.18"
 env_logger = "0.9"
 log = "0.4"
 wgpu = "0.12"
-pollster = "0.2"
 ```
 
 ## Using Rust's new resolver
@@ -35,7 +32,7 @@ use winit::{
     window::WindowBuilder,
 };
 
-pub fn run() {
+pub async fn run() {
     env_logger::init();
     let event_loop = EventLoop::new();
     let window = WindowBuilder::new().build(&event_loop).unwrap();
@@ -69,7 +66,7 @@ All this does is create a window, and keep it open until the user closes it, or 
 use tutorial1_window::run;
 
 fn main() {
-    run();
+    pollster::block_on(run());
 }
 ```
 
@@ -141,7 +138,7 @@ Next we need to tell wasm-bindgen to run our `run()` function when the WASM is l
 
 ```rust
 #[cfg_attr(target_arch="wasm32", wasm_bindgen(start))]
-pub fn run() {
+pub async fn run() {
     // snipped...
 }
 ```

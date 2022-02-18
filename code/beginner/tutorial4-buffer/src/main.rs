@@ -1,5 +1,5 @@
 use tutorial4_buffer::run;
 
 fn main() {
-    run();
+    pollster::block_on(run());
 }

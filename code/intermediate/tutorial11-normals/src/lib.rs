@@ -742,7 +742,7 @@ impl State {
     }
 }
 
-pub fn run() {
+pub async fn run() {
     env_logger::init();
     let event_loop = EventLoop::new();
     let title = env!("CARGO_PKG_NAME");
@@ -750,7 +750,7 @@ pub fn run() {
         .with_title(title)
         .build(&event_loop)
         .unwrap();
-    let mut state = pollster::block_on(State::new(&window));
+    let mut state = State::new(&window).await;
     event_loop.run(move |event, _, control_flow| {
         *control_flow = ControlFlow::Poll;
         match event {

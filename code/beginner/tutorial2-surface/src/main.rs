@@ -1,5 +1,5 @@
 use tutorial2_surface::run;
 
 fn main() {
-    run()
+    pollster::block_on(run());
 }

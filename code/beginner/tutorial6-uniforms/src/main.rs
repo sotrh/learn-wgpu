@@ -1,5 +1,5 @@
 use tutorial6_uniforms::run;
 
 fn main() {
-    run();
+    pollster::block_on(run());
 }

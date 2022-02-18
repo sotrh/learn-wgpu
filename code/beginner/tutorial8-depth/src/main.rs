@@ -1,5 +1,5 @@
 use tutorial8_depth::run;
 
 fn main() {
-    run();
+    pollster::block_on(run());
 }

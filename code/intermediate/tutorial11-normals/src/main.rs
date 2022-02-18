@@ -1,5 +1,5 @@
 use tutorial11_normals::run;
 
 fn main() {
-    run();
+    pollster::block_on(run());
 }

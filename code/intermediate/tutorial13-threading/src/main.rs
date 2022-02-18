@@ -1,5 +1,5 @@
 use tutorial13_threading::run;
 
 fn main() {
-    run();
+    pollster::block_on(run());
 }

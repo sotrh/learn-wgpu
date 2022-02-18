@@ -1,5 +1,5 @@
 use tutorial3_pipeline::run;
 
 fn main() {
-    run();
+    pollster::block_on(run());
 }

@@ -1,5 +1,5 @@
 use tutorial10_lighting::run;
 
 fn main() {
-    run();
+    pollster::block_on(run());
 }

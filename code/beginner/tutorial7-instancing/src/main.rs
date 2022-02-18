@@ -1,5 +1,5 @@
 use tutorial7_instancing::run;
 
 fn main() {
-    run();
+    pollster::block_on(run());
 }

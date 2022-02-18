@@ -10,7 +10,22 @@ If we want to map an image to our mesh, we first need an image. Let's use this h
 
 ![a happy tree](./happy-tree.png)
 
-We'll use the [image crate](https://crates.io/crates/image) to load our tree. We already added to our dependencies in the first section, so all we have to do is use it.
+We'll use the [image crate](https://docs.rs/image) to load our tree. Let's add it to our dependencies:
+
+```toml
+[dependencies.image]
+version = "0.24"
+default-features = false
+features = ["png", "jpeg"]
+```
+
+The jpeg decoder that `image` includes uses [rayon](https://docs.rs/rayon) to speed up the decoding with threads. WASM doesn't support threads currently so we need to disable this so that our code won't crash when we try to load a jpeg on the web.
+
+<div class="note">
+
+Decoding jpegs in WASM isn't very performant. If you want to speed up image loadding in general in WASM you could opt to use the browsers builtin decoders instead of `image` when building with `wasm-bindgen`. This will involve creating an `<img>` tag in Rust to get the image, and then a `<canvas>` to get the pixel data, but I'll leave this as an exercise for the reader.
+
+</div>
 
 In `State`'s `new()` method add the following just after configuring the `surface`:
 

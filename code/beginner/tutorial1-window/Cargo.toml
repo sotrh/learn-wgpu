@@ -13,9 +13,7 @@ path = "src/main.rs"
 
 [dependencies]
 cfg-if = "1"
-image = "0.23"
 winit = "0.26"
-cgmath = "0.18"
 env_logger = "0.9"
 log = "0.4"
 wgpu = "0.12"

@@ -4,7 +4,13 @@ While all of our previous work has seemed to be in 2d, we've actually been worki
 
 ## A perspective camera
 
-This tutorial is more about learning to use wgpu and less about linear algebra, so I'm going to gloss over a lot of the math involved. There's plenty of reading material online if you're interested in what's going on under the hood. The first thing to know is that we need `cgmath = "0.18"` in our `Cargo.toml`.
+This tutorial is more about learning to use wgpu and less about linear algebra, so I'm going to gloss over a lot of the math involved. There's plenty of reading material online if you're interested in what's going on under the hood. We're going to use the [cgmath](https://docs.rs/cgmath) to handle all the math for us. Add the following to your `Cargo.toml`.
+
+```toml
+[dependencies]
+# other deps...
+cgmath = "0.18"
+```
 
 Now that we have a math library, let's put it to use! Create a `Camera` struct above the `State` struct.
 

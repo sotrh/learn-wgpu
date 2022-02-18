@@ -1,5 +1,5 @@
 use tutorial12_camera::run;
 
 fn main() {
-    run();
+    pollster::block_on(run());
 }
