@@ -35,7 +35,7 @@ surface.configure(&device, &config);
 
 let diffuse_bytes = include_bytes!("happy-tree.png");
 let diffuse_image = image::load_from_memory(diffuse_bytes).unwrap();
-let diffuse_rgba = diffuse_image.as_rgba8().unwrap();
+let diffuse_rgba = diffuse_image.to_rgba8().unwrap();
 
 use image::GenericImageView;
 let dimensions = diffuse_image.dimensions();
@@ -476,7 +476,7 @@ impl Texture {
         img: &image::DynamicImage,
         label: Option<&str>
     ) -> Result<Self> {
-        let rgba = img.as_rgba8().unwrap();
+        let rgba = img.to_rgba8();
         let dimensions = img.dimensions();
 
         let size = wgpu::Extent3d {
@@ -503,7 +503,7 @@ impl Texture {
                 mip_level: 0,
                 origin: wgpu::Origin3d::ZERO,
             },
-            rgba,
+            &rgba,
             wgpu::ImageDataLayout {
                 offset: 0,
                 bytes_per_row: std::num::NonZeroU32::new(4 * dimensions.0),
@@ -529,6 +529,12 @@ impl Texture {
     }
 }
 ```
+
+<div class="note">
+
+Notice that we're using `to_rgba8()` instead of `as_rgba8()`. PNGs work fine with `as_rgba8()`, as they have an alpha channel. But, JPEGs don't have an alpha channel, and the code would panic if we try to call `as_rgba8()` on the JPEG texture image we are going to use. Instead, we can use `to_rgba8()` to handle such an image, which will generate a new image buffer with alpha channel even if the original image does not have one.
+
+</div>
 
 Note that we're returning a `CommandBuffer` with our texture. This means we can load multiple textures at the same time, and then submit all their command buffers at once.
 

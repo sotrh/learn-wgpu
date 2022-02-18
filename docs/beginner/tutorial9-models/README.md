@@ -73,7 +73,7 @@ let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescrip
 });
 ```
 
-Since the `desc` method is implemented on the `Vertex` trait, the trait needs to be imported before the method will be accessible.  Put the import towards the top of the file with the others.
+Since the `desc` method is implemented on the `Vertex` trait, the trait needs to be imported before the method will be accessible. Put the import towards the top of the file with the others.
 
 ```rust
 use model::Vertex;
@@ -129,6 +129,72 @@ fs_extra = "1.2"
 glob = "0.3"
 ```
 
+## Accessing files from WASM
+
+By design, you can't access files on a users filesystem in Web Assembly. Instead we'll serve those files up using a web serve, and then load those files into our code using an http request. In order to simplify this, let's create a file called `resources.rs` to handle this for us. We'll create two functions that will load text files and binary files respectively.
+
+```rust
+use std::io::{BufReader, Cursor};
+
+use cfg_if::cfg_if;
+use wgpu::util::DeviceExt;
+
+use crate::{model, texture};
+
+pub async fn load_string(file_name: &str) -> anyhow::Result<String> {
+    cfg_if! {
+        if #[cfg(target_arch = "wasm32")] {
+            let url = format!("http://127.0.0.1:8080/learn-wgpu/{}", file_name);
+            let txt = reqwest::get(&url)
+                .await?
+                .text()
+                .await?;
+        } else {
+            let path = std::path::Path::new(env!("OUT_DIR"))
+                .join("res")
+                .join(file_name);
+            let txt = std::fs::read_to_string(path)?;
+        }
+    }
+
+    Ok(txt)
+}
+
+pub async fn load_binary(file_name: &str) -> anyhow::Result<Vec<u8>> {
+    cfg_if! {
+        if #[cfg(target_arch = "wasm32")] {
+            let url = format!("http://127.0.0.1:8080/learn-wgpu/{}", file_name);
+            let data = reqwest::get(url)
+                .await?
+                .bytes()
+                .await?
+                .to_vec();
+        } else {
+            let path = std::path::Path::new(env!("OUT_DIR"))
+                .join("res")
+                .join(file_name);
+            let data = std::fs::read(path)?;
+        }
+    }
+
+    Ok(data)
+}
+```
+
+<div class="note">
+
+We're using `OUT_DIR` on desktop to get at our `res` folder.
+
+</div>
+
+I'm using [reqwest](https://docs.rs/reqwest) to handle loading the requests when using WASM. Add the following to the Cargo.toml:
+
+```toml
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+# Other dependencies
+reqwest = { version = "0.11" }
+```
+
 
 ## Loading models with TOBJ
 
@@ -170,104 +236,81 @@ pub struct Mesh {
 
 The `Material` is pretty simple, it's just the name and one texture. Our cube obj actually has 2 textures, but one is a normal map, and we'll get to those [later](../../intermediate/tutorial11-normals). The name is more for debugging purposes.
 
-Speaking of textures, we'll need to add a `load()` method to `Texture` in `texture.rs`.
+Speaking of textures, we'll need to add a function to load a `Texture` in `resources.rs`.
 
 ```rust
-use std::path::Path;
 
-pub fn load<P: AsRef<Path>>(
+pub async fn load_texture(
+    file_name: &str,
     device: &wgpu::Device,
     queue: &wgpu::Queue,
-    path: P,
-) -> Result<Self> {
-    // Needed to appease the borrow checker
-    let path_copy = path.as_ref().to_path_buf();
-    let label = path_copy.to_str();
-    
-    let img = image::open(path)?;
-    Self::from_image(device, queue, &img, label)
+) -> anyhow::Result<texture::Texture> {
+    let data = load_binary(file_name).await?;
+    texture::Texture::from_bytes(device, queue, &data, file_name)
 }
 ```
 
-The `load` method will be useful when we load the textures for our models, as `include_bytes!` requires that we know the name of the file at compile time which we can't really guarantee with model textures.
-
-While we're at it let's import `texture.rs` in `model.rs`.
-
-```rust
-use crate::texture;
-```
-
-We also need to make a subtle change on `from_image()` method in `texture.rs`. PNGs work fine with `as_rgba8()`, as they have an alpha channel. But, JPEGs don't have an alpha channel, and the code would panic if we try to call `as_rgba8()` on the JPEG texture image we are going to use. Instead, we can use `to_rgba8()` to handle such an image, which will generate a new image buffer with alpha channel even if the original image does not have one.
-
-```rust
-let rgba = img.to_rgba8(); 
-```
-
-Since `rgba` is now a new image buffer, and not a reference to the original image's buffer, when it is used in the call to `write_texture` later, it needs to be passed as a reference instead.
-
-```rust
-    //...
-    &rgba,  // UPDATED!
-    wgpu::ImageDataLayout {
-```
+The `load_texture` method will be useful when we load the textures for our models, as `include_bytes!` requires that we know the name of the file at compile time which we can't really guarantee with model textures.
 
 `Mesh` holds a vertex buffer, an index buffer, and the number of indices in the mesh. We're using an `usize` for the material. This `usize` will be used to index the `materials` list when it comes time to draw.
 
 With all that out of the way, we can get to loading our model.
 
 ```rust
-impl Model {
-    pub fn load<P: AsRef<Path>>(
-        device: &wgpu::Device,
-        queue: &wgpu::Queue,
-        layout: &wgpu::BindGroupLayout,
-        path: P,
-    ) -> Result<Self> {
-        let (obj_models, obj_materials) = tobj::load_obj(path.as_ref(), &LoadOptions {
-                triangulate: true,
-                single_index: true,
-                ..Default::default()
-            },
-        )?;
+pub async fn load_model(
+    file_name: &str,
+    device: &wgpu::Device,
+    queue: &wgpu::Queue,
+    layout: &wgpu::BindGroupLayout,
+) -> anyhow::Result<model::Model> {
+    let obj_text = load_string(file_name).await?;
+    let obj_cursor = Cursor::new(obj_text);
+    let mut obj_reader = BufReader::new(obj_cursor);
 
-        let obj_materials = obj_materials?;
+    let (models, obj_materials) = tobj::load_obj_buf_async(
+        &mut obj_reader,
+        &tobj::LoadOptions {
+            triangulate: true,
+            single_index: true,
+            ..Default::default()
+        },
+        |p| async move {
+            let mat_text = load_string(&p).await.unwrap();
+            tobj::load_mtl_buf(&mut BufReader::new(Cursor::new(mat_text)))
+        },
+    )
+    .await?;
 
-        // We're assuming that the texture files are stored with the obj file
-        let containing_folder = path.as_ref().parent()
-            .context("Directory has no parent")?;
+    let mut materials = Vec::new();
+    for m in obj_materials? {
+        let diffuse_texture = load_texture(&m.diffuse_texture, device, queue).await?;
+        let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            layout,
+            entries: &[
+                wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: wgpu::BindingResource::TextureView(&diffuse_texture.view),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 1,
+                    resource: wgpu::BindingResource::Sampler(&diffuse_texture.sampler),
+                },
+            ],
+            label: None,
+        });
 
-        let mut materials = Vec::new();
-        for mat in obj_materials {
-            let diffuse_path = mat.diffuse_texture;
-            let diffuse_texture = texture::Texture::load(device, queue, containing_folder.join(diffuse_path))?;
+        materials.push(model::Material {
+            name: m.name,
+            diffuse_texture,
+            bind_group,
+        })
+    }
 
-            let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
-                layout,
-                entries: &[
-                    wgpu::BindGroupEntry {
-                        binding: 0,
-                        resource: wgpu::BindingResource::TextureView(&diffuse_texture.view),
-                    },
-                    wgpu::BindGroupEntry {
-                        binding: 1,
-                        resource: wgpu::BindingResource::Sampler(&diffuse_texture.sampler),
-                    },
-                ],
-                label: None,
-            });
-
-            materials.push(Material {
-                name: mat.name,
-                diffuse_texture,
-                bind_group,
-            });
-        }
-
-        let mut meshes = Vec::new();
-        for m in obj_models {
-            let mut vertices = Vec::new();
-            for i in 0..m.mesh.positions.len() / 3 {
-                vertices.push(ModelVertex {
+    let meshes = models
+        .into_iter()
+        .map(|m| {
+            let vertices = (0..m.mesh.positions.len() / 3)
+                .map(|i| model::ModelVertex {
                     position: [
                         m.mesh.positions[i * 3],
                         m.mesh.positions[i * 3 + 1],
@@ -279,36 +322,33 @@ impl Model {
                         m.mesh.normals[i * 3 + 1],
                         m.mesh.normals[i * 3 + 2],
                     ],
-                });
-            }
+                })
+                .collect::<Vec<_>>();
 
-            let vertex_buffer = device.create_buffer_init(
-                &wgpu::util::BufferInitDescriptor {
-                    label: Some(&format!("{:?} Vertex Buffer", path.as_ref())),
-                    contents: bytemuck::cast_slice(&vertices),
-                    usage: wgpu::BufferUsages::VERTEX,
-                }
-            );
-            let index_buffer = device.create_buffer_init(
-                &wgpu::util::BufferInitDescriptor {
-                    label: Some(&format!("{:?} Index Buffer", path.as_ref())),
-                    contents: bytemuck::cast_slice(&m.mesh.indices),
-                    usage: wgpu::BufferUsages::INDEX,
-                }
-            );
+            let vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some(&format!("{:?} Vertex Buffer", file_name)),
+                contents: bytemuck::cast_slice(&vertices),
+                usage: wgpu::BufferUsages::VERTEX,
+            });
+            let index_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some(&format!("{:?} Index Buffer", file_name)),
+                contents: bytemuck::cast_slice(&m.mesh.indices),
+                usage: wgpu::BufferUsages::INDEX,
+            });
 
-            meshes.push(Mesh {
-                name: m.name,
+            model::Mesh {
+                name: file_name.to_string(),
                 vertex_buffer,
                 index_buffer,
                 num_elements: m.mesh.indices.len() as u32,
                 material: m.mesh.material_id.unwrap_or(0),
-            });
-        }
+            }
+        })
+        .collect::<Vec<_>>();
 
-        Ok(Self { meshes, materials })
-    }
+    Ok(model::Model { meshes, materials })
 }
+
 ```
 
 ## Rendering a mesh
@@ -316,6 +356,7 @@ impl Model {
 Before we can draw the model, we need to be able to draw an individual mesh. Let's create a trait called `DrawModel`, and implement it for `RenderPass`.
 
 ```rust
+// model.rs
 pub trait DrawModel<'a> {
     fn draw_mesh(&mut self, mesh: &'a Mesh);
     fn draw_mesh_instanced(
@@ -344,10 +385,10 @@ where
 }
 ```
 
-We could have put this methods in `impl Model`, but I felt it made more sense to have the `RenderPass` do all the rendering, as that's kind of it's job. This does mean we have to import `DrawModel` when we go to render though.
+We could have put this methods in an `impl Model`, but I felt it made more sense to have the `RenderPass` do all the rendering, as that's kind of it's job. This does mean we have to import `DrawModel` when we go to render though.
 
 ```rust
-// main.rs
+// lib.rs
 render_pass.set_vertex_buffer(1, self.instance_buffer.slice(..));
 render_pass.set_pipeline(&self.render_pipeline);
 render_pass.set_bind_group(0, &self.diffuse_bind_group, &[]);
@@ -360,20 +401,13 @@ render_pass.draw_mesh_instanced(&self.obj_model.meshes[0], 0..self.instances.len
 Before that though we need to actually load the model and save it to `State`. Put the following in `State::new()`.
 
 ```rust
-let res_dir = std::path::Path::new(env!("OUT_DIR")).join("res");
-let obj_model = model::Model::load(
+let obj_model = resources::load_model(
+    "cube.obj",
     &device,
     &queue,
     &texture_bind_group_layout,
-    res_dir.join("cube.obj"),
-).unwrap();
+).await.unwrap();
 ```
-
-<div class="note">
-
-We're using `OUT_DIR` here to get at our `res` folder.
-
-</div>
 
 Our new model is a bit bigger than our previous one so we're gonna need to adjust the spacing on our instances a bit.
 
