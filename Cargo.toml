@@ -9,6 +9,8 @@ members = [
 
     # showcase
     "code/showcase/*",
+
+    "run-wasm",
 ]
 exclude = [
     "code/showcase/imgui-demo",
