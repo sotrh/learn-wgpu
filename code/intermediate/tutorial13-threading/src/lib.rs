@@ -8,6 +8,9 @@ use winit::{
     window::Window,
 };
 
+#[cfg(target_arch="wasm32")]
+use wasm_bindgen::prelude::*;
+
 mod camera;
 mod model;
 mod texture; // NEW!

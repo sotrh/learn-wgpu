@@ -805,7 +805,7 @@ Don't forget to update the `Camera` struct in `light.wgsl` as well, as if it doe
 We're going to need to update the `CameraUniform` struct as well.
 
 ```rust
-// main.rs
+// lib.rs
 #[repr(C)]
 #[derive(Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
 struct CameraUniform {
@@ -832,7 +832,7 @@ impl CameraUniform {
 Since we want to use our uniforms in the fragment shader now, we need to change it's visibility.
 
 ```rust
-// main.rs
+// lib.rs
 let camera_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
     entries: &[
         wgpu::BindGroupLayoutBinding {
@@ -890,5 +890,7 @@ let specular_strength = pow(max(dot(in.world_normal, half_dir), 0.0), 32.0);
 It's hard to tell the difference, but here's the results.
 
 ![./half_dir.png](./half_dir.png)
+
+<WasmExample example="tutorial10_lighting"></WasmExample>
 
 <AutoGithubLink/>

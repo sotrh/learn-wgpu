@@ -4,6 +4,9 @@ version = "0.1.0"
 authors = ["Ben Hansen <bhbenjaminhansen@gmail.com>"]
 edition = "2018"
 
+[lib]
+crate-type = ["cdylib", "rlib"]
+
 [dependencies]
 cfg-if = "1"
 anyhow = "1.0"
@@ -22,6 +25,7 @@ default-features = false
 features = ["png", "jpeg"]
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
+reqwest = { version = "0.11" }
 console_error_panic_hook = "0.1"
 console_log = "0.2"
 wgpu = { version = "0.12", features = ["webgl"]}

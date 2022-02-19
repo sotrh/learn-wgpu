@@ -596,7 +596,6 @@ pub async fn run() {
     }
 
     // State::new uses async code, so we're going to wait for it to finish
-    log::warn!("Creating State");
     let mut state = State::new(&window).await;
 
     event_loop.run(move |event, _, control_flow| {

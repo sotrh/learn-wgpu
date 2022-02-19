@@ -195,6 +195,11 @@ I'm using [reqwest](https://docs.rs/reqwest) to handle loading the requests when
 reqwest = { version = "0.11" }
 ```
 
+Make sure to add `resources` as a module in `lib.rs`:
+
+```rust
+mod resources;
+```
 
 ## Loading models with TOBJ
 

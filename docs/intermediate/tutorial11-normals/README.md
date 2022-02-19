@@ -627,4 +627,6 @@ That gives us something like this.
 
 You can find the textures I use in the Github Repository.
 
+<WasmExample example="tutorial11_normals"></WasmExample>
+
 <AutoGithubLink/>
