@@ -41,10 +41,7 @@ let texture_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroup
         wgpu::BindGroupLayoutEntry {
             binding: 3,
             visibility: wgpu::ShaderStages::FRAGMENT,
-            ty: wgpu::BindingType::Sampler { 
-                comparison: false,
-                filtering: true, 
-            },
+            ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
             count: None,
         },
     ],
