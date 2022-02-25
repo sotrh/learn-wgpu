@@ -19,9 +19,3 @@ winit = "0.26"
 gif = "0.10.3"
 
 framework = { version = "0.1.0", path = "../framework" }
-
-[build-dependencies]
-anyhow = "1.0"
-fs_extra = "1.2"
-glob = "0.3"
-shaderc = "0.7"

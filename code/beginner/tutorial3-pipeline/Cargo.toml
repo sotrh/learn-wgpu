@@ -27,12 +27,6 @@ web-sys = { version = "0.3", features = [
     "Element",
 ]}
 
-# NEW!
-[build-dependencies]
-glob = "0.3"
-fs_extra = "1.2"
-anyhow = "1.0"
-
 [[bin]]
 name = "tutorial3-pipeline"
 path = "src/main.rs"

@@ -172,10 +172,11 @@ fn create_render_pipeline(
     device: &wgpu::Device,
     target: &framework::Texture,
 ) -> wgpu::RenderPipeline {
-    let vs_src = wgpu::include_spirv!("shader.vert.spv");
-    let fs_src = wgpu::include_spirv!("shader.frag.spv");
-    let vs_module = device.create_shader_module(&vs_src);
-    let fs_module = device.create_shader_module(&fs_src);
+    // let vs_src = wgpu::include_spirv!("shader.vert.spv");
+    // let fs_src = wgpu::include_spirv!("shader.frag.spv");
+    // let vs_module = device.create_shader_module(&vs_src);
+    // let fs_module = device.create_shader_module(&fs_src);
+    let shader = device.create_shader_module(&wgpu::include_wgsl!("shader.wgsl"));
 
     let render_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
         label: Some("Render Pipeline Layout"),
@@ -187,13 +188,13 @@ fn create_render_pipeline(
         layout: Some(&render_pipeline_layout),
         label: Some("Render Pipeline"),
         vertex: wgpu::VertexState {
-            module: &vs_module,
-            entry_point: "main",
+            module: &shader,
+            entry_point: "vs_main",
             buffers: &[],
         },
         fragment: Some(wgpu::FragmentState {
-            module: &fs_module,
-            entry_point: "main",
+            module: &shader,
+            entry_point: "fs_main",
             targets: &[wgpu::ColorTargetState {
                 format: target.desc.format,
                 blend: Some(wgpu::BlendState::REPLACE),
