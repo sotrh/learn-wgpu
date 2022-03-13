@@ -5,36 +5,22 @@ use wgpu::util::DeviceExt;
 
 use crate::{model, texture};
 
-cfg_if!{
-    if #[cfg(target_arch = "wasm32")] {
-        use wasm_bindgen::prelude::*;
-        use wasm_bindgen_futures::JsFuture;
-        use web_sys::{Request, RequestInit, RequestMode, Response};
-    }
-}
-
-#[cfg(target_arch = "wams32")]
-async fn request(file_name: &str) -> Result<Response, JsValue> {
-    let mut opts = RequestInit::new();
-    opts.method("GET");
-    opts.mode(RequestMode::Cors);
-
-    let uri = format!("/res/{}", file_name);
-    let req = Request::new_with_str_and_init(&uri, &opts)?;
-
+#[cfg(target_arch = "wasm32")]
+    fn format_url(file_name: &str) -> reqwest::Url {
     let window = web_sys::window().unwrap();
-    let raw_res = JsFuture::from(window.fetch_with_request(&req)).await?;
-
-    let res: Response = res.dyn_into().unwrap();
-
-    Ok(res)
+    let location = window.location();
+    let base = reqwest::Url::parse(&format!(
+        "{}/res/",
+        location.origin().unwrap(),
+    )).unwrap();
+    base.join(file_name).unwrap()
 }
 
 pub async fn load_string(file_name: &str) -> anyhow::Result<String> {
     cfg_if! {
         if #[cfg(target_arch = "wasm32")] {
-            let url = format!("http://127.0.0.1:8080/res/{}", file_name);
-            let txt = reqwest::get(&url)
+            let url = format_url(file_name);
+            let txt = reqwest::get(url)
                 .await?
                 .text()
                 .await?;
@@ -52,7 +38,7 @@ pub async fn load_string(file_name: &str) -> anyhow::Result<String> {
 pub async fn load_binary(file_name: &str) -> anyhow::Result<Vec<u8>> {
     cfg_if! {
         if #[cfg(target_arch = "wasm32")] {
-            let url = format!("http://127.0.0.1:8080/res/{}", file_name);
+            let url = format_url(file_name);
             let data = reqwest::get(url)
                 .await?
                 .bytes()
