@@ -2945,7 +2945,7 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
- "wgpu 0.12.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "wgpu 0.12.0 (git+https://github.com/gfx-rs/wgpu)",
  "winit",
 ]
 

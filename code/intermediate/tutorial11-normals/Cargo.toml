@@ -35,12 +35,7 @@ web-sys = { version = "0.3", features = [
     "Document",
     "Window",
     "Element",
-    'Headers',
-    'Request',
-    'RequestInit',
-    'RequestMode',
-    'Response',
-    'Location',
+    "Location",
 ]}
 
 [build-dependencies]

@@ -5,11 +5,23 @@ use wgpu::util::DeviceExt;
 
 use crate::{model, texture};
 
+#[cfg(target_arch = "wasm32")]
+    fn format_url(file_name: &str) -> reqwest::Url {
+    let window = web_sys::window().unwrap();
+    let location = window.location();
+    let base = reqwest::Url::parse(&format!(
+        "{}/{}/",
+        location.origin().unwrap(),
+        option_env!("RES_PATH").unwrap_or("res"),
+    )).unwrap();
+    base.join(file_name).unwrap()
+}
+
 pub async fn load_string(file_name: &str) -> anyhow::Result<String> {
     cfg_if! {
         if #[cfg(target_arch = "wasm32")] {
-            let url = format!("http://127.0.0.1:8080/learn-wgpu/{}", file_name);
-            let txt = reqwest::get(&url)
+            let url = format_url(file_name);
+            let txt = reqwest::get(url)
                 .await?
                 .text()
                 .await?;
@@ -27,7 +39,7 @@ pub async fn load_string(file_name: &str) -> anyhow::Result<String> {
 pub async fn load_binary(file_name: &str) -> anyhow::Result<Vec<u8>> {
     cfg_if! {
         if #[cfg(target_arch = "wasm32")] {
-            let url = format!("http://127.0.0.1:8080/learn-wgpu/{}", file_name);
+            let url = format_url(file_name);
             let data = reqwest::get(url)
                 .await?
                 .bytes()
