@@ -185,8 +185,8 @@ wgpu::VertexBufferLayout {
 }
 ```
 
-While this is definitely nice, Rust sees the result of `vertex_attr_array` is a temporary value, so a tweak is required to return it from a function. We could change the lifetime on `wgpu::VertexBufferLayout` to `'static`, or [make it `const`](https://github.com/gfx-rs/wgpu/discussions/1790#discussioncomment-1160378). You can see an example below:
-    
+While this is definitely nice, Rust sees the result of `vertex_attr_array` as a temporary value, so a tweak is required to return it from a function. We could change the lifetime on `wgpu::VertexBufferLayout` to `'static`, or [make it `const`](https://github.com/gfx-rs/wgpu/discussions/1790#discussioncomment-1160378). You can see an example below:
+
 ```rust
 impl Vertex {
     const ATTRIBS: [wgpu::VertexAttribute; 2] =
