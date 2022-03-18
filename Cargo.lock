@@ -1379,7 +1379,6 @@ checksum = "8c2352bd1d0bceb871cb9d40f24360c8133c11d7486b68b5381c1dd1a32015e3"
 dependencies = [
  "libc",
  "libloading",
- "pkg-config",
 ]
 
 [[package]]
@@ -1518,19 +1517,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "metal"
-version = "0.23.1"
-source = "git+https://github.com/gfx-rs/metal-rs?rev=a357159#a35715916fec38bbc08a510ecf7d115edc500c72"
-dependencies = [
- "bitflags",
- "block",
- "core-graphics-types",
- "foreign-types",
- "log",
- "objc",
-]
-
-[[package]]
 name = "mime"
 version = "0.3.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1645,7 +1631,7 @@ dependencies = [
 [[package]]
 name = "naga"
 version = "0.8.0"
-source = "git+https://github.com/gfx-rs/naga?rev=a45b9a6#a45b9a6cc691a671aa24a32114b51c5acae02420"
+source = "git+https://github.com/gfx-rs/naga?rev=09d35f3#09d35f363134920a9a477cefa32b29bb4416092b"
 dependencies = [
  "bit-set",
  "bitflags",
@@ -2945,7 +2931,7 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
- "wgpu 0.12.0 (git+https://github.com/gfx-rs/wgpu)",
+ "wgpu 0.12.0 (git+https://github.com/gfx-rs/wgpu?branch=gecko)",
  "winit",
 ]
 
@@ -2970,7 +2956,7 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
- "wgpu 0.12.0 (git+https://github.com/gfx-rs/wgpu)",
+ "wgpu 0.12.0 (git+https://github.com/gfx-rs/wgpu?branch=gecko)",
  "winit",
 ]
 
@@ -2988,6 +2974,7 @@ dependencies = [
  "fs_extra",
  "glob",
  "image 0.24.0",
+ "instant",
  "log",
  "pollster",
  "reqwest",
@@ -2995,7 +2982,7 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
- "wgpu 0.12.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "wgpu 0.12.0 (git+https://github.com/gfx-rs/wgpu?branch=gecko)",
  "winit",
 ]
 
@@ -3594,21 +3581,21 @@ dependencies = [
 [[package]]
 name = "wgpu"
 version = "0.12.0"
-source = "git+https://github.com/gfx-rs/wgpu#d3c210160f90e5fb960025bc1ca155a8eea19052"
+source = "git+https://github.com/gfx-rs/wgpu?branch=gecko#f99d8604039549272abf523abc0a2cc2d4ac4fb9"
 dependencies = [
  "arrayvec",
  "js-sys",
  "log",
- "naga 0.8.0 (git+https://github.com/gfx-rs/naga?rev=a45b9a6)",
+ "naga 0.8.0 (git+https://github.com/gfx-rs/naga?rev=09d35f3)",
  "parking_lot",
  "raw-window-handle 0.4.2",
  "smallvec",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
- "wgpu-core 0.12.0 (git+https://github.com/gfx-rs/wgpu)",
- "wgpu-hal 0.12.0 (git+https://github.com/gfx-rs/wgpu)",
- "wgpu-types 0.12.0 (git+https://github.com/gfx-rs/wgpu)",
+ "wgpu-core 0.12.0 (git+https://github.com/gfx-rs/wgpu?branch=gecko)",
+ "wgpu-hal 0.12.0 (git+https://github.com/gfx-rs/wgpu?branch=gecko)",
+ "wgpu-types 0.12.0 (git+https://github.com/gfx-rs/wgpu?branch=gecko)",
 ]
 
 [[package]]
@@ -3637,7 +3624,7 @@ dependencies = [
 [[package]]
 name = "wgpu-core"
 version = "0.12.0"
-source = "git+https://github.com/gfx-rs/wgpu#d3c210160f90e5fb960025bc1ca155a8eea19052"
+source = "git+https://github.com/gfx-rs/wgpu?branch=gecko#f99d8604039549272abf523abc0a2cc2d4ac4fb9"
 dependencies = [
  "arrayvec",
  "bitflags",
@@ -3646,14 +3633,14 @@ dependencies = [
  "copyless",
  "fxhash",
  "log",
- "naga 0.8.0 (git+https://github.com/gfx-rs/naga?rev=a45b9a6)",
+ "naga 0.8.0 (git+https://github.com/gfx-rs/naga?rev=09d35f3)",
  "parking_lot",
  "profiling",
  "raw-window-handle 0.4.2",
  "smallvec",
  "thiserror",
- "wgpu-hal 0.12.0 (git+https://github.com/gfx-rs/wgpu)",
- "wgpu-types 0.12.0 (git+https://github.com/gfx-rs/wgpu)",
+ "wgpu-hal 0.12.0 (git+https://github.com/gfx-rs/wgpu?branch=gecko)",
+ "wgpu-types 0.12.0 (git+https://github.com/gfx-rs/wgpu?branch=gecko)",
 ]
 
 [[package]]
@@ -3679,7 +3666,7 @@ dependencies = [
  "khronos-egl",
  "libloading",
  "log",
- "metal 0.23.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "metal",
  "naga 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "objc",
  "parking_lot",
@@ -3697,7 +3684,7 @@ dependencies = [
 [[package]]
 name = "wgpu-hal"
 version = "0.12.0"
-source = "git+https://github.com/gfx-rs/wgpu#d3c210160f90e5fb960025bc1ca155a8eea19052"
+source = "git+https://github.com/gfx-rs/wgpu?branch=gecko#f99d8604039549272abf523abc0a2cc2d4ac4fb9"
 dependencies = [
  "arrayvec",
  "ash 0.35.2+1.2.203",
@@ -3716,8 +3703,8 @@ dependencies = [
  "khronos-egl",
  "libloading",
  "log",
- "metal 0.23.1 (git+https://github.com/gfx-rs/metal-rs?rev=a357159)",
- "naga 0.8.0 (git+https://github.com/gfx-rs/naga?rev=a45b9a6)",
+ "metal",
+ "naga 0.8.0 (git+https://github.com/gfx-rs/naga?rev=09d35f3)",
  "objc",
  "parking_lot",
  "profiling",
@@ -3727,7 +3714,7 @@ dependencies = [
  "thiserror",
  "wasm-bindgen",
  "web-sys",
- "wgpu-types 0.12.0 (git+https://github.com/gfx-rs/wgpu)",
+ "wgpu-types 0.12.0 (git+https://github.com/gfx-rs/wgpu?branch=gecko)",
  "winapi",
 ]
 
@@ -3756,7 +3743,7 @@ dependencies = [
 [[package]]
 name = "wgpu-types"
 version = "0.12.0"
-source = "git+https://github.com/gfx-rs/wgpu#d3c210160f90e5fb960025bc1ca155a8eea19052"
+source = "git+https://github.com/gfx-rs/wgpu?branch=gecko#f99d8604039549272abf523abc0a2cc2d4ac4fb9"
 dependencies = [
  "bitflags",
 ]

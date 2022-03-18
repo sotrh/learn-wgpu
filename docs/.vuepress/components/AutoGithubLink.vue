@@ -8,6 +8,7 @@
 <script>
 const GITHUB_REPO = "https://github.com/sotrh/learn-wgpu/tree/master/code"
 export default {
+    name: "AutoGithubLink",
     computed: {
         link() {
             return GITHUB_REPO + this.$page.path;
