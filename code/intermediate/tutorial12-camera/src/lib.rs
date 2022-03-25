@@ -557,13 +557,6 @@ impl State {
                 self.mouse_pressed = *state == ElementState::Pressed;
                 true
             }
-            // WindowEvent::CursorMoved
-            // DeviceEvent::MouseMotion { delta } => {
-            //     if self.mouse_pressed {
-            //         self.camera_controller.process_mouse(delta.0, delta.1);
-            //     }
-            //     true
-            // }
             _ => false,
         }
     }

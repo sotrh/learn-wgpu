@@ -8,12 +8,13 @@ use winit::{
     window::Window,
 };
 
-#[cfg(target_arch="wasm32")]
+#[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
 
 mod camera;
 mod model;
-mod texture; // NEW!
+mod resources;
+mod texture;
 
 use model::{DrawLight, DrawModel, Vertex};
 
@@ -316,11 +317,22 @@ impl State {
         });
 
         const SPACE_BETWEEN: f32 = 3.0;
-        let instances = (0..NUM_INSTANCES_PER_ROW)
-            .into_par_iter() // NEW!
+        let iter = {
+            cfg_if::cfg_if! {
+                if #[cfg(target_arch = "wasm32")] {
+                    (0..NUM_INSTANCES_PER_ROW)
+                    .into_iter()
+                } else {
+                    (0..NUM_INSTANCES_PER_ROW)
+                    .into_par_iter()
+                }
+            }
+        };
+        let instances = iter
+            .clone()
             .flat_map(|z| {
                 // UPDATED!
-                (0..NUM_INSTANCES_PER_ROW).into_par_iter().map(move |x| {
+                iter.clone().map(move |x| {
                     let x = SPACE_BETWEEN * (x as f32 - NUM_INSTANCES_PER_ROW as f32 / 2.0);
                     let z = SPACE_BETWEEN * (z as f32 - NUM_INSTANCES_PER_ROW as f32 / 2.0);
 
@@ -371,14 +383,10 @@ impl State {
             label: Some("camera_bind_group"),
         });
 
-        let res_dir = std::path::Path::new(env!("OUT_DIR")).join("res");
-        let obj_model = model::Model::load(
-            &device,
-            &queue,
-            &texture_bind_group_layout,
-            res_dir.join("cube.obj"),
-        )
-        .unwrap();
+        let obj_model =
+            resources::load_model("cube.obj", &device, &queue, &texture_bind_group_layout)
+                .await
+                .unwrap();
 
         let light_uniform = LightUniform {
             position: [2.0, 2.0, 2.0],
@@ -535,35 +543,34 @@ impl State {
         }
     }
 
-    fn input(&mut self, event: &DeviceEvent) -> bool {
+    fn input(&mut self, event: &WindowEvent) -> bool {
         match event {
-            DeviceEvent::Key(KeyboardInput {
-                virtual_keycode: Some(key),
-                state,
+            WindowEvent::KeyboardInput {
+                input:
+                    KeyboardInput {
+                        virtual_keycode: Some(key),
+                        state,
+                        ..
+                    },
                 ..
-            }) => self.camera_controller.process_keyboard(*key, *state),
-            DeviceEvent::MouseWheel { delta, .. } => {
+            } => self.camera_controller.process_keyboard(*key, *state),
+            WindowEvent::MouseWheel { delta, .. } => {
                 self.camera_controller.process_scroll(delta);
                 true
             }
-            DeviceEvent::Button {
-                button: 1, // Left Mouse Button
+            WindowEvent::MouseInput {
+                button: MouseButton::Left,
                 state,
+                ..
             } => {
                 self.mouse_pressed = *state == ElementState::Pressed;
-                true
-            }
-            DeviceEvent::MouseMotion { delta } => {
-                if self.mouse_pressed {
-                    self.camera_controller.process_mouse(delta.0, delta.1);
-                }
                 true
             }
             _ => false,
         }
     }
 
-    fn update(&mut self, dt: std::time::Duration) {
+    fn update(&mut self, dt: instant::Duration) {
         self.camera_controller.update_camera(&mut self.camera, dt);
         self.camera_uniform
             .update_view_proj(&self.camera, &self.projection);
@@ -647,31 +654,63 @@ impl State {
     }
 }
 
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen(start))]
 pub async fn run() {
-    env_logger::init();
+    cfg_if::cfg_if! {
+        if #[cfg(target_arch = "wasm32")] {
+            std::panic::set_hook(Box::new(console_error_panic_hook::hook));
+            console_log::init_with_level(log::Level::Info).expect("Could't initialize logger");
+        } else {
+            env_logger::init();
+        }
+    }
+
     let event_loop = EventLoop::new();
     let title = env!("CARGO_PKG_NAME");
     let window = winit::window::WindowBuilder::new()
         .with_title(title)
         .build(&event_loop)
         .unwrap();
+
+    #[cfg(target_arch = "wasm32")]
+    {
+        // Winit prevents sizing with CSS, so we have to set
+        // the size manually when on web.
+        use winit::dpi::PhysicalSize;
+        window.set_inner_size(PhysicalSize::new(450, 400));
+
+        use winit::platform::web::WindowExtWebSys;
+        web_sys::window()
+            .and_then(|win| win.document())
+            .and_then(|doc| {
+                let dst = doc.get_element_by_id("wasm-example")?;
+                let canvas = web_sys::Element::from(window.canvas());
+                dst.append_child(&canvas).ok()?;
+                Some(())
+            })
+            .expect("Couldn't append canvas to document body.");
+    }
+
     let mut state = State::new(&window).await; // NEW!
-    let mut last_render_time = std::time::Instant::now();
+    let mut last_render_time = instant::Instant::now();
     event_loop.run(move |event, _, control_flow| {
         *control_flow = ControlFlow::Poll;
         match event {
             Event::MainEventsCleared => window.request_redraw(),
+            // NEW!
             Event::DeviceEvent {
-                ref event,
+                event: DeviceEvent::MouseMotion{ delta, },
                 .. // We're not using device_id currently
-            } => {
-                state.input(event);
+            } => if state.mouse_pressed {
+                state.camera_controller.process_mouse(delta.0, delta.1)
             }
+            // UPDATED!
             Event::WindowEvent {
                 ref event,
                 window_id,
-            } if window_id == window.id() => {
+            } if window_id == window.id() && !state.input(event) => {
                 match event {
+                    #[cfg(not(target_arch="wasm32"))]
                     WindowEvent::CloseRequested
                     | WindowEvent::KeyboardInput {
                         input:
@@ -692,7 +731,7 @@ pub async fn run() {
                 }
             }
             Event::RedrawRequested(window_id) if window_id == window.id() => {
-                let now = std::time::Instant::now();
+                let now = instant::Instant::now();
                 let dt = now - last_render_time;
                 last_render_time = now;
                 state.update(dt);
