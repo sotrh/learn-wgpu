@@ -1,5 +1,21 @@
 # Working with Lights
 
+<div class="warn">
+
+The shaders used in this example don't compile on WASM using version 0.12.0 of wgpu. They are working on the "gecko" branch, so to get the code working for WASM, change the wgpu entries in Cargo.toml to be the following.
+
+```toml
+[dependencies]
+wgpu = { version = "0.12", git="https://github.com/gfx-rs/wgpu", branch="gecko"}
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wgpu = { version = "0.12", git="https://github.com/gfx-rs/wgpu", branch="gecko", features = ["webgl"]}
+```
+
+Once 0.13 comes out I'll revert to using the version published on crates.io.
+
+</div>
+
 While we can tell that our scene is 3d because of our camera, it still feels very flat. That's because our model stays the same color regardless of how it's oriented. If we want to change that we need to add lighting to our scene.
 
 In the real world, a light source emits photons which bounce around until they enter into our eyes. The color we see is the light's original color minus whatever energy it lost while it was bouncing around.

@@ -20,6 +20,7 @@ tobj = { version = "3.2", features = ["async"]}
 wgpu = { version = "0.12", git="https://github.com/gfx-rs/wgpu", branch="gecko"}
 winit = "0.26"
 instant = "0.1"
+async-std = "1"
 
 [dependencies.image]
 version = "0.24"

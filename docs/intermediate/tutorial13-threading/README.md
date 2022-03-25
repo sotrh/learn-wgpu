@@ -1,5 +1,21 @@
 # Multi-threading with Wgpu and Rayon
 
+<div class="warn">
+
+The shaders used in this example don't compile on WASM using version 0.12.0 of wgpu. They are working on the "gecko" branch, so to get the code working for WASM, change the wgpu entries in Cargo.toml to be the following.
+
+```toml
+[dependencies]
+wgpu = { version = "0.12", git="https://github.com/gfx-rs/wgpu", branch="gecko"}
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wgpu = { version = "0.12", git="https://github.com/gfx-rs/wgpu", branch="gecko", features = ["webgl"]}
+```
+
+Once 0.13 comes out I'll revert to using the version published on crates.io.
+
+</div>
+
 The main selling point of Vulkan, DirectX 12, Metal, and by extension Wgpu is that these APIs is that they designed from the ground up to be thread safe. Up to this point we have been doing everything on a single thread. That's about to change.
 
 <div class="note">
@@ -15,7 +31,10 @@ We won't go over multithreading rendering as we don't have enough different type
 Currently we load the materials and meshes of our model one at a time. This is a perfect opportunity for multithreading! All our changes will be in `model.rs`. Let's first start with the materials. We'll convert the regular for loop into a `par_iter().map()`.
 
 ```rust
-// model.rs
+// resources.rs
+
+#[cfg(not(target_arch="wasm32"))]
+use rayon::iter::IntoParallelIterator;
 
 impl Model {
     pub fn load<P: AsRef<Path>>(
@@ -127,5 +146,7 @@ Elapsed (Threaded): 199.645027ms
 ```
 
 We're not loading that many resources, so the speed up is minimal. We'll be doing more stuff with threading, but this is a good introduction.
+
+<WasmExample example="tutorial12_camera"></WasmExample>
 
 <AutoGithubLink/>

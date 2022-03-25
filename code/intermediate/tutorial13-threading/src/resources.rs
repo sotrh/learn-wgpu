@@ -2,6 +2,8 @@ use std::io::{BufReader, Cursor};
 
 use cfg_if::cfg_if;
 use wgpu::util::DeviceExt;
+#[cfg(not(target_arch="wasm32"))]
+use rayon::iter::IntoParallelIterator;
 
 use crate::{model, texture};
 

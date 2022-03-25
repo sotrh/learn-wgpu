@@ -1,5 +1,21 @@
 # A Better Camera
 
+<div class="warn">
+
+The shaders used in this example don't compile on WASM using version 0.12.0 of wgpu. They are working on the "gecko" branch, so to get the code working for WASM, change the wgpu entries in Cargo.toml to be the following.
+
+```toml
+[dependencies]
+wgpu = { version = "0.12", git="https://github.com/gfx-rs/wgpu", branch="gecko"}
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wgpu = { version = "0.12", git="https://github.com/gfx-rs/wgpu", branch="gecko", features = ["webgl"]}
+```
+
+Once 0.13 comes out I'll revert to using the version published on crates.io.
+
+</div>
+
 I've been putting this off for a while. Implementing a camera isn't specifically related to using WGPU properly, but it's been bugging me so let's do it.
 
 `main.rs` is getting a little crowded, so let's create a `camera.rs` file to put our camera code. The first thing we're going to put in it in is some imports and our `OPENGL_TO_WGPU_MATRIX`.
@@ -8,7 +24,7 @@ I've been putting this off for a while. Implementing a camera isn't specifically
 use cgmath::*;
 use winit::event::*;
 use winit::dpi::PhysicalPosition;
-use std::time::Duration;
+use instant::Duration;
 use std::f32::consts::FRAC_PI_2;
 
 #[rustfmt::skip]
@@ -21,6 +37,16 @@ pub const OPENGL_TO_WGPU_MATRIX: cgmath::Matrix4<f32> = cgmath::Matrix4::new(
 
 const SAFE_FRAC_PI_2: f32 = FRAC_PI_2 - 0.0001;
 ```
+
+<div class="note">
+
+`std::time::Instant` panics on WASM, so we'll use the [instant crate](https://docs.rs/instant). You'll want to include it in your `Cargo.toml`:
+
+```toml
+instant = "0.1"
+```
+
+</div>
 
 ## The Camera
 
@@ -317,34 +343,33 @@ fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
 }
 ```
 
-`input()` will need to be updated as well. Up to this point we have been using `WindowEvent`s for our camera controls. While this works, it's not the best solution. The [winit docs](https://docs.rs/winit/0.24.0/winit/event/enum.WindowEvent.html?search=#variant.CursorMoved) inform us that OS will often transform the data for the `CursorMoved` event to allow effects such as cursor acceleration. Because of this, we're going to change our `input()` function to use `DeviceEvent` instead of `WindowEvent`.
+`input()` will need to be updated as well. Up to this point we have been using `WindowEvent`s for our camera controls. While this works, it's not the best solution. The [winit docs](https://docs.rs/winit/0.24.0/winit/event/enum.WindowEvent.html?search=#variant.CursorMoved) inform us that OS will often transform the data for the `CursorMoved` event to allow effects such as cursor acceleration. 
+
+Now to fix this we could change the `input()` function to process `DeviceEvent` instead of `WindowEvent`, but keyboard and button presses don't get emitted as `DeviceEvent`s on MacOS and WASM. Instead, we'll just remove the `CursorMoved` check in `input()`, and a manual call to `camera_controller.process_mouse()` in the `run()` function.
 
 ```rust
 // UPDATED!
-fn input(&mut self, event: &DeviceEvent) -> bool {
+fn input(&mut self, event: &WindowEvent) -> bool {
     match event {
-        DeviceEvent::Key(
-            KeyboardInput {
-                virtual_keycode: Some(key),
-                state,
-                ..
-            }
-        ) => self.camera_controller.process_keyboard(*key, *state),
-        DeviceEvent::MouseWheel { delta, .. } => {
+        WindowEvent::KeyboardInput {
+            input:
+                KeyboardInput {
+                    virtual_keycode: Some(key),
+                    state,
+                    ..
+                },
+            ..
+        } => self.camera_controller.process_keyboard(*key, *state),
+        WindowEvent::MouseWheel { delta, .. } => {
             self.camera_controller.process_scroll(delta);
             true
         }
-        DeviceEvent::Button {
-            button: 1, // Left Mouse Button
+        WindowEvent::MouseInput {
+            button: MouseButton::Left,
             state,
+            ..
         } => {
             self.mouse_pressed = *state == ElementState::Pressed;
-            true
-        }
-        DeviceEvent::MouseMotion { delta } => {
-            if self.mouse_pressed {
-                self.camera_controller.process_mouse(delta.0, delta.1);
-            }
             true
         }
         _ => false,
@@ -352,7 +377,7 @@ fn input(&mut self, event: &DeviceEvent) -> bool {
 }
 ```
 
-This change means will have to modify the event loop in `main()` as well.
+Here are the changes to `run()`:
 
 ```rust
 fn main() {
@@ -363,17 +388,18 @@ fn main() {
             // ...
             // NEW!
             Event::DeviceEvent {
-                ref event,
+                event: DeviceEvent::MouseMotion{ delta, },
                 .. // We're not using device_id currently
-            } => {
-                state.input(event);
+            } => if state.mouse_pressed {
+                state.camera_controller.process_mouse(delta.0, delta.1)
             }
             // UPDATED!
             Event::WindowEvent {
                 ref event,
                 window_id,
-            } if window_id == window.id() => {
+            } if window_id == window.id() && !state.input(event) => {
                 match event {
+                    #[cfg(not(target_arch="wasm32"))]
                     WindowEvent::CloseRequested
                     | WindowEvent::KeyboardInput {
                         input:
@@ -402,7 +428,7 @@ fn main() {
 The `update` function requires a bit more explanation. The `update_camera` function on the `CameraController` has a parameter `dt: Duration` which is the delta time or time between frames. This is to help smooth out the camera movement so that it's not locked be the framerate. Currently we aren't calculating `dt`, so I decided to pass it into `update` as a parameter.
 
 ```rust
-fn update(&mut self, dt: std::time::Duration) {
+fn update(&mut self, dt: instant::Duration) {
     // UPDATED!
     self.camera_controller.update_camera(&mut self.camera, dt);
     self.camera_uniform.update_view_proj(&self.camera, &self.projection);
@@ -425,14 +451,14 @@ We still need to calculate `dt`. Let's do that in the `main` function.
 fn main() {
     // ...
     let mut state = State::new(&window).await;
-    let mut last_render_time = std::time::Instant::now();  // NEW!
+    let mut last_render_time = instant::Instant::now();  // NEW!
     event_loop.run(move |event, _, control_flow| {
         *control_flow = ControlFlow::Poll;
         match event {
             // ...
             // UPDATED!
             Event::RedrawRequested(window_id) if window_id == window.id() => {
-                let now = std::time::Instant::now();
+                let now = instant::Instant::now();
                 let dt = now - last_render_time;
                 last_render_time = now;
                 state.update(dt);
@@ -447,5 +473,7 @@ fn main() {
 With that we should be able to move our camera wherever we want.
 
 ![./screenshot.png](./screenshot.png)
+
+<WasmExample example="tutorial12_camera"></WasmExample>
 
 <AutoGithubLink/>
