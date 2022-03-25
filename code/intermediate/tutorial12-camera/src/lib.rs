@@ -8,7 +8,7 @@ use winit::{
     window::Window,
 };
 
-#[cfg(target_arch="wasm32")]
+#[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
 
 mod camera;
@@ -371,12 +371,10 @@ impl State {
             label: Some("camera_bind_group"),
         });
 
-        let obj_model = resources::load_model(
-            "cube.obj",
-            &device,
-            &queue,
-            &texture_bind_group_layout,
-        ).await.unwrap();
+        let obj_model =
+            resources::load_model("cube.obj", &device, &queue, &texture_bind_group_layout)
+                .await
+                .unwrap();
 
         let light_uniform = LightUniform {
             position: [2.0, 2.0, 2.0],
@@ -536,30 +534,36 @@ impl State {
     }
 
     // UPDATED!
-    fn input(&mut self, event: &DeviceEvent) -> bool {
+    fn input(&mut self, event: &WindowEvent) -> bool {
         match event {
-            DeviceEvent::Key(KeyboardInput {
-                virtual_keycode: Some(key),
-                state,
+            WindowEvent::KeyboardInput {
+                input:
+                    KeyboardInput {
+                        virtual_keycode: Some(key),
+                        state,
+                        ..
+                    },
                 ..
-            }) => self.camera_controller.process_keyboard(*key, *state),
-            DeviceEvent::MouseWheel { delta, .. } => {
+            } => self.camera_controller.process_keyboard(*key, *state),
+            WindowEvent::MouseWheel { delta, .. } => {
                 self.camera_controller.process_scroll(delta);
                 true
             }
-            DeviceEvent::Button {
-                button: 1, // Left Mouse Button
+            WindowEvent::MouseInput {
+                button: MouseButton::Left,
                 state,
+                ..
             } => {
                 self.mouse_pressed = *state == ElementState::Pressed;
                 true
             }
-            DeviceEvent::MouseMotion { delta } => {
-                if self.mouse_pressed {
-                    self.camera_controller.process_mouse(delta.0, delta.1);
-                }
-                true
-            }
+            // WindowEvent::CursorMoved
+            // DeviceEvent::MouseMotion { delta } => {
+            //     if self.mouse_pressed {
+            //         self.camera_controller.process_mouse(delta.0, delta.1);
+            //     }
+            //     true
+            // }
             _ => false,
         }
     }
@@ -649,7 +653,7 @@ impl State {
     }
 }
 
-#[cfg_attr(target_arch="wasm32", wasm_bindgen(start))]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen(start))]
 pub async fn run() {
     cfg_if::cfg_if! {
         if #[cfg(target_arch = "wasm32")] {
@@ -660,7 +664,6 @@ pub async fn run() {
         }
     }
 
-    log::info!("asd;lfkaj;lj");
     let event_loop = EventLoop::new();
     let title = env!("CARGO_PKG_NAME");
     let window = winit::window::WindowBuilder::new()
@@ -674,7 +677,7 @@ pub async fn run() {
         // the size manually when on web.
         use winit::dpi::PhysicalSize;
         window.set_inner_size(PhysicalSize::new(450, 400));
-        
+
         use winit::platform::web::WindowExtWebSys;
         web_sys::window()
             .and_then(|win| win.document())
@@ -686,26 +689,27 @@ pub async fn run() {
             })
             .expect("Couldn't append canvas to document body.");
     }
-    
+
     let mut state = State::new(&window).await; // NEW!
     let mut last_render_time = instant::Instant::now();
     event_loop.run(move |event, _, control_flow| {
         *control_flow = ControlFlow::Poll;
         match event {
             Event::MainEventsCleared => window.request_redraw(),
+            // NEW!
             Event::DeviceEvent {
-                ref event,
+                event: DeviceEvent::MouseMotion{ delta, },
                 .. // We're not using device_id currently
-            } => {
-                log::info!("event: {:?}", event);
-                state.input(event);
+            } => if state.mouse_pressed {
+                state.camera_controller.process_mouse(delta.0, delta.1)
             }
             // UPDATED!
             Event::WindowEvent {
                 ref event,
                 window_id,
-            } if window_id == window.id() => {
+            } if window_id == window.id() && !state.input(event) => {
                 match event {
+                    #[cfg(not(target_arch="wasm32"))]
                     WindowEvent::CloseRequested
                     | WindowEvent::KeyboardInput {
                         input:
