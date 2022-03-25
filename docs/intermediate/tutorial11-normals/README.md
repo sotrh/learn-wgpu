@@ -57,10 +57,7 @@ let texture_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroup
         wgpu::BindGroupLayoutEntry {
             binding: 3,
             visibility: wgpu::ShaderStages::FRAGMENT,
-            ty: wgpu::BindingType::Sampler { 
-                comparison: false,
-                filtering: true, 
-            },
+            ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
             count: None,
         },
     ],
@@ -139,6 +136,7 @@ fn fs_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
     let tangent_normal = object_normal.xyz * 2.0 - 1.0;
     let light_dir = normalize(light.position - in.world_position);
     let view_dir = normalize(camera.view_pos.xyz - in.world_position);
+    let half_dir = normalize(view_dir + light_dir);
 
     let diffuse_strength = max(dot(tangent_normal, light_dir), 0.0);
     let diffuse_color = light.color * diffuse_strength;
@@ -296,7 +294,9 @@ impl Model {
                 // the solution!
                 let r = 1.0 / (delta_uv1.x * delta_uv2.y - delta_uv1.y * delta_uv2.x);
                 let tangent = (delta_pos1 * delta_uv2.y - delta_pos2 * delta_uv1.y) * r;
-                let bitangent = (delta_pos2 * delta_uv1.x - delta_pos1 * delta_uv2.x) * r;
+                // We flip the bitangent to enable right-handed normal
+                // maps with wgpu texture coordinate system
+                let bitangent = (delta_pos2 * delta_uv1.x - delta_pos1 * delta_uv2.x) * -r;
 
                 // We'll use the same tangent/bitangent for each vertex in the triangle
                 vertices[c[0] as usize].tangent =
