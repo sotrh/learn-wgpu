@@ -278,4 +278,7 @@ With all that done, we should have a forest of trees!
 
 Modify the position and/or rotation of the instances every frame.
 
+
+<WasmExample example="tutorial7_instancing"></WasmExample>
+
 <AutoGithubLink/>

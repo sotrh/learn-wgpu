@@ -1,5 +1,21 @@
 # Working with Lights
 
+<div class="warn">
+
+The shaders used in this example don't compile on WASM using version 0.12.0 of wgpu. They are working on the "gecko" branch, so to get the code working for WASM, change the wgpu entries in Cargo.toml to be the following.
+
+```toml
+[dependencies]
+wgpu = { version = "0.12", git="https://github.com/gfx-rs/wgpu", branch="gecko"}
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wgpu = { version = "0.12", git="https://github.com/gfx-rs/wgpu", branch="gecko", features = ["webgl"]}
+```
+
+Once 0.13 comes out I'll revert to using the version published on crates.io.
+
+</div>
+
 While we can tell that our scene is 3d because of our camera, it still feels very flat. That's because our model stays the same color regardless of how it's oriented. If we want to change that we need to add lighting to our scene.
 
 In the real world, a light source emits photons which bounce around until they enter into our eyes. The color we see is the light's original color minus whatever energy it lost while it was bouncing around.
@@ -805,7 +821,7 @@ Don't forget to update the `Camera` struct in `light.wgsl` as well, as if it doe
 We're going to need to update the `CameraUniform` struct as well.
 
 ```rust
-// main.rs
+// lib.rs
 #[repr(C)]
 #[derive(Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
 struct CameraUniform {
@@ -832,7 +848,7 @@ impl CameraUniform {
 Since we want to use our uniforms in the fragment shader now, we need to change it's visibility.
 
 ```rust
-// main.rs
+// lib.rs
 let camera_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
     entries: &[
         wgpu::BindGroupLayoutBinding {
@@ -890,5 +906,7 @@ let specular_strength = pow(max(dot(in.world_normal, half_dir), 0.0), 32.0);
 It's hard to tell the difference, but here's the results.
 
 ![./half_dir.png](./half_dir.png)
+
+<WasmExample example="tutorial10_lighting"></WasmExample>
 
 <AutoGithubLink/>

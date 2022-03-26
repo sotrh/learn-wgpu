@@ -108,7 +108,13 @@ Let's use the `adapter` to create the device and queue.
         let (device, queue) = adapter.request_device(
             &wgpu::DeviceDescriptor {
                 features: wgpu::Features::empty(),
-                limits: wgpu::Limits::default(),
+                // WebGL doesn't support all of wgpu's features, so if
+                // we're building for the web we'll have to disable some.
+                limits: if cfg!(target_arch = "wasm32") {
+                    wgpu::Limits::downlevel_webgl2_defaults()
+                } else {
+                    wgpu::Limits::default()
+                },
                 label: None,
             },
             None, // Trace path
@@ -169,18 +175,63 @@ Now that we've configured our surface properly we can add these new fields at th
 }
 ```
 
-We'll want to call this in our main method before we enter the event loop.
+Since our `State::new()` method is async we need to change run to be async as well so that we can await it.
 
 ```rust
-// State::new uses async code, so we're going to wait for it to finish
-let mut state = pollster::block_on(State::new(&window));
+pub async fn run() {
+    // Window setup...
+
+    let mut state = State::new(&window).await;
+
+    // Event loop...
+}
 ```
 
-<div class="note">
+Now that `run()` is async, `main()` will need some way to await the future. We could use a crate like [tokio](https://docs.rs/tokio), or [async-std](https://docs.rs/async-std), but I'm going to go with the much more lightweight [pollster](https://docs.rs/pollster). Add the following to your `Cargo.toml`:
 
-You can use heavier libraries like [async_std](https://docs.rs/async_std) and [tokio](https://docs.rs/tokio) to make main async, so you can await futures. I've elected not to use these crates as this tutorial is not about writing an async application, and the futures created by wgpu do not require [special executor support](https://rust-lang.github.io/async-book/08_ecosystem/00_chapter.html#determining-ecosystem-compatibility). We just need some way to interact with wgpu's async functions, and the [pollster crate](https://docs.rs/pollster) is enough for that.
+```toml
+[dependencies]
+# other deps...
+pollster = "0.2"
+```
+
+We then use the `block_on` function provided by pollster to await our future:
+
+```rust
+fn main() {
+    pollster::block_on(run());
+}
+```
+
+<div class="warning">
+
+Don't use `block_on` inside of an async function if you plan to support WASM. Futures have to be run using the browsers executor. If you try to bring your own you code will crash when you encounter a future that doesn't execute immediately.
 
 </div>
+
+If we try to build WASM now it will fail because `wasm-bindgen` doesn't support using async functions as `start` methods. You could switch to calling `run` manually in javascript, but for simplicity we'll add the [wasm-bindgen-futures](https://docs.rs/wasm-bindgen-futures) crate to our WASM dependencies as that doesn't require us to change any code. Your dependecies should look something like this:
+
+```toml
+[dependencies]
+cfg-if = "1"
+winit = "0.26"
+env_logger = "0.9"
+log = "0.4"
+wgpu = "0.12"
+pollster = "0.2"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+console_error_panic_hook = "0.1.6"
+console_log = "0.2.0"
+wgpu = { version = "0.12", features = ["webgl"]}
+wasm-bindgen = "0.2"
+wasm-bindgen-futures = "0.4"
+web-sys = { version = "0.3", features = [
+    "Document",
+    "Window",
+    "Element",
+]}
+```
 
 ## resize()
 If we want to support resizing in our application, we're going to need to reconfigure the `surface` everytime the window's size changes. That's the reason we stored the physical `size` and the `config` used to configure the `surface`. With all of these, the resize method is very simple.
@@ -432,5 +483,8 @@ If wgpu is using Vulkan on your machine, you may run into validation errors if y
 ## Challenge
 
 Modify the `input()` method to capture mouse events, and update the clear color using that. *Hint: you'll probably need to use `WindowEvent::CursorMoved`*.
+
+
+<WasmExample example="tutorial2_surface"></WasmExample>
 
 <AutoGithubLink/>

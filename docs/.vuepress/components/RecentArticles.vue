@@ -12,15 +12,15 @@
 
 <script>
 export default {
+	name: "RecentArticles",
 	data() {
 		return {};
 	}, 
 	computed:{
 		recentFiles() {
 			let files = this.$site.pages.filter(p => {
-				// return p.path.indexOf('/posts/') >= 0;
-				return p.path.includes('beginner')
-					|| p.path.includes('intermediate');
+				return p.regularPath.includes('beginner')
+					|| p.regularPath.includes('intermediate');
 			}).sort((a,b) => {
 				let aDate = new Date(a.frontmatter.published).getTime();
 				let bDate = new Date(b.frontmatter.published).getTime();

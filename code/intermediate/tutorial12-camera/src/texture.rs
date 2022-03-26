@@ -1,6 +1,6 @@
 use anyhow::*;
 use image::GenericImageView;
-use std::{num::NonZeroU32, path::Path};
+use std::num::NonZeroU32;
 
 pub struct Texture {
     pub texture: wgpu::Texture,
@@ -10,20 +10,6 @@ pub struct Texture {
 
 impl Texture {
     pub const DEPTH_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Depth32Float;
-
-    pub fn load<P: AsRef<Path>>(
-        device: &wgpu::Device,
-        queue: &wgpu::Queue,
-        path: P,
-        is_normal_map: bool,
-    ) -> Result<Self> {
-        // Needed to appease the borrow checker
-        let path_copy = path.as_ref().to_path_buf();
-        let label = path_copy.to_str();
-
-        let img = image::open(path)?;
-        Self::from_image(device, queue, &img, label, is_normal_map)
-    }
 
     pub fn create_depth_texture(
         device: &wgpu::Device,

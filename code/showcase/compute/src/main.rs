@@ -173,15 +173,20 @@ impl State {
             })
             .await
             .unwrap();
-        let path = std::path::Path::new("trace");
         let (device, queue) = adapter
             .request_device(
                 &wgpu::DeviceDescriptor {
                     label: None,
                     features: wgpu::Features::empty(),
-                    limits: wgpu::Limits::default(),
+                    // WebGL doesn't support all of wgpu's features, so if
+                    // we're building for the web we'll have to disable some.
+                    limits: if cfg!(target_arch = "wasm32") {
+                        wgpu::Limits::downlevel_webgl2_defaults()
+                    } else {
+                        wgpu::Limits::default()
+                    },
                 },
-                Some(&path), // Trace path
+                None, // Trace path
             )
             .await
             .unwrap();
@@ -597,6 +602,10 @@ impl State {
 }
 
 fn main() {
+    pollster::block_on(run());
+}
+
+async fn run() {
     env_logger::init();
     let event_loop = EventLoop::new();
     let title = env!("CARGO_PKG_NAME");
@@ -604,7 +613,7 @@ fn main() {
         .with_title(title)
         .build(&event_loop)
         .unwrap();
-    let mut state = pollster::block_on(State::new(&window)); // NEW!
+    let mut state = State::new(&window).await; // NEW!
     let mut last_render_time = std::time::Instant::now();
     event_loop.run(move |event, _, control_flow| {
         *control_flow = ControlFlow::Poll;

@@ -4,17 +4,39 @@ version = "0.1.0"
 authors = ["Ben Hansen <bhbenjaminhansen@gmail.com>"]
 edition = "2018"
 
+[lib]
+crate-type = ["cdylib", "rlib"]
+
 [dependencies]
 anyhow = "1.0"
 bytemuck = { version = "1.4", features = [ "derive" ] }
+cfg-if = "1"
 cgmath = "0.18"
 env_logger = "0.9"
 pollster = "0.2"
-image = "0.23"
 log = "0.4"
-tobj = "3.0"
+tobj = { version = "3.2", features = ["async"]}
 wgpu = "0.12"
 winit = "0.26"
+
+[dependencies.image]
+version = "0.24"
+default-features = false
+features = ["png", "jpeg"]
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+reqwest = { version = "0.11" }
+console_error_panic_hook = "0.1"
+console_log = "0.2"
+wgpu = { version = "0.12", features = ["webgl"]}
+wasm-bindgen = "0.2"
+wasm-bindgen-futures = "0.4"
+web-sys = { version = "0.3", features = [
+    "Document",
+    "Window",
+    "Element",
+    "Location",
+]}
 
 [build-dependencies]
 anyhow = "1.0"
@@ -24,8 +46,3 @@ glob = "0.3"
 [[bin]]
 name = "tutorial9-models"
 path = "src/main.rs"
-
-
-# [[bin]]
-# name = "tutorial9-challenge"
-# path = "src/challenge.rs"

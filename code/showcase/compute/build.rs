@@ -48,16 +48,6 @@ pub fn load_shader(src_path: PathBuf) -> Result<()> {
     let flags = wgsl::WriterFlags::empty();
     std::fs::write(wgsl_path, wgsl::write_string(&module, &info, flags)?)?;
 
-    // let flags = spv::WriterFlags::DEBUG | spv::WriterFlags::ADJUST_COORDINATE_SPACE;
-    // let options = spv::Options {
-    //     flags,
-    //     ..Default::default()
-    // };
-    // let spv = spv::write_vec(&module, &info, &options)?;
-    // let dis = rspirv::dr::load_words(spv)
-    //     .expect("Unable to disassemble shader")
-    //     .disassemble();
-    // std::fs::write(spv_path, &spv)?;
 
     Ok(())
 }

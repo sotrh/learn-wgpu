@@ -19,6 +19,7 @@ function toTitleCase(str) {
 }
 
 export default {
+  name: "WasmExample",
   props: { 
     example: "",
     autoLoad: false,
@@ -39,10 +40,7 @@ export default {
     async loadExample() {
       this.loading = true;
       try {
-        const init = await import(`./wasm/${this.example}/${this.example}.js`);
-        init().then(() => {
-          console.log("WASM Loaded");
-        });
+        await import(`./wasm/${this.example}/${this.example}.js`);
       } catch (e) {
         // TODO: Figure out a better way to ignore "control flow" errors
         if (`${e}` != "Error: Using exceptions for control flow, don't mind me. This isn't actually an error!") {

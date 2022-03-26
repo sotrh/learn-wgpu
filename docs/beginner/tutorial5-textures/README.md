@@ -10,7 +10,22 @@ If we want to map an image to our mesh, we first need an image. Let's use this h
 
 ![a happy tree](./happy-tree.png)
 
-We'll use the [image crate](https://crates.io/crates/image) to load our tree. We already added to our dependencies in the first section, so all we have to do is use it.
+We'll use the [image crate](https://docs.rs/image) to load our tree. Let's add it to our dependencies:
+
+```toml
+[dependencies.image]
+version = "0.24"
+default-features = false
+features = ["png", "jpeg"]
+```
+
+The jpeg decoder that `image` includes uses [rayon](https://docs.rs/rayon) to speed up the decoding with threads. WASM doesn't support threads currently so we need to disable this so that our code won't crash when we try to load a jpeg on the web.
+
+<div class="note">
+
+Decoding jpegs in WASM isn't very performant. If you want to speed up image loadding in general in WASM you could opt to use the browsers builtin decoders instead of `image` when building with `wasm-bindgen`. This will involve creating an `<img>` tag in Rust to get the image, and then a `<canvas>` to get the pixel data, but I'll leave this as an exercise for the reader.
+
+</div>
 
 In `State`'s `new()` method add the following just after configuring the `surface`:
 
@@ -20,7 +35,7 @@ surface.configure(&device, &config);
 
 let diffuse_bytes = include_bytes!("happy-tree.png");
 let diffuse_image = image::load_from_memory(diffuse_bytes).unwrap();
-let diffuse_rgba = diffuse_image.as_rgba8().unwrap();
+let diffuse_rgba = diffuse_image.to_rgba8().unwrap();
 
 use image::GenericImageView;
 let dimensions = diffuse_image.dimensions();
@@ -165,35 +180,30 @@ All these different resources are nice and all, but they don't do us much good i
 A `BindGroup` describes a set of resources and how they can be accessed by a shader. We create a `BindGroup` using a `BindGroupLayout`. Let's make one of those first.
 
 ```rust
-let texture_bind_group_layout = device.create_bind_group_layout(
-    &wgpu::BindGroupLayoutDescriptor {
-        entries: &[
-            wgpu::BindGroupLayoutEntry {
-                binding: 0,
-                visibility: wgpu::ShaderStages::FRAGMENT,
-                ty: wgpu::BindingType::Texture {
-                    multisampled: false,
-                    view_dimension: wgpu::TextureViewDimension::D2,
-                    sample_type: wgpu::TextureSampleType::Float { filterable: true },
-                },
-                count: None,
-            },
-            wgpu::BindGroupLayoutEntry {
-                binding: 1,
-                visibility: wgpu::ShaderStages::FRAGMENT,
-                ty: wgpu::BindingType::Sampler(
-                    // SamplerBindingType::Comparison is only for TextureSampleType::Depth
-                    // SamplerBindingType::Filtering if the sample_type of the texture is:
-                    //     TextureSampleType::Float { filterable: true }
-                    // Otherwise you'll get an error.
-                    wgpu::SamplerBindingType::Filtering,
-                ),
-                count: None,
-            },
-        ],
-        label: Some("texture_bind_group_layout"),
-    }
-);
+let texture_bind_group_layout =
+            device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+                entries: &[
+                    wgpu::BindGroupLayoutEntry {
+                        binding: 0,
+                        visibility: wgpu::ShaderStages::FRAGMENT,
+                        ty: wgpu::BindingType::Texture {
+                            multisampled: false,
+                            view_dimension: wgpu::TextureViewDimension::D2,
+                            sample_type: wgpu::TextureSampleType::Float { filterable: true },
+                        },
+                        count: None,
+                    },
+                    wgpu::BindGroupLayoutEntry {
+                        binding: 1,
+                        visibility: wgpu::ShaderStages::FRAGMENT,
+                        // This should match the filterable field of the
+                        // corresponding Texture entry above.
+                        ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
+                        count: None,
+                    },
+                ],
+                label: Some("texture_bind_group_layout"),
+            });
 ```
 
 Our `texture_bind_group_layout` has two entries: one for a sampled texture at binding 0, and one for a sampler at binding 1. Both of these bindings are visible only to the fragment shader as specified by `FRAGMENT`. The possible values for this field are any bitwise combination of `NONE`, `VERTEX`, `FRAGMENT`, or `COMPUTE`. Most of the time we'll only use `FRAGMENT` for textures and samplers, but it's good to know what else is available.
@@ -466,7 +476,7 @@ impl Texture {
         img: &image::DynamicImage,
         label: Option<&str>
     ) -> Result<Self> {
-        let rgba = img.as_rgba8().unwrap();
+        let rgba = img.to_rgba8();
         let dimensions = img.dimensions();
 
         let size = wgpu::Extent3d {
@@ -493,7 +503,7 @@ impl Texture {
                 mip_level: 0,
                 origin: wgpu::Origin3d::ZERO,
             },
-            rgba,
+            &rgba,
             wgpu::ImageDataLayout {
                 offset: 0,
                 bytes_per_row: std::num::NonZeroU32::new(4 * dimensions.0),
@@ -519,6 +529,12 @@ impl Texture {
     }
 }
 ```
+
+<div class="note">
+
+Notice that we're using `to_rgba8()` instead of `as_rgba8()`. PNGs work fine with `as_rgba8()`, as they have an alpha channel. But, JPEGs don't have an alpha channel, and the code would panic if we try to call `as_rgba8()` on the JPEG texture image we are going to use. Instead, we can use `to_rgba8()` to handle such an image, which will generate a new image buffer with alpha channel even if the original image does not have one.
+
+</div>
 
 Note that we're returning a `CommandBuffer` with our texture. This means we can load multiple textures at the same time, and then submit all their command buffers at once.
 
@@ -590,5 +606,7 @@ With these changes in place, the code should be working the same as it was befor
 ## Challenge
 
 Create another texture and swap it out when you press the space key.
+
+<WasmExample example="tutorial5_textures"></WasmExample>
 
 <AutoGithubLink/>
