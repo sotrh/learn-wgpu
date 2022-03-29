@@ -637,11 +637,11 @@ We need to use the model matrix to transform the normals to be in the right dire
 
 We could compute the normal matrix in the vertex shader, but that would involve inverting the `model_matrix`, and WGSL doesn't actually have an inverse function. We would have to code our own. On top of that computing the inverse of a matrix is actually really expensive, especially doing that compututation for every vertex.
 
-Instead we're going to create add a `normal` matrix field to `InstanceRaw`. Instead of inverting the model matrix, we'll just using the the instances rotation to create a `Matrix3`.
+Instead we're going to add a `normal` matrix field to `InstanceRaw`. Instead of inverting the model matrix, we'll just be using the instance's rotation to create a `Matrix3`.
 
 <div class="note">
 
-We using `Matrix3` instead of `Matrix4` as we only really need the rotation component of the matrix.
+We are using `Matrix3` instead of `Matrix4` as we only really need the rotation component of the matrix.
 
 </div>
 
