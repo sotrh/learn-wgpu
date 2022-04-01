@@ -218,6 +218,13 @@ web-sys = { version = "0.3", features = [
 ]}
 ```
 
+And then add `cfg_if` crate since we will be using `cfg_if` macro.
+```toml
+[dependencies]
+# ...
+cfg-if = "1.0"
+```
+
 Make sure to add `resources` as a module in `lib.rs`:
 
 ```rust
