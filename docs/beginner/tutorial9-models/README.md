@@ -221,7 +221,7 @@ web-sys = { version = "0.3", features = [
 And then add `cfg_if` crate since we will be using `cfg_if` macro.
 ```toml
 [dependencies]
-# ...
+# other dependencies...
 cfg-if = "1.0"
 ```
 
