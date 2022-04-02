@@ -3105,7 +3105,6 @@ dependencies = [
  "anyhow",
  "async-std",
  "bytemuck",
- "cfg-if 1.0.0",
  "cgmath",
  "console_error_panic_hook",
  "console_log",

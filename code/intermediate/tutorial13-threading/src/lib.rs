@@ -318,14 +318,15 @@ impl State {
 
         const SPACE_BETWEEN: f32 = 3.0;
         let iter = {
-            cfg_if::cfg_if! {
-                if #[cfg(target_arch = "wasm32")] {
-                    (0..NUM_INSTANCES_PER_ROW)
-                    .into_iter()
-                } else {
-                    (0..NUM_INSTANCES_PER_ROW)
-                    .into_par_iter()
-                }
+            #[cfg(target_arch = "wasm32")]
+            {
+                (0..NUM_INSTANCES_PER_ROW)
+                .into_iter()
+            }
+            #[cfg(not(target_arch = "wasm32"))]
+            {
+                (0..NUM_INSTANCES_PER_ROW)
+                .into_par_iter()
             }
         };
         let instances = iter
@@ -656,13 +657,15 @@ impl State {
 
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen(start))]
 pub async fn run() {
-    cfg_if::cfg_if! {
-        if #[cfg(target_arch = "wasm32")] {
-            std::panic::set_hook(Box::new(console_error_panic_hook::hook));
-            console_log::init_with_level(log::Level::Info).expect("Could't initialize logger");
-        } else {
-            env_logger::init();
-        }
+    #[cfg(target_arch = "wasm32")]
+    {
+        std::panic::set_hook(Box::new(console_error_panic_hook::hook));
+        console_log::init_with_level(log::Level::Warn).expect("Could't initialize logger");
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        env_logger::init();
     }
 
     let event_loop = EventLoop::new();
