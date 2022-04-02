@@ -10,7 +10,6 @@ crate-type = ["cdylib", "rlib"]
 [dependencies]
 anyhow = "1.0"
 bytemuck = { version = "1.4", features = [ "derive" ] }
-cfg-if = "1"
 cgmath = "0.18"
 env_logger = "0.9"
 pollster = "0.2"
