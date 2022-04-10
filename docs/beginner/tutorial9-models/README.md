@@ -231,7 +231,9 @@ We're going to use the [tobj](https://docs.rs/tobj/3.0/tobj/) library to load ou
 ```toml
 [dependencies]
 # other dependencies...
-tobj = "3.0"
+tobj = { version = "3.2.1", features = [
+    "async",
+]}
 ```
 
 Before we can load our model though, we need somewhere to put it.
