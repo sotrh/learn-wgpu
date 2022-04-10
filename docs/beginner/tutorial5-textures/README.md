@@ -536,8 +536,6 @@ Notice that we're using `to_rgba8()` instead of `as_rgba8()`. PNGs work fine wit
 
 </div>
 
-Note that we're returning a `CommandBuffer` with our texture. This means we can load multiple textures at the same time, and then submit all their command buffers at once.
-
 We need to import `texture.rs` as a module, so somewhere at the top of `main.rs` add the following.
 
 ```rust
