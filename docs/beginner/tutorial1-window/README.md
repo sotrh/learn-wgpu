@@ -12,6 +12,7 @@ winit = "0.26"
 env_logger = "0.9"
 log = "0.4"
 wgpu = "0.12"
+pollster = "0.2"
 ```
 
 ## Using Rust's new resolver
