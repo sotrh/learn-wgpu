@@ -8,6 +8,7 @@ For the beginner stuff, we're going to keep things very simple, we'll add things
 
 ```toml
 [dependencies]
+cfg-if = "1"
 winit = "0.26"
 env_logger = "0.9"
 log = "0.4"
