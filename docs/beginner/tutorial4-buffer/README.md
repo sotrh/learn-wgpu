@@ -62,7 +62,7 @@ let vertex_buffer = device.create_buffer_init(
 );
 ```
 
-To access the `create_buffer_init` method on `wgpu::Device` we'll have to import the [DeviceExt](https://docs.rs/wgpu/0.12.0/wgpu/util/trait.DeviceExt.html#tymethod.create_buffer_init) extension trait. For more information on extension traits, check out [this article](http://xion.io/post/code/rust-extension-traits.html). 
+To access the `create_buffer_init` method on `wgpu::Device` we'll have to import the [DeviceExt](https://docs.rs/wgpu/latest/wgpu/util/trait.DeviceExt.html#tymethod.create_buffer_init) extension trait. For more information on extension traits, check out [this article](http://xion.io/post/code/rust-extension-traits.html). 
 
 To import the extension trait, this line somewhere near the top of `main.rs`.
 
