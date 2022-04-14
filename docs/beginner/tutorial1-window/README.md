@@ -32,7 +32,7 @@ use winit::{
     window::WindowBuilder,
 };
 
-pub async fn run() {
+pub fn run() {
     env_logger::init();
     let event_loop = EventLoop::new();
     let window = WindowBuilder::new().build(&event_loop).unwrap();
@@ -104,8 +104,8 @@ cfg-if = "1"
 console_error_panic_hook = "0.1.6"
 console_log = "0.2.0"
 wgpu = { version = "0.12", features = ["webgl"]}
-wasm-bindgen = "0.2.76"
-web-sys = { version = "0.3.53", features = [
+wasm-bindgen = "0.2"
+web-sys = { version = "0.3", features = [
     "Document",
     "Window",
     "Element",
