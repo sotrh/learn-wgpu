@@ -795,6 +795,22 @@ Bringing back our other objects, and adding the ambient lighting gives us this.
 
 ![./ambient_diffuse_lighting.png](./ambient_diffuse_lighting.png);
 
+<div class="note">
+
+If you can guarantee that your model matrix will always apply uniform scaling to your objects, you can get away with just using the model matrix. Github user @julhe pointed shared this code with me that does the trick:
+
+```wgsl
+out.world_normal = (model_matrix * vec4<f32>(model.normal, 0.0)).xyz;
+```
+
+This works by exploiting the fact that multiplying a 4x4 matrix by a vector with 0 in the w component, only the rotation and scaling will be applied to the vector. You'll need to normalize this vector though as normals need to be unit length for the calculations to work.
+
+The scaling factor *needs* to be uniform in order for this to work. If it's not the resulting normal will be skewed as you can see in the following image.
+
+![./normal-scale-issue.png](./normal-scale-issue.png)
+
+</div>
+
 ## Specular Lighting
 
 Specular lighting describes the highlights that appear on objects when viewed from certain angles. If you've ever looked at a car, it's the super bright parts. Basically, some of the light can reflect of the surface like a mirror. The location of the hightlight shifts depending on what angle you view it at.
