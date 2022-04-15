@@ -6,14 +6,15 @@ use wgpu::util::DeviceExt;
 use crate::{model, texture};
 
 #[cfg(target_arch = "wasm32")]
-    fn format_url(file_name: &str) -> reqwest::Url {
+fn format_url(file_name: &str) -> reqwest::Url {
     let window = web_sys::window().unwrap();
     let location = window.location();
     let base = reqwest::Url::parse(&format!(
         "{}/{}/",
         location.origin().unwrap(),
         option_env!("RES_PATH").unwrap_or("res"),
-    )).unwrap();
+    ))
+    .unwrap();
     base.join(file_name).unwrap()
 }
 
