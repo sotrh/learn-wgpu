@@ -1,8 +1,8 @@
 # Model Loading
 
-Up to this point we've been creating our models manually. While this is an acceptable way to do this, but it's really slow if we want to include complex models with lots of polygons. Because of this, we're going modify our code to leverage the obj model format so that we can create a model in a software such as blender and display it in our code.
+Up to this point we've been creating our models manually. While this is an acceptable way to do this, it's really slow if we want to include complex models with lots of polygons. Because of this, we're going to modify our code to leverage the `.obj` model format so that we can create a model in software such as blender and display it in our code.
 
-Our `main.rs` file is getting pretty cluttered, let's create a `model.rs` file that we can put our model loading code into.
+Our `lib.rs` file is getting pretty cluttered, let's create a `model.rs` file that we can put our model loading code into.
 
 ```rust
 // model.rs
@@ -25,7 +25,7 @@ impl Vertex for ModelVertex {
 }
 ```
 
-You'll notice a couple of things here. In `main.rs` we had `Vertex` as a struct, here we're using a trait. We could have multiple vertex types (model, UI, instance data, etc.). Making `Vertex` a trait will allow us to abstract our the `VertexBufferLayout` creation code to make creating `RenderPipeline`s simpler.
+You'll notice a couple of things here. In `lib.rs` we had `Vertex` as a struct, here we're using a trait. We could have multiple vertex types (model, UI, instance data, etc.). Making `Vertex` a trait will allow us to abstract out the `VertexBufferLayout` creation code to make creating `RenderPipeline`s simpler.
 
 Another thing to mention is the `normal` field in `ModelVertex`. We won't use this until we talk about lighting, but will add it to the struct for now.
 
@@ -60,7 +60,7 @@ impl Vertex for ModelVertex {
 }
 ```
 
-This is basically the same as the original `VertexBufferLayout`, but we added a `VertexAttribute` for the `normal`. Remove the `Vertex` struct in `main.rs` as we won't need it anymore, and use our new `Vertex` from model for the `RenderPipeline`.
+This is basically the same as the original `VertexBufferLayout`, but we added a `VertexAttribute` for the `normal`. Remove the `Vertex` struct in `lib.rs` as we won't need it anymore, and use our new `Vertex` from `model` for the `RenderPipeline`.
 
 ```rust
 let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
@@ -79,11 +79,11 @@ Since the `desc` method is implemented on the `Vertex` trait, the trait needs to
 use model::Vertex;
 ```
 
-With all that in place we need a model to render. If you have one already that's great, but I've supplied a [zip file](https://github.com/sotrh/learn-wgpu/blob/master/code/beginner/tutorial9-models/res/cube.zip) with the model and all of it's textures. We're going to put this model in a new `res` folder next to the existing `src` folder.
+With all that in place, we need a model to render. If you have one already that's great, but I've supplied a [zip file](https://github.com/sotrh/learn-wgpu/blob/master/code/beginner/tutorial9-models/res/cube.zip) with the model and all of its textures. We're going to put this model in a new `res` folder next to the existing `src` folder.
 
 ## Accessing files in the res folder
 
-When cargo builds and runs our program it sets what's known as the current working directory. This directory is usually the folder containing your projects root `Cargo.toml`. The path to our res folder may differ depending on the structure of the project. In the `res` folder for the example code for this section tutorial is at `code/beginner/tutorial9-models/res/`. When loading our model we could use this path, and just append `cube.obj`. This is fine, but if we change our projects structure, our code will break.
+When cargo builds and runs our program it sets what's known as the current working directory. This directory is usually the folder containing your project's root `Cargo.toml`. The path to our res folder may differ depending on the structure of the project. In the `res` folder for the example code for this section tutorial is at `code/beginner/tutorial9-models/res/`. When loading our model we could use this path, and just append `cube.obj`. This is fine, but if we change our project's structure, our code will break.
 
 We're going to fix that by modifying our build script to copy our `res` folder to where cargo creates our executable, and we'll reference it from there. Create a file called `build.rs` and add the following:
 
@@ -131,7 +131,7 @@ glob = "0.3"
 
 ## Accessing files from WASM
 
-By design, you can't access files on a users filesystem in Web Assembly. Instead we'll serve those files up using a web serve, and then load those files into our code using an http request. In order to simplify this, let's create a file called `resources.rs` to handle this for us. We'll create two functions that will load text files and binary files respectively.
+By design, you can't access files on a user's filesystem in Web Assembly. Instead, we'll serve those files up using a web serve, and then load those files into our code using an http request. In order to simplify this, let's create a file called `resources.rs` to handle this for us. We'll create two functions that will load text files and binary files respectively.
 
 ```rust
 use std::io::{BufReader, Cursor};
@@ -195,7 +195,7 @@ pub async fn load_binary(file_name: &str) -> anyhow::Result<Vec<u8>> {
 
 <div class="note">
 
-We're using `OUT_DIR` on desktop to get at our `res` folder.
+We're using `OUT_DIR` on desktop to get to our `res` folder.
 
 </div>
 
@@ -415,7 +415,7 @@ where
 }
 ```
 
-We could have put this methods in an `impl Model`, but I felt it made more sense to have the `RenderPass` do all the rendering, as that's kind of it's job. This does mean we have to import `DrawModel` when we go to render though.
+We could have put these methods in an `impl Model`, but I felt it made more sense to have the `RenderPass` do all the rendering, as that's kind of its job. This does mean we have to import `DrawModel` when we go to render though.
 
 ```rust
 // lib.rs
@@ -528,7 +528,7 @@ let material = &self.obj_model.materials[mesh.material];
 render_pass.draw_mesh_instanced(mesh, material, 0..self.instances.len() as u32, &self.camera_bind_group);
 ```
 
-With all that in place we should get the following.
+With all that in place, we should get the following.
 
 ![cubes-correct.png](./cubes-correct.png)
 
@@ -549,8 +549,8 @@ pub trait DrawModel<'a> {
 }
 
 impl<'a, 'b> DrawModel<'b> for wgpu::RenderPass<'a>
-where
-    'b: 'a, {
+    where
+        'b: 'a, {
     // ...
     fn draw_model(&mut self, model: &'b Model, camera_bind_group: &'b wgpu::BindGroup) {
         self.draw_model_instanced(model, 0..1, camera_bind_group);
@@ -570,7 +570,7 @@ where
 }
 ```
 
-The code in `main.rs` will change accordingly.
+The code in `lib.rs` will change accordingly.
 
 ```rust
 render_pass.set_vertex_buffer(1, self.instance_buffer.slice(..));

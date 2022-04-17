@@ -1,6 +1,6 @@
 # Uniform buffers and a 3d camera
 
-While all of our previous work has seemed to be in 2d, we've actually been working in 3d the entire time! That's part of the reason why our `Vertex` structure has `position` be an array of 3 floats instead of just 2. We can't really see the 3d-ness of our scene, because we're viewing things head on. We're going to change our point of view by creating a `Camera`.
+While all of our previous work has seemed to be in 2d, we've actually been working in 3d the entire time! That's part of the reason why our `Vertex` structure has `position` be an array of 3 floats instead of just 2. We can't really see the 3d-ness of our scene, because we're viewing things head-on. We're going to change our point of view by creating a `Camera`.
 
 ## A perspective camera
 
@@ -41,7 +41,7 @@ impl Camera {
 The `build_view_projection_matrix` is where the magic happens.
 1. The `view` matrix moves the world to be at the position and rotation of the camera. It's essentially an inverse of whatever the transform matrix of the camera would be.
 2. The `proj` matrix wraps the scene to give the effect of depth. Without this, objects up close would be the same size as objects far away.
-3. The coordinate system in Wgpu is based on DirectX, and Metal's coordinate systems. That means that in [normalized device coordinates](https://github.com/gfx-rs/gfx/tree/master/src/backend/dx12#normalized-coordinates) the x axis and y axis are in the range of -1.0 to +1.0, and the z axis is 0.0 to +1.0. The `cgmath` crate (as well as most game math crates) are built for OpenGL's coordinate system. This matrix will scale and translate our scene from OpenGL's coordinate system to WGPU's. We'll define it as follows.
+3. The coordinate system in Wgpu is based on DirectX, and Metal's coordinate systems. That means that in [normalized device coordinates](https://github.com/gfx-rs/gfx/tree/master/src/backend/dx12#normalized-coordinates) the x axis and y axis are in the range of -1.0 to +1.0, and the z axis is 0.0 to +1.0. The `cgmath` crate (as well as most game math crates) is built for OpenGL's coordinate system. This matrix will scale and translate our scene from OpenGL's coordinate system to WGPU's. We'll define it as follows.
 
 ```rust
 #[rustfmt::skip]
@@ -93,7 +93,7 @@ Now that we have our camera, and it can make us a view projection matrix, we nee
 
 ## The uniform buffer
 
-Up to this point we've used `Buffer`s to store our vertex and index data, and even to load our textures. We are going to use them again to create what's known as a uniform buffer. A uniform is a blob of data that is available to every invocation of a set of shaders. We've technically already used uniforms for our texture and sampler. We're going to use them again to store our view projection matrix. To start let's create a struct to hold our uniform.
+Up to this point, we've used `Buffer`s to store our vertex and index data, and even to load our textures. We are going to use them again to create what's known as a uniform buffer. A uniform is a blob of data that is available to every invocation of a set of shaders. We've technically already used uniforms for our texture and sampler. We're going to use them again to store our view projection matrix. To start let's create a struct to hold our uniform.
 
 ```rust
 // We need this for Rust to store our data correctly for the shaders
@@ -139,7 +139,7 @@ let camera_buffer = device.create_buffer_init(
 
 ## Uniform buffers and bind groups
 
-Cool, now that we have a uniform buffer, what do we do with it? The answer is we create a bind group for it. First we have to create the bind group layout.
+Cool, now that we have a uniform buffer, what do we do with it? The answer is we create a bind group for it. First, we have to create the bind group layout.
 
 ```rust
 let camera_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
@@ -262,7 +262,7 @@ fn vs_main(
 ```
 
 1. Because we've created a new bind group, we need to specify which one we're using in the shader. The number is determined by our `render_pipeline_layout`. The `texture_bind_group_layout` is listed first, thus it's `group(0)`, and `camera_bind_group` is second, so it's `group(1)`.
-2. Multiplication order is important when it comes to matrices. The vector goes on the right, and the matrices gone on the left in order of importance.
+2. Multiplication order is important when it comes to matrices. The vector goes on the right, and the matrices go on the left in order of importance.
 
 ## A controller for our camera
 
@@ -398,8 +398,8 @@ fn input(&mut self, event: &WindowEvent) -> bool {
 ```
 
 Up to this point, the camera controller isn't actually doing anything. The values in our uniform buffer need to be updated. There are a few main methods to do that.
-1. We can create a separate buffer and copy it's contents to our `camera_buffer`. The new buffer is known as a staging buffer. This method is usually how it's done as it allows the contents of the main buffer (in this case `camera_buffer`) to only be accessible by the gpu. The gpu can do some speed optimizations which it couldn't if we could access the buffer via the cpu.
-2. We can call on of the mapping method's `map_read_async`, and `map_write_async` on the buffer itself. These allow us to access a buffer's contents directly, but requires us to deal with the `async` aspect of these methods this also requires our buffer to use the `BufferUsages::MAP_READ` and/or `BufferUsages::MAP_WRITE`. We won't talk about it here, but you check out [Wgpu without a window](../../showcase/windowless) tutorial if you want to know more.
+1. We can create a separate buffer and copy its contents to our `camera_buffer`. The new buffer is known as a staging buffer. This method is usually how it's done as it allows the contents of the main buffer (in this case `camera_buffer`) to only be accessible by the gpu. The gpu can do some speed optimizations which it couldn't if we could access the buffer via the cpu.
+2. We can call one of the mapping methods `map_read_async`, and `map_write_async` on the buffer itself. These allow us to access a buffer's contents directly but require us to deal with the `async` aspect of these methods this also requires our buffer to use the `BufferUsages::MAP_READ` and/or `BufferUsages::MAP_WRITE`. We won't talk about it here, but you check out [Wgpu without a window](../../showcase/windowless) tutorial if you want to know more.
 3. We can use `write_buffer` on `queue`.
 
 We're going to use option number 3.
@@ -416,7 +416,7 @@ That's all we need to do. If you run the code now you should see a pentagon with
 
 ## Challenge
 
-Have our model rotate on it's own independently of the the camera. *Hint: you'll need another matrix for this.*
+Have our model rotate on its own independently of the camera. *Hint: you'll need another matrix for this.*
 
 
 <WasmExample example="tutorial6_uniforms"></WasmExample>
