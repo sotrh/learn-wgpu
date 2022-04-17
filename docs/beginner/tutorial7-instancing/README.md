@@ -127,11 +127,11 @@ Now that we have our data, we can create the actual `instance_buffer`.
 ```rust
 let instance_data = instances.iter().map(Instance::to_raw).collect::<Vec<_>>();
 let instance_buffer = device.create_buffer_init(
-&wgpu::util::BufferInitDescriptor {
-label: Some("Instance Buffer"),
-contents: bytemuck::cast_slice(&instance_data),
-usage: wgpu::BufferUsages::VERTEX,
-}
+    &wgpu::util::BufferInitDescriptor {
+        label: Some("Instance Buffer"),
+        contents: bytemuck::cast_slice(&instance_data),
+        usage: wgpu::BufferUsages::VERTEX,
+    }
 );
 ```
 
@@ -183,13 +183,13 @@ We need to add this descriptor to the render pipeline so that we can use it when
 
 ```rust
 let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-// ...
-vertex: wgpu::VertexState {
-// ...
-// UPDATED!
-buffers: &[Vertex::desc(), InstanceRaw::desc()],
-},
-// ...
+    // ...
+    vertex: wgpu::VertexState {
+        // ...
+        // UPDATED!
+        buffers: &[Vertex::desc(), InstanceRaw::desc()],
+    },
+    // ...
 });
 ```
 
@@ -197,10 +197,10 @@ Don't forget to return our new variables!
 
 ```rust
 Self {
-// ...
-// NEW!
-instances,
-instance_buffer,
+    // ...
+    // NEW!
+    instances,
+    instance_buffer,
 }
 ```
 

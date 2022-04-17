@@ -141,15 +141,15 @@ The last change we need to make is in the `render()` function. We've created the
 
 ```rust
 let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-// ...
-depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-view: &self.depth_texture.view,
-depth_ops: Some(wgpu::Operations {
-load: wgpu::LoadOp::Clear(1.0),
-store: true,
-}),
-stencil_ops: None,
-}),
+    // ...
+    depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+        view: &self.depth_texture.view,
+        depth_ops: Some(wgpu::Operations {
+            load: wgpu::LoadOp::Clear(1.0),
+            store: true,
+        }),
+        stencil_ops: None,
+    }),
 });
 ```
 

@@ -234,17 +234,17 @@ You'll then need to run the WASM code in an ES6 Module:
 </head>
 
 <body>
-<script type="module">
-    import init from "./pkg/pong.js";
-    init().then(() => {
-        console.log("WASM Loaded");
-    });
-</script>
-<style>
-    canvas {
-        background-color: black;
-    }
-</style>
+  <script type="module">
+      import init from "./pkg/pong.js";
+      init().then(() => {
+          console.log("WASM Loaded");
+      });
+  </script>
+  <style>
+      canvas {
+          background-color: black;
+      }
+  </style>
 </body>
 
 </html>

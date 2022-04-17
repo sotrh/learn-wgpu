@@ -549,8 +549,8 @@ pub trait DrawModel<'a> {
 }
 
 impl<'a, 'b> DrawModel<'b> for wgpu::RenderPass<'a>
-    where
-        'b: 'a, {
+where
+    'b: 'a, {
     // ...
     fn draw_model(&mut self, model: &'b Model, camera_bind_group: &'b wgpu::BindGroup) {
         self.draw_model_instanced(model, 0..1, camera_bind_group);
