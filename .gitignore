@@ -12,3 +12,7 @@ output/
 
 secrets.txt
 tree.txt
+
+yarn.lock
+Cargo.lock
+node_modules/
