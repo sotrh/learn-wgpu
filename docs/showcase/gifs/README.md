@@ -1,6 +1,6 @@
-# Creating gifs 
+# Creating gifs
 
-Sometimes you've created a nice simulation/animation, and you want to show it off. While you can record a video, that might be a bit overkill to break out your video recording if you just want something to post on twitter. That's where what [GIF](https://en.wikipedia.org/wiki/GIF)s are for.
+Sometimes you've created a nice simulation/animation, and you want to show it off. While you can record a video, that might be a bit overkill to break out your video recording if you just want something to post on Twitter. That's where what [GIF](https://en.wikipedia.org/wiki/GIF)s are for.
 
 Also, GIF is pronounced GHIF, not JIF as JIF is not only [peanut butter](https://en.wikipedia.org/wiki/Jif_%28peanut_butter%29), it is also a [different image format](https://filext.com/file-extension/JIF).
 
@@ -25,7 +25,7 @@ fn save_gif(path: &str, frames: &mut Vec<Vec<u8>>, speed: i32, size: u16) -> Res
 ```
 
 <!-- image-rs doesn't currently support looping, so I switched to gif -->
-<!-- A GIF is a type of image, and fortunately the [image crate](https://docs.rs/image/) supports GIFs natively. It's pretty simple to use. -->
+<!-- A GIF is a type of image, and fortunately, the [image crate](https://docs.rs/image/) supports GIFs natively. It's pretty simple to use. -->
 
 <!-- ```rust
 fn save_gif(path: &str, frames: &mut Vec<Vec<u8>>, speed: i32, size: u16) -> Result<(), failure::Error> {
@@ -45,7 +45,7 @@ All we need to use this code is the frames of the GIF, how fast it should run, a
 
 ## How do we make the frames?
 
-If you checked out the [windowless showcase](../windowless/#a-triangle-without-a-window), you'll know that we render directly to a `wgpu::Texture`. We'll create a texture to render to and a buffer the copy the output to.
+If you checked out the [windowless showcase](../windowless/#a-triangle-without-a-window), you'll know that we render directly to a `wgpu::Texture`. We'll create a texture to render to and a buffer to copy the output to.
 
 ```rust
 // create a texture to render to
@@ -87,7 +87,7 @@ let buffer_desc = wgpu::BufferDescriptor {
 let output_buffer = device.create_buffer(&buffer_desc);
 ```
 
-With that we can render a frame, and then copy that frame to a `Vec<u8>`.
+With that, we can render a frame, and then copy that frame to a `Vec<u8>`.
 
 ```rust
 let mut frames = Vec::new();

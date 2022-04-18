@@ -2,15 +2,15 @@
 
 <div class="warning">
 
-This example is currently broken. It got behind when I was migrating the tutorial to 0.8 as the imgui_wgpu crate was still on 0.7 at the time. I haven't updated it since. While the fixing it wouldn't be too hard (feel free to send a PR), I'm considering removing this example entirely.
+This example is currently broken. It got behind when I was migrating the tutorial to 0.8 as the imgui_wgpu crate was still on 0.7 at the time. I haven't updated it since. While fixing it wouldn't be too hard (feel free to send a PR), I'm considering removing this example entirely.
 
-This tutorial is focused how to use wgpu (and by extension the WebGPU standard). I'm looking to minimize the amount of wgpu-adjacent crates that I'm using. They can get in the way of keeping this tutorial as current as possible, and often a crate I'm using will have a different version of wgpu (or winit as is the case as of writing) preventing me from continuing with migration. Beyond dependency conflicts, I'd like to cover some of the topics that some of the existing crates implement such as text and guis.
+This tutorial is focused on how to use wgpu (and by extension the WebGPU standard). I'm looking to minimize the amount of wgpu-adjacent crates that I'm using. They can get in the way of keeping this tutorial as current as possible, and often a crate I'm using will have a different version of wgpu (or winit as is the case as of writing) preventing me from continuing with migration. Beyond dependency conflicts, I'd like to cover some of the topics that some of the existing crates implement such as text and guis.
 
-For the 0.10 migration I'll keep this example in and keep the showcase code excluded.
+For the 0.10 migration, I'll keep this example in and keep the showcase code excluded.
 
 </div>
 
-This is not an in depth guid on how to use Imgui. But here are some of the basics you'll need to get started. We'll need to import [imgui-rs](https://docs.rs/imgui), [imgui-wgpu](https://docs.rs/imgui-wgpu), and [imgui-winit-support](https://docs.rs/imgui-winit-support).
+This is not an in-depth guide on how to use Imgui. But here are some of the basics you'll need to get started. We'll need to import [imgui-rs](https://docs.rs/imgui), [imgui-wgpu](https://docs.rs/imgui-wgpu), and [imgui-winit-support](https://docs.rs/imgui-winit-support).
 
 ```toml
 imgui = "0.7"
@@ -20,11 +20,11 @@ imgui-winit-support = "0.7"
 
 <div class="note">
 
-I've excluded some dependencies for brevity. I'm also using the [framework crate](https://github.com/sotrh/learn-wgpu/tree/master/code/showcase/framework) I've created for showcases to simplify setup. If you see a `display` variable in code, it's from the `framework`. `Display` is where the the `device`, `queue`, `swap_chain`, and other basic wgpu objects are stored.
+I've excluded some dependencies for brevity. I'm also using the [framework crate](https://github.com/sotrh/learn-wgpu/tree/master/code/showcase/framework) I've created for showcases to simplify setup. If you see a `display` variable in code, it's from the `framework`. `Display` is where the `device`, `queue`, `swap_chain`, and other basic wgpu objects are stored.
 
 </div>
 
-We need to setup imgui and a `WinitPlatform` to get started. Do this after creating you're `winit::Window`.
+We need to set up imgui and a `WinitPlatform` to get started. Do this after creating you're `winit::Window`.
 
 ```rust
 let mut imgui = imgui::Context::create();
@@ -37,7 +37,7 @@ platform.attach_window(
 imgui.set_ini_filename(None);
 ```
 
-Now we need to configure the default font. We'll using the window's scale factor to keep things from being too big or small.
+Now we need to configure the default font. We'll be using the window's scale factor to keep things from being too big or small.
 
 ```rust
 let hidpi_factor = display.window.scale_factor();

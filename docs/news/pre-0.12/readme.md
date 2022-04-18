@@ -2,7 +2,7 @@
 
 ## Pong working on the web
 
-This took a little while to figure out. I ended up using wasm-pack to create the wasm as I was having trouble with getting wasm-bindgen to work. I figured it out eventually but decided to keep using wasm-pack as I felt that the work flow would be more friendly to readers.
+This took a little while to figure out. I ended up using wasm-pack to create the wasm as I was having trouble with getting wasm-bindgen to work. I figured it out eventually but decided to keep using wasm-pack as I felt that the workflow would be more friendly to readers.
 
 I would have released this sooner, but I wanted to add support for touch so that people on their phones could play the game. It appears that winit doesn't record touch events for WASM, so I shelved that idea.
 
@@ -26,7 +26,7 @@ self.queue.submit(iter::once(encoder.finish()));
 output.present();
 ```
 
-There a good deal of internal changes such as WebGL support (which I really need to cover). You can check out more on wgpu's [changelog](https://github.com/gfx-rs/wgpu/blob/master/CHANGELOG.md#wgpu-011-2021-10-07).
+There are a good deal of internal changes such as WebGL support (which I really need to cover). You can check out more on wgpu's [changelog](https://github.com/gfx-rs/wgpu/blob/master/CHANGELOG.md#wgpu-011-2021-10-07).
 
 ## Pong is fixed for 0.10
 
@@ -67,11 +67,11 @@ let view = output
     .create_view(&wgpu::TextureViewDescriptor::default());
 ```
 
-The Pong and imgui examples are broken again. I may remove the imgui example as the corresponding crate already has examples on how to use it. I'm also considering reworking the Pong example, but I may end up just updating it.
+The Pong and imgui examples are broken again. I may remove the imgui example as the corresponding crate already has examples of how to use it. I'm also considering reworking the Pong example, but I may end up just updating it.
 
 ## Pong and imgui demos are fixed!
 
-The `imgui_wgpu` and `wgpu_glyph` crates have been updated to `wgpu` 0.8 so I was able to fixed the demos! They both still use GLSL, and I don't think I'll be changing that for now. I may switch them over to `naga` at some point.
+The `imgui_wgpu` and `wgpu_glyph` crates have been updated to `wgpu` 0.8 so I was able to fix the demos! They both still use GLSL, and I don't think I'll be changing that for now. I may switch them over to `naga` at some point.
 
 ## 0.8 and WGSL
 
@@ -87,7 +87,7 @@ Since I needed to make a bunch of changes to the code base to make the glsl, and
 
 ### Some of the showcase examples are broken
 
-The `wgpu_glyph`, and `imgui-wgpu` crates currently depend on `wgpu` 0.7, which is causing the `pong` and `imgui-demo` to not compile. I decided to excluded them from the workspace until the underlying crates update to using `wgpu` 0.8. (Feel free to submit a issue or even PR when that happens!)
+The `wgpu_glyph`, and `imgui-wgpu` crates currently depend on `wgpu` 0.7, which is causing the `pong` and `imgui-demo` to not compile. I decided to exclude them from the workspace until the underlying crates update to using `wgpu` 0.8. (Feel free to submit a issue or even PR when that happens!)
 
 ### Various API changes
 
@@ -105,11 +105,11 @@ The `wgpu_glyph`, and `imgui-wgpu` crates currently depend on `wgpu` 0.7, which 
 
 ## 0.7
 
-There were a lot of changes particularly to the `RenderPipelineDescriptor`. Most other things have not changed. You can check out the [0.9 PR](https://github.com/sotrh/learn-wgpu/pull/140) for the full details.
+There were a lot of changes, particularly to the `RenderPipelineDescriptor`. Most other things have not changed. You can check out the [0.9 PR](https://github.com/sotrh/learn-wgpu/pull/140) for the full details.
 
 ## November 2020 Cleanup, Content Freeze, and Patreon
 
-School is starting to ramp up, so I haven't had as much time to work on the site as I would like to. Because of that there were some issues piling up. I decided to tackle a bunch of them in one go. Here's a snapshot of what I did:
+School is starting to ramp up, so I haven't had as much time to work on the site as I would like to. Because of that, there were some issues piling up. I decided to tackle a bunch of them in one go. Here's a snapshot of what I did:
 
 * The tutorial now handles `SurfaceError` properly
 * I'm now using bytemuck's derive feature on all buffer data structs.
@@ -119,7 +119,7 @@ School is starting to ramp up, so I haven't had as much time to work on the site
 * I made a [compute pipeline showcase](../showcase/compute) that computes the tangent and bitangent for each vertex in a model.
 * I made a [imgui showcase](../showcase/imgui-demo). It's very basic, but it should be a good starting point.
 
-Now in the headline I mentioned a "Content Freeze". Wgpu is still a moving target. The migration from `0.4` to `0.5` was lot of work. The same goes for `0.5` to `0.6`. I'm expected the next migration to be just as much work. As such, I won't be added much content until the API becomes a bit more stable. That being said, I still plan on resolving any issues with the content.
+Now in the headline, I mentioned a "Content Freeze". Wgpu is still a moving target. The migration from `0.4` to `0.5` was a lot of work. The same goes for `0.5` to `0.6`. I expect the next migration to be just as much work. As such, I won't be adding much content until the API becomes a bit more stable. That being said, I still plan on resolving any issues with the content.
 
 One more thing. This is actually quite awkward for me (especially since I'll be slowing down development), but I've started a [patreon](https://www.patreon.com/sotrh). My job doesn't give me a ton of hours, so things are a bit tight. You are by no means obligated to donate, but I would appreciate it.
 
@@ -127,7 +127,7 @@ You can find out more about contributing to this project on the [introduction pa
 
 ## 0.6
 
-This took me way too long. The changes weren't difficult, but I had to do a lot of copy pasting. The main changes are using `queue.write_buffer()` and `queue.write_texture()` everywhere. I won't get into the nitty gritty, but you can checkout the [pull request](https://github.com/sotrh/learn-wgpu/pull/90) if you're interested.
+This took me way too long. The changes weren't difficult, but I had to do a lot of copy pasting. The main changes are using `queue.write_buffer()` and `queue.write_texture()` everywhere. I won't get into the nitty gritty, but you can check out the [pull request](https://github.com/sotrh/learn-wgpu/pull/90) if you're interested.
 
 ## Added Pong Showcase
 
@@ -153,11 +153,11 @@ The [lighting tutorial](/intermediate/tutorial10-lighting/) was not up to par, s
 
 ## Updated texture tutorials
 
-Up to this point, we created textures manually everytime. I've pulled out the texture creation code into a new `texture.rs` file and included it every tutorial from the [textures tutorial](/beginner/tutorial5-textures/#cleaning-things-up) onward.
+Up to this point, we created textures manually every time. I've pulled out the texture creation code into a new `texture.rs` file and included it in every tutorial from the [textures tutorial](/beginner/tutorial5-textures/#cleaning-things-up) onward.
 
-## Fixed panics do to not specifying the correct `usage`
+## Fixed panics due to not specifying the correct `usage`
 
-Wgpu has become more strict about what `BufferUsages`s and `TextureUsages`s are required when performing certain operations. For example int the [Wgpu without a window example](/intermediate/windowless/), the `texture_desc` only specified the usage to by `COPY_SRC`. This caused a crash when the `texture` was used as a render target. Adding `OUTPUT_ATTACHMENT` fixed the issue.
+Wgpu has become more strict about what `BufferUsages`s and `TextureUsages`s are required when performing certain operations. For example in the [Wgpu without a window example](/intermediate/windowless/), the `texture_desc` only specified the usage to by `COPY_SRC`. This caused a crash when the `texture` was used as a render target. Adding `OUTPUT_ATTACHMENT` fixed the issue.
 
 ## Updating Winit from 0.20.0-alpha5 to 0.20
 
@@ -168,7 +168,7 @@ There were a lot of small changes to how the dpi stuff works. You can see all th
 * `State::size` is now `PhysicalSize<u32>` instead of the pre 0.20 `LogicalSize`.
 * `EventsCleared` is now `MainEventsCleared`.
 
-I may have missed a change, but I made sure that all the examples compile an run, so if you have trouble with your code you can use them as a reference.
+I may have missed a change, but I made sure that all the examples compile and run, so if you have trouble with your code you can use them as a reference.
 
 ## Changed tutorial examples to use a src directory
 

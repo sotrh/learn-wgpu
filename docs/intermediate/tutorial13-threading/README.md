@@ -16,7 +16,7 @@ Once 0.13 comes out I'll revert to using the version published on crates.io.
 
 </div>
 
-The main selling point of Vulkan, DirectX 12, Metal, and by extension Wgpu is that these APIs is that they designed from the ground up to be thread safe. Up to this point we have been doing everything on a single thread. That's about to change.
+The main selling point of Vulkan, DirectX 12, Metal, and by extension Wgpu is that these APIs is that they designed from the ground up to be thread-safe. Up to this point, we have been doing everything on a single thread. That's about to change.
 
 <div class="note">
 
@@ -28,7 +28,7 @@ We won't go over multithreading rendering as we don't have enough different type
 
 ## Parallelizing loading models and textures
 
-Currently we load the materials and meshes of our model one at a time. This is a perfect opportunity for multithreading! All our changes will be in `model.rs`. Let's first start with the materials. We'll convert the regular for loop into a `par_iter().map()`.
+Currently, we load the materials and meshes of our model one at a time. This is a perfect opportunity for multithreading! All our changes will be in `model.rs`. Let's first start with the materials. We'll convert the regular for loop into a `par_iter().map()`.
 
 ```rust
 // resources.rs
@@ -72,7 +72,7 @@ impl Model {
 }
 ```
 
-Next we can update the meshes to be loaded in parallel.
+Next, we can update the meshes to be loaded in parallel.
 
 ```rust
 impl Model {
@@ -145,7 +145,7 @@ Elapsed (Original): 309.596382ms
 Elapsed (Threaded): 199.645027ms
 ```
 
-We're not loading that many resources, so the speed up is minimal. We'll be doing more stuff with threading, but this is a good introduction.
+We're not loading that many resources, so the speedup is minimal. We'll be doing more stuff with threading, but this is a good introduction.
 
 <WasmExample example="tutorial12_camera"></WasmExample>
 

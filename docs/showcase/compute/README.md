@@ -1,6 +1,6 @@
 # Compute Example: Tangents and Bitangents
 
-This proved more difficult than I anticipated. The first problem I encountered was some vertex data corruption due to the shader reading my vertex data incorrectly. I was using my `ModelVertex` struct I used in the [normal mapping tutorial](/intermediate/tutorial11-normals/).
+This proved more difficult than I anticipated. The first problem I encountered was some vertex data corruption due to the shader reading my vertex data incorrectly. I was using the `ModelVertex` struct I used in the [normal mapping tutorial](/intermediate/tutorial11-normals/).
 
 ```rust
 #[repr(C)]
@@ -26,11 +26,11 @@ struct ModelVertex {
 };
 ```
 
-At first glance, this seems just fine, but OpenGL experts would likely see a problem with the structure. Our fields aren't aligned properly to support the `std430` alignment that storage buffers require.. I won't get into detail but you can check out the [alignment showcase](../alignment) if you want to know more. To summarize, the `vec2` for the `tex_coords` was messing up the byte alignment, corrupting the vertex data resulting in the following:
+At first glance, this seems just fine, but OpenGL experts would likely see a problem with the structure. Our fields aren't aligned properly to support the `std430` alignment that storage buffers require... I won't get into detail but you can check out the [alignment showcase](../alignment) if you want to know more. To summarize, the `vec2` for the `tex_coords` was messing up the byte alignment, corrupting the vertex data resulting in the following:
 
 ![./corruption.png](./corruption.png)
 
-I could have fixed this by adding a padding field after `tex_coords` on the Rust side, but that would require modifying the `VertexBufferLayout`. I ended up solving this problem by using the components of the vectors directly and resulted with a struct like this:
+I could have fixed this by adding a padding field after `tex_coords` on the Rust side, but that would require modifying the `VertexBufferLayout`. I ended up solving this problem by using the components of the vectors directly which resulted in a struct like this:
 
 ```glsl
 struct ModelVertex {
@@ -44,7 +44,7 @@ struct ModelVertex {
 
 Since `std430` will use the alignment of the largest element of the struct, using all floats means the struct will be aligned to 4 bytes. This is alignment matches what `ModelVertex` uses in Rust. This was kind of a pain to work with, but it fixed the corruption issue.
 
-The second problem required me to rethink how I was computing the tangent and bitangent. The previous algorithm I was using only computed the tangent and bitangent for each triangle and set all the vertices in that triangle to use the same tangent and bitangent. While this is fine in a single threaded context, the code breaks down when trying to compute the triangles in parallel. The reason is that multiple triangles can share the same vertices. This means that when we go to save the resulting tangents, we inevitably end up trying to write to the same vertex from multiple different threads which is a big no no. You can see the issue with this method below:
+The second problem required me to rethink how I was computing the tangent and bitangent. The previous algorithm I was using only computed the tangent and bitangent for each triangle and set all the vertices in that triangle to use the same tangent and bitangent. While this is fine in a single-threaded context, the code breaks down when trying to compute the triangles in parallel. The reason is that multiple triangles can share the same vertices. This means that when we go to save the resulting tangents, we inevitably end up trying to write to the same vertex from multiple different threads which is a big no no. You can see the issue with this method below:
 
 ![./black_triangles.png](./black_triangles.png)
 
@@ -52,7 +52,7 @@ Those black triangles were the result of multiple GPU threads trying to modify t
 
 ![./render_doc_output.png](./render_doc_output.png)
 
-While on the CPU we could introduce a synchronization primitive such as a `Mutex` to fix this issue, AFAIK there isn't really such a thing on the GPU. Instead I decided to swap my code to work with each vertex individually. There are some hurdles with that, but those will be easier to explain in code. Let's start with the `main` function.
+While on the CPU we could introduce a synchronization primitive such as a `Mutex` to fix this issue, AFAIK there isn't really such a thing on the GPU. Instead, I decided to swap my code to work with each vertex individually. There are some hurdles with that, but those will be easier to explain in code. Let's start with the `main` function.
 
 ```glsl
 void main() {
@@ -62,7 +62,7 @@ void main() {
 }
 ```
 
-We use the `gl_GlobalInvocationID.x` to get the index of the vertex we want to compute the tangents for. I opted to put the actual calculation into it's own method. Let's take a look at that.
+We use the `gl_GlobalInvocationID.x` to get the index of the vertex we want to compute the tangents for. I opted to put the actual calculation into its own method. Let's take a look at that.
 
 ```glsl
 ModelVertex calcTangentBitangent(uint vertexIndex) {
@@ -130,7 +130,7 @@ ModelVertex calcTangentBitangent(uint vertexIndex) {
 
 ## Possible Improvements
 
-Looping over every triangle for every vertex is likely raising some red flags for some of you. In a single threaded context, this algorithm would end up being O(N*M). As we are utilizing the high number of threads available to our GPU, this is less of an issue, but it still means our GPU is burning more cycles than it needs to.
+Looping over every triangle for every vertex is likely raising some red flags for some of you. In a single-threaded context, this algorithm would end up being O(N*M). As we are utilizing the high number of threads available to our GPU, this is less of an issue, but it still means our GPU is burning more cycles than it needs to.
 
 One way I came up with to possibly improve performance is to store the index of each triangle in a hash map like structure with the vertex index as keys. Here's some pseudo code:
 
@@ -154,7 +154,7 @@ for (i, (_v, t_list)) in triangle_map.iter().enumerate() {
 }
 ```
 
-I ultimately decided against this method as it was more complicated, and I haven't had time to benchmark it to see if it's faster that the simple method.
+I ultimately decided against this method as it was more complicated, and I haven't had time to benchmark it to see if it's faster than the simple method.
 
 ## Results
 
