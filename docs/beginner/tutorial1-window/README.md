@@ -66,7 +66,7 @@ All this does is create a window, and keep it open until the user closes it, or 
 use tutorial1_window::run;
 
 fn main() {
-    pollster::block_on(run());
+    run();
 }
 ```
 
