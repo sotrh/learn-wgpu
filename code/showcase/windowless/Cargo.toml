@@ -8,11 +8,8 @@ edition = "2018"
 
 [dependencies]
 image = "0.23"
-raw-window-handle = "0.3"
-winit = "0.26"
 shaderc = "0.7"
-cgmath = "0.18"
-wgpu = "0.12"
+wgpu = { version = "0.12", features = ["spirv"] }
 pollster = "0.2"
 
 [[bin]]

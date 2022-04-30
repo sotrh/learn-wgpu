@@ -94,6 +94,16 @@ void main() {
 }
 ```
 
+Update dependencies to support SPIR-V module.
+
+```toml
+[dependencies]
+image = "0.23"
+shaderc = "0.7"
+wgpu = { version = "0.12", features = ["spirv"] }
+pollster = "0.2"
+```
+
 Using that we'll create a simple `RenderPipeline`.
 
 ```rust
