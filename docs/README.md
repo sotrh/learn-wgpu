@@ -1,4 +1,10 @@
 # Introduction
+Guide for using gfx-rs's wgpu library.
+
+<p>
+  <a href="https://github.com/sotrh/learn-wgpu"><img alt="GitHub stars" src="https://img.shields.io/github/stars/sotrh/learn-wgpu?style=social"/></a>
+</p>
+
 
 ## What is wgpu?
 [Wgpu](https://github.com/gfx-rs/wgpu) is a Rust implementation of the [WebGPU API spec](https://gpuweb.github.io/gpuweb/). WebGPU is a specification published by the GPU for the Web Community Group. It aims to allow web code access to GPU functions in a safe and reliable manner. It does this by mimicking the Vulkan API, and translating that down to whatever API the host hardware is using (ie. DirectX, Metal, Vulkan).
@@ -17,6 +23,10 @@ I'm using this project to learn wgpu myself, so I might miss some important deta
 * I accept pull requests ([GitHub repo](https://github.com/sotrh/learn-wgpu)) for fixing issues with this tutorial such as typos, incorrect information, and other inconsistencies.
 * Due to wgpu's rapidly changing api, I'm not accepting any new pull requests for showcase demos.
 * If you want to support me directly, check out my [patreon](https://www.patreon.com/sotrh)!
+
+## Translations
+
+* [中文版](https://doodlewind.github.io/learn-wgpu-cn)
 
 ## Special thanks to these patrons!
 
