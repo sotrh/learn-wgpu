@@ -8,7 +8,7 @@ The architecture is not the best as I prescribed to the "get things done" mental
 
 ## The Architecture
 
-I was messing around with separating state from the render code. It ended up similar to an entity component model.
+I was messing around with separating state from the render code. It ended up similar to an Entity Component System model.
 
 I had a `State` class with all of the objects in the scene. This included the ball and the paddles, as well as the text for the scores and even the menu. `State` also included a `game_state` field of type `GameState`.
 
