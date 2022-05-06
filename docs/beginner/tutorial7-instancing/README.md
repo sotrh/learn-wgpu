@@ -19,7 +19,7 @@ pub fn draw_indexed(
 
 The `instances` parameter takes a `Range<u32>`. This parameter tells the GPU how many copies, or instances, of the model we want to draw. Currently, we are specifying `0..1`, which instructs the GPU to draw our model once, and then stop. If we used `0..5`, our code would draw 5 instances.
 
-The fact that `instances` is a `Range<u32>` may seem weird as using `1..2` for instances would still draw 1 instance of our object. Seems like it would be simpler to just use a `u32` right? The reason it's a range is that sometimes we don't want to draw **all** of our objects. Sometimes we want to draw a selection of them, because others are not in-frame, or we are debugging and want to look at a particular set of instances.
+The fact that `instances` is a `Range<u32>` may seem weird as using `1..2` for instances would still draw 1 instance of our object. Seems like it would be simpler to just use a `u32` right? The reason it's a range is that sometimes we don't want to draw **all** of our objects. Sometimes we want to draw a selection of them, because others are not in frame, or we are debugging and want to look at a particular set of instances.
 
 Ok, now we know how to draw multiple instances of an object, how do we tell wgpu what particular instance to draw? We are going to use something known as an instance buffer.
 

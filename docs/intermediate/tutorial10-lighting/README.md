@@ -26,7 +26,7 @@ Let's discuss a few options.
 
 ## Ray/Path Tracing
 
-This is an *advanced* topic, and we won't be covering it in-depth here. It's the closest model to the way light really works so I felt I had to mention it. Check out the [ray tracing tutorial](../../todo/) if you want to learn more.
+This is an *advanced* topic, and we won't be covering it in depth here. It's the closest model to the way light really works so I felt I had to mention it. Check out the [ray tracing tutorial](../../todo/) if you want to learn more.
 
 ## The Blinn-Phong Model
 

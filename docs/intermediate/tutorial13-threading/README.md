@@ -16,7 +16,7 @@ Once 0.13 comes out I'll revert to using the version published on crates.io.
 
 </div>
 
-The main selling point of Vulkan, DirectX 12, Metal, and by extension Wgpu is that these APIs is that they designed from the ground up to be thread-safe. Up to this point, we have been doing everything on a single thread. That's about to change.
+The main selling point of Vulkan, DirectX 12, Metal, and by extension Wgpu is that these APIs is that they designed from the ground up to be thread safe. Up to this point, we have been doing everything on a single thread. That's about to change.
 
 <div class="note">
 

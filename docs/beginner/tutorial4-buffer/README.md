@@ -432,7 +432,7 @@ With all that you should have a garishly magenta pentagon in your window.
 
 ## Color Correction
 
-If you use a color picker on the magenta pentagon, you'll get a hex value of #BC00BC. If you convert this to RGB values you'll get (188, 0, 188). Dividing these values by 255 to get them into the [0, 1] range we get roughly (0.737254902, 0, 0.737254902). This is not the same as what we are using for our vertex colors which are (0.5, 0.0, 0.5). The reason for this has to do with color spaces.
+If you use a color picker on the magenta pentagon, you'll get a hex value of #BC00BC. If you convert this to RGB values you'll get (188, 0, 188). Dividing these values by 255 to get them into the [0, 1] range we get roughly (0.737254902, 0, 0.737254902). This is not the same as what we are using for our vertex colors, which is (0.5, 0.0, 0.5). The reason for this has to do with color spaces.
 
 Most monitors use a color space known as sRGB. Our surface is (most likely depending on what is returned from `surface.get_preferred_format()`) using an sRGB texture format. The sRGB format stores colors according to their relative brightness instead of their actual brightness. The reason for this is that our eyes don't perceive light linearly. We notice more differences in darker colors than we do in lighter colors.
 

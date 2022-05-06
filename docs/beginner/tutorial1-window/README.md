@@ -89,7 +89,7 @@ These lines tell cargo that we want to allow our crate to build a native Rust st
 
 ## Web Assembly
 
-Web Assembly i.e. WASM, is a binary format supported by most modern browsers that allows lower-level languages such as Rust to run on a web page. This allows us to right the bulk of our application in Rust and use a few lines of Javascript to get it running in a web browser.
+Web Assembly i.e. WASM, is a binary format supported by most modern browsers that allows lower-level languages such as Rust to run on a web page. This allows us to write the bulk of our application in Rust and use a few lines of Javascript to get it running in a web browser.
 
 </div>
 
