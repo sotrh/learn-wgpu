@@ -126,9 +126,9 @@ dependencies = [
 
 [[package]]
 name = "ash"
-version = "0.35.2+1.2.203"
+version = "0.37.0+1.3.209"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8f6a491bcad4563b355ac2bb6e3f09d5e1c5d628710c7156e901dad0c416075e"
+checksum = "006ca68e0f2b03f22d6fa9f2860f85aed430d257fec20f8879b2145e7c7ae1a6"
 dependencies = [
  "libloading",
 ]
@@ -806,6 +806,16 @@ name = "d3d12"
 version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2daefd788d1e96e0a9d66dee4b828b883509bc3ea9ce30665f04c3246372690c"
+dependencies = [
+ "bitflags",
+ "libloading",
+ "winapi",
+]
+
+[[package]]
+name = "d3d12"
+version = "0.4.1"
+source = "git+https://github.com/gfx-rs/d3d12-rs.git?rev=ffe5e261da0a6cb85332b82ab310abd2a7e849f6#ffe5e261da0a6cb85332b82ab310abd2a7e849f6"
 dependencies = [
  "bitflags",
  "libloading",
@@ -1523,6 +1533,7 @@ checksum = "8c2352bd1d0bceb871cb9d40f24360c8133c11d7486b68b5381c1dd1a32015e3"
 dependencies = [
  "libc",
  "libloading",
+ "pkg-config",
 ]
 
 [[package]]
@@ -1671,6 +1682,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "metal"
+version = "0.23.1"
+source = "git+https://github.com/gfx-rs/metal-rs?rev=1aaa903#1aaa9033a22b2af7ff8cae2ed412a4733799c3d3"
+dependencies = [
+ "bitflags",
+ "block",
+ "core-graphics-types",
+ "foreign-types",
+ "log",
+ "objc",
+]
+
+[[package]]
 name = "mime"
 version = "0.3.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1753,7 +1777,7 @@ dependencies = [
 [[package]]
 name = "naga"
 version = "0.8.0"
-source = "git+https://github.com/gfx-rs/naga?rev=09d35f3#09d35f363134920a9a477cefa32b29bb4416092b"
+source = "git+https://github.com/gfx-rs/naga?rev=85056524#850565243d1d0d03215f13246c94d63e1d4c51cd"
 dependencies = [
  "bit-set",
  "bitflags",
@@ -1764,7 +1788,9 @@ dependencies = [
  "num-traits",
  "rustc-hash",
  "spirv",
+ "termcolor",
  "thiserror",
+ "unicode-xid",
 ]
 
 [[package]]
@@ -3306,7 +3332,7 @@ version = "1.6.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4ee73e6e4924fe940354b8d4d98cad5231175d615cd855b758adc658c0aac6a0"
 dependencies = [
- "cfg-if 1.0.0",
+ "cfg-if 0.1.10",
  "rand",
  "static_assertions",
 ]
@@ -3735,7 +3761,7 @@ dependencies = [
 [[package]]
 name = "wgpu"
 version = "0.12.0"
-source = "git+https://github.com/gfx-rs/wgpu?branch=gecko#f99d8604039549272abf523abc0a2cc2d4ac4fb9"
+source = "git+https://github.com/gfx-rs/wgpu?branch=gecko#c226a10329f8c3283b995cccda21f4881b1ce6b1"
 dependencies = [
  "arrayvec",
  "js-sys",
@@ -3755,7 +3781,7 @@ dependencies = [
 [[package]]
 name = "wgpu-core"
 version = "0.12.0"
-source = "git+https://github.com/gfx-rs/wgpu?branch=gecko#f99d8604039549272abf523abc0a2cc2d4ac4fb9"
+source = "git+https://github.com/gfx-rs/wgpu?branch=gecko#c226a10329f8c3283b995cccda21f4881b1ce6b1"
 dependencies = [
  "arrayvec",
  "bitflags",
@@ -3800,15 +3826,15 @@ dependencies = [
 [[package]]
 name = "wgpu-hal"
 version = "0.12.0"
-source = "git+https://github.com/gfx-rs/wgpu?branch=gecko#f99d8604039549272abf523abc0a2cc2d4ac4fb9"
+source = "git+https://github.com/gfx-rs/wgpu?branch=gecko#c226a10329f8c3283b995cccda21f4881b1ce6b1"
 dependencies = [
  "arrayvec",
- "ash 0.35.2+1.2.203",
+ "ash 0.37.0+1.3.209",
  "bit-set",
  "bitflags",
  "block",
  "core-graphics-types",
- "d3d12",
+ "d3d12 0.4.1 (git+https://github.com/gfx-rs/d3d12-rs.git?rev=ffe5e261da0a6cb85332b82ab310abd2a7e849f6)",
  "foreign-types",
  "fxhash",
  "glow",
@@ -3819,7 +3845,7 @@ dependencies = [
  "khronos-egl",
  "libloading",
  "log",
- "metal",
+ "metal 0.23.1 (git+https://github.com/gfx-rs/metal-rs?rev=1aaa903)",
  "naga 0.8.0",
  "objc",
  "parking_lot",
@@ -3846,7 +3872,7 @@ dependencies = [
  "bitflags",
  "block",
  "core-graphics-types",
- "d3d12",
+ "d3d12 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "foreign-types",
  "fxhash",
  "glow",
@@ -3857,7 +3883,7 @@ dependencies = [
  "khronos-egl",
  "libloading",
  "log",
- "metal",
+ "metal 0.23.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "naga 0.8.5",
  "objc",
  "parking_lot",
@@ -3897,7 +3923,7 @@ dependencies = [
 [[package]]
 name = "wgpu-types"
 version = "0.12.0"
-source = "git+https://github.com/gfx-rs/wgpu?branch=gecko#f99d8604039549272abf523abc0a2cc2d4ac4fb9"
+source = "git+https://github.com/gfx-rs/wgpu?branch=gecko#c226a10329f8c3283b995cccda21f4881b1ce6b1"
 dependencies = [
  "bitflags",
 ]
