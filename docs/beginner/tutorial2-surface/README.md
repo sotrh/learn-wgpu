@@ -4,7 +4,7 @@
 For convenience, we're going to pack all the fields into a struct and create some methods on that.
 
 ```rust
-// main.rs
+// lib.rs
 use winit::window::Window;
 
 struct State {
