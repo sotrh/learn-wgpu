@@ -18,7 +18,7 @@ Once 0.13 comes out I'll revert to using the version published on crates.io.
 
 I've been putting this off for a while. Implementing a camera isn't specifically related to using WGPU properly, but it's been bugging me so let's do it.
 
-`main.rs` is getting a little crowded, so let's create a `camera.rs` file to put our camera code. The first thing we're going to put in it in is some imports and our `OPENGL_TO_WGPU_MATRIX`.
+`main.rs` is getting a little crowded, so let's create a `camera.rs` file to put our camera code. The first things we're going to put in it are some imports and our `OPENGL_TO_WGPU_MATRIX`.
 
 ```rust
 use cgmath::*;
@@ -50,7 +50,7 @@ instant = "0.1"
 
 ## The Camera
 
-Next we need create a new `Camera` struct. We're going to be using a FPS style camera, so we'll store the position and the yaw (horizontal rotation), and pitch (vertical rotation). We'll have a `calc_matrix` method to create our view matrix.
+Next, we need to create a new `Camera` struct. We're going to be using an FPS-style camera, so we'll store the position and the yaw (horizontal rotation), and pitch (vertical rotation). We'll have a `calc_matrix` method to create our view matrix.
 
 ```rust
 #[derive(Debug)]
@@ -129,9 +129,9 @@ impl Projection {
 }
 ```
 
-On thing to note: `cgmath` currently returns a right-handed projection matrix from the `perspective` function. This means that the z-axis points out of the screen. If you want the z-axis to be *into* the screen (aka. a left-handed projection matrix), you'll have to code your own.
+One thing to note: `cgmath` currently returns a right-handed projection matrix from the `perspective` function. This means that the z-axis points out of the screen. If you want the z-axis to be *into* the screen (aka. a left-handed projection matrix), you'll have to code your own.
 
-You can tell the difference between a right-handed coordinate system and a left-handed one by using your hands. Point your thumb to the right. This is the x-axis. Point your pointer finger up. This is the y-axis. Extend your middle finger. This is the z-axis. On your right hand your middle finger should be pointing towards you. On your left hand it should be pointing away.
+You can tell the difference between a right-handed coordinate system and a left-handed one by using your hands. Point your thumb to the right. This is the x-axis. Point your pointer finger up. This is the y-axis. Extend your middle finger. This is the z-axis. On your right hand, your middle finger should be pointing towards you. On your left hand, it should be pointing away.
 
 ![./left_right_hand.gif](./left_right_hand.gif)
 
@@ -343,7 +343,7 @@ fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
 }
 ```
 
-`input()` will need to be updated as well. Up to this point we have been using `WindowEvent`s for our camera controls. While this works, it's not the best solution. The [winit docs](https://docs.rs/winit/0.24.0/winit/event/enum.WindowEvent.html?search=#variant.CursorMoved) inform us that OS will often transform the data for the `CursorMoved` event to allow effects such as cursor acceleration. 
+`input()` will need to be updated as well. Up to this point, we have been using `WindowEvent`s for our camera controls. While this works, it's not the best solution. The [winit docs](https://docs.rs/winit/0.24.0/winit/event/enum.WindowEvent.html?search=#variant.CursorMoved) inform us that OS will often transform the data for the `CursorMoved` event to allow effects such as cursor acceleration.
 
 Now to fix this we could change the `input()` function to process `DeviceEvent` instead of `WindowEvent`, but keyboard and button presses don't get emitted as `DeviceEvent`s on MacOS and WASM. Instead, we'll just remove the `CursorMoved` check in `input()`, and a manual call to `camera_controller.process_mouse()` in the `run()` function.
 
@@ -425,7 +425,7 @@ fn main() {
 }
 ```
 
-The `update` function requires a bit more explanation. The `update_camera` function on the `CameraController` has a parameter `dt: Duration` which is the delta time or time between frames. This is to help smooth out the camera movement so that it's not locked be the framerate. Currently we aren't calculating `dt`, so I decided to pass it into `update` as a parameter.
+The `update` function requires a bit more explanation. The `update_camera` function on the `CameraController` has a parameter `dt: Duration` which is the delta time or time between frames. This is to help smooth out the camera movement so that it's not locked by the framerate. Currently, we aren't calculating `dt`, so I decided to pass it into `update` as a parameter.
 
 ```rust
 fn update(&mut self, dt: instant::Duration) {
@@ -470,7 +470,7 @@ fn main() {
 }
 ```
 
-With that we should be able to move our camera wherever we want.
+With that, we should be able to move our camera wherever we want.
 
 ![./screenshot.png](./screenshot.png)
 

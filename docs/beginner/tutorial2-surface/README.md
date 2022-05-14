@@ -1,7 +1,7 @@
 # The Surface
 
 ## First, some housekeeping: State
-For convenience, we're going to pack all the fields into a struct and create some methods on that.
+For convenience, we're going to pack all the fields into a struct and create some methods for it.
 
 ```rust
 // lib.rs
@@ -39,10 +39,10 @@ impl State {
 }
 ```
 
-I'm glossing over `State`s fields, but they'll make more sense as I explain the code behind the methods.
+I'm glossing over `State`s fields, but they'll make more sense as I explain the code behind these methods.
 
 ## State::new()
-The code for this is pretty straight forward, but let's break this down a bit.
+The code for this is pretty straightforward, but let's break it down a bit.
 
 ```rust
 impl State {
@@ -70,7 +70,7 @@ is to create `Adapter`s and `Surface`s.
 
 The `adapter` is a handle to our actual graphics card. You can use this to get information about the graphics card such as its name and what backend the adapter uses. We use this to create our `Device` and `Queue` later. Let's discuss the fields of `RequestAdapterOptions`.
 
-* `power_preference` has two variants: `LowPower`, and `HighPerformance`. This means will pick an adapter that favors battery life such as a integrated GPU when using `LowPower`. `HighPerformance` as will pick an adapter for more power hungry yet more performant GPU's such as your dedicated graphics card. WGPU will favor `LowPower` if there is no adapter for the `HighPerformance` option.
+* `power_preference` has two variants: `LowPower`, and `HighPerformance`. `LowPower` will pick an adapter that favors battery life, such as an integrated GPU. `HighPerformance` will pick an adapter for more power-hungry yet more performant GPU's such as a dedicated graphics card. WGPU will favor `LowPower` if there is no adapter for the `HighPerformance` option.
 * The `compatible_surface` field tells wgpu to find an adapter that can present to the supplied surface.
 * The `force_fallback_adapter` forces wgpu to pick an adapter that will work on all hardware. This usually means that the rendering backend will use a "software" system, instead of hardware such as a GPU.
 
@@ -91,7 +91,7 @@ let adapter = instance
 
 Another thing to note is that `Adapter`s are locked to a specific backend. If you are on Windows and have 2 graphics cards you'll have at least 4 adapters available to use, 2 Vulkan and 2 DirectX.
 
-For more fields you can use to refine your search [check out the docs](https://docs.rs/wgpu/latest/wgpu/struct.Adapter.html).
+For more fields you can use to refine your search, [check out the docs](https://docs.rs/wgpu/latest/wgpu/struct.Adapter.html).
 
 </div>
 
@@ -125,7 +125,7 @@ The `features` field on `DeviceDescriptor`, allows us to specify what extra feat
 
 <div class="note">
 
-The graphics card you have limits the features you can use. If you want to use certain features you may need to limit what devices you support, or provide workarounds.
+The graphics card you have limits the features you can use. If you want to use certain features you may need to limit what devices you support or provide workarounds.
 
 You can get a list of features supported by your device using `adapter.features()`, or `device.features()`.
 
@@ -146,7 +146,7 @@ The `limits` field describes the limit of certain types of resources that we can
         surface.configure(&device, &config);
 ```
 
-Here we are defining a config for our surface. This will define how the surface creates its underlying `SurfaceTexture`s. We will talk about `SurfaceTexture` when we get to the `render` function. For now lets talk about the config's fields.
+Here we are defining a config for our surface. This will define how the surface creates its underlying `SurfaceTexture`s. We will talk about `SurfaceTexture` when we get to the `render` function. For now, let's talk about the config's fields.
 
 The `usage` field describes how `SurfaceTexture`s will be used. `RENDER_ATTACHMENT` specifies that the textures will be used to write to the screen (we'll talk about more `TextureUsages`s later).
 
@@ -158,7 +158,7 @@ The `format` defines how `SurfaceTexture`s will be stored on the gpu. Different 
 Make sure that the width and height of the `SurfaceTexture` are not 0, as that can cause your app to crash.
 </div>
 
-`present_mode` uses `wgpu::PresentMode` enum which determines how to sync the surface with the display. The option we picked, `FIFO`, will cap the display rate at the displays framerate. This is essentially VSync. This is also the most optimal mode on mobile. There are other options and you can see all of them [in the docs](https://docs.rs/wgpu/latest/wgpu/enum.PresentMode.html)
+`present_mode` uses `wgpu::PresentMode` enum which determines how to sync the surface with the display. The option we picked, `FIFO`, will cap the display rate at the display's framerate. This is essentially VSync. This is also the most optimal mode on mobile. There are other options and you can see all of them [in the docs](https://docs.rs/wgpu/latest/wgpu/enum.PresentMode.html)
 
 Now that we've configured our surface properly we can add these new fields at the end of the method.
 
@@ -175,7 +175,7 @@ Now that we've configured our surface properly we can add these new fields at th
 }
 ```
 
-Since our `State::new()` method is async we need to change run to be async as well so that we can await it.
+Since our `State::new()` method is async we need to change `run()` to be async as well so that we can await it.
 
 ```rust
 pub async fn run() {
@@ -205,11 +205,11 @@ fn main() {
 
 <div class="warning">
 
-Don't use `block_on` inside of an async function if you plan to support WASM. Futures have to be run using the browsers executor. If you try to bring your own you code will crash when you encounter a future that doesn't execute immediately.
+Don't use `block_on` inside of an async function if you plan to support WASM. Futures have to be run using the browser's executor. If you try to bring your own your code will crash when you encounter a future that doesn't execute immediately.
 
 </div>
 
-If we try to build WASM now it will fail because `wasm-bindgen` doesn't support using async functions as `start` methods. You could switch to calling `run` manually in javascript, but for simplicity we'll add the [wasm-bindgen-futures](https://docs.rs/wasm-bindgen-futures) crate to our WASM dependencies as that doesn't require us to change any code. Your dependecies should look something like this:
+If we try to build WASM now it will fail because `wasm-bindgen` doesn't support using async functions as `start` methods. You could switch to calling `run` manually in javascript, but for simplicity, we'll add the [wasm-bindgen-futures](https://docs.rs/wasm-bindgen-futures) crate to our WASM dependencies as that doesn't require us to change any code. Your dependencies should look something like this:
 
 ```toml
 [dependencies]
@@ -234,7 +234,7 @@ web-sys = { version = "0.3", features = [
 ```
 
 ## resize()
-If we want to support resizing in our application, we're going to need to reconfigure the `surface` everytime the window's size changes. That's the reason we stored the physical `size` and the `config` used to configure the `surface`. With all of these, the resize method is very simple.
+If we want to support resizing in our application, we're going to need to reconfigure the `surface` every time the window's size changes. That's the reason we stored the physical `size` and the `config` used to configure the `surface`. With all of these, the resize method is very simple.
 
 ```rust
 // impl State
@@ -248,9 +248,9 @@ pub fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
 }
 ```
 
-There's nothing really different here from the initial `surface` configuration, so I won't get into it.
+There's nothing different here from the initial `surface` configuration, so I won't get into it.
 
-We call this method in `main()` in the event loop for the following events.
+We call this method in `run()` in the event loop for the following events.
 
 ```rust
 match event {
@@ -284,10 +284,10 @@ fn input(&mut self, event: &WindowEvent) -> bool {
 }
 ```
 
-We need to do a little more work in the event loop. We want `State` to have priority over `main()`. Doing that (and previous changes) should have your loop looking like this.
+We need to do a little more work in the event loop. We want `State` to have priority over `run()`. Doing that (and previous changes) should have your loop looking like this.
 
 ```rust
-// main()
+// run()
 event_loop.run(move |event, _, control_flow| {
     match event {
         Event::WindowEvent {
@@ -333,7 +333,7 @@ We'll add some code here later on to move around objects.
 
 ## render()
 
-Here's where the magic happens. First we need to get a frame to render to.
+Here's where the magic happens. First, we need to get a frame to render to.
 
 ```rust
 // impl State
@@ -358,7 +358,7 @@ We also need to create a `CommandEncoder` to create the actual commands to send 
     });
 ```
 
-Now we can actually get to clearing the screen (long time coming). We need to use the `encoder` to create a `RenderPass`. The `RenderPass` has all the methods for the actual drawing. The code for creating a `RenderPass` is a bit nested, so I'll copy it all here before talking about its pieces.
+Now we can get to clearing the screen (long time coming). We need to use the `encoder` to create a `RenderPass`. The `RenderPass` has all the methods for the actual drawing. The code for creating a `RenderPass` is a bit nested, so I'll copy it all here before talking about its pieces.
 
 ```rust
     {
@@ -395,10 +395,10 @@ We can get the same results by removing the `{}`, and the `let _render_pass =` l
 
 The last lines of the code tell `wgpu` to finish the command buffer, and to submit it to the gpu's render queue.
 
-We need to update the event loop again to call this method. We'll also call update before it too.
+We need to update the event loop again to call this method. We'll also call `update()` before it too.
 
 ```rust
-// main()
+// run()
 event_loop.run(move |event, _, control_flow| {
     match event {
         // ...
@@ -462,7 +462,7 @@ wgpu::RenderPassColorAttachment {
 }
 ```
 
-The `RenderPassColorAttachment` has the `view` field which informs `wgpu` what texture to save the colors to. In this case we specify `view` that we created using `surface.get_current_texture()`. This means that any colors we draw to this attachment will get drawn to the screen.
+The `RenderPassColorAttachment` has the `view` field which informs `wgpu` what texture to save the colors to. In this case we specify the `view` that we created using `surface.get_current_texture()`. This means that any colors we draw to this attachment will get drawn to the screen.
 
 The `resolve_target` is the texture that will receive the resolved output. This will be the same as `view` unless multisampling is enabled. We don't need to specify this, so we leave it as `None`.
 

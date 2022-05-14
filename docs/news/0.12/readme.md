@@ -1,6 +1,6 @@
 # Update to 0.12!
 
-There's not a ton of changes in this release, so the migration
+There are not a ton of changes in this release, so the migration
 wasn't too painful.
 
 ## Multi view added
@@ -12,7 +12,7 @@ as render attachments.
 ## No more block attribute
 
 The WGSL spec has changed and the `block` attribute is no longer a thing.
-This means that structs in WGSL no longer need to be anotated to be used
+This means that structs in WGSL no longer need to be annotated to be used
 as uniform input. For example:
 
 ```wgsl
@@ -74,4 +74,4 @@ imports and uses (ie. `anyhow::Result`). This was mostly an issue on my
 build scripts for some of the showcase examples.
 
 The main tutorial examples weren't affected, and the changes are minor, so
-if your curious feel free to look at the repo.
+if you're curious feel free to look at the repo.

@@ -6,15 +6,15 @@ Let's take a closer look at the last example at an angle.
 
 Models that should be in the back are getting rendered ahead of ones that should be in the front. This is caused by the draw order. By default, pixel data from a new object will replace old pixel data.
 
-There are two ways to solve this: sort the data from back to front, use what's known as a depth buffer.
+There are two ways to solve this: sort the data from back to front, or use what's known as a depth buffer.
 
 ## Sorting from back to front
 
-This is the go to method for 2d rendering as it's pretty easier to know what's supposed to go in front of what. You can just use the z order. In 3d rendering it gets a little more tricky because the order of the objects changes based on the camera angle.
+This is the go-to method for 2d rendering as it's pretty easier to know what's supposed to go in front of what. You can just use the z order. In 3d rendering, it gets a little more tricky because the order of the objects changes based on the camera angle.
 
-A simple way of doing this is to sort all the objects by their distance to the cameras position. There are flaws with this method though as when a large object is behind a small object, parts of the large object that should be in front of the small object will be rendered behind. We'll also run into issues with objects that overlap *themselves*.
+A simple way of doing this is to sort all the objects by their distance to the camera's position. There are flaws with this method though as when a large object is behind a small object, parts of the large object that should be in front of the small object will be rendered behind. We'll also run into issues with objects that overlap *themselves*.
 
-If want to do this properly we need to have pixel level precision. That's where a *depth buffer* comes in.
+If want to do this properly we need to have pixel-level precision. That's where a *depth buffer* comes in.
 
 ## A pixels depth
 
@@ -65,7 +65,7 @@ impl Texture {
 }
 ```
 
-1. We need the DEPTH_FORMAT for when we create the depth stage of the `render_pipeline` and creating the depth texture itself.
+1. We need the DEPTH_FORMAT for when we create the depth stage of the `render_pipeline` and for creating the depth texture itself.
 2. Our depth texture needs to be the same size as our screen if we want things to render correctly. We can use our `config` to make sure that our depth texture is the same size as our surface textures.
 3. Since we are rendering to this texture, we need to add the `RENDER_ATTACHMENT` flag to it.
 4. We technically don't *need* a sampler for a depth texture, but our `Texture` struct requires it, and we need one if we ever want to sample it.
@@ -77,7 +77,7 @@ We create our `depth_texture` in `State::new()`.
 let depth_texture = texture::Texture::create_depth_texture(&device, &config, "depth_texture");
 ```
 
-We need to modify our `render_pipeline` to allow depth testing. 
+We need to modify our `render_pipeline` to allow depth testing.
 
 ```rust
 let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
@@ -112,14 +112,14 @@ pub enum CompareFunction {
 }
 ```
 
-2. There's another type of buffer called a stencil buffer. It's common practice to store the stencil buffer and depth buffer in the same texture. This fields control values for stencil testing. Since we aren't using a stencil buffer, we'll use default values. We'll cover stencil buffers [later](../../todo).
+2. There's another type of buffer called a stencil buffer. It's common practice to store the stencil buffer and depth buffer in the same texture. These fields control values for stencil testing. Since we aren't using a stencil buffer, we'll use default values. We'll cover stencil buffers [later](../../todo).
 
 Don't forget to store the `depth_texture` in `State`.
 
 ```rust
 Self {
-    // ...
-    depth_texture,
+// ...
+depth_texture,
 }
 ```
 

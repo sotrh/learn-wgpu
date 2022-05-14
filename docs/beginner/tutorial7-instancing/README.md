@@ -4,7 +4,7 @@ Our scene right now is very simple: we have one object centered at (0,0,0). What
 
 Instancing allows us to draw the same object multiple times with different properties (position, orientation, size, color, etc.). There are multiple ways of doing instancing. One way would be to modify the uniform buffer to include these properties and then update it before we draw each instance of our object.
 
-We don't want to use this method for performance reasons. Updating the uniform buffer for each instance would require multiple buffer copies each frame. On top of that, our method to update the uniform buffer currently requires use to create a new buffer to store the updated data. That's a lot of time wasted between draw calls.
+We don't want to use this method for performance reasons. Updating the uniform buffer for each instance would require multiple buffer copies for each frame. On top of that, our method to update the uniform buffer currently requires us to create a new buffer to store the updated data. That's a lot of time wasted between draw calls.
 
 If we look at the parameters for the `draw_indexed` function [in the wgpu docs](https://docs.rs/wgpu/latest/wgpu/struct.RenderPass.html#method.draw_indexed), we can see a solution to our problem.
 
@@ -17,18 +17,18 @@ pub fn draw_indexed(
 )
 ```
 
-The `instances` parameter takes a `Range<u32>`. This parameter tells the GPU how many copies, or instances, of our model we want to draw. Currently we are specifying `0..1`, which instructs the GPU to draw our model once, and then stop. If we used `0..5`, our code would draw 5 instances.
+The `instances` parameter takes a `Range<u32>`. This parameter tells the GPU how many copies, or instances, of the model we want to draw. Currently, we are specifying `0..1`, which instructs the GPU to draw our model once, and then stop. If we used `0..5`, our code would draw 5 instances.
 
-The fact that `instances` is a `Range<u32>` may seem weird as using `1..2` for instances would still draw 1 instance of our object. Seems like it would be simpler to just use a `u32` right? The reason it's a range is because sometimes we don't want to draw **all** of our objects. Sometimes we want to draw a selection of them, because others are not in frame, or we are debugging and want to look at a particular set of instances.
+The fact that `instances` is a `Range<u32>` may seem weird as using `1..2` for instances would still draw 1 instance of our object. Seems like it would be simpler to just use a `u32` right? The reason it's a range is that sometimes we don't want to draw **all** of our objects. Sometimes we want to draw a selection of them, because others are not in frame, or we are debugging and want to look at a particular set of instances.
 
 Ok, now we know how to draw multiple instances of an object, how do we tell wgpu what particular instance to draw? We are going to use something known as an instance buffer.
 
 ## The Instance Buffer
 
-We'll create an instance buffer in a similar way to how we create a uniform buffer. First we'll create a struct called `Instance`.
+We'll create an instance buffer in a similar way to how we create a uniform buffer. First, we'll create a struct called `Instance`.
 
 ```rust
-// main.rs
+// lib.rs
 // ...
 
 // NEW!
@@ -81,7 +81,7 @@ struct State {
 
 The `cgmath` crate uses traits to provide common mathematical methods across its structs such as `Vector3`, and these traits must be imported before these methods can be called.  For convenience, the `prelude` module within the crate provides the most common of these extension crates when it is imported.
 
-To import this prelude module, put this line near the top of `main.rs`.
+To import this prelude module, put this line near the top of `lib.rs`.
 
 ```rust
 use cgmath::prelude::*;
@@ -94,7 +94,7 @@ const NUM_INSTANCES_PER_ROW: u32 = 10;
 const INSTANCE_DISPLACEMENT: cgmath::Vector3<f32> = cgmath::Vector3::new(NUM_INSTANCES_PER_ROW as f32 * 0.5, 0.0, NUM_INSTANCES_PER_ROW as f32 * 0.5);
 ```
 
-Now we can create the actual instances. 
+Now we can create the actual instances.
 
 ```rust
 impl State {

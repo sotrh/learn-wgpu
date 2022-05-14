@@ -1,6 +1,6 @@
 # Wgpu without a window
 
-Sometimes we just want to leverage the gpu. Maybe we want to crunch a large set of numbers in parallel. Maybe we're working on a 3D movie, and need to create a realistic looking scene with path tracing. Maybe we're mining a cryptocurrency. In all these situations, we don't necessarily *need* to see what's going on.
+Sometimes we just want to leverage the gpu. Maybe we want to crunch a large set of numbers in parallel. Maybe we're working on a 3D movie, and need to create a realistic-looking scene with path tracing. Maybe we're mining a cryptocurrency. In all these situations, we don't necessarily *need* to see what's going on.
 
 ## So what do we need to do?
 
@@ -48,7 +48,7 @@ let texture_view = texture.create_view(&Default::default());
 
 We're using `TextureUsages::RENDER_ATTACHMENT` so wgpu can render to our texture. The `TextureUsages::COPY_SRC` is so we can pull data out of the texture so we can save it to a file.
 
-While we can use this texture to draw our triangle, we need some way to get at the pixels inside it. Back in the [texture tutorial](/beginner/tutorial5-textures/) we used a buffer load color data from a file that we then copied into our buffer. Now we are going to do the reverse: copy data into a buffer from our texture to save into a file. We'll need a buffer big enough for our data.
+While we can use this texture to draw our triangle, we need some way to get at the pixels inside it. Back in the [texture tutorial](/beginner/tutorial5-textures/) we used a buffer to load color data from a file that we then copied into our buffer. Now we are going to do the reverse: copy data into a buffer from our texture to save into a file. We'll need a buffer big enough for our data.
 
 ```rust
 // we need to store this for later
@@ -240,7 +240,7 @@ queue.submit(Some(encoder.finish()));
 
 ## Getting data out of a buffer
 
-In order to get the data out of the buffer we need to first map it, then we can get a `BufferView` that we can treat like a `&[u8]`.
+In order to get the data out of the buffer, we need to first map it, then we can get a `BufferView` that we can treat like a `&[u8]`.
 
 ```rust
 // We need to scope the mapping variables so that we can
@@ -266,7 +266,7 @@ output_buffer.unmap();
 
 ## Main is not asyncable
 
-The `main()` method can't return a future, so we can't use the `async` keyword. We'll get around this by putting our code into a different function so that we can block on it in `main()`. You'll need to use a crate that can poll futures such as the [pollster crate](https://docs.rs/pollster).
+The `main()` method can't return a future, so we can't use the `async` keyword. We'll get around this by putting our code into a different function so that we can block it in `main()`. You'll need to use a crate that can poll futures such as the [pollster crate](https://docs.rs/pollster).
 
 ```rust
 async fn run() {

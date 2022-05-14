@@ -1,8 +1,8 @@
 # Textures and bind groups
 
-Up to this point we have been drawing super simple shapes. While we can make a game with just triangles, trying to draw highly detailed objects would massively limit what devices could even run our game. However, we can get around this problem with **textures**.
+Up to this point, we have been drawing super simple shapes. While we can make a game with just triangles, trying to draw highly detailed objects would massively limit what devices could even run our game. However, we can get around this problem with **textures**.
 
-Textures are images overlayed on a triangle mesh to make it seem more detailed. There are multiple types of textures such as normal maps, bump maps, specular maps and diffuse maps. We're going to talk about diffuse maps, or more simply, the color texture.
+Textures are images overlaid on a triangle mesh to make it seem more detailed. There are multiple types of textures such as normal maps, bump maps, specular maps, and diffuse maps. We're going to talk about diffuse maps, or more simply, the color texture.
 
 ## Loading an image from a file
 
@@ -23,7 +23,7 @@ The jpeg decoder that `image` includes uses [rayon](https://docs.rs/rayon) to sp
 
 <div class="note">
 
-Decoding jpegs in WASM isn't very performant. If you want to speed up image loadding in general in WASM you could opt to use the browsers builtin decoders instead of `image` when building with `wasm-bindgen`. This will involve creating an `<img>` tag in Rust to get the image, and then a `<canvas>` to get the pixel data, but I'll leave this as an exercise for the reader.
+Decoding jpegs in WASM isn't very performant. If you want to speed up image loading in general in WASM you could opt to use the browser's built-in decoders instead of `image` when building with `wasm-bindgen`. This will involve creating an `<img>` tag in Rust to get the image, and then a `<canvas>` to get the pixel data, but I'll leave this as an exercise for the reader.
 
 </div>
 
@@ -41,7 +41,7 @@ use image::GenericImageView;
 let dimensions = diffuse_image.dimensions();
 ```
 
-Here we grab the bytes from our image file and load them into an image which is then converted into a `Vec` of rgba bytes. We also save the image's dimensions for when we create the actual `Texture`. 
+Here we grab the bytes from our image file and load them into an image which is then converted into a `Vec` of rgba bytes. We also save the image's dimensions for when we create the actual `Texture`.
 
 Now, let's create the `Texture`:
 
@@ -158,18 +158,18 @@ let diffuse_sampler = device.create_sampler(&wgpu::SamplerDescriptor {
 The `address_mode_*` parameters determine what to do if the sampler gets a texture coordinate that's outside the texture itself. We have a few options to choose from:
 
 * `ClampToEdge`: Any texture coordinates outside the texture will return the color of the nearest pixel on the edges of the texture.
-* `Repeat`: The texture will repeat as texture coordinates exceed the textures dimensions.
+* `Repeat`: The texture will repeat as texture coordinates exceed the texture's dimensions.
 * `MirrorRepeat`: Similar to `Repeat`, but the image will flip when going over boundaries.
 
 ![address_mode.png](./address_mode.png)
 
-The `mag_filter` and `min_filter` options describe what to do when a fragment covers multiple pixels, or there are multiple fragments for a single pixel. This often comes into play when viewing a surface from up close, or from far away. 
+The `mag_filter` and `min_filter` options describe what to do when a fragment covers multiple pixels, or there are multiple fragments for a single pixel. This often comes into play when viewing a surface from up close, or from far away.
 
 There are 2 options:
 * `Linear`: Attempt to blend the in-between fragments so that they seem to flow together.
-* `Nearest`: In-between fragments will use the color of the nearest pixel. This creates an image that's crisper from far away, but pixelated up close. This can be desirable, however, if your textures are designed to be pixelated, like in pixel art games, or voxel games like Minecraft.
+* `Nearest`: In-between fragments will use the color of the nearest pixel. This creates an image that's crisper from far away but pixelated up close. This can be desirable, however, if your textures are designed to be pixelated, like in pixel art games, or voxel games like Minecraft.
 
-Mipmaps are a complex topic, and will require [their own section in the future](/todo). For now, we can say that `mipmap_filter` functions similar to `(mag/min)_filter` as it tells the sampler how to blend between mipmaps.
+Mipmaps are a complex topic and will require [their own section in the future](/todo). For now, we can say that `mipmap_filter` functions similar to `(mag/min)_filter` as it tells the sampler how to blend between mipmaps.
 
 I'm using some defaults for the other fields. If you want to see what they are, check [the wgpu docs](https://docs.rs/wgpu/latest/wgpu/struct.SamplerDescriptor.html).
 
@@ -303,7 +303,7 @@ async fn new(...) {
 ```
 
 ## A change to the VERTICES
-There's a few things we need to change about our `Vertex` definition. Up to now we've been using a `color` attribute to set the color of our mesh. Now that we're using a texture, we want to replace our `color` with `tex_coords`. These coordinates will then be passed to the `Sampler` to retrieve the appropriate color.
+There are a few things we need to change about our `Vertex` definition. Up to now, we've been using a `color` attribute to set the color of our mesh. Now that we're using a texture, we want to replace our `color` with `tex_coords`. These coordinates will then be passed to the `Sampler` to retrieve the appropriate color.
 
 Since our `tex_coords` are two dimensional, we'll change the field to take two floats instead of three.
 
@@ -344,7 +344,7 @@ impl Vertex {
 }
 ```
 
-Lastly we need to change `VERTICES` itself. Replace the existing definition with the following:
+Lastly, we need to change `VERTICES` itself. Replace the existing definition with the following:
 
 ```rust
 // Changed
@@ -359,7 +359,7 @@ const VERTICES: &[Vertex] = &[
 
 ## Shader time
 
-With our new `Vertex` structure in place it's time to update our shaders. We'll first need to pass our `tex_coords` into the vertex shader and then use them over to our fragment shader to get the final color from the `Sampler`. Let's start with the vertex shader:
+With our new `Vertex` structure in place, it's time to update our shaders. We'll first need to pass our `tex_coords` into the vertex shader and then use them over to our fragment shader to get the final color from the `Sampler`. Let's start with the vertex shader:
 
 ```wgsl
 // Vertex shader
@@ -536,7 +536,7 @@ Notice that we're using `to_rgba8()` instead of `as_rgba8()`. PNGs work fine wit
 
 </div>
 
-We need to import `texture.rs` as a module, so somewhere at the top of `main.rs` add the following.
+We need to import `texture.rs` as a module, so somewhere at the top of `lib.rs` add the following.
 
 ```rust
 mod texture;
@@ -552,7 +552,7 @@ let diffuse_texture = texture::Texture::from_bytes(&device, &queue, diffuse_byte
 // Everything up until `let texture_bind_group_layout = ...` can now be removed.
 ```
 
-We still need to store the bind group separately so that `Texture` doesn't need know how the `BindGroup` is laid out. The creation of `diffuse_bind_group` slightly changes to use the `view` and `sampler` fields of `diffuse_texture`:
+We still need to store the bind group separately so that `Texture` doesn't need to know how the `BindGroup` is laid out. The creation of `diffuse_bind_group` slightly changes to use the `view` and `sampler` fields of `diffuse_texture`:
 
 ```rust
 let diffuse_bind_group = device.create_bind_group(
@@ -597,7 +597,7 @@ impl State {
 }
 ```
 
-Phew! 
+Phew!
 
 With these changes in place, the code should be working the same as it was before, but we now have a much easier way to create textures.
 
