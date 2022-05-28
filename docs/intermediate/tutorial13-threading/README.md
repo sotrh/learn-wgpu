@@ -2,17 +2,9 @@
 
 <div class="warn">
 
-The shaders used in this example don't compile on WASM using version 0.12.0 of wgpu. They are working on the "gecko" branch, so to get the code working for WASM, change the wgpu entries in Cargo.toml to be the following.
+The shaders used in this example don't compile on WASM using version 0.12.0 of wgpu. I created an issue [here](https://github.com/gfx-rs/naga/issues/1739). The issue is fixed on the most recent version of naga, but that is using the updated WGSL syntax.
 
-```toml
-[dependencies]
-wgpu = { version = "0.12", git="https://github.com/gfx-rs/wgpu", branch="gecko"}
-
-[target.'cfg(target_arch = "wasm32")'.dependencies]
-wgpu = { version = "0.12", git="https://github.com/gfx-rs/wgpu", branch="gecko", features = ["webgl"]}
-```
-
-Once 0.13 comes out I'll revert to using the version published on crates.io.
+Once 0.13 comes out I'll port the WGSL code to the new syntax and this example should be working.
 
 </div>
 
