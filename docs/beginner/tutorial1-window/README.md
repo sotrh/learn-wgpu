@@ -76,6 +76,7 @@ fn main() {
 ```
 
 (Where 'tutorial1_window' is the name of the project you created with cargo earlier)  
+
 If you only want to support desktops, that's all you have to do! In the next tutorial, we'll start using wgpu!
 
 ## Added support for the web
