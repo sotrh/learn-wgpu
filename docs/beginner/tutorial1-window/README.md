@@ -20,11 +20,11 @@ As of version 0.10, wgpu requires cargo's [newest feature resolver](https://doc.
 ## env_logger
 It is very important to enable logging via `env_logger::init();`.
 When wgpu hits any error it panics with a generic message, while logging the real error via the log crate.
-This means if you don't include `env_logger::init()`, wgpu will fail silently, leaving you very confused!
+This means if you don't include `env_logger::init()`, wgpu will fail silently, leaving you very confused!  
 (This has been done in the code below)
 
 ## Create a new project
-run ```cargo new project_name``` where project_name is the name of the project.
+run ```cargo new project_name``` where project_name is the name of the project.  
 (In the example below I have used 'tutorial1_window')
 
 ## The code
@@ -75,7 +75,7 @@ fn main() {
 }
 ```
 
-(Where 'tutorial1_window' is the name of the project you created with cargo earlier)
+(Where 'tutorial1_window' is the name of the project you created with cargo earlier)  
 If you only want to support desktops, that's all you have to do! In the next tutorial, we'll start using wgpu!
 
 ## Added support for the web
