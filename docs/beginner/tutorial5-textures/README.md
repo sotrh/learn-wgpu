@@ -83,7 +83,7 @@ queue.write_texture(
         aspect: wgpu::TextureAspect::All,
     },
     // The actual pixel data
-    diffuse_rgba,
+    &diffuse_rgba,
     // The layout of the texture
     wgpu::ImageDataLayout {
         offset: 0,
