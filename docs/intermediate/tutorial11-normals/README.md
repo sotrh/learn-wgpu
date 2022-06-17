@@ -594,7 +594,7 @@ where
 I found a cobblestone texture with a matching normal map and created a `debug_material` for that.
 
 ```rust
-// main.rs
+// lib.rs
 impl State {
     async fn new(window: &Window) -> Result<Self> {
         // ...

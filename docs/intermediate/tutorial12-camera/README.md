@@ -10,7 +10,7 @@ Once 0.13 comes out I'll port the WGSL code to the new syntax and this example s
 
 I've been putting this off for a while. Implementing a camera isn't specifically related to using WGPU properly, but it's been bugging me so let's do it.
 
-`main.rs` is getting a little crowded, so let's create a `camera.rs` file to put our camera code. The first things we're going to put in it are some imports and our `OPENGL_TO_WGPU_MATRIX`.
+`lib.rs` is getting a little crowded, so let's create a `camera.rs` file to put our camera code. The first things we're going to put in it are some imports and our `OPENGL_TO_WGPU_MATRIX`.
 
 ```rust
 use cgmath::*;
@@ -254,9 +254,9 @@ impl CameraController {
 }
 ```
 
-## Cleaning up `main.rs`
+## Cleaning up `lib.rs`
 
-First things first we need to delete `Camera` and `CameraController` as well as the extra `OPENGL_TO_WGPU_MATRIX` from `main.rs`. Once you've done that import `camera.rs`.
+First things first we need to delete `Camera` and `CameraController` as well as the extra `OPENGL_TO_WGPU_MATRIX` from `lib.rs`. Once you've done that import `camera.rs`.
 
 ```rust
 mod model;
