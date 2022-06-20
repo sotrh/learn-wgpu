@@ -2785,6 +2785,34 @@ dependencies = [
 ]
 
 [[package]]
+name = "threading"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-std",
+ "bytemuck",
+ "cfg-if 1.0.0",
+ "cgmath",
+ "console_error_panic_hook",
+ "console_log",
+ "env_logger",
+ "fs_extra",
+ "glob",
+ "image 0.24.2",
+ "instant",
+ "log",
+ "pollster",
+ "rayon",
+ "reqwest",
+ "tobj 3.2.2",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
+ "wgpu",
+ "winit",
+]
+
+[[package]]
 name = "tiff"
 version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3062,11 +3090,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "tutorial13-threading"
+name = "tutorial13-terrain"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "async-std",
  "bytemuck",
  "cfg-if 1.0.0",
  "cgmath",
@@ -3079,7 +3106,6 @@ dependencies = [
  "instant",
  "log",
  "pollster",
- "rayon",
  "reqwest",
  "tobj 3.2.2",
  "wasm-bindgen",

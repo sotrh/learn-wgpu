@@ -1,4 +1,4 @@
-use tutorial13_threading::run;
+use threading::run;
 
 fn main() {
     async_std::task::block_on(run());

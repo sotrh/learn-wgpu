@@ -24,15 +24,18 @@ I'm using this project to learn wgpu myself, so I might miss some important deta
 
 ## Special thanks to these patrons!
 
-*In no particular order*
+- David Laban
+- Gunstein Vatnar
+- Lennart
+- Ian Gowen
+- Aron Granberg
+- Bernard Llanos
+- Jan Šipr
+- Zeh Fernando
+- Felix 
+- Youngsuk Kim
+- オリトイツキ
+- Andrea Postal
+- charlesk
 
-* Zeh Fernando
-* The toddling chaos
-* Jan Šipr
-* Bernard Llanos
-* Aron Granberg
-* Ian Gowen
-* Paul E Hansen
-* Lennart
-* Gunstein Vatnar
-* David Laban
+

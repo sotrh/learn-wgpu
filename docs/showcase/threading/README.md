@@ -2,9 +2,7 @@
 
 <div class="warn">
 
-The shaders used in this example don't compile on WASM using version 0.12.0 of wgpu. I created an issue [here](https://github.com/gfx-rs/naga/issues/1739). The issue is fixed on the most recent version of naga, but that is using the updated WGSL syntax.
-
-Once 0.13 comes out I'll port the WGSL code to the new syntax and this example should be working.
+This example has not been tested on WASM. Rayon has support for multi threading on WASM via [wasm-bindgen-rayon](https://docs.rs/crate/wasm-bindgen-rayon/latest), though that implementation is only currently working on Chrome-based browsers. Because of this I've elected not to make a WASM version of this tutorial at this time.
 
 </div>
 
@@ -12,7 +10,13 @@ The main selling point of Vulkan, DirectX 12, Metal, and by extension Wgpu is th
 
 <div class="note">
 
-I won't go into what threads are in this tutorial. That is a course in and of itself. All we'll be covering is using threading to make loading resources faster.
+This example is based on the code for [tutorial12-camera](../intermediate/tutorial12-camera)
+
+</div>
+
+<div class="note">
+
+I won't go into what threads are in this tutorial. That is a full CS course in and of itself. All we'll be covering is using threading to make loading resources faster.
 
 We won't go over multithreading rendering as we don't have enough different types of objects to justify that yet. This will change in a coming tutorial
 
@@ -139,6 +143,6 @@ Elapsed (Threaded): 199.645027ms
 
 We're not loading that many resources, so the speedup is minimal. We'll be doing more stuff with threading, but this is a good introduction.
 
-<WasmExample example="tutorial12_camera"></WasmExample>
+<!-- <WasmExample example="tutorial12_camera"></WasmExample> -->
 
 <AutoGithubLink/>

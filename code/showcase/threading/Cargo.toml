@@ -1,5 +1,5 @@
 [package]
-name = "tutorial13-threading"
+name = "threading"
 version = "0.1.0"
 authors = ["Ben Hansen <bhbenjaminhansen@gmail.com>"]
 edition = "2018"
