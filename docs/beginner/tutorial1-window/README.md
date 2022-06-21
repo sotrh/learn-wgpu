@@ -112,6 +112,7 @@ console_error_panic_hook = "0.1.6"
 console_log = "0.2.0"
 wgpu = { version = "0.12", features = ["webgl"]}
 wasm-bindgen = "0.2"
+wasm-bindgen-futures = "0.4.30"
 web-sys = { version = "0.3", features = [
     "Document",
     "Window",
