@@ -143,12 +143,12 @@ struct Camera {
 [[group(0), binding(0)]]
 var<uniform> camera: Camera;
 
-// struct Light {
-//     position: vec3<f32>;
-//     color: vec3<f32>;
-// };
-// [[group(1), binding(0)]]
-// var<uniform> light: Light;
+struct Light {
+    position: vec3<f32>;
+    color: vec3<f32>;
+};
+[[group(1), binding(0)]]
+var<uniform> light: Light;
 
 struct VertexOutput {
     [[builtin(position)]] clip_position: vec4<f32>;
@@ -165,14 +165,14 @@ fn vs_main(
     return VertexOutput(clip_position, normal, vertex.position);
 }
 
-// [[group(2), binding(0)]]
-// var t_diffuse: texture_2d<f32>;
-// [[group(2), binding(1)]]
-// var s_diffuse: sampler;
-// [[group(2), binding(2)]]
-// var t_normal: texture_2d<f32>;
-// [[group(2), binding(3)]]
-// var s_normal: sampler;
+[[group(2), binding(0)]]
+var t_diffuse: texture_2d<f32>;
+[[group(2), binding(1)]]
+var s_diffuse: sampler;
+[[group(2), binding(2)]]
+var t_normal: texture_2d<f32>;
+[[group(2), binding(3)]]
+var s_normal: sampler;
 
 fn color23(p: vec2<f32>) -> vec3<f32> {
     return vec3<f32>(
@@ -187,16 +187,20 @@ fn fs_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
     var color = smoothStep(vec3<f32>(0.0), vec3<f32>(0.1), fract(in.world_pos));
     color = mix(vec3<f32>(0.5, 0.1, 0.7), vec3<f32>(0.2, 0.2, 0.2), vec3<f32>(color.x * color.y * color.z));
 
-    let uv = in.world_pos.xz;
-    let i = floor(uv / 256.);
+    let ambient_strength = 0.1;
+    let ambient_color = light.color * ambient_strength;
 
-    color = color23(i);
+    let light_dir = normalize(light.position - in.world_pos);
+    let view_dir = normalize(camera.view_pos.xyz - in.world_pos);
+    let half_dir = normalize(view_dir + light_dir);
 
-    let f = fbm(uv) * 0.5 + 0.5;
-    // let f = (in.world_pos.y + 10.) * 0.1;
-    color = color * f;
-    // color = vec3<f32>(fract(uv), 0.5);
-    // let v = terrain_point(uv);
-    // color = vec3<f32>(in.clip_position.z);
-    return vec4<f32>(color, 1.0);
+    let diffuse_strength = max(dot(in.normal, light_dir), 0.0);
+    let diffuse_color = diffuse_strength * light.color;
+
+    let specular_strength = pow(max(dot(in.normal, half_dir), 0.0), 32.0);
+    let specular_color = specular_strength * light.color;
+
+    let result = (ambient_color + diffuse_color + specular_color) * color;
+
+    return vec4<f32>(result, 1.0);
 }

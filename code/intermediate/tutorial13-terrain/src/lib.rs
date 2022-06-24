@@ -503,6 +503,7 @@ impl State {
             chunk_size,
             min_max_height,
             &camera_bind_group_layout,
+            &light_bind_group_layout,
             config.format,
             Some(texture::Texture::DEPTH_FORMAT),
         );
@@ -662,7 +663,7 @@ impl State {
             //     &self.light_bind_group,
             // );
 
-            self.terrain_pipeline.render(&mut render_pass, &self.terrain, &self.camera_bind_group);
+            self.terrain_pipeline.render(&mut render_pass, &self.terrain, &self.camera_bind_group, &self.light_bind_group);
         }
         self.queue.submit(iter::once(encoder.finish()));
         output.present();

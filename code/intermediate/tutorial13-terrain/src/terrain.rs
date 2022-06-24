@@ -68,6 +68,7 @@ impl TerrainPipeline {
         chunk_size: cgmath::Vector2<u32>,
         min_max_height: cgmath::Vector2<f32>,
         camera_layout: &wgpu::BindGroupLayout,
+        light_layout: &wgpu::BindGroupLayout,
         color_format: wgpu::TextureFormat,
         depth_format: Option<wgpu::TextureFormat>,
     ) -> Self {
@@ -124,7 +125,7 @@ impl TerrainPipeline {
         let render_pipeline_layout =
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("TerrainPipeline::Render::PipelineLayout"),
-                bind_group_layouts: &[camera_layout],
+                bind_group_layouts: &[camera_layout, light_layout],
                 push_constant_ranges: &[],
             });
         let render_pipeline = create_render_pipeline(
@@ -267,6 +268,7 @@ impl TerrainPipeline {
         render_pass: &'b mut wgpu::RenderPass<'a>,
         terrain: &'a Terrain,
         camera_bind_group: &'a wgpu::BindGroup,
+        light_bind_group: &'a wgpu::BindGroup,
     ) {
         render_pass.set_pipeline(&self.render_pipeline);
         render_pass.set_bind_group(0, camera_bind_group, &[]);
