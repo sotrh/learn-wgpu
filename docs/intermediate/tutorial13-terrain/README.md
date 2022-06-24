@@ -7,3 +7,4 @@ TODO:
 - Mention `swizzle` feature for cgmath
 - Compare workgroups and workgroups sizes to nested for loops
     - Maybe make a diagram in blender?
+- Change to camera movement speed

@@ -2,38 +2,31 @@
 // Terrain Generation
 // ============================
 
-// todo: look into https://www.shadertoy.com/view/ltfSzr
-fn permute(x: vec3<f32>) -> vec3<f32> {
-    return (((x * 34.0) + 1.0) * x) % 289.0;
-}
+// https://gist.github.com/munrocket/236ed5ba7e409b8bdf1ff6eca5dcdc39
+//  MIT License. © Ian McEwan, Stefan Gustavson, Munrocket
+// - Less condensed implementation with comments can be found at https://weber.itn.liu.se/~stegu/jgt2012/article.pdf
+fn permute3(x: vec3<f32>) -> vec3<f32> { return (((x * 34.) + 1.) * x) % vec3<f32>(289.); }
 
-fn snoise(v: vec2<f32>) -> f32 {
-    let C: vec4<f32> = vec4<f32>(0.211324865405187, 0.366025403784439,
-            -0.577350269189626, 0.024390243902439);
-    var i  = floor(v + dot(v, C.yy) );
-    var x0 = v - i + dot(i, C.xx);
-    var i1: vec2<f32>;
-    i1 = select(vec2<f32>(1.0, 0.0), vec2<f32>(0.0, 1.0), (x0.x > x0.y));
-    var x12 = x0.xyxy + C.xxzz;
-    x12.x = x12.x - i1.x;
-    x12.y = x12.y - i1.y;
-    i = i % 289.0;
-    var p = permute( permute( i.y + vec3<f32>(0.0, i1.y, 1.0 ))
-    + i.x + vec3<f32>(0.0, i1.x, 1.0 ));
-    var m = max(0.5 - vec3<f32>(dot(x0,x0), dot(x12.xy,x12.xy),
-        dot(x12.zw,x12.zw)), vec3<f32>(0.0));
-    m = m*m;
-    m = m*m;
-    var x = 2.0 * fract(p * C.www) - 1.0;
-    var h = abs(x) - 0.5;
-    var ox = floor(x + 0.5);
-    var a0 = x - ox;
-    m = m * (1.79284291400159 - 0.85373472095314 * (a0 * a0 + h * h));
-    var g: vec3<f32>;
-    g.x  = a0.x  * x0.x  + h.x  * x0.y;
-    g.y = a0.y * x12.x + h.y * x12.y;
-    g.z = a0.z * x12.z + h.z * x12.w;
-    return 130.0 * dot(m, g);
+fn snoise2(v: vec2<f32>) -> f32 {
+  let C = vec4<f32>(0.211324865405187, 0.366025403784439, -0.577350269189626, 0.024390243902439);
+  var i: vec2<f32> = floor(v + dot(v, C.yy));
+  let x0 = v - i + dot(i, C.xx);
+  // I flipped the condition here from > to < as it fixed some artifacting I was observing
+  var i1: vec2<f32> = select(vec2<f32>(1., 0.), vec2<f32>(0., 1.), (x0.x < x0.y));
+  var x12: vec4<f32> = x0.xyxy + C.xxzz - vec4<f32>(i1, 0., 0.);
+  i = i % vec2<f32>(289.);
+  let p = permute3(permute3(i.y + vec3<f32>(0., i1.y, 1.)) + i.x + vec3<f32>(0., i1.x, 1.));
+  var m: vec3<f32> = max(0.5 -
+      vec3<f32>(dot(x0, x0), dot(x12.xy, x12.xy), dot(x12.zw, x12.zw)), vec3<f32>(0.));
+  m = m * m;
+  m = m * m;
+  let x = 2. * fract(p * C.www) - 1.;
+  let h = abs(x) - 0.5;
+  let ox = floor(x + 0.5);
+  let a0 = x - ox;
+  m = m * (1.79284291400159 - 0.85373472095314 * (a0 * a0 + h * h));
+  let g = vec3<f32>(a0.x * x0.x + h.x * x0.y, a0.yz * x12.xz + h.yz * x12.yw);
+  return 130. * dot(m, g);
 }
 
 
@@ -47,7 +40,7 @@ fn fbm(p: vec2<f32>) -> f32 {
     let rot = mat2x2<f32>(cs.x, cs.y, -cs.y, cs.x);
 
     for (var i=0u; i<NUM_OCTAVES; i=i+1u) {
-        v = v + a * snoise(x);
+        v = v + a * snoise2(x);
         x = rot * x * 2.0 + shift;
         a = a * 0.5;
     }
@@ -181,14 +174,28 @@ fn vs_main(
 // [[group(2), binding(3)]]
 // var s_normal: sampler;
 
+fn color23(p: vec2<f32>) -> vec3<f32> {
+    return vec3<f32>(
+        snoise2(p) * 0.5 + 0.5,
+        snoise2(p + vec2<f32>(23., 32.,)) * 0.5 + 0.5,
+        snoise2(p + vec2<f32>(-43., 3.)) * 0.5 + 0.5,
+    );
+}
+
 [[stage(fragment)]]
 fn fs_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
     var color = smoothStep(vec3<f32>(0.0), vec3<f32>(0.1), fract(in.world_pos));
     color = mix(vec3<f32>(0.5, 0.1, 0.7), vec3<f32>(0.2, 0.2, 0.2), vec3<f32>(color.x * color.y * color.z));
 
     let uv = in.world_pos.xz;
+    let i = floor(uv / 256.);
+
+    color = color23(i);
+
     let f = fbm(uv) * 0.5 + 0.5;
+    // let f = (in.world_pos.y + 10.) * 0.1;
     color = color * f;
+    // color = vec3<f32>(fract(uv), 0.5);
     // let v = terrain_point(uv);
     // color = vec3<f32>(in.clip_position.z);
     return vec4<f32>(color, 1.0);
