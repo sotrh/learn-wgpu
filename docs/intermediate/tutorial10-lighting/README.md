@@ -27,7 +27,7 @@ Ray/path tracing is often too computationally expensive for most real-time appli
 Before we can get into that though, we need to add a light to our scene.
 
 ```rust
-// main.rs
+// lib.rs
 #[repr(C)]
 #[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
 struct LightUniform {
@@ -307,7 +307,7 @@ where
 With that done we can create another render pipeline for our light.
 
 ```rust
-// main.rs
+// lib.rs
 let light_render_pipeline = {
     let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
         label: Some("Light Pipeline Layout"),
