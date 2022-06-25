@@ -4,7 +4,8 @@
 
 // https://gist.github.com/munrocket/236ed5ba7e409b8bdf1ff6eca5dcdc39
 //  MIT License. © Ian McEwan, Stefan Gustavson, Munrocket
-// - Less condensed implementation with comments can be found at https://weber.itn.liu.se/~stegu/jgt2012/article.pdf
+// - Less condensed glsl implementation with comments can be found at https://weber.itn.liu.se/~stegu/jgt2012/article.pdf
+
 fn permute3(x: vec3<f32>) -> vec3<f32> { return (((x * 34.) + 1.) * x) % vec3<f32>(289.); }
 
 fn snoise2(v: vec2<f32>) -> f32 {
@@ -80,7 +81,6 @@ fn terrain_point(p: vec2<f32>) -> vec3<f32> {
 }
 
 fn terrain_vertex(p: vec2<f32>) -> Vertex {
-    // var p2 = p * 0.01;
     let v = terrain_point(p);
 
     let tpx = terrain_point(p + vec2<f32>(0.1, 0.0)) - v;
@@ -96,12 +96,10 @@ fn terrain_vertex(p: vec2<f32>) -> Vertex {
     return Vertex(v, n);
 }
 
-[[stage(compute), workgroup_size(8)]]
+[[stage(compute), workgroup_size(64)]]
 fn gen_terrain(
     [[builtin(global_invocation_id)]] gid: vec3<u32>
 ) {
-    // if (gid.x > (chunk_data.chunk_size.x + 1u) * (chunk_data.chunk_size.y + 1u)) { return; }
-
     // Create vertex
     let vertex_index = gid.x;
 
@@ -111,8 +109,6 @@ fn gen_terrain(
     ) + vec2<f32>(chunk_data.chunk_corner);
 
     vertices.data[vertex_index] = terrain_vertex(p);
-
-    // if (u32(p.x) >= chunk_data.chunk_size.x || u32(p.y) >= chunk_data.chunk_size.y) { return; }
 
     // Create indices
     let start_index = gid.x * 6u; // using TriangleList

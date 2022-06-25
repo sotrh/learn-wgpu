@@ -249,7 +249,7 @@ impl TerrainPipeline {
         cpass.set_pipeline(&self.gen_pipeline);
         cpass.set_bind_group(0, &bind_group, &[]);
         cpass.dispatch(
-            dbg!((((self.chunk_size.x + 1) * (self.chunk_size.y + 1)) as f32 / 8.0).ceil()) as _,
+            dbg!((((self.chunk_size.x + 1) * (self.chunk_size.y + 1)) as f32 / 64.0).ceil()) as _,
             1,
             1,
         );
@@ -272,6 +272,7 @@ impl TerrainPipeline {
     ) {
         render_pass.set_pipeline(&self.render_pipeline);
         render_pass.set_bind_group(0, camera_bind_group, &[]);
+        render_pass.set_bind_group(1, light_bind_group, &[]);
         for chunk in &terrain.chunks {
             render_pass
                 .set_index_buffer(chunk.mesh.index_buffer.slice(..), chunk.mesh.index_format);
