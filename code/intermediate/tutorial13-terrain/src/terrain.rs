@@ -119,7 +119,7 @@ impl TerrainPipeline {
             label: Some("TerrainPipeline::ComputePipeline"),
             layout: Some(&pipeline_layout),
             module: &shader,
-            entry_point: "gen_terrain",
+            entry_point: "gen_terrain_compute",
         });
 
         let render_pipeline_layout =

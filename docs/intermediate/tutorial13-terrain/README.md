@@ -207,7 +207,7 @@ If you want learn more about workgroups [check out the docs](https://www.w3.org/
 
 </div>
 
-<!-- Talking about gen_terrain -->
+
 
 TODO: 
 - Note changes to `create_render_pipeline`

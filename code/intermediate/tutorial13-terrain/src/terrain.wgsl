@@ -97,7 +97,7 @@ fn terrain_vertex(p: vec2<f32>) -> Vertex {
 }
 
 [[stage(compute), workgroup_size(64)]]
-fn gen_terrain(
+fn gen_terrain_compute(
     [[builtin(global_invocation_id)]] gid: vec3<u32>
 ) {
     // Create vertex
@@ -126,6 +126,36 @@ fn gen_terrain(
     indices.data[start_index + 3u] = v00;
     indices.data[start_index + 4u] = v11;
     indices.data[start_index + 5u] = v10;
+}
+
+struct VertexOutput {
+    [[location(0)]] uv: vec2<f32>;
+    [[builtin(position)]] position: vec4<f32>;
+};
+
+// Draws a fullscreen quad
+[[stage(vertex)]]
+fn gen_terrain_vertex(
+    [[builtin(vertex_index)]] index: u32,
+) {
+    let u = f32(((index + 2u) / 3u) % 2u);
+    let v = f32(((index + 1u) / 3u) % 2u);
+    let uv = vec2<f32>(u, v);
+
+    let position = vec4<f32>(-1.0 + uv * 2.0, 0.0, 1.0);
+
+    return VertexOutput(vec2<f32>(uv.x, 1.0-uv.y), position);
+}
+
+struct FragmentOutput {
+    [[location(0)]] output: u32;
+};
+
+[[stage(fragment)]]
+fn fs_main(in: VertexOutput) -> FragmentOutput {
+    var output = 0u;
+    
+    return FragmentOutput(output);
 }
 
 // ============================
