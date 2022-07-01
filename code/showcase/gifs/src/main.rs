@@ -86,7 +86,7 @@ async fn run() {
 
         let mut rpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("GIF Pass"),
-            color_attachments: &[wgpu::RenderPassColorAttachment {
+            color_attachments: &[Some(wgpu::RenderPassColorAttachment {
                 view: &render_target.view,
                 resolve_target: None,
                 ops: wgpu::Operations {
@@ -98,7 +98,7 @@ async fn run() {
                     }),
                     store: true,
                 },
-            }],
+            })],
             depth_stencil_attachment: None,
         });
 
@@ -129,13 +129,15 @@ async fn run() {
 
         // Create the map request
         let buffer_slice = output_buffer.slice(..);
-        let request = buffer_slice.map_async(wgpu::MapMode::Read);
+        let (tx, rx) = futures_intrusive::channel::shared::oneshot_channel();
+        buffer_slice.map_async(wgpu::MapMode::Read, move |result| {
+            tx.send(result).unwrap();
+        });
         // wait for the GPU to finish
         device.poll(wgpu::Maintain::Wait);
-        let result = request.await;
 
-        match result {
-            Ok(()) => {
+        match rx.receive().await {
+            Some(Ok(())) => {
                 let padded_data = buffer_slice.get_mapped_range();
                 let data = padded_data
                     .chunks(padded_bytes_per_row as _)
@@ -155,11 +157,11 @@ async fn run() {
 }
 
 fn save_gif(path: &str, frames: &mut Vec<Vec<u8>>, speed: i32, size: u16) -> anyhow::Result<()> {
-    use gif::{Encoder, Frame, Repeat, SetParameter};
+    use gif::{Encoder, Frame, Repeat};
 
     let mut image = std::fs::File::create(path)?;
     let mut encoder = Encoder::new(&mut image, size, size, &[])?;
-    encoder.set(Repeat::Infinite)?;
+    encoder.set_repeat(Repeat::Infinite)?;
 
     for mut frame in frames {
         encoder.write_frame(&Frame::from_rgba_speed(size, size, &mut frame, speed))?;
@@ -176,7 +178,7 @@ fn create_render_pipeline(
     // let fs_src = wgpu::include_spirv!("shader.frag.spv");
     // let vs_module = device.create_shader_module(&vs_src);
     // let fs_module = device.create_shader_module(&fs_src);
-    let shader = device.create_shader_module(&wgpu::include_wgsl!("shader.wgsl"));
+    let shader = device.create_shader_module(wgpu::include_wgsl!("shader.wgsl"));
 
     let render_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
         label: Some("Render Pipeline Layout"),
@@ -195,11 +197,11 @@ fn create_render_pipeline(
         fragment: Some(wgpu::FragmentState {
             module: &shader,
             entry_point: "fs_main",
-            targets: &[wgpu::ColorTargetState {
+            targets: &[Some(wgpu::ColorTargetState {
                 format: target.desc.format,
                 blend: Some(wgpu::BlendState::REPLACE),
                 write_mask: wgpu::ColorWrites::ALL,
-            }],
+            })],
         }),
         primitive: wgpu::PrimitiveState {
             topology: wgpu::PrimitiveTopology::TriangleList,

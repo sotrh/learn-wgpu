@@ -13,7 +13,7 @@ pub struct RenderPipelineBuilder<'a> {
     depth_bias_slope_scale: f32,
     depth_bias_clamp: f32,
     primitive_topology: wgpu::PrimitiveTopology,
-    color_states: Vec<wgpu::ColorTargetState>,
+    color_states: Vec<Option<wgpu::ColorTargetState>>,
     depth_stencil: Option<wgpu::DepthStencilState>,
     index_format: wgpu::IndexFormat,
     vertex_buffers: Vec<wgpu::VertexBufferLayout<'a>>,
@@ -98,7 +98,7 @@ impl<'a> RenderPipelineBuilder<'a> {
     }
 
     pub fn color_state(&mut self, cs: wgpu::ColorTargetState) -> &mut Self {
-        self.color_states.push(cs);
+        self.color_states.push(Some(cs));
         self
     }
 
@@ -248,5 +248,5 @@ fn create_shader_module(
     device: &wgpu::Device,
     spirv: wgpu::ShaderModuleDescriptor,
 ) -> wgpu::ShaderModule {
-    device.create_shader_module(&spirv)
+    device.create_shader_module(spirv)
 }

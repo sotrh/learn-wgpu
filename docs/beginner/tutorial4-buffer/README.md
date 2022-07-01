@@ -140,7 +140,7 @@ wgpu::VertexBufferLayout {
 2. `step_mode` tells the pipeline how often it should move to the next vertex. This seems redundant in our case, but we can specify `wgpu::VertexStepMode::Instance` if we only want to change vertices when we start drawing a new instance. We'll cover instancing in a later tutorial.
 3. Vertex attributes describe the individual parts of the vertex. Generally, this is a 1:1 mapping with a struct's fields, which is true in our case.
 4. This defines the `offset` in bytes until the attribute starts. For the first attribute, the offset is usually zero. For any later attributes, the offset is the sum over `size_of` of the previous attributes' data.
-5. This tells the shader what location to store this attribute at. For example `[[location(0)]] x: vec3<f32>` in the vertex shader would correspond to the `position` field of the `Vertex` struct, while `[[location(1)]] x: vec3<f32>` would be the `color` field.
+5. This tells the shader what location to store this attribute at. For example `@location(0) x: vec3<f32>` in the vertex shader would correspond to the `position` field of the `Vertex` struct, while `@location(1) x: vec3<f32>` would be the `color` field.
 6. `format` tells the shader the shape of the attribute. `Float32x3` corresponds to `vec3<f32>` in shader code. The max value we can store in an attribute is `Float32x4` (`Uint32x4`, and `Sint32x4` work as well). We'll keep this in mind for when we have to store things that are bigger than `Float32x4`.
 
 For you visual learners, our vertex buffer looks like this.
@@ -280,16 +280,16 @@ Before our changes will have any effect, we need to update our vertex shader to 
 // Vertex shader
 
 struct VertexInput {
-    [[location(0)]] position: vec3<f32>;
-    [[location(1)]] color: vec3<f32>;
+    @location(0) position: vec3<f32>,
+    @location(1) color: vec3<f32>,
 };
 
 struct VertexOutput {
-    [[builtin(position)]] clip_position: vec4<f32>;
-    [[location(0)]] color: vec3<f32>;
+    @builtin(position) clip_position: vec4<f32>,
+    @location(0) color: vec3<f32>,
 };
 
-[[stage(vertex)]]
+@vertex
 fn vs_main(
     model: VertexInput,
 ) -> VertexOutput {
@@ -301,8 +301,8 @@ fn vs_main(
 
 // Fragment shader
 
-[[stage(fragment)]]
-fn fs_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
+@fragment
+fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     return vec4<f32>(in.color, 1.0);
 }
 ```

@@ -219,47 +219,49 @@ pub async fn load_model(
     Ok(model::Model { meshes, materials })
 }
 
-pub fn export_mesh_data(path: &str, device: &wgpu::Device, mesh: &model::Mesh) {
-    let indices_vec = map_buffer(device, &mesh.index_buffer, |i: &u32| *i);
-    let indices = indices_vec.chunks(6).collect::<Vec<_>>();
-    let vertices_vec = map_buffer(device, &mesh.vertex_buffer, |v: &f32| *v);
-    let vertices = vertices_vec.chunks(8).collect::<Vec<_>>();
+// pub fn export_mesh_data(path: &str, device: &wgpu::Device, mesh: &model::Mesh) {
+//     let indices_vec = map_buffer(device, &mesh.index_buffer, |i: &u32| *i);
+//     let indices = indices_vec.chunks(6).collect::<Vec<_>>();
+//     let vertices_vec = map_buffer(device, &mesh.vertex_buffer, |v: &f32| *v);
+//     let vertices = vertices_vec.chunks(8).collect::<Vec<_>>();
 
-    let mut file = std::fs::File::create(path).unwrap();
-    use std::io::Write;
-    write!(file, "{{\n").unwrap();
-    write!(file, "\t\"vertices\": [\n").unwrap();
-    for v in vertices {
-        write!(file, "\t\t{:?}{}\n", v, ",").unwrap();
-    }
-    write!(file, "\t],\n").unwrap();
-    write!(file, "\t\"indices\": [\n").unwrap();
-    for i in indices {
-        write!(file, "\t\t{:?}{}\n", i, ",").unwrap();
-    }
-    write!(file, "\t]\n").unwrap();
-    write!(file, "}}").unwrap();
-    file.flush().unwrap();
-}
+//     let mut file = std::fs::File::create(path).unwrap();
+//     use std::io::Write;
+//     write!(file, "{{\n").unwrap();
+//     write!(file, "\t\"vertices\": [\n").unwrap();
+//     for v in vertices {
+//         write!(file, "\t\t{:?}{}\n", v, ",").unwrap();
+//     }
+//     write!(file, "\t],\n").unwrap();
+//     write!(file, "\t\"indices\": [\n").unwrap();
+//     for i in indices {
+//         write!(file, "\t\t{:?}{}\n", i, ",").unwrap();
+//     }
+//     write!(file, "\t]\n").unwrap();
+//     write!(file, "}}").unwrap();
+//     file.flush().unwrap();
+// }
 
-fn map_buffer<T: bytemuck::Pod + bytemuck::Zeroable, R>(device: &wgpu::Device, buffer: &wgpu::Buffer, f: impl Fn(&T) -> R) -> Vec<R> {
-    let mut output = Vec::new();
-    {
-        let buffer_slice = buffer.slice(..);
+// fn map_buffer<T: bytemuck::Pod + bytemuck::Zeroable, R>(device: &wgpu::Device, buffer: &wgpu::Buffer, f: impl Fn(&T) -> R) -> Vec<R> {
+//     let mut output = Vec::new();
+//     {
+//         let buffer_slice = buffer.slice(..);
 
-        // NOTE: We have to create the mapping THEN device.poll() before await
-        // the future. Otherwise the application will freeze.
-        let mapping = buffer_slice.map_async(wgpu::MapMode::Read);
-        device.poll(wgpu::Maintain::Wait);
-        pollster::block_on(mapping).unwrap();
+//         // NOTE: We have to create the mapping THEN device.poll() before await
+//         // the future. Otherwise the application will freeze.
+//         buffer_slice.map_async(wgpu::MapMode::Read, |result| {
+//             result.unwrap();
 
-        let data = buffer_slice.get_mapped_range();
+//             let data = buffer_slice.get_mapped_range();
 
-        println!("data.len(): {}", data.len());
-        let data_t: &[T] = bytemuck::cast_slice(&data[..]);
-        
-        output.extend(data_t.iter().map(f));
-    }
-    buffer.unmap();
-    output
-}
+//             println!("data.len(): {}", data.len());
+//             let data_t: &[T] = bytemuck::cast_slice(&data[..]);
+            
+//             output.extend(data_t.iter().map(f));
+//         });
+//         device.poll(wgpu::Maintain::Wait);
+
+//     }
+//     buffer.unmap();
+//     output
+// }

@@ -15,10 +15,10 @@ anyhow = "1.0"
 bytemuck = { version = "1.4", features = [ "derive" ] }
 cgmath = "0.18"
 pollster = "0.2"
-wgpu = { version = "0.12", features = ["spirv"]}
+wgpu = { version = "0.13", features = ["spirv"]}
 wgpu_glyph = "0.16"
 rand = "0.8"
-rodio = { version = "0.14", default-features = false, features = ["wav"] }
+rodio = { version = "0.15", default-features = false, features = ["wav"] }
 log = "0.4"
 instant = "0.1"
 
@@ -26,7 +26,7 @@ instant = "0.1"
 console_error_panic_hook = "0.1.6"
 console_log = "0.2.0"
 getrandom = { version = "0.2", features = ["js"] }
-rodio = { version = "0.14", default-features = false, features = ["wasm-bindgen", "wav"] }
+rodio = { version = "0.15", default-features = false, features = ["wasm-bindgen", "wav"] }
 wasm-bindgen-futures = "0.4.20"
 wasm-bindgen = "0.2.76"
 web-sys = { version = "0.3.53", features = [
@@ -34,11 +34,11 @@ web-sys = { version = "0.3.53", features = [
     "Window",
     "Element",
 ]}
-wgpu = { version = "0.12", features = ["spirv", "webgl"]}
+wgpu = { version = "0.13", features = ["spirv", "webgl"]}
 
 [build-dependencies]
 anyhow = "1.0"
 fs_extra = "1.2"
 glob = "0.3"
 rayon = "1.4"
-naga = { version = "0.7", features = ["glsl-in", "spv-out", "wgsl-out"]}
+naga = { version = "0.9", features = ["glsl-in", "spv-out", "wgsl-out"]}

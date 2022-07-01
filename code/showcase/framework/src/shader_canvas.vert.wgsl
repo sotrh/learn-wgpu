@@ -1,7 +1,7 @@
 struct VertexOutput {
-    [[location(0)]] clip_coords: vec3<f32>;
-    [[builtin(position)]] member: vec4<f32>;
-};
+    @location(0) clip_coords: vec3<f32>,
+    @builtin(position) member: vec4<f32>,
+}
 
 var<private> clip_coords: vec3<f32>;
 var<private> gl_VertexIndex: u32;
@@ -23,8 +23,8 @@ fn main_1() {
     return;
 }
 
-[[stage(vertex)]]
-fn main([[builtin(vertex_index)]] param: u32) -> VertexOutput {
+@vertex 
+fn main(@builtin(vertex_index) param: u32) -> VertexOutput {
     gl_VertexIndex = param;
     main_1();
     let _e5 = clip_coords;

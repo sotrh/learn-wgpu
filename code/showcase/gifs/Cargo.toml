@@ -11,11 +11,12 @@ bytemuck = { version = "1.4", features = [ "derive" ] }
 cgmath = "0.18"
 env_logger = "0.9"
 pollster = "0.2"
-image = "0.23"
+image = "0.24.2"
 log = "0.4"
 tobj = "3.1"
-wgpu = "0.12"
+wgpu = "0.13"
 winit = "0.26"
-gif = "0.10.3"
+gif = "0.11.4"
+futures-intrusive = "0.4"
 
 framework = { version = "0.1.0", path = "../framework" }

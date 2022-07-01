@@ -98,27 +98,27 @@ To generate the terrain mesh we're going to need to pass some information into t
 
 ```wgsl
 struct ChunkData {
-    chunk_size: vec2<u32>;
-    chunk_corner: vec2<i32>;
-    min_max_height: vec2<f32>;
-};
+    chunk_size: vec2<u32>,
+    chunk_corner: vec2<i32>,
+    min_max_height: vec2<f32>,
+}
 
 struct Vertex {
-    [[location(0)]] position: vec3<f32>;
-    [[location(1)]] normal: vec3<f32>;
-};
+    @location(0) position: vec3<f32>,
+    @location(1) normal: vec3<f32>,
+}
 
 struct VertexBuffer {
-    data: [[stride(32)]] array<Vertex>;
-};
+    data: array<Vertex>, // stride: 32
+}
 
 struct IndexBuffer {
-    data: array<u32>;
-};
+    data: array<u32>,
+}
 
-[[group(0), binding(0)]] var<uniform> chunk_data: ChunkData;
-[[group(0), binding(1)]] var<storage, read_write> vertices: VertexBuffer;
-[[group(0), binding(2)]] var<storage, read_write> indices: IndexBuffer;
+@group(0) @binding(0) var<uniform> chunk_data: ChunkData;
+@group(0)@binding(1) var<storage, read_write> vertices: VertexBuffer;
+@group(0)@binding(2) var<storage, read_write> indices: IndexBuffer;
 ```
 
 Our shader will expect a `uniform` buffer that includes the size of the quad grid in `chunk_size`, the `chunk_corner` that our noise algorithm should start at, and `min_max_height` of the terrain.
@@ -168,9 +168,9 @@ We'll cover a method called triplanar mapping to texture the terrain in a future
 Now that we can get a vertex on the terrains surface we can fill our vertex and index buffers with actual data. We'll create a `gen_terrain()` function that will be the entry point for our compute shader:
 
 ```wgsl
-[[stage(compute), workgroup_size(64)]]
+@compute @workgroup_size(64)
 fn gen_terrain(
-    [[builtin(global_invocation_id)]] gid: vec3<u32>
+    @builtin(global_invocation_id) gid: vec3<u32>
 ) {
     // snipped...
 }

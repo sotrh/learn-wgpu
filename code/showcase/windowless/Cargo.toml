@@ -7,10 +7,11 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-image = "0.23"
-shaderc = "0.7"
-wgpu = { version = "0.12", features = ["spirv"] }
+image = "0.24"
+shaderc = "0.8"
+wgpu = { version = "0.13", features = ["spirv"] }
 pollster = "0.2"
+futures-intrusive = "0.4"
 
 [[bin]]
 name = "windowless"

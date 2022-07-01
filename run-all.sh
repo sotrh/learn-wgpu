@@ -20,9 +20,9 @@ cargo run --bin tutorial9-models &
 cargo run --bin tutorial10-lighting &
 cargo run --bin tutorial11-normals &
 cargo run --bin tutorial12-camera &
-cargo run --bin tutorial13-threading &
+cargo run --bin tutorial13-terrain &
 cargo run --bin windowless &
 cargo run --bin gifs &
-cargo run --bin compute &
-cargo run --bin pong
+cargo run --bin compute
+# cargo run --bin pong
 )

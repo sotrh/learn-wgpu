@@ -269,7 +269,7 @@ anyhow = "1.0"
 bytemuck = { version = "1.4", features = [ "derive" ] }
 cgmath = "0.18"
 pollster = "0.2"
-wgpu = { version = "0.12", features = ["spirv"]}
+wgpu = { version = "0.13", features = ["spirv"]}
 wgpu_glyph = "0.15"
 rand = "0.8"
 rodio = { version = "0.14", default-features = false, features = ["wav"] }
@@ -289,7 +289,7 @@ web-sys = { version = "0.3.53", features = [
     "Element",
 ]}
 winit = { version = "0.25", features = ["web-sys"] }
-wgpu = { version = "0.12", features = ["spirv", "webgl"]}
+wgpu = { version = "0.13", features = ["spirv", "webgl"]}
 ```
 
 I'll highlight a few of these:

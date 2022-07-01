@@ -1,13 +1,5 @@
 # A Better Camera
 
-<div class="warn">
-
-The shaders used in this example don't compile on WASM using version 0.12.0 of wgpu. I created an issue [here](https://github.com/gfx-rs/naga/issues/1739). The issue is fixed on the most recent version of naga, but that is using the updated WGSL syntax.
-
-Once 0.13 comes out I'll port the WGSL code to the new syntax and this example should be working.
-
-</div>
-
 I've been putting this off for a while. Implementing a camera isn't specifically related to using WGPU properly, but it's been bugging me so let's do it.
 
 `lib.rs` is getting a little crowded, so let's create a `camera.rs` file to put our camera code. The first things we're going to put in it are some imports and our `OPENGL_TO_WGPU_MATRIX`.

@@ -138,7 +138,7 @@ The `limits` field describes the limit of certain types of resources that we can
 ```rust
         let config = wgpu::SurfaceConfiguration {
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-            format: surface.get_preferred_format(&adapter).unwrap(),
+            format: surface.get_supported_formats(&adapter)[0],
             width: size.width,
             height: size.height,
             present_mode: wgpu::PresentMode::Fifo,
@@ -217,13 +217,13 @@ cfg-if = "1"
 winit = "0.26"
 env_logger = "0.9"
 log = "0.4"
-wgpu = "0.12"
+wgpu = "0.13"
 pollster = "0.2"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 console_error_panic_hook = "0.1.6"
 console_log = "0.2.0"
-wgpu = { version = "0.12", features = ["webgl"]}
+wgpu = { version = "0.13", features = ["webgl"]}
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
 web-sys = { version = "0.3", features = [
