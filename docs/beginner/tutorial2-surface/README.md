@@ -158,7 +158,19 @@ The `format` defines how `SurfaceTexture`s will be stored on the gpu. Different 
 Make sure that the width and height of the `SurfaceTexture` are not 0, as that can cause your app to crash.
 </div>
 
-`present_mode` uses `wgpu::PresentMode` enum which determines how to sync the surface with the display. The option we picked, `FIFO`, will cap the display rate at the display's framerate. This is essentially VSync. This is also the most optimal mode on mobile. There are other options and you can see all of them [in the docs](https://docs.rs/wgpu/latest/wgpu/enum.PresentMode.html)
+`present_mode` uses `wgpu::PresentMode` enum which determines how to sync the surface with the display. The option we picked, `PresentMode::Fifo`, will cap the display rate at the display's framerate. This is essentially VSync. This mode is guaranteed to be supported on all platforms. There are other options and you can see all of them [in the docs](https://docs.rs/wgpu/latest/wgpu/enum.PresentMode.html)
+
+<div class="note">
+
+If you want to let your users pick what `PresentMode` they use, you can use [Surface::get_supported_modes()](https://docs.rs/wgpu/latest/wgpu/struct.Surface.html#method.get_supported_modes) to get a list of all the `PresentMode`s the surface supports:
+
+```rust
+let modes = surface.get_supported_modes(&adapter);
+```
+
+Regardless, `PresentMode::Fifo` will always be supported, and `PresentMode::AutoVsync` and `PresentMode::AutoNoVsync` have fallback support and therefore will work on all platforms.
+
+</div>
 
 Now that we've configured our surface properly we can add these new fields at the end of the method.
 
