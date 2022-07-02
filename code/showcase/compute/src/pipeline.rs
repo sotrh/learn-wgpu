@@ -44,9 +44,9 @@ pub fn create_render_pipeline(
     fs_src: wgpu::ShaderModuleDescriptor,
 ) -> wgpu::RenderPipeline {
     println!("Creating VS Module =======");
-    let vs_module = device.create_shader_module(&vs_src);
+    let vs_module = device.create_shader_module(vs_src);
     println!("Creating FS Module =======");
-    let fs_module = device.create_shader_module(&fs_src);
+    let fs_module = device.create_shader_module(fs_src);
 
     device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
         label: Some("Render Pipeline"),
@@ -59,11 +59,11 @@ pub fn create_render_pipeline(
         fragment: Some(wgpu::FragmentState {
             module: &fs_module,
             entry_point: "main",
-            targets: &[wgpu::ColorTargetState {
+            targets: &[Some(wgpu::ColorTargetState {
                 format: color_format,
                 blend: None,
                 write_mask: wgpu::ColorWrites::ALL,
-            }],
+            })],
         }),
         primitive: wgpu::PrimitiveState {
             topology: wgpu::PrimitiveTopology::TriangleList,
@@ -107,7 +107,7 @@ pub fn create_compute_pipeline(
     let pipeline = device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
         label,
         layout: Some(&layout),
-        module: &device.create_shader_module(&shader_src),
+        module: &device.create_shader_module(shader_src),
         entry_point: "main",
     });
     pipeline

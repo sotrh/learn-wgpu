@@ -229,17 +229,17 @@ We need to reference the parts of our new matrix in `shader.wgsl` so that we can
 
 ```wgsl
 struct InstanceInput {
-    [[location(5)]] model_matrix_0: vec4<f32>;
-    [[location(6)]] model_matrix_1: vec4<f32>;
-    [[location(7)]] model_matrix_2: vec4<f32>;
-    [[location(8)]] model_matrix_3: vec4<f32>;
+    @location(5) model_matrix_0: vec4<f32>;
+    @location(6) model_matrix_1: vec4<f32>;
+    @location(7) model_matrix_2: vec4<f32>;
+    @location(8) model_matrix_3: vec4<f32>;
 };
 ```
 
 We need to reassemble the matrix before we can use it.
 
 ```wgsl
-[[stage(vertex)]]
+@vertex
 fn vs_main(
     model: VertexInput,
     instance: InstanceInput,
@@ -257,7 +257,7 @@ fn vs_main(
 We'll apply the `model_matrix` before we apply `camera_uniform.view_proj`. We do this because the `camera_uniform.view_proj` changes the coordinate system from `world space` to `camera space`. Our `model_matrix` is a `world space` transformation, so we don't want to be in `camera space` when using it.
 
 ```wgsl
-[[stage(vertex)]]
+@vertex
 fn vs_main(
     model: VertexInput,
     instance: InstanceInput,

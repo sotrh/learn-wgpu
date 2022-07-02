@@ -48,7 +48,7 @@ async fn run() {
 
     let vs_src = include_str!("shader.vert");
     let fs_src = include_str!("shader.frag");
-    let mut compiler = shaderc::Compiler::new().unwrap();
+    let compiler = shaderc::Compiler::new().unwrap();
     let vs_spirv = compiler
         .compile_into_spirv(
             vs_src,
@@ -69,11 +69,11 @@ async fn run() {
         .unwrap();
     let vs_data = wgpu::util::make_spirv(vs_spirv.as_binary_u8());
     let fs_data = wgpu::util::make_spirv(fs_spirv.as_binary_u8());
-    let vs_module = device.create_shader_module(&wgpu::ShaderModuleDescriptor {
+    let vs_module = device.create_shader_module(wgpu::ShaderModuleDescriptor {
         label: Some("Vertex Shader"),
         source: vs_data,
     });
-    let fs_module = device.create_shader_module(&wgpu::ShaderModuleDescriptor {
+    let fs_module = device.create_shader_module(wgpu::ShaderModuleDescriptor {
         label: Some("Fragment Shader"),
         source: fs_data,
     });
@@ -95,14 +95,14 @@ async fn run() {
         fragment: Some(wgpu::FragmentState {
             module: &fs_module,
             entry_point: "main",
-            targets: &[wgpu::ColorTargetState {
+            targets: &[Some(wgpu::ColorTargetState {
                 format: texture_desc.format,
                 blend: Some(wgpu::BlendState {
                     alpha: wgpu::BlendComponent::REPLACE,
                     color: wgpu::BlendComponent::REPLACE,
                 }),
                 write_mask: wgpu::ColorWrites::ALL,
-            }],
+            })],
         }),
         primitive: wgpu::PrimitiveState {
             topology: wgpu::PrimitiveTopology::TriangleList,
@@ -133,7 +133,7 @@ async fn run() {
     {
         let render_pass_desc = wgpu::RenderPassDescriptor {
             label: Some("Render Pass"),
-            color_attachments: &[wgpu::RenderPassColorAttachment {
+            color_attachments: &[Some(wgpu::RenderPassColorAttachment {
                 view: &texture_view,
                 resolve_target: None,
                 ops: wgpu::Operations {
@@ -145,7 +145,7 @@ async fn run() {
                     }),
                     store: true,
                 },
-            }],
+            })],
             depth_stencil_attachment: None,
         };
         let mut render_pass = encoder.begin_render_pass(&render_pass_desc);
@@ -181,9 +181,12 @@ async fn run() {
 
         // NOTE: We have to create the mapping THEN device.poll() before await
         // the future. Otherwise the application will freeze.
-        let mapping = buffer_slice.map_async(wgpu::MapMode::Read);
+        let (tx, rx) = futures_intrusive::channel::shared::oneshot_channel();
+        buffer_slice.map_async(wgpu::MapMode::Read, move |result| {
+            tx.send(result).unwrap();
+        });
         device.poll(wgpu::Maintain::Wait);
-        mapping.await.unwrap();
+        rx.receive().await.unwrap().unwrap();
 
         let data = buffer_slice.get_mapped_range();
 
@@ -191,8 +194,10 @@ async fn run() {
         let buffer =
             ImageBuffer::<Rgba<u8>, _>::from_raw(texture_size, texture_size, data).unwrap();
         buffer.save("image.png").unwrap();
+
     }
     output_buffer.unmap();
+
 }
 
 fn main() {

@@ -100,7 +100,7 @@ Update dependencies to support SPIR-V module.
 [dependencies]
 image = "0.23"
 shaderc = "0.7"
-wgpu = { version = "0.12", features = ["spirv"] }
+wgpu = { version = "0.13", features = ["spirv"] }
 pollster = "0.2"
 ```
 
@@ -130,12 +130,12 @@ let fs_spirv = compiler
     .unwrap();
 let vs_data = wgpu::util::make_spirv(vs_spirv.as_binary_u8());
 let fs_data = wgpu::util::make_spirv(fs_spirv.as_binary_u8());
-let vs_module = device.create_shader_module(&wgpu::ShaderModuleDescriptor {
+let vs_module = device.create_shader_module(wgpu::ShaderModuleDescriptor {
     label: Some("Vertex Shader"),
     source: vs_data,
     flags: wgpu::ShaderFlags::default(),
 });
-let fs_module = device.create_shader_module(&wgpu::ShaderModuleDescriptor {
+let fs_module = device.create_shader_module(wgpu::ShaderModuleDescriptor {
     label: Some("Fragment Shader"),
     source: fs_data,
     flags: wgpu::ShaderFlags::default(),
@@ -260,9 +260,12 @@ In order to get the data out of the buffer, we need to first map it, then we can
 
     // NOTE: We have to create the mapping THEN device.poll() before await
     // the future. Otherwise the application will freeze.
-    let mapping = buffer_slice.map_async(wgpu::MapMode::Read);
+    let (tx, rx) = futures_intrusive::channel::shared::oneshot_channel();
+    buffer_slice.map_async(wgpu::MapMode::Read, move |result| {
+        tx.send(result).unwrap();
+    });
     device.poll(wgpu::Maintain::Wait);
-    mapping.await.unwrap();
+    rx.receive().await.unwrap().unwrap();
 
     let data = buffer_slice.get_mapped_range();
 
@@ -270,13 +273,26 @@ In order to get the data out of the buffer, we need to first map it, then we can
     let buffer =
         ImageBuffer::<Rgba<u8>, _>::from_raw(texture_size, texture_size, data).unwrap();
     buffer.save("image.png").unwrap();
+
 }
 output_buffer.unmap();
 ```
 
+<div class="note">
+
+I used [futures-intrusive](https://docs.rs/futures-intrusive) as that's the crate they use in the [exampls on the wgpu repo](https://github.com/gfx-rs/wgpu/tree/master/wgpu/examples/capture).
+
+</div>
+
 ## Main is not asyncable
 
 The `main()` method can't return a future, so we can't use the `async` keyword. We'll get around this by putting our code into a different function so that we can block it in `main()`. You'll need to use a crate that can poll futures such as the [pollster crate](https://docs.rs/pollster).
+
+<div class="note">
+
+There are crates such as [async-std](https://docs.rs/async-std), and [tokio](https://docs.rs/tokio) that you can use to annotate `main()` so it can be async. I opted not to do that as both those crates are a little more hefty for this project. You're welcome to use whatever async setup you like :slightly_smiling_face:
+
+</div>
 
 ```rust
 async fn run() {

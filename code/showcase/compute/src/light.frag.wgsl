@@ -1,6 +1,6 @@
 struct FragmentOutput {
-    [[location(0)]] f_color: vec4<f32>;
-};
+    @location(0) f_color: vec4<f32>,
+}
 
 var<private> v_color_1: vec3<f32>;
 var<private> f_color: vec4<f32>;
@@ -11,8 +11,8 @@ fn main_1() {
     return;
 }
 
-[[stage(fragment)]]
-fn main([[location(0)]] v_color: vec3<f32>) -> FragmentOutput {
+@fragment 
+fn main(@location(0) v_color: vec3<f32>) -> FragmentOutput {
     v_color_1 = v_color;
     main_1();
     let _e7 = f_color;

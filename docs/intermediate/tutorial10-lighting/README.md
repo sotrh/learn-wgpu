@@ -1,13 +1,5 @@
 # Working with Lights
 
-<div class="warn">
-
-The shaders used in this example don't compile on WASM using version 0.12.0 of wgpu. I created an issue [here](https://github.com/gfx-rs/naga/issues/1739). The issue is fixed on the most recent version of naga, but that is using the updated WGSL syntax.
-
-Once 0.13 comes out I'll port the WGSL code to the new syntax and this example should be working.
-
-</div>
-
 While we can tell that our scene is 3d because of our camera, it still feels very flat. That's because our model stays the same color regardless of how it's oriented. If we want to change that we need to add lighting to our scene.
 
 In the real world, a light source emits photons that bounce around until they enter our eyes. The color we see is the light's original color minus whatever energy it lost while it was bouncing around.
@@ -145,7 +137,7 @@ fn create_render_pipeline(
     vertex_layouts: &[wgpu::VertexBufferLayout],
     shader: wgpu::ShaderModuleDescriptor,
 ) -> wgpu::RenderPipeline {
-    let shader = device.create_shader_module(&shader);
+    let shader = device.create_shader_module(shader);
 
     device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
         label: Some("Render Pipeline"),
@@ -158,14 +150,14 @@ fn create_render_pipeline(
         fragment: Some(wgpu::FragmentState {
             module: &shader,
             entry_point: "fs_main",
-            targets: &[wgpu::ColorTargetState {
+            targets: &[Some(wgpu::ColorTargetState {
                 format: color_format,
                 blend: Some(wgpu::BlendState {
                     alpha: wgpu::BlendComponent::REPLACE,
                     color: wgpu::BlendComponent::REPLACE,
                 }),
                 write_mask: wgpu::ColorWrites::ALL,
-            }],
+            })],
         }),
         primitive: wgpu::PrimitiveState {
             topology: wgpu::PrimitiveTopology::TriangleList,
@@ -338,28 +330,28 @@ With that in place, we need to write the actual shaders.
 // Vertex shader
 
 struct Camera {
-    view_proj: mat4x4<f32>;
-};
-[[group(0), binding(0)]]
+    view_proj: mat4x4<f32>,
+}
+@group(0) @binding(0)
 var<uniform> camera: Camera;
 
 struct Light {
-    position: vec3<f32>;
-    color: vec3<f32>;
-};
-[[group(1), binding(0)]]
+    position: vec3<f32>,
+    color: vec3<f32>,
+}
+@group(1) @binding(0)
 var<uniform> light: Light;
 
 struct VertexInput {
-    [[location(0)]] position: vec3<f32>;
+    @location(0) position: vec3<f32>,
 };
 
 struct VertexOutput {
-    [[builtin(position)]] clip_position: vec4<f32>;
-    [[location(0)]] color: vec3<f32>;
+    @builtin(position) clip_position: vec4<f32>,
+    @location(0) color: vec3<f32>,
 };
 
-[[stage(vertex)]]
+@vertex
 fn vs_main(
     model: VertexInput,
 ) -> VertexOutput {
@@ -372,8 +364,8 @@ fn vs_main(
 
 // Fragment shader
 
-[[stage(fragment)]]
-fn fs_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
+@fragment
+fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     return vec4<f32>(in.color, 1.0);
 }
 ```
@@ -500,18 +492,18 @@ The ambient part is based on the light color as well as the object color. We've 
 
 ```wgsl
 struct Light {
-    position: vec3<f32>;
-    color: vec3<f32>;
-};
-[[group(2), binding(0)]]
+    position: vec3<f32>,
+    color: vec3<f32>,
+}
+@group(2) @binding(0)
 var<uniform> light: Light;
 ```
 
 Then we need to update our main shader code to calculate and use the ambient color value.
 
 ```wgsl
-[[stage(fragment)]]
-fn fs_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
+@fragment
+fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     let object_color: vec4<f32> = textureSample(t_diffuse, s_diffuse, in.tex_coords);
     
     // We don't need (or want) much ambient light, so 0.1 is fine
@@ -540,9 +532,9 @@ We're going to need to pull in the normal vector into our `shader.wgsl`.
 
 ```wgsl
 struct VertexInput {
-    [[location(0)]] position: vec3<f32>;
-    [[location(1)]] tex_coords: vec2<f32>;
-    [[location(2)]] normal: vec3<f32>; // NEW!
+    @location(0) position: vec3<f32>,
+    @location(1) tex_coords: vec2<f32>;
+    @location(2) normal: vec3<f32>; // NEW!
 };
 ```
 
@@ -550,17 +542,17 @@ We're also going to want to pass that value, as well as the vertex's position to
 
 ```wgsl
 struct VertexOutput {
-    [[builtin(position)]] clip_position: vec4<f32>;
-    [[location(0)]] tex_coords: vec2<f32>;
-    [[location(1)]] world_normal: vec3<f32>;
-    [[location(2)]] world_position: vec3<f32>;
+    @builtin(position) clip_position: vec4<f32>;
+    @location(0) tex_coords: vec2<f32>;
+    @location(1) world_normal: vec3<f32>;
+    @location(2) world_position: vec3<f32>;
 };
 ```
 
 For now, let's just pass the normal directly as-is. This is wrong, but we'll fix it later.
 
 ```wgsl
-[[stage(vertex)]]
+@vertex
 fn vs_main(
     model: VertexInput,
     instance: InstanceInput,
@@ -727,24 +719,24 @@ Now we need to reconstruct the normal matrix in the vertex shader.
 
 ```wgsl
 struct InstanceInput {
-    [[location(5)]] model_matrix_0: vec4<f32>;
-    [[location(6)]] model_matrix_1: vec4<f32>;
-    [[location(7)]] model_matrix_2: vec4<f32>;
-    [[location(8)]] model_matrix_3: vec4<f32>;
+    @location(5) model_matrix_0: vec4<f32>;
+    @location(6) model_matrix_1: vec4<f32>;
+    @location(7) model_matrix_2: vec4<f32>;
+    @location(8) model_matrix_3: vec4<f32>;
     // NEW!
-    [[location(9)]] normal_matrix_0: vec3<f32>;
-    [[location(10)]] normal_matrix_1: vec3<f32>;
-    [[location(11)]] normal_matrix_2: vec3<f32>;
+    @location(9) normal_matrix_0: vec3<f32>;
+    @location(10) normal_matrix_1: vec3<f32>;
+    @location(11) normal_matrix_2: vec3<f32>;
 };
 
 struct VertexOutput {
-    [[builtin(position)]] clip_position: vec4<f32>;
-    [[location(0)]] tex_coords: vec2<f32>;
-    [[location(1)]] world_normal: vec3<f32>;
-    [[location(2)]] world_position: vec3<f32>;
+    @builtin(position) clip_position: vec4<f32>;
+    @location(0) tex_coords: vec2<f32>;
+    @location(1) world_normal: vec3<f32>;
+    @location(2) world_position: vec3<f32>;
 };
 
-[[stage(vertex)]]
+@vertex
 fn vs_main(
     model: VertexInput,
     instance: InstanceInput,
@@ -813,10 +805,10 @@ Because this is relative to the view angle, we are going to need to pass in the 
 
 ```wgsl
 struct Camera {
-    view_pos: vec4<f32>;
-    view_proj: mat4x4<f32>;
-};
-[[group(1), binding(0)]]
+    view_pos: vec4<f32>,
+    view_proj: mat4x4<f32>,
+}
+@group(1) @binding(0)
 var<uniform> camera: Camera;
 ```
 

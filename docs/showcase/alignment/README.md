@@ -34,9 +34,9 @@ You can see the full table of the alignments in section [4.3.7.1 of the WGSL spe
 
 ```wgsl
 struct Light {
-    position: vec3<f32>;
-    color: vec3<f32>;
-};
+    position: vec3<f32>,
+    color: vec3<f32>,
+}
 ```
 
 So what's the alignment of this struct? Your first guess would be that it's the sum of the alignments of the individual fields. That might make sense if we were in Rust-land, but in shader-land, it's a little more involved. The alignment for a given struct is given by the following equation:

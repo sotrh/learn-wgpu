@@ -80,14 +80,14 @@ impl ShaderCanvas {
 
         let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("Shader Canvas Render Pass"),
-            color_attachments: &[wgpu::RenderPassColorAttachment {
+            color_attachments: &[Some(wgpu::RenderPassColorAttachment {
                 view: frame,
                 resolve_target: None,
                 ops: wgpu::Operations {
                     load: wgpu::LoadOp::Load,
                     store: true,
                 },
-            }],
+            })],
             depth_stencil_attachment: None,
         });
         pass.set_bind_group(0, &self.simulation_bind_group, &[]);
@@ -195,8 +195,8 @@ impl<'a> ShaderCanvasBuilder<'a> {
             }],
         });
 
-        let vert_module = device.create_shader_module(&vert_code);
-        let frag_module = device.create_shader_module(&frag_code);
+        let vert_module = device.create_shader_module(vert_code);
+        let frag_module = device.create_shader_module(frag_code);
 
         let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             label: self.label,
@@ -214,14 +214,14 @@ impl<'a> ShaderCanvasBuilder<'a> {
             fragment: Some(wgpu::FragmentState {
                 entry_point: "main",
                 module: &frag_module,
-                targets: &[wgpu::ColorTargetState {
+                targets: &[Some(wgpu::ColorTargetState {
                     format: display_format,
                     blend: Some(wgpu::BlendState {
                         color: wgpu::BlendComponent::REPLACE,
                         alpha: wgpu::BlendComponent::REPLACE,
                     }),
                     write_mask: wgpu::ColorWrites::ALL,
-                }],
+                })],
             }),
             primitive: wgpu::PrimitiveState {
                 topology: wgpu::PrimitiveTopology::TriangleList,

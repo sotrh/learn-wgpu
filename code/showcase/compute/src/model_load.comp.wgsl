@@ -1,76 +1,91 @@
 struct ModelVertex {
-    x: f32;
-    y: f32;
-    z: f32;
-    uv: f32;
-    uw: f32;
-    nx: f32;
-    ny: f32;
-    nz: f32;
-    tx: f32;
-    ty: f32;
-    tz: f32;
-    bx: f32;
-    by: f32;
-    bz: f32;
-    pad0_: u32;
-    pad1_: u32;
-};
+    x: f32,
+    y: f32,
+    z: f32,
+    uv: f32,
+    uw: f32,
+    nx: f32,
+    ny: f32,
+    nz: f32,
+    tx: f32,
+    ty: f32,
+    tz: f32,
+    bx: f32,
+    by: f32,
+    bz: f32,
+    pad0_: u32,
+    pad1_: u32,
+}
 
 struct SrcVertexBuffer {
-    srcVertices: [[stride(64)]] array<ModelVertex>;
-};
+    srcVertices: array<ModelVertex>,
+}
 
 struct DstVertexBuffer {
-    dstVertices: [[stride(64)]] array<ModelVertex>;
-};
+    dstVertices: array<ModelVertex>,
+}
 
 struct IndexBuffer {
-    indices: [[stride(4)]] array<u32>;
-};
+    indices: array<u32>,
+}
 
 struct ComputeInfo {
-    numVertices: u32;
-    numIndices: u32;
-};
+    numVertices: u32,
+    numIndices: u32,
+}
 
-[[group(0), binding(0)]]
+@group(0) @binding(0) 
 var<storage> global: SrcVertexBuffer;
-[[group(0), binding(1)]]
+@group(0) @binding(1) 
 var<storage, read_write> global_1: DstVertexBuffer;
-[[group(0), binding(2)]]
+@group(0) @binding(2) 
 var<storage> global_2: IndexBuffer;
-[[group(0), binding(3)]]
+@group(0) @binding(3) 
 var<uniform> global_3: ComputeInfo;
 var<private> gl_GlobalInvocationID: vec3<u32>;
 
 fn getPos(v: ModelVertex) -> vec3<f32> {
     var v_1: ModelVertex;
 
+    _ = (&global.srcVertices);
+    _ = (&global_1.dstVertices);
+    _ = (&global_2.indices);
+    _ = (&global_3.numVertices);
+    _ = (&global_3.numIndices);
     v_1 = v;
-    let _e12 = v_1;
-    let _e14 = v_1;
-    let _e16 = v_1;
-    return vec3<f32>(_e12.x, _e14.y, _e16.z);
+    let _e13 = v_1.x;
+    let _e15 = v_1.y;
+    let _e17 = v_1.z;
+    return vec3<f32>(_e13, _e15, _e17);
 }
 
 fn getUV(v_2: ModelVertex) -> vec2<f32> {
     var v_3: ModelVertex;
 
+    _ = (&global.srcVertices);
+    _ = (&global_1.dstVertices);
+    _ = (&global_2.indices);
+    _ = (&global_3.numVertices);
+    _ = (&global_3.numIndices);
     v_3 = v_2;
-    let _e12 = v_3;
-    let _e14 = v_3;
-    return vec2<f32>(_e12.uv, _e14.uw);
+    let _e13 = v_3.uv;
+    let _e15 = v_3.uw;
+    return vec2<f32>(_e13, _e15);
 }
 
 fn getNormal(v_4: ModelVertex) -> vec3<f32> {
     var v_5: ModelVertex;
 
+    _ = (&global.srcVertices);
+    _ = (&global_1.dstVertices);
+    _ = (&global_2.indices);
+    _ = (&global_3.numVertices);
+    _ = (&global_3.numIndices);
     v_5 = v_4;
-    let _e12 = v_5;
-    let _e14 = v_5;
-    let _e16 = v_5;
-    return vec3<f32>(_e12.nx, _e14.ny, _e16.nz);
+    let _e13 = v_5.nx;
+    let _e15 = v_5.ny;
+    let _e17 = v_5.nz;
+    return vec3<f32>(_e13, _e15, _e17);
 }
 
 fn calcTangentBitangent(vertexIndex: u32) -> ModelVertex {
@@ -98,14 +113,20 @@ fn calcTangentBitangent(vertexIndex: u32) -> ModelVertex {
     var delta_uv2_: vec2<f32>;
     var r: f32;
 
+    _ = (&global_1.dstVertices);
+    _ = (&global_3.numVertices);
     vertexIndex_1 = vertexIndex;
     let _e12 = vertexIndex_1;
     let _e14 = global.srcVertices[_e12];
     v_6 = _e14;
+    _ = vec3<f32>(f32(0));
+    _ = vec3<f32>(f32(0));
+    _ = u32(0);
+    _ = u32(0);
     loop {
         let _e30 = i;
         let _e31 = global_3.numIndices;
-        if (!((_e30 < _e31))) {
+        if !((_e30 < _e31)) {
             break;
         }
         {
@@ -124,7 +145,7 @@ fn calcTangentBitangent(vertexIndex: u32) -> ModelVertex {
             let _e60 = vertexIndex_1;
             let _e63 = index2_;
             let _e64 = vertexIndex_1;
-            if ((((_e56 == _e57) || (_e59 == _e60)) || (_e63 == _e64))) {
+            if (((_e56 == _e57) || (_e59 == _e60)) || (_e63 == _e64)) {
                 {
                     let _e67 = index0_;
                     let _e69 = global.srcVertices[_e67];
@@ -135,21 +156,27 @@ fn calcTangentBitangent(vertexIndex: u32) -> ModelVertex {
                     let _e75 = index2_;
                     let _e77 = global.srcVertices[_e75];
                     v2_ = _e77;
+                    _ = v0_;
                     let _e80 = v0_;
                     let _e81 = getPos(_e80);
                     pos0_ = _e81;
+                    _ = v1_;
                     let _e84 = v1_;
                     let _e85 = getPos(_e84);
                     pos1_ = _e85;
+                    _ = v2_;
                     let _e88 = v2_;
                     let _e89 = getPos(_e88);
                     pos2_ = _e89;
+                    _ = v0_;
                     let _e92 = v0_;
                     let _e93 = getUV(_e92);
                     uv0_ = _e93;
+                    _ = v1_;
                     let _e96 = v1_;
                     let _e97 = getUV(_e96);
                     uv1_ = _e97;
+                    _ = v2_;
                     let _e100 = v2_;
                     let _e101 = getUV(_e100);
                     uv2_ = _e101;
@@ -195,7 +222,7 @@ fn calcTangentBitangent(vertexIndex: u32) -> ModelVertex {
         }
     }
     let _e163 = trianglesIncluded;
-    if ((_e163 > u32(0))) {
+    if (_e163 > u32(0)) {
         {
             let _e167 = tangent;
             let _e168 = trianglesIncluded;
@@ -203,8 +230,10 @@ fn calcTangentBitangent(vertexIndex: u32) -> ModelVertex {
             let _e172 = bitangent;
             let _e173 = trianglesIncluded;
             bitangent = (_e172 / vec3<f32>(f32(_e173)));
+            _ = tangent;
             let _e178 = tangent;
             tangent = normalize(_e178);
+            _ = bitangent;
             let _e181 = bitangent;
             bitangent = normalize(_e181);
         }
@@ -229,8 +258,13 @@ fn main_1() {
     var vertexIndex_2: u32;
     var result: ModelVertex;
 
+    _ = (&global.srcVertices);
+    _ = (&global_2.indices);
+    _ = (&global_3.numVertices);
+    _ = (&global_3.numIndices);
     let _e11 = gl_GlobalInvocationID;
     vertexIndex_2 = _e11.x;
+    _ = vertexIndex_2;
     let _e15 = vertexIndex_2;
     let _e16 = calcTangentBitangent(_e15);
     result = _e16;
@@ -240,9 +274,13 @@ fn main_1() {
     return;
 }
 
-[[stage(compute), workgroup_size(64, 1, 1)]]
-fn main([[builtin(global_invocation_id)]] param: vec3<u32>) {
+@compute @workgroup_size(64, 1, 1) 
+fn main(@builtin(global_invocation_id) param: vec3<u32>) {
     gl_GlobalInvocationID = param;
+    _ = (&global.srcVertices);
+    _ = (&global_1.dstVertices);
+    _ = (&global_2.indices);
+    _ = (&global_3.numVertices);
     main_1();
     return;
 }

@@ -50,27 +50,27 @@ fn fbm(p: vec2<f32>) -> f32 {
 }
 
 struct ChunkData {
-    chunk_size: vec2<u32>;
-    chunk_corner: vec2<i32>;
-    min_max_height: vec2<f32>;
-};
+    chunk_size: vec2<u32>,
+    chunk_corner: vec2<i32>,
+    min_max_height: vec2<f32>,
+}
 
 struct Vertex {
-    [[location(0)]] position: vec3<f32>;
-    [[location(1)]] normal: vec3<f32>;
-};
+    @location(0) position: vec3<f32>,
+    @location(1) normal: vec3<f32>,
+}
 
 struct VertexBuffer {
-    data: [[stride(32)]] array<Vertex>;
-};
+    data: array<Vertex>, // stride: 32
+}
 
 struct IndexBuffer {
-    data: array<u32>;
-};
+    data: array<u32>,
+}
 
-[[group(0), binding(0)]] var<uniform> chunk_data: ChunkData;
-[[group(0), binding(1)]] var<storage, read_write> vertices: VertexBuffer;
-[[group(0), binding(2)]] var<storage, read_write> indices: IndexBuffer;
+@group(0) @binding(0) var<uniform> chunk_data: ChunkData;
+@group(0) @binding(1) var<storage, read_write> vertices: VertexBuffer;
+@group(0) @binding(2) var<storage, read_write> indices: IndexBuffer;
 
 fn terrain_point(p: vec2<f32>) -> vec3<f32> {
     return vec3<f32>(
@@ -96,9 +96,9 @@ fn terrain_vertex(p: vec2<f32>) -> Vertex {
     return Vertex(v, n);
 }
 
-[[stage(compute), workgroup_size(64)]]
+@compute @workgroup_size(64)
 fn gen_terrain_compute(
-    [[builtin(global_invocation_id)]] gid: vec3<u32>
+    @builtin(global_invocation_id) gid: vec3<u32>
 ) {
     // Create vertex
     let vertex_index = gid.x;
@@ -128,61 +128,32 @@ fn gen_terrain_compute(
     indices.data[start_index + 5u] = v10;
 }
 
-struct VertexOutput {
-    [[location(0)]] uv: vec2<f32>;
-    [[builtin(position)]] position: vec4<f32>;
-};
-
-// Draws a fullscreen quad
-[[stage(vertex)]]
-fn gen_terrain_vertex(
-    [[builtin(vertex_index)]] index: u32,
-) {
-    let u = f32(((index + 2u) / 3u) % 2u);
-    let v = f32(((index + 1u) / 3u) % 2u);
-    let uv = vec2<f32>(u, v);
-
-    let position = vec4<f32>(-1.0 + uv * 2.0, 0.0, 1.0);
-
-    return VertexOutput(vec2<f32>(uv.x, 1.0-uv.y), position);
-}
-
-struct FragmentOutput {
-    [[location(0)]] output: u32;
-};
-
-[[stage(fragment)]]
-fn fs_main(in: VertexOutput) -> FragmentOutput {
-    var output = 0u;
-    
-    return FragmentOutput(output);
-}
 
 // ============================
 // Terrain Rendering
 // ============================
 
 struct Camera {
-    view_pos: vec4<f32>;
-    view_proj: mat4x4<f32>;
-};
-[[group(0), binding(0)]]
+    view_pos: vec4<f32>,
+    view_proj: mat4x4<f32>,
+}
+@group(0) @binding(0)
 var<uniform> camera: Camera;
 
 struct Light {
-    position: vec3<f32>;
-    color: vec3<f32>;
-};
-[[group(1), binding(0)]]
+    position: vec3<f32>,
+    color: vec3<f32>,
+}
+@group(1) @binding(0)
 var<uniform> light: Light;
 
 struct VertexOutput {
-    [[builtin(position)]] clip_position: vec4<f32>;
-    [[location(0)]] normal: vec3<f32>;
-    [[location(1)]] world_pos: vec3<f32>;
-};
+    @builtin(position) clip_position: vec4<f32>,
+    @location(0) normal: vec3<f32>,
+    @location(1) world_pos: vec3<f32>,
+}
 
-[[stage(vertex)]]
+@vertex
 fn vs_main(
     vertex: Vertex,
 ) -> VertexOutput {
@@ -191,13 +162,13 @@ fn vs_main(
     return VertexOutput(clip_position, normal, vertex.position);
 }
 
-[[group(2), binding(0)]]
+@group(2) @binding(0)
 var t_diffuse: texture_2d<f32>;
-[[group(2), binding(1)]]
+@group(2) @binding(1)
 var s_diffuse: sampler;
-[[group(2), binding(2)]]
+@group(2) @binding(2)
 var t_normal: texture_2d<f32>;
-[[group(2), binding(3)]]
+@group(2) @binding(3)
 var s_normal: sampler;
 
 fn color23(p: vec2<f32>) -> vec3<f32> {
@@ -208,9 +179,9 @@ fn color23(p: vec2<f32>) -> vec3<f32> {
     );
 }
 
-[[stage(fragment)]]
-fn fs_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
-    var color = smoothStep(vec3<f32>(0.0), vec3<f32>(0.1), fract(in.world_pos));
+@fragment
+fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
+    var color = smoothstep(vec3<f32>(0.0), vec3<f32>(0.1), fract(in.world_pos));
     color = mix(vec3<f32>(0.5, 0.1, 0.7), vec3<f32>(0.2, 0.2, 0.2), vec3<f32>(color.x * color.y * color.z));
 
     let ambient_strength = 0.1;

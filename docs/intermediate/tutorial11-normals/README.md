@@ -1,13 +1,5 @@
 # Normal Mapping
 
-<div class="warn">
-
-The shaders used in this example don't compile on WASM using version 0.12.0 of wgpu. I created an issue [here](https://github.com/gfx-rs/naga/issues/1739). The issue is fixed on the most recent version of naga, but that is using the updated WGSL syntax.
-
-Once 0.13 comes out I'll port the WGSL code to the new syntax and this example should be working.
-
-</div>
-
 With just lighting, our scene is already looking pretty good. Still, our models are still overly smooth. This is understandable because we are using a very simple model. If we were using a texture that was supposed to be smooth, this wouldn't be a problem, but our brick texture is supposed to be rougher. We could solve this by adding more geometry, but that would slow our scene down, and it be would hard to know where to add new polygons. This is where normal mapping comes in.
 
 Remember in [the instancing tutorial](/beginner/tutorial7-instancing/#a-different-way-textures), we experimented with storing instance data in a texture? A normal map is doing just that with normal data! We'll use the normals in the normal map in our lighting calculation in addition to the vertex normal.
@@ -106,17 +98,17 @@ Now we can use the texture in the fragment shader.
 ```wgsl
 // Fragment shader
 
-[[group(0), binding(0)]]
+@group(0) @binding(0)
 var t_diffuse: texture_2d<f32>;
-[[group(0), binding(1)]]
+@group(0)@binding(1)
 var s_diffuse: sampler;
-[[group(0), binding(2)]]
+@group(0)@binding(2)
 var t_normal: texture_2d<f32>;
-[[group(0), binding(3)]]
+@group(0) @binding(3)
 var s_normal: sampler;
 
-[[stage(fragment)]]
-fn fs_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
+@fragment
+fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     let object_color: vec4<f32> = textureSample(t_diffuse, s_diffuse, in.tex_coords);
     let object_normal: vec4<f32> = textureSample(t_normal, s_normal, in.tex_coords);
     
@@ -333,11 +325,11 @@ Since the normal map by default is in tangent space, we need to transform all th
 
 ```wgsl
 struct VertexInput {
-    [[location(0)]] position: vec3<f32>;
-    [[location(1)]] tex_coords: vec2<f32>;
-    [[location(2)]] normal: vec3<f32>;
-    [[location(3)]] tangent: vec3<f32>;
-    [[location(4)]] bitangent: vec3<f32>;
+    @location(0) position: vec3<f32>,
+    @location(1) tex_coords: vec2<f32>;
+    @location(2) normal: vec3<f32>;
+    @location(3) tangent: vec3<f32>;
+    @location(4) bitangent: vec3<f32>;
 };
 ```
 
@@ -345,15 +337,15 @@ Next, we'll construct the `tangent_matrix` and then transform the vertex's light
 
 ```wgsl
 struct VertexOutput {
-    [[builtin(position)]] clip_position: vec4<f32>;
-    [[location(0)]] tex_coords: vec2<f32>;
+    @builtin(position) clip_position: vec4<f32>;
+    @location(0) tex_coords: vec2<f32>;
     // UPDATED!
-    [[location(1)]] tangent_position: vec3<f32>;
-    [[location(2)]] tangent_light_position: vec3<f32>;
-    [[location(3)]] tangent_view_position: vec3<f32>;
+    @location(1) tangent_position: vec3<f32>;
+    @location(2) tangent_light_position: vec3<f32>;
+    @location(3) tangent_view_position: vec3<f32>;
 };
 
-[[stage(vertex)]]
+@vertex
 fn vs_main(
     model: VertexInput,
     instance: InstanceInput,
@@ -390,8 +382,8 @@ fn vs_main(
 Finally, we'll update the fragment shader to use these transformed lighting values.
 
 ```wgsl
-[[stage(fragment)]]
-fn fs_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
+@fragment
+fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     // Sample textures..
 
     // Create the lighting vectors

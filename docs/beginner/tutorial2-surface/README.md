@@ -138,7 +138,7 @@ The `limits` field describes the limit of certain types of resources that we can
 ```rust
         let config = wgpu::SurfaceConfiguration {
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-            format: surface.get_preferred_format(&adapter).unwrap(),
+            format: surface.get_supported_formats(&adapter)[0],
             width: size.width,
             height: size.height,
             present_mode: wgpu::PresentMode::Fifo,
@@ -158,7 +158,19 @@ The `format` defines how `SurfaceTexture`s will be stored on the gpu. Different 
 Make sure that the width and height of the `SurfaceTexture` are not 0, as that can cause your app to crash.
 </div>
 
-`present_mode` uses `wgpu::PresentMode` enum which determines how to sync the surface with the display. The option we picked, `FIFO`, will cap the display rate at the display's framerate. This is essentially VSync. This is also the most optimal mode on mobile. There are other options and you can see all of them [in the docs](https://docs.rs/wgpu/latest/wgpu/enum.PresentMode.html)
+`present_mode` uses `wgpu::PresentMode` enum which determines how to sync the surface with the display. The option we picked, `PresentMode::Fifo`, will cap the display rate at the display's framerate. This is essentially VSync. This mode is guaranteed to be supported on all platforms. There are other options and you can see all of them [in the docs](https://docs.rs/wgpu/latest/wgpu/enum.PresentMode.html)
+
+<div class="note">
+
+If you want to let your users pick what `PresentMode` they use, you can use [Surface::get_supported_modes()](https://docs.rs/wgpu/latest/wgpu/struct.Surface.html#method.get_supported_modes) to get a list of all the `PresentMode`s the surface supports:
+
+```rust
+let modes = surface.get_supported_modes(&adapter);
+```
+
+Regardless, `PresentMode::Fifo` will always be supported, and `PresentMode::AutoVsync` and `PresentMode::AutoNoVsync` have fallback support and therefore will work on all platforms.
+
+</div>
 
 Now that we've configured our surface properly we can add these new fields at the end of the method.
 
@@ -217,13 +229,13 @@ cfg-if = "1"
 winit = "0.26"
 env_logger = "0.9"
 log = "0.4"
-wgpu = "0.12"
+wgpu = "0.13"
 pollster = "0.2"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 console_error_panic_hook = "0.1.6"
 console_log = "0.2.0"
-wgpu = { version = "0.12", features = ["webgl"]}
+wgpu = { version = "0.13", features = ["webgl"]}
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
 web-sys = { version = "0.3", features = [
@@ -364,7 +376,7 @@ Now we can get to clearing the screen (long time coming). We need to use the `en
     {
         let _render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("Render Pass"),
-            color_attachments: &[wgpu::RenderPassColorAttachment {
+            color_attachments: &[Some(wgpu::RenderPassColorAttachment {
                 view: &view,
                 resolve_target: None,
                 ops: wgpu::Operations {
@@ -376,7 +388,7 @@ Now we can get to clearing the screen (long time coming). We need to use the `en
                     }),
                     store: true,
                 },
-            }],
+            })],
             depth_stencil_attachment: None,
         });
     }
@@ -390,8 +402,6 @@ Now we can get to clearing the screen (long time coming). We need to use the `en
 ```
 
 First things first, let's talk about the extra block (`{}`) around `encoder.begin_render_pass(...)`. `begin_render_pass()` borrows `encoder` mutably (aka `&mut self`). We can't call `encoder.finish()` until we release that mutable borrow. The block tells rust to drop any variables within it when the code leaves that scope thus releasing the mutable borrow on `encoder` and allowing us to `finish()` it. If you don't like the `{}`, you can also use `drop(render_pass)` to achieve the same effect.
-
-We can get the same results by removing the `{}`, and the `let _render_pass =` line, but we need access to the `_render_pass` in the next tutorial, so we'll leave it as is.
 
 The last lines of the code tell `wgpu` to finish the command buffer, and to submit it to the gpu's render queue.
 
@@ -444,10 +454,17 @@ Some of you may be able to tell what's going on just by looking at it, but I'd b
 
 A `RenderPassDescriptor` only has three fields: `label`, `color_attachments` and `depth_stencil_attachment`. The `color_attachments` describe where we are going to draw our color to. We use the `TextureView` we created earlier to make sure that we render to the screen.
 
+<div class="note">
+
+The `color_attachments` field is a "sparse" array. This allows you to use a pipeline that expects multiple render targets and only only supply the ones you care about. 
+
+</div>
+
+
 We'll use `depth_stencil_attachment` later, but we'll set it to `None` for now.
 
 ```rust
-wgpu::RenderPassColorAttachment {
+Some(wgpu::RenderPassColorAttachment {
     view: &view,
     resolve_target: None,
     ops: wgpu::Operations {
@@ -459,7 +476,7 @@ wgpu::RenderPassColorAttachment {
         }),
         store: true,
     },
-}
+})
 ```
 
 The `RenderPassColorAttachment` has the `view` field which informs `wgpu` what texture to save the colors to. In this case we specify the `view` that we created using `surface.get_current_texture()`. This means that any colors we draw to this attachment will get drawn to the screen.

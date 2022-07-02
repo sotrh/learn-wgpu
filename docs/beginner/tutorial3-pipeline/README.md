@@ -47,12 +47,12 @@ In the same folder as `main.rs`, create a file `shader.wgsl`. Write the followin
 // Vertex shader
 
 struct VertexOutput {
-    [[builtin(position)]] clip_position: vec4<f32>;
+    @builtin(position) clip_position: vec4<f32>,
 };
 
-[[stage(vertex)]]
+@vertex
 fn vs_main(
-    [[builtin(vertex_index)]] in_vertex_index: u32,
+    @builtin(vertex_index) in_vertex_index: u32,
 ) -> VertexOutput {
     var out: VertexOutput;
     let x = f32(1 - i32(in_vertex_index)) * 0.5;
@@ -62,7 +62,7 @@ fn vs_main(
 }
 ```
 
-First, we declare `struct` to store the output of our vertex shader. This consists of only one field currently which is our vertex's `clip_position`. The `[[builtin(position)]]` bit tells WGPU that this is the value we want to use as the vertex's [clip coordinates](https://en.wikipedia.org/wiki/Clip_coordinates). This is analogous to GLSL's `gl_Position` variable.
+First, we declare `struct` to store the output of our vertex shader. This consists of only one field currently which is our vertex's `clip_position`. The `@builtin(position)` bit tells WGPU that this is the value we want to use as the vertex's [clip coordinates](https://en.wikipedia.org/wiki/Clip_coordinates). This is analogous to GLSL's `gl_Position` variable.
 
 <div class="note">
 
@@ -70,7 +70,7 @@ Vector types such as `vec4` are generic. Currently, you must specify the type of
 
 </div>
 
-The next part of the shader code is the `vs_main` function. We are using `[[stage(vertex)]]` to mark this function as a valid entry point for a vertex shader. We expect a `u32` called `in_vertex_index` which gets its value from `[[builtin(vertex_index)]]`.
+The next part of the shader code is the `vs_main` function. We are using `@vertex` to mark this function as a valid entry point for a vertex shader. We expect a `u32` called `in_vertex_index` which gets its value from `@builtin(vertex_index)`.
 
 We then declare a variable called `out` using our `VertexOutput` struct. We create two other variables for the `x`, and `y`, of a triangle.
 
@@ -93,10 +93,10 @@ Now we can save our `clip_position` to `out`. We then just return `out` and we'r
 We technically didn't need a struct for this example, and could have just done something like the following:
 
 ```wgsl
-[[stage(vertex)]]
+@vertex
 fn vs_main(
-    [[builtin(vertex_index)]] in_vertex_index: u32
-) -> [[builtin(position)]] vec4<f32> {
+    @builtin(vertex_index) in_vertex_index: u32
+) -> @builtin(position) vec4<f32> {
     // Vertex shader code...
 }
 ```
@@ -110,8 +110,8 @@ Next up, the fragment shader. Still in `shader.wgsl` add the following:
 ```wgsl
 // Fragment shader
 
-[[stage(fragment)]]
-fn fs_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
+@fragment
+fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     return vec4<f32>(0.3, 0.2, 0.1, 1.0);
 }
 ```
@@ -124,7 +124,7 @@ Notice that the entry point for the vertex shader was named `vs_main` and that t
 
 </div>
 
-The `[[location(0)]]` bit tells WGPU to store the `vec4` value returned by this function in the first color target. We'll get into what this is later.
+The `@location(0)` bit tells WGPU to store the `vec4` value returned by this function in the first color target. We'll get into what this is later.
 
 ## How do we use the shaders?
 This is the part where we finally make the thing in the title: the pipeline. First, let's modify `State` to include the following.
@@ -145,7 +145,7 @@ struct State {
 Now let's move to the `new()` method, and start making the pipeline. We'll have to load in those shaders we made earlier, as the `render_pipeline` requires those.
 
 ```rust
-let shader = device.create_shader_module(&wgpu::ShaderModuleDescriptor {
+let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
     label: Some("Shader"),
     source: wgpu::ShaderSource::Wgsl(include_str!("shader.wgsl").into()),
 });
@@ -156,7 +156,7 @@ let shader = device.create_shader_module(&wgpu::ShaderModuleDescriptor {
 You can also use `include_wgsl!` macro as a small shortcut to create the `ShaderModuleDescriptor`.
 
 ```rust
-let shader = device.create_shader_module(&include_wgsl!("shader.wgsl"));
+let shader = device.create_shader_module(include_wgsl!("shader.wgsl"));
 ```
 
 </div>
@@ -197,7 +197,7 @@ let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescrip
 ```
 
 Several things to note here:
-1. Here you can specify which function inside the shader should be the `entry_point`. These are the functions we marked with `[[stage(vertex)]]` and `[[stage(fragment)]]`
+1. Here you can specify which function inside the shader should be the `entry_point`. These are the functions we marked with `@vertex` and `@fragment`
 2. The `buffers` field tells `wgpu` what type of vertices we want to pass to the vertex shader. We're specifying the vertices in the vertex shader itself, so we'll leave this empty. We'll put something there in the next tutorial.
 3. The `fragment` is technically optional, so you have to wrap it in `Some()`. We need it if we want to store color data to the `surface`.
 4. The `targets` field tells `wgpu` what color outputs it should set up. Currently, we only need one for the `surface`. We use the `surface`'s format so that copying to it is easy, and we specify that the blending should just replace old pixel data with new data. We also tell `wgpu` to write to all colors: red, blue, green, and alpha. *We'll talk more about* `color_state` *when we talk about textures.*
@@ -270,8 +270,8 @@ If you run your program now, it'll take a little longer to start, but it will st
     let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
         label: Some("Render Pass"),
         color_attachments: &[
-            // This is what [[location(0)]] in the fragment shader targets
-            wgpu::RenderPassColorAttachment {
+            // This is what @location(0) in the fragment shader targets
+            Some(wgpu::RenderPassColorAttachment {
                 view: &view,
                 resolve_target: None,
                 ops: wgpu::Operations {
@@ -285,7 +285,7 @@ If you run your program now, it'll take a little longer to start, but it will st
                     ),
                     store: true,
                 }
-            }
+            })
         ],
         depth_stencil_attachment: None,
     });
@@ -300,7 +300,7 @@ If you run your program now, it'll take a little longer to start, but it will st
 We didn't change much, but let's talk about what we did change.
 1. We renamed `_render_pass` to `render_pass` and made it mutable.
 2. We set the pipeline on the `render_pass` using the one we just created.
-3. We tell `wgpu` to draw *something* with 3 vertices, and 1 instance. This is where `[[builtin(vertex_index)]]` comes from.
+3. We tell `wgpu` to draw *something* with 3 vertices, and 1 instance. This is where `@builtin(vertex_index)` comes from.
 
 With all that you should be seeing a lovely brown triangle.
 

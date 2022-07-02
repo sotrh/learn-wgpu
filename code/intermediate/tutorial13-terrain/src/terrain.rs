@@ -108,7 +108,7 @@ impl TerrainPipeline {
             ],
         });
 
-        let shader = device.create_shader_module(&wgpu::include_wgsl!("terrain.wgsl"));
+        let shader = device.create_shader_module(wgpu::include_wgsl!("terrain.wgsl"));
 
         let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             label: Some("TerrainPipeline::Gen::PipelineLayout"),
@@ -248,7 +248,7 @@ impl TerrainPipeline {
         });
         cpass.set_pipeline(&self.gen_pipeline);
         cpass.set_bind_group(0, &bind_group, &[]);
-        cpass.dispatch(
+        cpass.dispatch_workgroups(
             dbg!((((self.chunk_size.x + 1) * (self.chunk_size.y + 1)) as f32 / 64.0).ceil()) as _,
             1,
             1,

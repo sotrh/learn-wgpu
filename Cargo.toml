@@ -14,5 +14,5 @@ members = [
 ]
 exclude = [
     "code/showcase/imgui-demo",
-    # "code/showcase/pong",
+    "code/showcase/pong",
 ]

@@ -2,6 +2,12 @@
 
 ![](./pong.png)
 
+<div class="warn">
+
+This code hasn't been updated to 0.13 quite yet as wgpu_glyph [hasn't updated to 0.13 yet](https://github.com/hecrj/wgpu_glyph/pull/89). I'll update it when it has.
+
+</div>
+
 Practically the "Hello World!" of games. Pong has been remade thousands of times. I know Pong. You know Pong. We all know Pong. That being said, this time I wanted to put in a little more effort than most people do. This showcase has a basic menu system, sounds, and different game states.
 
 The architecture is not the best as I prescribed to the "get things done" mentality. If I were to redo this project, I'd change a lot of things. Regardless, let's get into the postmortem.
@@ -269,7 +275,7 @@ anyhow = "1.0"
 bytemuck = { version = "1.4", features = [ "derive" ] }
 cgmath = "0.18"
 pollster = "0.2"
-wgpu = { version = "0.12", features = ["spirv"]}
+wgpu = { version = "0.13", features = ["spirv"]}
 wgpu_glyph = "0.15"
 rand = "0.8"
 rodio = { version = "0.14", default-features = false, features = ["wav"] }
@@ -289,7 +295,7 @@ web-sys = { version = "0.3.53", features = [
     "Element",
 ]}
 winit = { version = "0.25", features = ["web-sys"] }
-wgpu = { version = "0.12", features = ["spirv", "webgl"]}
+wgpu = { version = "0.13", features = ["spirv", "webgl"]}
 ```
 
 I'll highlight a few of these:

@@ -11,10 +11,10 @@ bytemuck = { version = "1.4", features = [ "derive" ] }
 cgmath = "0.18"
 env_logger = "0.9"
 pollster = "0.2"
-image = "0.23"
+image = "0.24.2"
 log = "0.4"
 tobj = "2.0"
-wgpu = "0.12"
+wgpu = "0.13"
 wgpu-subscriber = "0.1"
 winit = "0.26"
 
@@ -22,5 +22,5 @@ winit = "0.26"
 anyhow = "1.0"
 fs_extra = "1.2"
 glob = "0.3"
-naga = { version = "0.8", features = ["glsl-in", "spv-out", "wgsl-out"]}
+naga = { version = "0.9", features = ["glsl-in", "spv-out", "wgsl-out"]}
 rayon = "1.5"
