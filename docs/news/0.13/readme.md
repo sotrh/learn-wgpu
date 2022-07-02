@@ -50,3 +50,6 @@ output_buffer.unmap();
 
 You can explore the reasoning for the change to `map_async` in [this PR](https://github.com/gfx-rs/wgpu/pull/2698).
 
+Another thing to note is that presentation modes need to match what the surface supports. You can get a list of supported modes from [Surface::get_surface_modes()](https://docs.rs/wgpu/latest/wgpu/struct.Surface.html#method.get_supported_modes).
+
+As always, let me know if I missed anything in the migration process. You can open an issue/submit a PR on the [Learn Wgpu repo](https://github.com/sotrh/learn-wgpu)!
