@@ -156,7 +156,7 @@ let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
 You can also use `include_wgsl!` macro as a small shortcut to create the `ShaderModuleDescriptor`.
 
 ```rust
-let shader = device.create_shader_module(&include_wgsl!("shader.wgsl"));
+let shader = device.create_shader_module(include_wgsl!("shader.wgsl"));
 ```
 
 </div>
@@ -271,7 +271,7 @@ If you run your program now, it'll take a little longer to start, but it will st
         label: Some("Render Pass"),
         color_attachments: &[
             // This is what @location(0) in the fragment shader targets
-            wgpu::RenderPassColorAttachment {
+            Some(wgpu::RenderPassColorAttachment {
                 view: &view,
                 resolve_target: None,
                 ops: wgpu::Operations {
@@ -285,7 +285,7 @@ If you run your program now, it'll take a little longer to start, but it will st
                     ),
                     store: true,
                 }
-            }
+            })
         ],
         depth_stencil_attachment: None,
     });

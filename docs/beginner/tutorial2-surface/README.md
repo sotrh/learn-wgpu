@@ -376,7 +376,7 @@ Now we can get to clearing the screen (long time coming). We need to use the `en
     {
         let _render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("Render Pass"),
-            color_attachments: &[wgpu::RenderPassColorAttachment {
+            color_attachments: &[Some(wgpu::RenderPassColorAttachment {
                 view: &view,
                 resolve_target: None,
                 ops: wgpu::Operations {
@@ -388,7 +388,7 @@ Now we can get to clearing the screen (long time coming). We need to use the `en
                     }),
                     store: true,
                 },
-            }],
+            })],
             depth_stencil_attachment: None,
         });
     }
@@ -402,8 +402,6 @@ Now we can get to clearing the screen (long time coming). We need to use the `en
 ```
 
 First things first, let's talk about the extra block (`{}`) around `encoder.begin_render_pass(...)`. `begin_render_pass()` borrows `encoder` mutably (aka `&mut self`). We can't call `encoder.finish()` until we release that mutable borrow. The block tells rust to drop any variables within it when the code leaves that scope thus releasing the mutable borrow on `encoder` and allowing us to `finish()` it. If you don't like the `{}`, you can also use `drop(render_pass)` to achieve the same effect.
-
-We can get the same results by removing the `{}`, and the `let _render_pass =` line, but we need access to the `_render_pass` in the next tutorial, so we'll leave it as is.
 
 The last lines of the code tell `wgpu` to finish the command buffer, and to submit it to the gpu's render queue.
 
@@ -456,10 +454,17 @@ Some of you may be able to tell what's going on just by looking at it, but I'd b
 
 A `RenderPassDescriptor` only has three fields: `label`, `color_attachments` and `depth_stencil_attachment`. The `color_attachments` describe where we are going to draw our color to. We use the `TextureView` we created earlier to make sure that we render to the screen.
 
+<div class="note">
+
+The `color_attachments` field is a "sparse" array. This allows you to use a pipeline that expects multiple render targets and only only supply the ones you care about. 
+
+</div>
+
+
 We'll use `depth_stencil_attachment` later, but we'll set it to `None` for now.
 
 ```rust
-wgpu::RenderPassColorAttachment {
+Some(wgpu::RenderPassColorAttachment {
     view: &view,
     resolve_target: None,
     ops: wgpu::Operations {
@@ -471,7 +476,7 @@ wgpu::RenderPassColorAttachment {
         }),
         store: true,
     },
-}
+})
 ```
 
 The `RenderPassColorAttachment` has the `view` field which informs `wgpu` what texture to save the colors to. In this case we specify the `view` that we created using `surface.get_current_texture()`. This means that any colors we draw to this attachment will get drawn to the screen.
