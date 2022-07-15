@@ -456,7 +456,7 @@ A `RenderPassDescriptor` only has three fields: `label`, `color_attachments` and
 
 <div class="note">
 
-The `color_attachments` field is a "sparse" array. This allows you to use a pipeline that expects multiple render targets and only only supply the ones you care about. 
+The `color_attachments` field is a "sparse" array. This allows you to use a pipeline that expects multiple render targets and only supply the ones you care about. 
 
 </div>
 
