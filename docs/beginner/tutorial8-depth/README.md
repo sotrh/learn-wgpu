@@ -69,7 +69,7 @@ impl Texture {
 2. Our depth texture needs to be the same size as our screen if we want things to render correctly. We can use our `config` to make sure that our depth texture is the same size as our surface textures.
 3. Since we are rendering to this texture, we need to add the `RENDER_ATTACHMENT` flag to it.
 4. We technically don't *need* a sampler for a depth texture, but our `Texture` struct requires it, and we need one if we ever want to sample it.
-5. If we do decide to render our depth texture, we need to use `CompareFunction::LessEqual`. This is due to how the `samplerShadow` and `sampler2DShadow()` interacts with the `texture()` function in GLSL.
+5. If we do decide to render our depth texture, we need to use `CompareFunction::LessEqual`. This is due to how the `sampler_comparison` and `textureSampleCompare()` interacts with the `texture()` function in GLSL.
 
 We create our `depth_texture` in `State::new()`.
 
@@ -159,7 +159,7 @@ And that's all we have to do! No shader code needed! If you run the application,
 
 ## Challenge
 
-Since the depth buffer is a texture, we can sample it in the shader. Because it's a depth texture, we'll have to use the `samplerShadow` uniform type and the `sampler2DShadow` function instead of `sampler`, and `sampler2D` respectively. Create a bind group for the depth texture (or reuse an existing one), and render it to the screen.
+Since the depth buffer is a texture, we can sample it in the shader. Because it's a depth texture, we'll have to use the `sampler_comparison` uniform type and the `textureSampleCompare` function instead of `sampler`, and `sampler2D` respectively. Create a bind group for the depth texture (or reuse an existing one), and render it to the screen.
 
 <WasmExample example="tutorial8_depth"></WasmExample>
 
