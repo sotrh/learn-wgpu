@@ -16,7 +16,7 @@ bytemuck = { version = "1.4", features = [ "derive" ] }
 cgmath = "0.18"
 pollster = "0.2"
 wgpu = { version = "0.13", features = ["spirv"]}
-wgpu_glyph = "0.16"
+wgpu_glyph = "0.17"
 rand = "0.8"
 rodio = { version = "0.15", default-features = false, features = ["wav"] }
 log = "0.4"

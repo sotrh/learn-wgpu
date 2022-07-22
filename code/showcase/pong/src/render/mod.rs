@@ -148,11 +148,11 @@ impl Render {
                 let view = frame.texture.create_view(&Default::default());
                 let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                     label: Some("Main Render Pass"),
-                    color_attachments: &[wgpu::RenderPassColorAttachment {
+                    color_attachments: &[Some(wgpu::RenderPassColorAttachment {
                         view: &view,
                         resolve_target: None,
                         ops: wgpu::Operations::default(),
-                    }],
+                    })],
                     depth_stencil_attachment: None,
                 });
 
@@ -245,8 +245,8 @@ fn create_render_pipeline(
     vs_src: wgpu::ShaderModuleDescriptor,
     fs_src: wgpu::ShaderModuleDescriptor,
 ) -> wgpu::RenderPipeline {
-    let vs_module = device.create_shader_module(&vs_src);
-    let fs_module = device.create_shader_module(&fs_src);
+    let vs_module = device.create_shader_module(vs_src);
+    let fs_module = device.create_shader_module(fs_src);
 
     device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
         label: Some("Render Pipeline"),

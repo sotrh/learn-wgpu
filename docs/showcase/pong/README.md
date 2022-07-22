@@ -2,12 +2,6 @@
 
 ![](./pong.png)
 
-<div class="warn">
-
-This code hasn't been updated to 0.13 quite yet as wgpu_glyph [hasn't updated to 0.13 yet](https://github.com/hecrj/wgpu_glyph/pull/89). I'll update it when it has.
-
-</div>
-
 Practically the "Hello World!" of games. Pong has been remade thousands of times. I know Pong. You know Pong. We all know Pong. That being said, this time I wanted to put in a little more effort than most people do. This showcase has a basic menu system, sounds, and different game states.
 
 The architecture is not the best as I prescribed to the "get things done" mentality. If I were to redo this project, I'd change a lot of things. Regardless, let's get into the postmortem.
@@ -266,8 +260,7 @@ This example works on the web, but there are a few steps that I needed to take t
 
 In order for wasm-pack to work properly I first needed to add some dependencies:
 
-```toml
-[dependencies]
+```toml[dependencies]
 cfg-if = "1"
 env_logger = "0.9"
 winit = "0.26"
@@ -276,9 +269,9 @@ bytemuck = { version = "1.4", features = [ "derive" ] }
 cgmath = "0.18"
 pollster = "0.2"
 wgpu = { version = "0.13", features = ["spirv"]}
-wgpu_glyph = "0.15"
+wgpu_glyph = "0.17"
 rand = "0.8"
-rodio = { version = "0.14", default-features = false, features = ["wav"] }
+rodio = { version = "0.15", default-features = false, features = ["wav"] }
 log = "0.4"
 instant = "0.1"
 
@@ -286,7 +279,7 @@ instant = "0.1"
 console_error_panic_hook = "0.1.6"
 console_log = "0.2.0"
 getrandom = { version = "0.2", features = ["js"] }
-rodio = { version = "0.14", default-features = false, features = ["wasm-bindgen", "wav"] }
+rodio = { version = "0.15", default-features = false, features = ["wasm-bindgen", "wav"] }
 wasm-bindgen-futures = "0.4.20"
 wasm-bindgen = "0.2.76"
 web-sys = { version = "0.3.53", features = [
@@ -294,8 +287,15 @@ web-sys = { version = "0.3.53", features = [
     "Window",
     "Element",
 ]}
-winit = { version = "0.25", features = ["web-sys"] }
 wgpu = { version = "0.13", features = ["spirv", "webgl"]}
+
+[build-dependencies]
+anyhow = "1.0"
+fs_extra = "1.2"
+glob = "0.3"
+rayon = "1.4"
+naga = { version = "0.9", features = ["glsl-in", "spv-out", "wgsl-out"]}
+
 ```
 
 I'll highlight a few of these:
