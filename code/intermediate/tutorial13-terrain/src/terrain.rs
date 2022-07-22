@@ -1,8 +1,7 @@
-use std::{cell::RefCell, collections::HashMap, mem::size_of_val};
+use std::mem::size_of_val;
 
-use wgpu::util::{BufferInitDescriptor, DeviceExt};
 
-use crate::{create_render_pipeline, model, resources};
+use crate::{create_render_pipeline, model};
 
 #[repr(C)]
 #[derive(Debug, Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
@@ -279,5 +278,30 @@ impl TerrainPipeline {
             render_pass.set_vertex_buffer(0, chunk.mesh.vertex_buffer.slice(..));
             render_pass.draw_indexed(0..chunk.mesh.num_elements, 0, 0..1);
         }
+    }
+}
+
+
+
+pub struct HackTerrainPipeline {
+    texture_dim: cgmath::Vector2<u32>,
+    vertex_texture: wgpu::Texture,
+    index_texture: wgpu::Texture,
+    gen_layout: wgpu::BindGroupLayout,
+    gen_pipeline: wgpu::RenderPipeline,
+    render_pipeline: wgpu::RenderPipeline,
+}
+
+impl HackTerrainPipeline {
+    pub fn new(
+        device: &wgpu::Device,
+        chunk_size: cgmath::Vector2<u32>,
+        camera_layout: &wgpu::BindGroupLayout,
+        light_layout: &wgpu::BindGroupLayout,
+        color_format: wgpu::TextureFormat,
+        depth_format: Option<wgpu::TextureFormat>,
+    ) -> Self {
+        let num_indices = chunk_size.x * chunk_size.y * 6;
+        todo!();
     }
 }

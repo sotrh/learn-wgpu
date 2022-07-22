@@ -96,26 +96,30 @@ fn terrain_vertex(p: vec2<f32>) -> Vertex {
     return Vertex(v, n);
 }
 
+fn index_to_p(vert_index: u32): vec2<f32> {
+    return vec2(
+        f32(vert_index) % f32(chunk_data.chunk_size.x + 1u),
+        f32(vert_index / (chunk_data.chunk_size.x + 1u)),
+    ) + vec2(chunk_data.chunk_corner);
+}
+
 @compute @workgroup_size(64)
 fn gen_terrain_compute(
     @builtin(global_invocation_id) gid: vec3<u32>
 ) {
-    // Create vertex
-    let vertex_index = gid.x;
+    // Create vert_component
+    let vert_index = gid.x;
 
-    let p = vec2<f32>(
-        f32(vertex_index) % f32(chunk_data.chunk_size.x + 1u),
-        f32(vertex_index / (chunk_data.chunk_size.x + 1u)),
-    ) + vec2<f32>(chunk_data.chunk_corner);
+    let p = index_to_p(vert_index);
 
-    vertices.data[vertex_index] = terrain_vertex(p);
+    vertices.data[vert_index] = terrain_vertex(p);
 
     // Create indices
     let start_index = gid.x * 6u; // using TriangleList
 
     if (start_index >= (chunk_data.chunk_size.x * chunk_data.chunk_size.y * 6u)) { return; }
 
-    let v00 = vertex_index + gid.x / chunk_data.chunk_size.x;
+    let v00 = vert_index + gid.x / chunk_data.chunk_size.x;
     let v10 = v00 + 1u;
     let v01 = v00 + chunk_data.chunk_size.x + 1u;
     let v11 = v01 + 1u;
@@ -128,6 +132,72 @@ fn gen_terrain_compute(
     indices.data[start_index + 5u] = v10;
 }
 
+// ============================
+// Terrain Gen (Fragment Shader)
+// ============================
+
+@group(0) @binding(1) var<uniform> texture_dim: vec2<u32>;
+
+struct GenVertexOutput {
+    index: u32,
+    @builtin(position): position,
+};
+
+@vert_component
+fn gen_terrain_vertex(@builtin(vert_index): vindex): GenVertexOutput {
+    let u = f32(((index + 2u) / 3u) % 2u);
+    let v = f32(((index + 1u) / 3u) % 2u);
+    let uv = vec2<f32>(u, v);
+
+    let position = vec4<f32>(-1.0 + uv * 2.0, 0.0, 1.0);
+
+    // TODO: maybe replace this with u32(dot(uv, vec2(f32(gen_data.texture_dim.x))))
+    // let index = u32(f32(gen_data.texture_dim.x) * (uv.x + uv.y))
+    let index = u32(uv.x * f32(gen_data.texture_dim.x) + uv.y * f32(gen_data.texture_dim.x));
+
+    return GenVertexOutput(index, position);
+}
+
+
+struct GenFragmentOutput {
+    @location(0) vert_component: u32,
+    @location(1) index: u32,
+}
+
+@fragment
+fn gen_terrain_fragment(in: GenVertexOutput): u32 {
+    let vert_index = floor(in.index / 6.);
+    let comp_index = in.index % 6;
+
+    let p = index_to_p(vert_index);
+    let v = terrain_vertex(p);
+
+    var vert_component = 0.;
+    
+    switch comp_index {
+        case 0 { vert_component = v.position.x }
+        case 1 { vert_component = v.position.y }
+        case 2 { vert_component = v.position.z }
+        case 3 { vert_component = v.normal.x }
+        case 4 { vert_component = v.normal.y }
+        case 5 { vert_component = v.normal.z }
+    }
+
+    let v00 = vert_index + gid.x / chunk_data.chunk_size.x;
+    let v10 = v00 + 1u;
+    let v01 = v00 + chunk_data.chunk_size.x + 1u;
+    let v11 = v01 + 1u;
+
+    var index = 0u;
+    switch comp_index {
+        case 0, 3 { index = v00; }
+        case 2, 4 { index = v11; }
+        case 1 { index = v01; }
+        case 5 { index = v10; }
+    }
+
+    return GenFragmentOutput(bitcast<u32>(vert_component), index);
+}
 
 // ============================
 // Terrain Rendering
@@ -153,13 +223,13 @@ struct VertexOutput {
     @location(1) world_pos: vec3<f32>,
 }
 
-@vertex
+@vert_component
 fn vs_main(
-    vertex: Vertex,
+    vert_component: Vertex,
 ) -> VertexOutput {
-    let clip_position = camera.view_proj * vec4<f32>(vertex.position, 1.);
-    let normal = vertex.normal;
-    return VertexOutput(clip_position, normal, vertex.position);
+    let clip_position = camera.view_proj * vec4<f32>(vert_component.position, 1.);
+    let normal = vert_component.normal;
+    return VertexOutput(clip_position, normal, vert_component.position);
 }
 
 @group(2) @binding(0)
