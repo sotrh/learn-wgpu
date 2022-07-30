@@ -49,49 +49,71 @@ let texture_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroup
 });
 ```
 
-We'll need to actually load the normal map. We'll do this in the loop where we create the materials.
+We'll need to actually load the normal map. We'll do this in the loop where we create the materials in the `load_model()` function in `resources.rs`.
 
 ```rust
-    let diffuse_path = mat.diffuse_texture;
-    let diffuse_texture = texture::Texture::load(device, queue, containing_folder.join(diffuse_path))?;
-    
-    let normal_path = mat.normal_texture;
-    let normal_texture = texture::Texture::load(device, queue, containing_folder.join(normal_path))?;
+// resources.rs
+let mut materials = Vec::new();
+for m in obj_materials? {
+    let diffuse_texture = load_texture(&m.diffuse_texture, device, queue).await?;
+    // NEW!
+    let normal_texture = load_texture(&m.normal_texture, device, queue).await?;
 
+    materials.push(model::Material::new(
+        device,
+        &m.name,
+        diffuse_texture,
+        normal_texture, // NEW!
+        layout,
+    ));
+}
 ```
 
-* Note: I duplicated and moved the `command_buffers.push(cmds);` line. This means we can reuse the `cmds` variable for both the normal map and diffuse/color map.
-
-Our `Material`'s `bind_group` will have to change as well.
+You'll notice I'm using a `Material::new()` function we didn't have previously. Here's the code for that:
 
 ```rust
-let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
-    layout,
-    entries: &[
-        // ...
-        wgpu::BindGroupEntry {
-            binding: 2,
-            resource: wgpu::BindingResource::TextureView(&normal_texture.view),
-        },
-        wgpu::BindGroupEntry {
-            binding: 3,
-            resource: wgpu::BindingResource::Sampler(&normal_texture.sampler),
-        },
-    ],
-    label: None,
-});
+impl Material {
+    pub fn new(
+        device: &wgpu::Device,
+        name: &str,
+        diffuse_texture: texture::Texture,
+        normal_texture: texture::Texture, // NEW!
+        layout: &wgpu::BindGroupLayout,
+    ) -> Self {
+        let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            layout,
+            entries: &[
+                wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: wgpu::BindingResource::TextureView(&diffuse_texture.view),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 1,
+                    resource: wgpu::BindingResource::Sampler(&diffuse_texture.sampler),
+                },
+                // NEW!
+                wgpu::BindGroupEntry {
+                    binding: 2,
+                    resource: wgpu::BindingResource::TextureView(&normal_texture.view),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 3,
+                    resource: wgpu::BindingResource::Sampler(&normal_texture.sampler),
+                },
+            ],
+            label: Some(name),
+        });
+
+        Self {
+            name: String::from(name),
+            diffuse_texture,
+            normal_texture, // NEW!
+            bind_group,
+        }
+    }
+}
 ```
 
-Don't forget to pass the `normal_texture` into the `Material` struct!
-
-```rust
-materials.push(Material {
-    name: mat.name,
-    diffuse_texture,
-    normal_texture, // NEW!
-    bind_group,
-});
-```
 
 Now we can use the texture in the fragment shader.
 
@@ -211,112 +233,119 @@ impl Vertex for ModelVertex {
 }
 ```
 
-Now we can calculate the new tangent and bitangent vectors.
+Now we can calculate the new tangent and bitangent vectors. Update the mesh generation in `load_model()` in `resource.rs` to use the following code:
 
 ```rust
-impl Model {
-    pub fn load<P: AsRef<Path>>(
-        device: &wgpu::Device,
-        queue: &wgpu::Queue,
-        layout: &wgpu::BindGroupLayout,
-        path: P,
-    ) -> Result<Self> {
-        // ...
-        for m in obj_models {
-            let mut vertices = Vec::new();
-            for i in 0..m.mesh.positions.len() / 3 {
-                vertices.push(ModelVertex {
-                    position: [
-                        // ...
-                    ],
-                    tex_coords: [
-                        // ...
-                    ],
-                    normal: [
-                        // ...
-                    ],
-                    // ...
-                    // We'll calculate these later
-                    tangent: [0.0; 3],
-                    bitangent: [0.0; 3],
-                });
-            }
+let meshes = models
+    .into_iter()
+    .map(|m| {
+        let mut vertices = (0..m.mesh.positions.len() / 3)
+            .map(|i| model::ModelVertex {
+                position: [
+                    m.mesh.positions[i * 3],
+                    m.mesh.positions[i * 3 + 1],
+                    m.mesh.positions[i * 3 + 2],
+                ],
+                tex_coords: [m.mesh.texcoords[i * 2], m.mesh.texcoords[i * 2 + 1]],
+                normal: [
+                    m.mesh.normals[i * 3],
+                    m.mesh.normals[i * 3 + 1],
+                    m.mesh.normals[i * 3 + 2],
+                ],
+                // We'll calculate these later
+                tangent: [0.0; 3],
+                bitangent: [0.0; 3],
+            })
+            .collect::<Vec<_>>();
 
-            let indices = &m.mesh.indices;
-            let mut triangles_included = (0..vertices.len()).collect::<Vec<_>>();
+        let indices = &m.mesh.indices;
+        let mut triangles_included = vec![0; vertices.len()];
 
-            // Calculate tangents and bitangets. We're going to
-            // use the triangles, so we need to loop through the
-            // indices in chunks of 3
-            for c in indices.chunks(3) {
-                let v0 = vertices[c[0] as usize];
-                let v1 = vertices[c[1] as usize];
-                let v2 = vertices[c[2] as usize];
+        // Calculate tangents and bitangets. We're going to
+        // use the triangles, so we need to loop through the
+        // indices in chunks of 3
+        for c in indices.chunks(3) {
+            let v0 = vertices[c[0] as usize];
+            let v1 = vertices[c[1] as usize];
+            let v2 = vertices[c[2] as usize];
 
-                let pos0: cgmath::Vector3<_> = v0.position.into();
-                let pos1: cgmath::Vector3<_> = v1.position.into();
-                let pos2: cgmath::Vector3<_> = v2.position.into();
+            let pos0: cgmath::Vector3<_> = v0.position.into();
+            let pos1: cgmath::Vector3<_> = v1.position.into();
+            let pos2: cgmath::Vector3<_> = v2.position.into();
 
-                let uv0: cgmath::Vector2<_> = v0.tex_coords.into();
-                let uv1: cgmath::Vector2<_> = v1.tex_coords.into();
-                let uv2: cgmath::Vector2<_> = v2.tex_coords.into();
+            let uv0: cgmath::Vector2<_> = v0.tex_coords.into();
+            let uv1: cgmath::Vector2<_> = v1.tex_coords.into();
+            let uv2: cgmath::Vector2<_> = v2.tex_coords.into();
 
-                // Calculate the edges of the triangle
-                let delta_pos1 = pos1 - pos0;
-                let delta_pos2 = pos2 - pos0;
+            // Calculate the edges of the triangle
+            let delta_pos1 = pos1 - pos0;
+            let delta_pos2 = pos2 - pos0;
 
-                // This will give us a direction to calculate the
-                // tangent and bitangent
-                let delta_uv1 = uv1 - uv0;
-                let delta_uv2 = uv2 - uv0;
+            // This will give us a direction to calculate the
+            // tangent and bitangent
+            let delta_uv1 = uv1 - uv0;
+            let delta_uv2 = uv2 - uv0;
 
-                // Solving the following system of equations will
-                // give us the tangent and bitangent.
-                //     delta_pos1 = delta_uv1.x * T + delta_u.y * B
-                //     delta_pos2 = delta_uv2.x * T + delta_uv2.y * B
-                // Luckily, the place I found this equation provided
-                // the solution!
-                let r = 1.0 / (delta_uv1.x * delta_uv2.y - delta_uv1.y * delta_uv2.x);
-                let tangent = (delta_pos1 * delta_uv2.y - delta_pos2 * delta_uv1.y) * r;
-                // We flip the bitangent to enable right-handed normal
-                // maps with wgpu texture coordinate system
-                let bitangent = (delta_pos2 * delta_uv1.x - delta_pos1 * delta_uv2.x) * -r;
+            // Solving the following system of equations will
+            // give us the tangent and bitangent.
+            //     delta_pos1 = delta_uv1.x * T + delta_u.y * B
+            //     delta_pos2 = delta_uv2.x * T + delta_uv2.y * B
+            // Luckily, the place I found this equation provided
+            // the solution!
+            let r = 1.0 / (delta_uv1.x * delta_uv2.y - delta_uv1.y * delta_uv2.x);
+            let tangent = (delta_pos1 * delta_uv2.y - delta_pos2 * delta_uv1.y) * r;
+            // We flip the bitangent to enable right-handed normal
+            // maps with wgpu texture coordinate system
+            let bitangent = (delta_pos2 * delta_uv1.x - delta_pos1 * delta_uv2.x) * -r;
 
-                // We'll use the same tangent/bitangent for each vertex in the triangle
-                vertices[c[0] as usize].tangent =
-                    (tangent + cgmath::Vector3::from(vertices[c[0] as usize].tangent)).into();
-                vertices[c[1] as usize].tangent =
-                    (tangent + cgmath::Vector3::from(vertices[c[1] as usize].tangent)).into();
-                vertices[c[2] as usize].tangent =
-                    (tangent + cgmath::Vector3::from(vertices[c[2] as usize].tangent)).into();
-                vertices[c[0] as usize].bitangent =
-                    (bitangent + cgmath::Vector3::from(vertices[c[0] as usize].bitangent)).into();
-                vertices[c[1] as usize].bitangent =
-                    (bitangent + cgmath::Vector3::from(vertices[c[1] as usize].bitangent)).into();
-                vertices[c[2] as usize].bitangent =
-                    (bitangent + cgmath::Vector3::from(vertices[c[2] as usize].bitangent)).into();
+            // We'll use the same tangent/bitangent for each vertex in the triangle
+            vertices[c[0] as usize].tangent =
+                (tangent + cgmath::Vector3::from(vertices[c[0] as usize].tangent)).into();
+            vertices[c[1] as usize].tangent =
+                (tangent + cgmath::Vector3::from(vertices[c[1] as usize].tangent)).into();
+            vertices[c[2] as usize].tangent =
+                (tangent + cgmath::Vector3::from(vertices[c[2] as usize].tangent)).into();
+            vertices[c[0] as usize].bitangent =
+                (bitangent + cgmath::Vector3::from(vertices[c[0] as usize].bitangent)).into();
+            vertices[c[1] as usize].bitangent =
+                (bitangent + cgmath::Vector3::from(vertices[c[1] as usize].bitangent)).into();
+            vertices[c[2] as usize].bitangent =
+                (bitangent + cgmath::Vector3::from(vertices[c[2] as usize].bitangent)).into();
 
-                // Used to average the tangents/bitangents
-                triangles_included[c[0] as usize] += 1;
-                triangles_included[c[1] as usize] += 1;
-                triangles_included[c[2] as usize] += 1;
-            }
+            // Used to average the tangents/bitangents
+            triangles_included[c[0] as usize] += 1;
+            triangles_included[c[1] as usize] += 1;
+            triangles_included[c[2] as usize] += 1;
+        }
 
-            // Average the tangents/bitangents
-            for (i, n) in triangles_included.into_iter().enumerate() {
-                let denom = 1.0 / n as f32;
-                let mut v = &mut vertices[i];
-                v.tangent = (cgmath::Vector3::from(v.tangent) * denom)
-                    .normalize()
-                    .into();
-                v.bitangent = (cgmath::Vector3::from(v.bitangent) * denom)
-                    .normalize()
-                    .into();
-            }
+        // Average the tangents/bitangents
+        for (i, n) in triangles_included.into_iter().enumerate() {
+            let denom = 1.0 / n as f32;
+            let mut v = &mut vertices[i];
+            v.tangent = (cgmath::Vector3::from(v.tangent) * denom).into();
+            v.bitangent = (cgmath::Vector3::from(v.bitangent) * denom).into();
+        }
 
-        Ok(Self { meshes, materials })
-    }
-}
+        let vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some(&format!("{:?} Vertex Buffer", file_name)),
+            contents: bytemuck::cast_slice(&vertices),
+            usage: wgpu::BufferUsages::VERTEX,
+        });
+        let index_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some(&format!("{:?} Index Buffer", file_name)),
+            contents: bytemuck::cast_slice(&m.mesh.indices),
+            usage: wgpu::BufferUsages::INDEX,
+        });
+
+        model::Mesh {
+            name: file_name.to_string(),
+            vertex_buffer,
+            index_buffer,
+            num_elements: m.mesh.indices.len() as u32,
+            material: m.mesh.material_id.unwrap_or(0),
+        }
+    })
+    .collect::<Vec<_>>();
 ```
 
 ## World Space to Tangent Space
@@ -438,42 +467,54 @@ pub fn from_image(
 We'll need to propagate this change to the other methods that use this.
 
 ```rust
-pub fn load<P: AsRef<Path>>(
-    device: &wgpu::Device,
-    queue: &wgpu::Queue,
-    path: P,
-    is_normal_map: bool, // NEW!
-) -> Result<(Self, wgpu::CommandBuffer), failure::Error> {
-    // ...
-    let img = image::open(path)?;
-    Self::from_image(device, queue, &img, label, is_normal_map) // UPDATED!
-}
-
-// ...
-
-#[allow(dead_code)]
 pub fn from_bytes(
     device: &wgpu::Device,
     queue: &wgpu::Queue,
-    bytes: &[u8], 
-    label: &str, 
+    bytes: &[u8],
+    label: &str,
     is_normal_map: bool, // NEW!
-) -> Result<(Self, wgpu::CommandBuffer), failure::Error> {
+) -> Result<Self> {
     let img = image::load_from_memory(bytes)?;
-    Self::from_image(device, &img, Some(label), is_normal_map)
+    Self::from_image(device, queue, &img, Some(label), is_normal_map) // UPDATED!
 }
 ```
 
-We need to update `model.rs` as well.
+We need to update `resource.rs` as well.
 
 ```rust
-let diffuse_path = mat.diffuse_texture;
-// UPDATED!
-let diffuse_texture = texture::Texture::load(device, queue, containing_folder.join(diffuse_path), false)?;
+pub async fn load_texture(
+    file_name: &str,
+    is_normal_map: bool,
+    device: &wgpu::Device,
+    queue: &wgpu::Queue,
+) -> anyhow::Result<texture::Texture> {
+    let data = load_binary(file_name).await?;
+    texture::Texture::from_bytes(device, queue, &data, file_name, is_normal_map)
+}
 
-let normal_path = mat.normal_texture;
-// UPDATED!
-let normal_texture = texture::Texture::load(device, queue, containing_folder.join(normal_path), true)?;
+pub async fn load_model(
+    file_name: &str,
+    device: &wgpu::Device,
+    queue: &wgpu::Queue,
+    layout: &wgpu::BindGroupLayout,
+) -> anyhow::Result<model::Model> {
+    // ...
+
+    let mut materials = Vec::new();
+    for m in obj_materials? {
+        let diffuse_texture = load_texture(&m.diffuse_texture, false, device, queue).await?; // UDPATED!
+        let normal_texture = load_texture(&m.normal_texture, true, device, queue).await?; // UPDATED!
+
+        materials.push(model::Material::new(
+            device,
+            &m.name,
+            diffuse_texture,
+            normal_texture,
+            layout,
+        ));
+    }
+}
+
 ```
 
 That gives us the following.
@@ -482,73 +523,7 @@ That gives us the following.
 
 ## Unrelated stuff
 
-While I was debugging the normal mapping code, I made a few changes to `model.rs` that I haven't mentioned. I wanted to be able to see the model with different textures, so I modified the `Material` struct to have a `new()` method.
-
-```rust
-
-impl Material {
-    pub fn new(
-        device: &wgpu::Device,
-        name: &str, 
-        diffuse_texture: texture::Texture, 
-        normal_texture: texture::Texture,
-        layout: &wgpu::BindGroupLayout,
-    ) -> Self {
-        let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
-            layout,
-            entries: &[
-                wgpu::BindGroupEntry {
-                    binding: 0,
-                    resource: wgpu::BindingResource::TextureView(&diffuse_texture.view),
-                },
-                wgpu::BindGroupEntry {
-                    binding: 1,
-                    resource: wgpu::BindingResource::Sampler(&diffuse_texture.sampler),
-                },
-                wgpu::BindGroupEntry {
-                    binding: 2,
-                    resource: wgpu::BindingResource::TextureView(&normal_texture.view),
-                },
-                wgpu::BindGroupEntry {
-                    binding: 3,
-                    resource: wgpu::BindingResource::Sampler(&normal_texture.sampler),
-                },
-            ],
-            label: Some(name),
-        });
-
-        Self { 
-            name: String::from(name),
-            diffuse_texture,
-            normal_texture,
-            bind_group,
-        }
-    }
-}
-```
-
-This simplifies the code in `Model::load()`.
-
-```rust
-let mut materials = Vec::new();
-for mat in obj_materials {
-    let diffuse_path = mat.diffuse_texture;
-    let diffuse_texture = texture::Texture::load(device, queue, containing_folder.join(diffuse_path), false)?;
-    
-    let normal_path = mat.normal_texture;
-    let normal_texture = texture::Texture::load(device, queue, containing_folder.join(normal_path), true)?;
-
-    materials.push(Material::new(
-        device,
-        &mat.name,
-        diffuse_texture,
-        normal_texture,
-        layout,
-    ));
-}
-```
-
-I also added a `draw_model_instanced_with_material()` to the `DrawModel` trait.
+I wanted to mess around with other materials so I added a `draw_model_instanced_with_material()` to the `DrawModel` trait.
 
 ```rust
 pub trait DrawModel<'a> {
