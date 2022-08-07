@@ -9,25 +9,24 @@
 fn permute3(x: vec3<f32>) -> vec3<f32> { return (((x * 34.) + 1.) * x) % vec3<f32>(289.); }
 
 fn snoise2(v: vec2<f32>) -> f32 {
-  let C = vec4<f32>(0.211324865405187, 0.366025403784439, -0.577350269189626, 0.024390243902439);
-  var i: vec2<f32> = floor(v + dot(v, C.yy));
-  let x0 = v - i + dot(i, C.xx);
-  // I flipped the condition here from > to < as it fixed some artifacting I was observing
-  var i1: vec2<f32> = select(vec2<f32>(1., 0.), vec2<f32>(0., 1.), (x0.x < x0.y));
-  var x12: vec4<f32> = x0.xyxy + C.xxzz - vec4<f32>(i1, 0., 0.);
-  i = i % vec2<f32>(289.);
-  let p = permute3(permute3(i.y + vec3<f32>(0., i1.y, 1.)) + i.x + vec3<f32>(0., i1.x, 1.));
-  var m: vec3<f32> = max(0.5 -
-      vec3<f32>(dot(x0, x0), dot(x12.xy, x12.xy), dot(x12.zw, x12.zw)), vec3<f32>(0.));
-  m = m * m;
-  m = m * m;
-  let x = 2. * fract(p * C.www) - 1.;
-  let h = abs(x) - 0.5;
-  let ox = floor(x + 0.5);
-  let a0 = x - ox;
-  m = m * (1.79284291400159 - 0.85373472095314 * (a0 * a0 + h * h));
-  let g = vec3<f32>(a0.x * x0.x + h.x * x0.y, a0.yz * x12.xz + h.yz * x12.yw);
-  return 130. * dot(m, g);
+    let C = vec4<f32>(0.211324865405187, 0.366025403784439, -0.577350269189626, 0.024390243902439);
+    var i: vec2<f32> = floor(v + dot(v, C.yy));
+    let x0 = v - i + dot(i, C.xx);
+    // I flipped the condition here from > to < as it fixed some artifacting I was observing
+    var i1: vec2<f32> = select(vec2<f32>(1., 0.), vec2<f32>(0., 1.), (x0.x < x0.y));
+    var x12: vec4<f32> = x0.xyxy + C.xxzz - vec4<f32>(i1, 0., 0.);
+    i = i % vec2<f32>(289.);
+    let p = permute3(permute3(i.y + vec3<f32>(0., i1.y, 1.)) + i.x + vec3<f32>(0., i1.x, 1.));
+    var m: vec3<f32> = max(0.5 - vec3<f32>(dot(x0, x0), dot(x12.xy, x12.xy), dot(x12.zw, x12.zw)), vec3<f32>(0.));
+    m = m * m;
+    m = m * m;
+    let x = 2. * fract(p * C.www) - 1.;
+    let h = abs(x) - 0.5;
+    let ox = floor(x + 0.5);
+    let a0 = x - ox;
+    m = m * (1.79284291400159 - 0.85373472095314 * (a0 * a0 + h * h));
+    let g = vec3<f32>(a0.x * x0.x + h.x * x0.y, a0.yz * x12.xz + h.yz * x12.yw);
+    return 130. * dot(m, g);
 }
 
 
@@ -40,7 +39,7 @@ fn fbm(p: vec2<f32>) -> f32 {
     let cs = vec2<f32>(cos(0.5), sin(0.5));
     let rot = mat2x2<f32>(cs.x, cs.y, -cs.y, cs.x);
 
-    for (var i=0u; i<NUM_OCTAVES; i=i+1u) {
+    for (var i = 0u; i < NUM_OCTAVES; i = i + 1u) {
         v = v + a * snoise2(x);
         x = rot * x * 2.0 + shift;
         a = a * 0.5;
@@ -72,21 +71,21 @@ struct IndexBuffer {
 @group(0) @binding(1) var<storage, read_write> vertices: VertexBuffer;
 @group(0) @binding(2) var<storage, read_write> indices: IndexBuffer;
 
-fn terrain_point(p: vec2<f32>) -> vec3<f32> {
+fn terrain_point(p: vec2<f32>, min_max_height: vec2<f32>) -> vec3<f32> {
     return vec3<f32>(
         p.x,
-        mix(chunk_data.min_max_height.x,chunk_data.min_max_height.y, fbm(p)),
+        mix(min_max_height.x, min_max_height.y, fbm(p)),
         p.y,
     );
 }
 
-fn terrain_vertex(p: vec2<f32>) -> Vertex {
-    let v = terrain_point(p);
+fn terrain_vertex(p: vec2<f32>, min_max_height: vec2<f32>) -> Vertex {
+    let v = terrain_point(p, min_max_height);
 
-    let tpx = terrain_point(p + vec2<f32>(0.1, 0.0)) - v;
-    let tpz = terrain_point(p + vec2<f32>(0.0, 0.1)) - v;
-    let tnx = terrain_point(p + vec2<f32>(-0.1, 0.0)) - v;
-    let tnz = terrain_point(p + vec2<f32>(0.0, -0.1)) - v;
+    let tpx = terrain_point(p + vec2<f32>(0.1, 0.0), min_max_height) - v;
+    let tpz = terrain_point(p + vec2<f32>(0.0, 0.1), min_max_height) - v;
+    let tnx = terrain_point(p + vec2<f32>(-0.1, 0.0), min_max_height) - v;
+    let tnz = terrain_point(p + vec2<f32>(0.0, -0.1), min_max_height) - v;
 
     let pn = normalize(cross(tpz, tpx));
     let nn = normalize(cross(tnz, tnx));
@@ -96,11 +95,11 @@ fn terrain_vertex(p: vec2<f32>) -> Vertex {
     return Vertex(v, n);
 }
 
-fn index_to_p(vert_index: u32): vec2<f32> {
+fn index_to_p(vert_index: u32, chunk_size: vec2<u32>, chunk_corner: vec2<i32>) -> vec2<f32> {
     return vec2(
-        f32(vert_index) % f32(chunk_data.chunk_size.x + 1u),
-        f32(vert_index / (chunk_data.chunk_size.x + 1u)),
-    ) + vec2(chunk_data.chunk_corner);
+        f32(vert_index) % f32(chunk_size.x + 1u),
+        f32(vert_index / (chunk_size.x + 1u)),
+    ) + vec2<f32>(chunk_corner);
 }
 
 @compute @workgroup_size(64)
@@ -110,9 +109,9 @@ fn gen_terrain_compute(
     // Create vert_component
     let vert_index = gid.x;
 
-    let p = index_to_p(vert_index);
+    let p = index_to_p(vert_index, chunk_data.chunk_size, chunk_data.chunk_corner);
 
-    vertices.data[vert_index] = terrain_vertex(p);
+    vertices.data[vert_index] = terrain_vertex(p, chunk_data.min_max_height);
 
     // Create indices
     let start_index = gid.x * 6u; // using TriangleList
@@ -136,26 +135,38 @@ fn gen_terrain_compute(
 // Terrain Gen (Fragment Shader)
 // ============================
 
-@group(0) @binding(1) var<uniform> texture_dim: vec2<u32>;
+struct GenData {
+    chunk_size: vec2<u32>,
+    chunk_corner: vec2<i32>,
+    min_max_height: vec2<f32>,
+    texture_size: u32,
+    start_index: u32,
+}
+@group(0)
+@binding(0)
+var<uniform> gen_data: GenData;
 
 struct GenVertexOutput {
+    @location(0)
     index: u32,
-    @builtin(position): position,
+    @builtin(position)
+    position: vec4<f32>,
+    @location(1)
+    uv: vec2<f32>,
 };
 
-@vert_component
-fn gen_terrain_vertex(@builtin(vert_index): vindex): GenVertexOutput {
-    let u = f32(((index + 2u) / 3u) % 2u);
-    let v = f32(((index + 1u) / 3u) % 2u);
+@vertex
+fn gen_terrain_vertex(@builtin(vertex_index) vindex: u32) -> GenVertexOutput {
+    let u = f32(((vindex + 2u) / 3u) % 2u);
+    let v = f32(((vindex + 1u) / 3u) % 2u);
     let uv = vec2<f32>(u, v);
 
     let position = vec4<f32>(-1.0 + uv * 2.0, 0.0, 1.0);
 
     // TODO: maybe replace this with u32(dot(uv, vec2(f32(gen_data.texture_dim.x))))
-    // let index = u32(f32(gen_data.texture_dim.x) * (uv.x + uv.y))
-    let index = u32(uv.x * f32(gen_data.texture_dim.x) + uv.y * f32(gen_data.texture_dim.x));
+    let index = u32(uv.x * f32(gen_data.texture_size) + uv.y * f32(gen_data.texture_size)) + gen_data.start_index;
 
-    return GenVertexOutput(index, position);
+    return GenVertexOutput(index, position, uv);
 }
 
 
@@ -165,38 +176,50 @@ struct GenFragmentOutput {
 }
 
 @fragment
-fn gen_terrain_fragment(in: GenVertexOutput): u32 {
-    let vert_index = floor(in.index / 6.);
-    let comp_index = in.index % 6;
+fn gen_terrain_fragment(in: GenVertexOutput) -> GenFragmentOutput {
+    let i = u32(in.uv.x * f32(gen_data.texture_size) + in.uv.y * f32(gen_data.texture_size * gen_data.texture_size)) + gen_data.start_index;
+    let vert_index = u32(floor(f32(i) / 6.));
+    let comp_index = i % 6u;
 
-    let p = index_to_p(vert_index);
-    let v = terrain_vertex(p);
+    let p = index_to_p(vert_index, gen_data.chunk_size, gen_data.chunk_corner);
+    let v = terrain_vertex(p, gen_data.min_max_height);
 
-    var vert_component = 0.;
+    var vert_component: f32 = 0.;
     
     switch comp_index {
-        case 0 { vert_component = v.position.x }
-        case 1 { vert_component = v.position.y }
-        case 2 { vert_component = v.position.z }
-        case 3 { vert_component = v.normal.x }
-        case 4 { vert_component = v.normal.y }
-        case 5 { vert_component = v.normal.z }
+        case 0u: { vert_component = v.position.x; }
+        case 1u: { vert_component = v.position.y; }
+        case 2u: { vert_component = v.position.z; }
+        case 3u: { vert_component = v.normal.x; }
+        case 4u: { vert_component = v.normal.y; }
+        case 5u: { vert_component = v.normal.z; }
+        default: {}
     }
 
-    let v00 = vert_index + gid.x / chunk_data.chunk_size.x;
+    let v00 = vert_index + vert_index / gen_data.chunk_size.x;
     let v10 = v00 + 1u;
-    let v01 = v00 + chunk_data.chunk_size.x + 1u;
+    let v01 = v00 + gen_data.chunk_size.x + 1u;
     let v11 = v01 + 1u;
 
     var index = 0u;
     switch comp_index {
-        case 0, 3 { index = v00; }
-        case 2, 4 { index = v11; }
-        case 1 { index = v01; }
-        case 5 { index = v10; }
+        case 0u, 3u: { index = v00; }
+        case 2u, 4u: { index = v11; }
+        case 1u: { index = v01; }
+        case 5u: { index = v10; }
+        default: {}
     }
+    index = in.index;
+    // index = gen_data.start_index;
+    // indices.data[start_index] = v00;
+    // indices.data[start_index + 1u] = v01;
+    // indices.data[start_index + 2u] = v11;
+    // indices.data[start_index + 3u] = v00;
+    // indices.data[start_index + 4u] = v11;
+    // indices.data[start_index + 5u] = v10;
 
-    return GenFragmentOutput(bitcast<u32>(vert_component), index);
+    let vert_component = bitcast<u32>(vert_component);
+    return GenFragmentOutput(vert_component, index);
 }
 
 // ============================
@@ -223,13 +246,13 @@ struct VertexOutput {
     @location(1) world_pos: vec3<f32>,
 }
 
-@vert_component
+@vertex
 fn vs_main(
-    vert_component: Vertex,
+    vertex: Vertex,
 ) -> VertexOutput {
-    let clip_position = camera.view_proj * vec4<f32>(vert_component.position, 1.);
-    let normal = vert_component.normal;
-    return VertexOutput(clip_position, normal, vert_component.position);
+    let clip_position = camera.view_proj * vec4<f32>(vertex.position, 1.);
+    let normal = vertex.normal;
+    return VertexOutput(clip_position, normal, vertex.position);
 }
 
 @group(2) @binding(0)
@@ -244,7 +267,7 @@ var s_normal: sampler;
 fn color23(p: vec2<f32>) -> vec3<f32> {
     return vec3<f32>(
         snoise2(p) * 0.5 + 0.5,
-        snoise2(p + vec2<f32>(23., 32.,)) * 0.5 + 0.5,
+        snoise2(p + vec2<f32>(23., 32.)) * 0.5 + 0.5,
         snoise2(p + vec2<f32>(-43., 3.)) * 0.5 + 0.5,
     );
 }

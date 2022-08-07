@@ -159,6 +159,7 @@ struct State {
     // NEW!
     terrain: terrain::Terrain,
     terrain_pipeline: terrain::TerrainPipeline,
+    terrain_hack_pipeline: terrain::TerrainHackPipeline,
 }
 
 fn create_render_pipeline(
@@ -507,12 +508,21 @@ impl State {
             config.format,
             Some(texture::Texture::DEPTH_FORMAT),
         );
+        let terrain_hack_pipeline = terrain::TerrainHackPipeline::new(
+            &device,
+            chunk_size,
+            min_max_height,
+            &camera_bind_group_layout,
+            &light_bind_group_layout,
+            config.format,
+            Some(texture::Texture::DEPTH_FORMAT),
+        );
 
         let mut terrain = terrain::Terrain::new(chunk_size, min_max_height);
-        terrain.gen_chunk(&device, &queue, &terrain_pipeline, cgmath::Vector3::zero());
-        terrain.gen_chunk(&device, &queue, &terrain_pipeline, (0.0, 0.0, -(chunk_size.y as f32)).into());
-        terrain.gen_chunk(&device, &queue, &terrain_pipeline, (-(chunk_size.x as f32), 0.0, -(chunk_size.y as f32)).into());
-        terrain.gen_chunk(&device, &queue, &terrain_pipeline, (-(chunk_size.x as f32), 0.0, 0.0).into());
+        terrain.gen_chunk(&device, &queue, &terrain_hack_pipeline, cgmath::Vector3::zero());
+        // terrain.gen_chunk(&device, &queue, &terrain_hack_pipeline, (0.0, 0.0, -(chunk_size.y as f32)).into());
+        // terrain.gen_chunk(&device, &queue, &terrain_hack_pipeline, (-(chunk_size.x as f32), 0.0, -(chunk_size.y as f32)).into());
+        // terrain.gen_chunk(&device, &queue, &terrain_hack_pipeline, (-(chunk_size.x as f32), 0.0, 0.0).into());
 
         Self {
             surface,
@@ -541,6 +551,7 @@ impl State {
             // NEW!
             terrain,
             terrain_pipeline,
+            terrain_hack_pipeline,
         }
     }
 
@@ -663,7 +674,7 @@ impl State {
             //     &self.light_bind_group,
             // );
 
-            self.terrain_pipeline.render(&mut render_pass, &self.terrain, &self.camera_bind_group, &self.light_bind_group);
+            self.terrain_hack_pipeline.render(&mut render_pass, &self.terrain, &self.camera_bind_group, &self.light_bind_group);
         }
         self.queue.submit(iter::once(encoder.finish()));
         output.present();
@@ -687,6 +698,7 @@ pub async fn run() {
     let title = env!("CARGO_PKG_NAME");
     let window = winit::window::WindowBuilder::new()
         .with_title(title)
+        .with_visible(false)
         .build(&event_loop)
         .unwrap();
 
@@ -710,6 +722,7 @@ pub async fn run() {
     }
 
     let mut state = State::new(&window).await; // NEW!
+    window.set_visible(true);
     let mut last_render_time = instant::Instant::now();
     event_loop.run(move |event, _, control_flow| {
         *control_flow = ControlFlow::Poll;
