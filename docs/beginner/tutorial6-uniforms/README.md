@@ -40,7 +40,7 @@ impl Camera {
 
 The `build_view_projection_matrix` is where the magic happens.
 1. The `view` matrix moves the world to be at the position and rotation of the camera. It's essentially an inverse of whatever the transform matrix of the camera would be.
-2. The `proj` matrix wraps the scene to give the effect of depth. Without this, objects up close would be the same size as objects far away.
+2. The `proj` matrix warps the scene to give the effect of depth. Without this, objects up close would be the same size as objects far away.
 3. The coordinate system in Wgpu is based on DirectX, and Metal's coordinate systems. That means that in [normalized device coordinates](https://github.com/gfx-rs/gfx/tree/master/src/backend/dx12#normalized-coordinates) the x axis and y axis are in the range of -1.0 to +1.0, and the z axis is 0.0 to +1.0. The `cgmath` crate (as well as most game math crates) is built for OpenGL's coordinate system. This matrix will scale and translate our scene from OpenGL's coordinate system to WGPU's. We'll define it as follows.
 
 ```rust
