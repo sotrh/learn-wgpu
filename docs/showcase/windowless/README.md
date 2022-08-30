@@ -158,12 +158,12 @@ let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescrip
     fragment: Some(wgpu::FragmentState {
         module: &fs_module,
         entry_point: "main",
-        targets: &[wgpu::ColorTargetState {
+        targets: &[Some(wgpu::ColorTargetState {
             format: texture_desc.format,
             alpha_blend: wgpu::BlendState::REPLACE,
             color_blend: wgpu::BlendState::REPLACE,
             write_mask: wgpu::ColorWrites::ALL,
-        }],
+        })],
     }),
     primitive: wgpu::PrimitiveState {
         topology: wgpu::PrimitiveTopology::TriangleList,

@@ -187,11 +187,11 @@ let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescrip
     fragment: Some(wgpu::FragmentState { // 3.
         module: &shader,
         entry_point: "fs_main",
-        targets: &[wgpu::ColorTargetState { // 4.
+        targets: &[Some(wgpu::ColorTargetState { // 4.
             format: config.format,
             blend: Some(wgpu::BlendState::REPLACE),
             write_mask: wgpu::ColorWrites::ALL,
-        }],
+        })],
     }),
     // continued ...
 ```
