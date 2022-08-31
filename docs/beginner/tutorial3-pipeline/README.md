@@ -126,6 +126,31 @@ Notice that the entry point for the vertex shader was named `vs_main` and that t
 
 The `@location(0)` bit tells WGPU to store the `vec4` value returned by this function in the first color target. We'll get into what this is later.
 
+<div class="note">
+
+Something to note about `@builtin(position)`, in the fragment shader this value is in [framebuffer space](https://gpuweb.github.io/gpuweb/#coordinate-systems). This means that if your window is 800x600, the x and y of `clip_position` would be between 0-800 and 0-600 respectively with the y = 0 being the top of the screen. This can be useful if you want to know pixel coordinates of a given fragment, but if you want the position coordinates you'll have to pass them in separately.
+
+```wgsl
+struct VertexOutput {
+    @builtin(position) clip_position: vec4<f32>,
+    @location(0) vert_pos: vec3<f32>,
+}
+
+@vertex
+fn vs_main(
+    @builtin(vertex_index) in_vertex_index: u32,
+) -> VertexOutput {
+    var out: VertexOutput;
+    let x = f32(1 - i32(in_vertex_index)) * 0.5;
+    let y = f32(i32(in_vertex_index & 1u) * 2 - 1) * 0.5;
+    out.clip_position = vec4<f32>(x, y, 0.0, 1.0);
+    out.vert_pos = out.clip_position.xyz;
+    return out;
+}
+```
+
+</div>
+
 ## How do we use the shaders?
 This is the part where we finally make the thing in the title: the pipeline. First, let's modify `State` to include the following.
 
