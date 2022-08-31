@@ -83,7 +83,7 @@ let adapter = instance
     .enumerate_adapters(wgpu::Backends::all())
     .filter(|adapter| {
         // Check if this adapter supports our surface
-        surface.get_preferred_format(&adapter).is_some()
+        !surface.get_supported_formats(&adapter).is_empty()
     })
     .next()
     .unwrap()
