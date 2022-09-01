@@ -137,7 +137,7 @@ wgpu::VertexBufferLayout {
 ```
 
 1. The `array_stride` defines how wide a vertex is. When the shader goes to read the next vertex, it will skip over `array_stride` number of bytes. In our case, array_stride will probably be 24 bytes.
-2. `step_mode` tells the pipeline how often it should move to the next vertex. This seems redundant in our case, but we can specify `wgpu::VertexStepMode::Instance` if we only want to change vertices when we start drawing a new instance. We'll cover instancing in a later tutorial.
+2. `step_mode` tells the pipeline whether each element of the array in this buffer represents per-vertex data or per-instance data. we can specify `wgpu::VertexStepMode::Instance` if we only want to change vertices when we start drawing a new instance. We'll cover instancing in a later tutorial.
 3. Vertex attributes describe the individual parts of the vertex. Generally, this is a 1:1 mapping with a struct's fields, which is true in our case.
 4. This defines the `offset` in bytes until the attribute starts. For the first attribute, the offset is usually zero. For any later attributes, the offset is the sum over `size_of` of the previous attributes' data.
 5. This tells the shader what location to store this attribute at. For example `@location(0) x: vec3<f32>` in the vertex shader would correspond to the `position` field of the `Vertex` struct, while `@location(1) x: vec3<f32>` would be the `color` field.
