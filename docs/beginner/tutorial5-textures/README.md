@@ -163,11 +163,11 @@ The `address_mode_*` parameters determine what to do if the sampler gets a textu
 
 ![address_mode.png](./address_mode.png)
 
-The `mag_filter` and `min_filter` options describe what to do when a fragment covers multiple pixels, or there are multiple fragments for a single pixel. This often comes into play when viewing a surface from up close, or from far away.
+The `mag_filter` and `min_filter` fields describe what to do when the sample footprint is smaller or larger than one texel. These two fields usually work when the mapping in the scene is far from or close to the camera.
 
 There are 2 options:
-* `Linear`: Attempt to blend the in-between fragments so that they seem to flow together.
-* `Nearest`: In-between fragments will use the color of the nearest pixel. This creates an image that's crisper from far away but pixelated up close. This can be desirable, however, if your textures are designed to be pixelated, like in pixel art games, or voxel games like Minecraft.
+* `Linear`: Select two texels in each dimension and return a linear interpolation between their values.
+* `Nearest`: Return the value of the texel nearest to the texture coordinates. This creates an image that's crisper from far away but pixelated up close. This can be desirable, however, if your textures are designed to be pixelated, like in pixel art games, or voxel games like Minecraft.
 
 Mipmaps are a complex topic and will require [their own section in the future](/todo). For now, we can say that `mipmap_filter` functions similar to `(mag/min)_filter` as it tells the sampler how to blend between mipmaps.
 
