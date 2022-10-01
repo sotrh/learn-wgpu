@@ -146,8 +146,8 @@ Next, we need to tell wasm-bindgen to run our `run()` function when the WASM is 
 
 ```rust
 #[cfg_attr(target_arch="wasm32", wasm_bindgen(start))]
-pub async fn run() {
-    // snipped...
+pub fn run() {
+    // same as above for now...
 }
 ```
 

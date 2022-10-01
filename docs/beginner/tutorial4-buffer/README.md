@@ -137,7 +137,7 @@ wgpu::VertexBufferLayout {
 ```
 
 1. The `array_stride` defines how wide a vertex is. When the shader goes to read the next vertex, it will skip over `array_stride` number of bytes. In our case, array_stride will probably be 24 bytes.
-2. `step_mode` tells the pipeline how often it should move to the next vertex. This seems redundant in our case, but we can specify `wgpu::VertexStepMode::Instance` if we only want to change vertices when we start drawing a new instance. We'll cover instancing in a later tutorial.
+2. `step_mode` tells the pipeline whether each element of the array in this buffer represents per-vertex data or per-instance data. we can specify `wgpu::VertexStepMode::Instance` if we only want to change vertices when we start drawing a new instance. We'll cover instancing in a later tutorial.
 3. Vertex attributes describe the individual parts of the vertex. Generally, this is a 1:1 mapping with a struct's fields, which is true in our case.
 4. This defines the `offset` in bytes until the attribute starts. For the first attribute, the offset is usually zero. For any later attributes, the offset is the sum over `size_of` of the previous attributes' data.
 5. This tells the shader what location to store this attribute at. For example `@location(0) x: vec3<f32>` in the vertex shader would correspond to the `position` field of the `Vertex` struct, while `@location(1) x: vec3<f32>` would be the `color` field.
@@ -261,7 +261,6 @@ impl State {
             render_pipeline,
             vertex_buffer,
             num_vertices,
-            size,
         }
     }
 }
@@ -355,7 +354,7 @@ const INDICES: &[u16] = &[
 ];
 ```
 
-Now with this setup, our `VERTICES` take up about 120 bytes and `INDICES` is just 18 bytes given that `u16` is 2 bytes wide. In this case, wgpu automatically adds 2 extra bytes of padding to make sure the buffer is aligned to 4 bytes, but it's still just 20 bytes. All together our pentagon is 134 bytes in total. That means we saved 82 bytes! It may not seem like much, but when dealing with tri counts in the hundreds of thousands, indexing saves a lot of memory.
+Now with this setup, our `VERTICES` take up about 120 bytes and `INDICES` is just 18 bytes given that `u16` is 2 bytes wide. In this case, wgpu automatically adds 2 extra bytes of padding to make sure the buffer is aligned to 4 bytes, but it's still just 20 bytes. All together our pentagon is 140 bytes in total. That means we saved 76 bytes! It may not seem like much, but when dealing with tri counts in the hundreds of thousands, indexing saves a lot of memory.
 
 There are a couple of things we need to change in order to use indexing. The first is we need to create a buffer to store the indices. In `State`'s `new()` method, create the `index_buffer` after you create the `vertex_buffer`. Also, change `num_vertices` to `num_indices` and set it equal to `INDICES.len()`.
 
