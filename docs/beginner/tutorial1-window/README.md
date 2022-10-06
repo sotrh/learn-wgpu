@@ -238,21 +238,21 @@ You'll then need to run the WASM code in an ES6 Module:
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pong with WASM</title>
+    <title>Learn WGPU</title>
+    <style>
+        canvas {
+            background-color: black;
+        }
+    </style>
 </head>
 
-<body>
+<body id="wasm-example">
   <script type="module">
       import init from "./pkg/pong.js";
       init().then(() => {
           console.log("WASM Loaded");
       });
   </script>
-  <style>
-      canvas {
-          background-color: black;
-      }
-  </style>
 </body>
 
 </html>
