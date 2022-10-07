@@ -1825,6 +1825,7 @@ dependencies = [
  "indexmap",
  "log",
  "num-traits",
+ "petgraph",
  "pp-rs",
  "rustc-hash",
  "spirv",
@@ -2393,7 +2394,7 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
- "wgpu 0.14.0",
+ "wgpu 0.13.0",
  "wgpu_glyph",
  "winit",
 ]
