@@ -14,8 +14,8 @@ use wasm_bindgen::prelude::*;
 mod camera;
 mod model;
 mod resources;
-mod texture;
 mod terrain;
+mod texture;
 
 use model::{DrawLight, DrawModel, Vertex};
 
@@ -260,6 +260,7 @@ impl State {
             width: size.width,
             height: size.height,
             present_mode: wgpu::PresentMode::Fifo,
+            alpha_mode: wgpu::CompositeAlphaMode::Auto,
         };
 
         surface.configure(&device, &config);
@@ -519,7 +520,12 @@ impl State {
         );
 
         let mut terrain = terrain::Terrain::new(chunk_size, min_max_height);
-        terrain.gen_chunk(&device, &queue, &terrain_hack_pipeline, cgmath::Vector3::zero());
+        terrain.gen_chunk(
+            &device,
+            &queue,
+            &terrain_hack_pipeline,
+            cgmath::Vector3::zero(),
+        );
         // terrain.gen_chunk(&device, &queue, &terrain_hack_pipeline, (0.0, 0.0, -(chunk_size.y as f32)).into());
         // terrain.gen_chunk(&device, &queue, &terrain_hack_pipeline, (-(chunk_size.x as f32), 0.0, -(chunk_size.y as f32)).into());
         // terrain.gen_chunk(&device, &queue, &terrain_hack_pipeline, (-(chunk_size.x as f32), 0.0, 0.0).into());
@@ -674,7 +680,12 @@ impl State {
             //     &self.light_bind_group,
             // );
 
-            self.terrain_hack_pipeline.render(&mut render_pass, &self.terrain, &self.camera_bind_group, &self.light_bind_group);
+            self.terrain_hack_pipeline.render(
+                &mut render_pass,
+                &self.terrain,
+                &self.camera_bind_group,
+                &self.light_bind_group,
+            );
         }
         self.queue.submit(iter::once(encoder.finish()));
         output.present();

@@ -6,7 +6,7 @@ use winit::{
     window::{Window, WindowBuilder},
 };
 
-#[cfg(target_arch="wasm32")]
+#[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
 
 struct State {
@@ -60,6 +60,7 @@ impl State {
             width: size.width,
             height: size.height,
             present_mode: wgpu::PresentMode::Fifo,
+            alpha_mode: wgpu::CompositeAlphaMode::Auto,
         };
         surface.configure(&device, &config);
 
@@ -187,7 +188,7 @@ impl State {
     }
 }
 
-#[cfg_attr(target_arch="wasm32", wasm_bindgen(start))]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen(start))]
 pub async fn run() {
     cfg_if::cfg_if! {
         if #[cfg(target_arch = "wasm32")] {
@@ -207,7 +208,7 @@ pub async fn run() {
         // the size manually when on web.
         use winit::dpi::PhysicalSize;
         window.set_inner_size(PhysicalSize::new(450, 400));
-        
+
         use winit::platform::web::WindowExtWebSys;
         web_sys::window()
             .and_then(|win| win.document())
@@ -219,7 +220,7 @@ pub async fn run() {
             })
             .expect("Couldn't append canvas to document body.");
     }
-    
+
     // State::new uses async code, so we're going to wait for it to finish
     let mut state = State::new(&window).await;
 
@@ -257,7 +258,9 @@ pub async fn run() {
                 match state.render() {
                     Ok(_) => {}
                     // Reconfigure the surface if it's lost or outdated
-                    Err(wgpu::SurfaceError::Lost | wgpu::SurfaceError::Outdated) => state.resize(state.size),
+                    Err(wgpu::SurfaceError::Lost | wgpu::SurfaceError::Outdated) => {
+                        state.resize(state.size)
+                    }
                     // The system is out of memory, we should probably quit
                     Err(wgpu::SurfaceError::OutOfMemory) => *control_flow = ControlFlow::Exit,
                     // We're ignoring timeouts

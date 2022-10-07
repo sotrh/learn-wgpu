@@ -68,6 +68,7 @@ impl Render {
             width: size.width,
             height: size.height,
             present_mode: wgpu::PresentMode::Fifo,
+            alpha_mode: wgpu::CompositeAlphaMode::Auto,
         };
         surface.configure(&device, &config);
 
@@ -199,7 +200,6 @@ impl Render {
                 self.staging_belt.finish();
                 self.queue.submit(iter::once(encoder.finish()));
                 frame.present();
-
             }
             Err(wgpu::SurfaceError::Outdated) => {
                 log::info!("Outdated surface texture");

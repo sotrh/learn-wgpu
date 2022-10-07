@@ -3,6 +3,9 @@ target/
 .vscode/
 .idea/
 
+.yarn/*
+.yarnrc.yml
+
 /image.png
 /output*.*
 output/

@@ -8,10 +8,10 @@ For the beginner stuff, we're going to keep things very simple, we'll add things
 
 ```toml
 [dependencies]
-winit = "0.26"
+winit = "0.27.1"
 env_logger = "0.9"
 log = "0.4"
-wgpu = "0.13"
+wgpu = "0.14"
 ```
 
 ## Using Rust's new resolver
@@ -110,9 +110,9 @@ cfg-if = "1"
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 console_error_panic_hook = "0.1.6"
 console_log = "0.2.0"
-wgpu = { version = "0.13", features = ["webgl"]}
+wgpu = { version = "0.14", features = ["webgl"]}
 wasm-bindgen = "0.2"
-wasm-bindgen-futures = "0.4.30"
+wasm-bindgen-futures = "0.4"
 web-sys = { version = "0.3", features = [
     "Document",
     "Window",
