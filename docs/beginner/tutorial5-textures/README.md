@@ -407,7 +407,7 @@ The variables `t_diffuse` and `s_diffuse` are what's known as uniforms. We'll go
 
 If we run our program now we should get the following result:
 
-![an upside down tree on a hexagon](./upside-down.png)
+![an upside down tree on a pentagon](./upside-down.png)
 
 That's weird, our tree is upside down! This is because wgpu's world coordinates have the y-axis pointing up, while texture coordinates have the y-axis pointing down. In other words, (0, 0) in texture coordinates corresponds to the top-left of the image, while (1, 1) is the bottom right.
 
@@ -426,7 +426,7 @@ const VERTICES: &[Vertex] = &[
 ];
 ```
 
-With that in place, we now have our tree right-side up on our hexagon:
+With that in place, we now have our tree right-side up on our pentagon:
 
 ![our happy tree as it should be](./rightside-up.png)
 
