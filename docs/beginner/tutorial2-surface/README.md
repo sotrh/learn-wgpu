@@ -142,6 +142,7 @@ The `limits` field describes the limit of certain types of resources that we can
             width: size.width,
             height: size.height,
             present_mode: wgpu::PresentMode::Fifo,
+            alpha_mode: wgpu::CompositeAlphaMode::Auto,
         };
         surface.configure(&device, &config);
 ```
@@ -226,16 +227,16 @@ If we try to build WASM now it will fail because `wasm-bindgen` doesn't support 
 ```toml
 [dependencies]
 cfg-if = "1"
-winit = "0.26"
+winit = "0.27"
 env_logger = "0.9"
 log = "0.4"
-wgpu = "0.13"
+wgpu = "0.14"
 pollster = "0.2"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 console_error_panic_hook = "0.1.6"
 console_log = "0.2.0"
-wgpu = { version = "0.13", features = ["webgl"]}
+wgpu = { version = "0.14", features = ["webgl"]}
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
 web-sys = { version = "0.3", features = [
