@@ -18,10 +18,6 @@ I'm using this project to learn wgpu myself, so I might miss some important deta
 * Due to wgpu's rapidly changing api, I'm not accepting any new pull requests for showcase demos.
 * If you want to support me directly, check out my [patreon](https://www.patreon.com/sotrh)!
 
-## Translations
-
-* [中文版](https://doodlewind.github.io/learn-wgpu-cn)
-
 ## Special thanks to these patrons!
 
 - David Laban

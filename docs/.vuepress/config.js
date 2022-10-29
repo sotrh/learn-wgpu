@@ -1,11 +1,20 @@
 module.exports = {
     base: '/learn-wgpu/',
-    title: 'Learn Wgpu',
     theme: 'thindark',
     plugins: {
         'vuepress-plugin-code-copy': true,
         '@vuepress/back-to-top': true,
         'seo': {
+        },
+    },
+    locales: {
+        '/': {
+            lang: 'English',
+            title: 'Learn Wgpu',
+        },
+        'https://jinleili.github.io/learn-wgpu-zh/': {
+            lang: '中文',
+            title: '学习 Wgpu',
         },
     },
     themeConfig: {
