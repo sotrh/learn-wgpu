@@ -61,6 +61,7 @@ impl State {
                 force_fallback_adapter: false,
             },
         ).await.unwrap();
+    }
 ```
 
 ### Instance and Adapter
