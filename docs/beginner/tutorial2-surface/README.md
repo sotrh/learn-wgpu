@@ -177,6 +177,9 @@ Regardless, `PresentMode::Fifo` will always be supported, and `PresentMode::Auto
 Now that we've configured our surface properly we can add these new fields at the end of the method.
 
 ```rust
+    async fn new(window: &Window) -> Self {
+        // ...
+
         Self {
             surface,
             device,
@@ -185,8 +188,6 @@ Now that we've configured our surface properly we can add these new fields at th
             size,
         }
     }
-    // ...
-}
 ```
 
 Since our `State::new()` method is async we need to change `run()` to be async as well so that we can await it.
