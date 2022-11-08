@@ -283,6 +283,8 @@ match event {
                 state.resize(**new_inner_size);
             }
             // ...
+        }
+    }
 }
 ```
 
