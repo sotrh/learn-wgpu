@@ -195,12 +195,12 @@ Basically, we can use the edges of our triangles, and our normal to calculate th
 #[repr(C)]
 #[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct ModelVertex {
-    position: [f32; 3],
-    tex_coords: [f32; 2],
-    normal: [f32; 3],
+    pub position: [f32; 3],
+    pub tex_coords: [f32; 2],
+    pub normal: [f32; 3],
     // NEW!
-    tangent: [f32; 3],
-    bitangent: [f32; 3],
+    pub tangent: [f32; 3],
+    pub bitangent: [f32; 3],
 }
 ```
 
@@ -355,10 +355,10 @@ Since the normal map by default is in tangent space, we need to transform all th
 ```wgsl
 struct VertexInput {
     @location(0) position: vec3<f32>,
-    @location(1) tex_coords: vec2<f32>;
-    @location(2) normal: vec3<f32>;
-    @location(3) tangent: vec3<f32>;
-    @location(4) bitangent: vec3<f32>;
+    @location(1) tex_coords: vec2<f32>,
+    @location(2) normal: vec3<f32>,
+    @location(3) tangent: vec3<f32>,
+    @location(4) bitangent: vec3<f32>,
 };
 ```
 
