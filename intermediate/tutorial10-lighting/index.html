@@ -7,7 +7,7 @@
     <meta name="generator" content="VuePress 1.9.7">
     
     <meta name="description" content="">
-    <meta property="article:modified_time" content="2022-11-06T19:50:17.000Z">
+    <meta property="article:modified_time" content="2022-11-14T18:57:01.000Z">
     <meta property="og:site_name" content="Learn Wgpu">
     <meta property="og:title" content="Working with Lights">
     <meta property="og:type" content="website">
@@ -19,7 +19,7 @@
     <meta name="twitter:data1" content="Benjamin Hansen">
     <meta name="twitter:creator" content="https://twitter.com/sotrh760">
     
-    <link rel="preload" href="/learn-wgpu/assets/css/1.styles.a09ac8f8.css" as="style"><link rel="preload" href="/learn-wgpu/assets/js/app.a45269e1.js" as="script"><link rel="preload" href="/learn-wgpu/assets/js/15.656a9cc4.js" as="script"><link rel="preload" href="/learn-wgpu/assets/js/16.70bfa427.js" as="script"><link rel="preload" href="/learn-wgpu/assets/js/20.31e0a434.js" as="script"><link rel="preload" href="/learn-wgpu/assets/js/25.831771f8.js" as="script"><link rel="prefetch" href="/learn-wgpu/assets/js/0.5a1994c5.js"><link rel="prefetch" href="/learn-wgpu/assets/js/10.678bdd8f.js"><link rel="prefetch" href="/learn-wgpu/assets/js/11.ec5fc55d.js"><link rel="prefetch" href="/learn-wgpu/assets/js/12.d22a3360.js"><link rel="prefetch" href="/learn-wgpu/assets/js/13.d90a92db.js"><link rel="prefetch" href="/learn-wgpu/assets/js/17.a18d8432.js"><link rel="prefetch" href="/learn-wgpu/assets/js/18.4a711d00.js"><link rel="prefetch" href="/learn-wgpu/assets/js/19.067373fa.js"><link rel="prefetch" href="/learn-wgpu/assets/js/2.f5571f12.js"><link rel="prefetch" href="/learn-wgpu/assets/js/21.47016ecd.js"><link rel="prefetch" href="/learn-wgpu/assets/js/22.a7ceb9be.js"><link rel="prefetch" href="/learn-wgpu/assets/js/23.abdd6762.js"><link rel="prefetch" href="/learn-wgpu/assets/js/24.38da801a.js"><link rel="prefetch" href="/learn-wgpu/assets/js/26.275f1cf4.js"><link rel="prefetch" href="/learn-wgpu/assets/js/27.01d55187.js"><link rel="prefetch" href="/learn-wgpu/assets/js/28.2f1a8279.js"><link rel="prefetch" href="/learn-wgpu/assets/js/29.5ead4d92.js"><link rel="prefetch" href="/learn-wgpu/assets/js/3.b967f93a.js"><link rel="prefetch" href="/learn-wgpu/assets/js/30.aac6dc60.js"><link rel="prefetch" href="/learn-wgpu/assets/js/31.2cc77589.js"><link rel="prefetch" href="/learn-wgpu/assets/js/32.946ceeb1.js"><link rel="prefetch" href="/learn-wgpu/assets/js/33.4771159b.js"><link rel="prefetch" href="/learn-wgpu/assets/js/34.243b88c1.js"><link rel="prefetch" href="/learn-wgpu/assets/js/35.9375dd6a.js"><link rel="prefetch" href="/learn-wgpu/assets/js/36.a67ffba8.js"><link rel="prefetch" href="/learn-wgpu/assets/js/37.7a606210.js"><link rel="prefetch" href="/learn-wgpu/assets/js/38.948c9159.js"><link rel="prefetch" href="/learn-wgpu/assets/js/39.903e36ab.js"><link rel="prefetch" href="/learn-wgpu/assets/js/4.708fc98e.js"><link rel="prefetch" href="/learn-wgpu/assets/js/40.d38c5ac2.js"><link rel="prefetch" href="/learn-wgpu/assets/js/41.9da478f5.js"><link rel="prefetch" href="/learn-wgpu/assets/js/42.e5816a32.js"><link rel="prefetch" href="/learn-wgpu/assets/js/43.924905ff.js"><link rel="prefetch" href="/learn-wgpu/assets/js/44.1b27deea.js"><link rel="prefetch" href="/learn-wgpu/assets/js/45.582f637d.js"><link rel="prefetch" href="/learn-wgpu/assets/js/46.1b5427a5.js"><link rel="prefetch" href="/learn-wgpu/assets/js/47.4573b85b.js"><link rel="prefetch" href="/learn-wgpu/assets/js/48.2512ae5c.js"><link rel="prefetch" href="/learn-wgpu/assets/js/49.18553ca0.js"><link rel="prefetch" href="/learn-wgpu/assets/js/5.5b57042b.js"><link rel="prefetch" href="/learn-wgpu/assets/js/50.db3aad74.js"><link rel="prefetch" href="/learn-wgpu/assets/js/51.c989dae9.js"><link rel="prefetch" href="/learn-wgpu/assets/js/52.210f429e.js"><link rel="prefetch" href="/learn-wgpu/assets/js/53.4e6a0601.js"><link rel="prefetch" href="/learn-wgpu/assets/js/54.1361e722.js"><link rel="prefetch" href="/learn-wgpu/assets/js/55.be38bee2.js"><link rel="prefetch" href="/learn-wgpu/assets/js/56.17a3a050.js"><link rel="prefetch" href="/learn-wgpu/assets/js/57.2d662642.js"><link rel="prefetch" href="/learn-wgpu/assets/js/58.b8bfa489.js"><link rel="prefetch" href="/learn-wgpu/assets/js/59.a5740542.js"><link rel="prefetch" href="/learn-wgpu/assets/js/6.7df95f8a.js"><link rel="prefetch" href="/learn-wgpu/assets/js/60.d748f225.js"><link rel="prefetch" href="/learn-wgpu/assets/js/7.1495bbb2.js"><link rel="prefetch" href="/learn-wgpu/assets/js/8.963a7e56.js"><link rel="prefetch" href="/learn-wgpu/assets/js/9.c682788f.js">
+    <link rel="preload" href="/learn-wgpu/assets/css/1.styles.a09ac8f8.css" as="style"><link rel="preload" href="/learn-wgpu/assets/js/app.4614e7e2.js" as="script"><link rel="preload" href="/learn-wgpu/assets/js/15.656a9cc4.js" as="script"><link rel="preload" href="/learn-wgpu/assets/js/16.944ff32f.js" as="script"><link rel="preload" href="/learn-wgpu/assets/js/20.31e0a434.js" as="script"><link rel="preload" href="/learn-wgpu/assets/js/25.831771f8.js" as="script"><link rel="prefetch" href="/learn-wgpu/assets/js/0.5a1994c5.js"><link rel="prefetch" href="/learn-wgpu/assets/js/10.678bdd8f.js"><link rel="prefetch" href="/learn-wgpu/assets/js/11.ec5fc55d.js"><link rel="prefetch" href="/learn-wgpu/assets/js/12.d22a3360.js"><link rel="prefetch" href="/learn-wgpu/assets/js/13.d90a92db.js"><link rel="prefetch" href="/learn-wgpu/assets/js/17.fc260ba0.js"><link rel="prefetch" href="/learn-wgpu/assets/js/18.4a711d00.js"><link rel="prefetch" href="/learn-wgpu/assets/js/19.b13635e7.js"><link rel="prefetch" href="/learn-wgpu/assets/js/2.f5571f12.js"><link rel="prefetch" href="/learn-wgpu/assets/js/21.9e3108c3.js"><link rel="prefetch" href="/learn-wgpu/assets/js/22.a7ceb9be.js"><link rel="prefetch" href="/learn-wgpu/assets/js/23.abdd6762.js"><link rel="prefetch" href="/learn-wgpu/assets/js/24.d0b918d1.js"><link rel="prefetch" href="/learn-wgpu/assets/js/26.275f1cf4.js"><link rel="prefetch" href="/learn-wgpu/assets/js/27.01d55187.js"><link rel="prefetch" href="/learn-wgpu/assets/js/28.2f1a8279.js"><link rel="prefetch" href="/learn-wgpu/assets/js/29.fde36844.js"><link rel="prefetch" href="/learn-wgpu/assets/js/3.b967f93a.js"><link rel="prefetch" href="/learn-wgpu/assets/js/30.aac6dc60.js"><link rel="prefetch" href="/learn-wgpu/assets/js/31.75615ea6.js"><link rel="prefetch" href="/learn-wgpu/assets/js/32.98c15c23.js"><link rel="prefetch" href="/learn-wgpu/assets/js/33.4771159b.js"><link rel="prefetch" href="/learn-wgpu/assets/js/34.243b88c1.js"><link rel="prefetch" href="/learn-wgpu/assets/js/35.9375dd6a.js"><link rel="prefetch" href="/learn-wgpu/assets/js/36.a67ffba8.js"><link rel="prefetch" href="/learn-wgpu/assets/js/37.7a606210.js"><link rel="prefetch" href="/learn-wgpu/assets/js/38.948c9159.js"><link rel="prefetch" href="/learn-wgpu/assets/js/39.903e36ab.js"><link rel="prefetch" href="/learn-wgpu/assets/js/4.708fc98e.js"><link rel="prefetch" href="/learn-wgpu/assets/js/40.d38c5ac2.js"><link rel="prefetch" href="/learn-wgpu/assets/js/41.5a42ef34.js"><link rel="prefetch" href="/learn-wgpu/assets/js/42.e5816a32.js"><link rel="prefetch" href="/learn-wgpu/assets/js/43.924905ff.js"><link rel="prefetch" href="/learn-wgpu/assets/js/44.1b27deea.js"><link rel="prefetch" href="/learn-wgpu/assets/js/45.582f637d.js"><link rel="prefetch" href="/learn-wgpu/assets/js/46.1b5427a5.js"><link rel="prefetch" href="/learn-wgpu/assets/js/47.4573b85b.js"><link rel="prefetch" href="/learn-wgpu/assets/js/48.2512ae5c.js"><link rel="prefetch" href="/learn-wgpu/assets/js/49.18553ca0.js"><link rel="prefetch" href="/learn-wgpu/assets/js/5.5b57042b.js"><link rel="prefetch" href="/learn-wgpu/assets/js/50.db3aad74.js"><link rel="prefetch" href="/learn-wgpu/assets/js/51.c989dae9.js"><link rel="prefetch" href="/learn-wgpu/assets/js/52.210f429e.js"><link rel="prefetch" href="/learn-wgpu/assets/js/53.4e6a0601.js"><link rel="prefetch" href="/learn-wgpu/assets/js/54.1361e722.js"><link rel="prefetch" href="/learn-wgpu/assets/js/55.be38bee2.js"><link rel="prefetch" href="/learn-wgpu/assets/js/56.17a3a050.js"><link rel="prefetch" href="/learn-wgpu/assets/js/57.2d662642.js"><link rel="prefetch" href="/learn-wgpu/assets/js/58.b8bfa489.js"><link rel="prefetch" href="/learn-wgpu/assets/js/59.a5740542.js"><link rel="prefetch" href="/learn-wgpu/assets/js/6.7df95f8a.js"><link rel="prefetch" href="/learn-wgpu/assets/js/60.d748f225.js"><link rel="prefetch" href="/learn-wgpu/assets/js/7.1495bbb2.js"><link rel="prefetch" href="/learn-wgpu/assets/js/8.963a7e56.js"><link rel="prefetch" href="/learn-wgpu/assets/js/9.c682788f.js">
     <link rel="stylesheet" href="/learn-wgpu/assets/css/1.styles.a09ac8f8.css">
   </head>
   <body>
@@ -145,6 +145,7 @@ issues. You can learn more about the alignment rules in the <a href="https://www
             mask<span class="token punctuation">:</span> <span class="token operator">!</span><span class="token number">0</span><span class="token punctuation">,</span>
             alpha_to_coverage_enabled<span class="token punctuation">:</span> <span class="token boolean">false</span><span class="token punctuation">,</span>
         <span class="token punctuation">}</span><span class="token punctuation">,</span>
+        multiview<span class="token punctuation">:</span> <span class="token class-name">None</span><span class="token punctuation">,</span>
     <span class="token punctuation">}</span><span class="token punctuation">)</span>
 <span class="token punctuation">}</span>
 </code></pre></div><p>We also need to change <code>State::new()</code> to use this function.</p> <div class="language-rust extra-class"><pre class="language-rust"><code><span class="token keyword">let</span> render_pipeline <span class="token operator">=</span> <span class="token punctuation">{</span>
@@ -428,14 +429,14 @@ fn fs_main(in: VertexOutput) -&gt; @location(0) vec4&lt;f32&gt; {
 }
 </code></pre></div><p>With that, we should get something like this.</p> <p><img src="/learn-wgpu/assets/img/ambient_lighting.8bece8d1.png" alt="./ambient_lighting.png"></p> <h2 id="diffuse-lighting"><a href="#diffuse-lighting" class="header-anchor">#</a> Diffuse Lighting</h2> <p>Remember the normal vectors that were included with our model? We're finally going to use them. Normals represent the direction a surface is facing. By comparing the normal of a fragment with a vector pointing to a light source, we get a value of how light/dark that fragment should be. We compare the vector using the dot product to get the cosine of the angle between them.</p> <p><img src="/learn-wgpu/assets/img/normal_diagram.dfa577f7.png" alt="./normal_diagram.png"></p> <p>If the dot product of the normal and light vector is 1.0, that means that the current fragment is directly in line with the light source and will receive the light's full intensity. A value of 0.0 or lower means that the surface is perpendicular or facing away from the light, and therefore will be dark.</p> <p>We're going to need to pull in the normal vector into our <code>shader.wgsl</code>.</p> <div class="language-wgsl extra-class"><pre class="language-text"><code>struct VertexInput {
     @location(0) position: vec3&lt;f32&gt;,
-    @location(1) tex_coords: vec2&lt;f32&gt;;
-    @location(2) normal: vec3&lt;f32&gt;; // NEW!
+    @location(1) tex_coords: vec2&lt;f32&gt;,
+    @location(2) normal: vec3&lt;f32&gt;, // NEW!
 };
 </code></pre></div><p>We're also going to want to pass that value, as well as the vertex's position to the fragment shader.</p> <div class="language-wgsl extra-class"><pre class="language-text"><code>struct VertexOutput {
-    @builtin(position) clip_position: vec4&lt;f32&gt;;
-    @location(0) tex_coords: vec2&lt;f32&gt;;
-    @location(1) world_normal: vec3&lt;f32&gt;;
-    @location(2) world_position: vec3&lt;f32&gt;;
+    @builtin(position) clip_position: vec4&lt;f32&gt;,
+    @location(0) tex_coords: vec2&lt;f32&gt;,
+    @location(1) world_normal: vec3&lt;f32&gt;,
+    @location(2) world_position: vec3&lt;f32&gt;,
 };
 </code></pre></div><p>For now, let's just pass the normal directly as-is. This is wrong, but we'll fix it later.</p> <div class="language-wgsl extra-class"><pre class="language-text"><code>@vertex
 fn vs_main(
@@ -545,21 +546,21 @@ let diffuse_color = light.color * diffuse_strength;
     <span class="token punctuation">}</span>
 <span class="token punctuation">}</span>
 </code></pre></div><p>Now we need to reconstruct the normal matrix in the vertex shader.</p> <div class="language-wgsl extra-class"><pre class="language-text"><code>struct InstanceInput {
-    @location(5) model_matrix_0: vec4&lt;f32&gt;;
-    @location(6) model_matrix_1: vec4&lt;f32&gt;;
-    @location(7) model_matrix_2: vec4&lt;f32&gt;;
-    @location(8) model_matrix_3: vec4&lt;f32&gt;;
+    @location(5) model_matrix_0: vec4&lt;f32&gt;,
+    @location(6) model_matrix_1: vec4&lt;f32&gt;,
+    @location(7) model_matrix_2: vec4&lt;f32&gt;,
+    @location(8) model_matrix_3: vec4&lt;f32&gt;,
     // NEW!
-    @location(9) normal_matrix_0: vec3&lt;f32&gt;;
-    @location(10) normal_matrix_1: vec3&lt;f32&gt;;
-    @location(11) normal_matrix_2: vec3&lt;f32&gt;;
+    @location(9) normal_matrix_0: vec3&lt;f32&gt;,
+    @location(10) normal_matrix_1: vec3&lt;f32&gt;,
+    @location(11) normal_matrix_2: vec3&lt;f32&gt;,
 };
 
 struct VertexOutput {
-    @builtin(position) clip_position: vec4&lt;f32&gt;;
-    @location(0) tex_coords: vec2&lt;f32&gt;;
-    @location(1) world_normal: vec3&lt;f32&gt;;
-    @location(2) world_position: vec3&lt;f32&gt;;
+    @builtin(position) clip_position: vec4&lt;f32&gt;,
+    @location(0) tex_coords: vec2&lt;f32&gt;,
+    @location(1) world_normal: vec3&lt;f32&gt;,
+    @location(2) world_position: vec3&lt;f32&gt;,
 };
 
 @vertex
@@ -639,7 +640,7 @@ let specular_color = specular_strength * light.color;
 let half_dir = normalize(view_dir + light_dir);
 
 let specular_strength = pow(max(dot(in.world_normal, half_dir), 0.0), 32.0);
-</code></pre></div><p>It's hard to tell the difference, but here are the results.</p> <p><img src="/learn-wgpu/assets/img/half_dir.bbcc23b8.png" alt="./half_dir.png"></p> <div id="wasm-example"><!----> <button>Try Tutorial10_lighting!</button></div> <div class="auto-github-link"><a href="https://github.com/sotrh/learn-wgpu/tree/master/code/intermediate/tutorial10-lighting/" target="_blank" rel="noopener noreferrer">Check out the code!</a> <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></div></div> <footer class="page-edit"><!----> <div class="last-updated"><span class="prefix">Last Updated: </span> <span class="time">11/6/2022, 7:50:17 PM</span></div></footer> <div class="page-nav"><p class="inner"><span class="prev">
+</code></pre></div><p>It's hard to tell the difference, but here are the results.</p> <p><img src="/learn-wgpu/assets/img/half_dir.bbcc23b8.png" alt="./half_dir.png"></p> <div id="wasm-example"><!----> <button>Try Tutorial10_lighting!</button></div> <div class="auto-github-link"><a href="https://github.com/sotrh/learn-wgpu/tree/master/code/intermediate/tutorial10-lighting/" target="_blank" rel="noopener noreferrer">Check out the code!</a> <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></div></div> <footer class="page-edit"><!----> <div class="last-updated"><span class="prefix">Last Updated: </span> <span class="time">11/14/2022, 6:57:01 PM</span></div></footer> <div class="page-nav"><p class="inner"><span class="prev">
         ←
         <a href="/learn-wgpu/beginner/tutorial9-models/" class="prev">
           Model Loading
@@ -648,6 +649,6 @@ let specular_strength = pow(max(dot(in.world_normal, half_dir), 0.0), 32.0);
         </a>
         →
       </span></p></div> </main></div></div><div class="global-ui"><!----></div></div>
-    <script src="/learn-wgpu/assets/js/app.a45269e1.js" defer></script><script src="/learn-wgpu/assets/js/15.656a9cc4.js" defer></script><script src="/learn-wgpu/assets/js/16.70bfa427.js" defer></script><script src="/learn-wgpu/assets/js/20.31e0a434.js" defer></script><script src="/learn-wgpu/assets/js/25.831771f8.js" defer></script>
+    <script src="/learn-wgpu/assets/js/app.4614e7e2.js" defer></script><script src="/learn-wgpu/assets/js/15.656a9cc4.js" defer></script><script src="/learn-wgpu/assets/js/16.944ff32f.js" defer></script><script src="/learn-wgpu/assets/js/20.31e0a434.js" defer></script><script src="/learn-wgpu/assets/js/25.831771f8.js" defer></script>
   </body>
 </html>
