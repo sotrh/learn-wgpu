@@ -20,7 +20,7 @@ I'm using this project to learn wgpu myself, so I might miss some important deta
 
 ## Translations
 
-* [中文版](https://doodlewind.github.io/learn-wgpu-cn)
+* [中文版: 增加了与 App 的集成与调试系列章节](https://jinleili.github.io/learn-wgpu-zh/)
 
 ## Special thanks to these patrons!
 
