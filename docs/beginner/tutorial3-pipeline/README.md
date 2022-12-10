@@ -181,7 +181,7 @@ let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
 You can also use `include_wgsl!` macro as a small shortcut to create the `ShaderModuleDescriptor`.
 
 ```rust
-let shader = device.create_shader_module(include_wgsl!("shader.wgsl"));
+let shader = device.create_shader_module(wgpu::include_wgsl!("shader.wgsl"));
 ```
 
 </div>
