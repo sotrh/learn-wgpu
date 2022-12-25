@@ -13,3 +13,8 @@ output/
 secrets.txt
 tree.txt
 Chunk*
+
+.yarn/*
+!.yarn/releases
+!.yarn/plugins
+.pnp.*
