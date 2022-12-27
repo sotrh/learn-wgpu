@@ -8,9 +8,11 @@ use winit::{
 
 async fn run() -> anyhow::Result<()> {
     let event_loop = EventLoop::new();
-    let mut window = Some(WindowBuilder::new()
-        .with_visible(false)
-        .build(&event_loop)?);
+    let mut window = Some(
+        WindowBuilder::new()
+            .with_visible(false)
+            .build(&event_loop)?,
+    );
 
     let window2 = WindowBuilder::new()
         .with_visible(false)
@@ -100,17 +102,17 @@ async fn run() -> anyhow::Result<()> {
 
                 println!("dt: {:?}", dt);
 
-                if dt > Duration::from_secs(2) {
-                    // Dispose of the first window
-                    window = None;
-                }
-                
                 if dt > Duration::from_secs(5) {
-                    // Attempt to get a frame (for testing)
-                    println!("{:?}", surface.get_current_texture());
-
                     // Exit the loop
                     cf.set_exit();
+                } else if dt > Duration::from_secs(3) {
+                    // Attempt to get a frame (for testing)
+                    println!("{:?}", surface.get_current_texture());
+                } else if dt > Duration::from_secs(2) {
+                    // Dispose of the first window
+                    if let Some(window) = window.take() {
+                        drop(window);
+                    }
                 }
             }
             _ => (),
