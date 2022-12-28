@@ -72,8 +72,10 @@ async fn run() -> anyhow::Result<()> {
             Event::RedrawRequested(_) => {
                 let frame = match surface.get_current_texture() {
                     Ok(frame) => frame,
-                    Err(wgpu::SurfaceError::Outdated) => return,
-                    Err(e) => panic!("An error occurred: {:?}", e),
+                    Err(e) => {
+                        println!("An error occurred: {:?}", e);
+                        return;
+                    }
                 };
 
                 let view = frame.texture.create_view(&Default::default());
@@ -105,9 +107,6 @@ async fn run() -> anyhow::Result<()> {
                 if dt > Duration::from_secs(5) {
                     // Exit the loop
                     cf.set_exit();
-                } else if dt > Duration::from_secs(3) {
-                    // Attempt to get a frame (for testing)
-                    println!("{:?}", surface.get_current_texture());
                 } else if dt > Duration::from_secs(2) {
                     // Dispose of the first window
                     if let Some(window) = window.take() {
