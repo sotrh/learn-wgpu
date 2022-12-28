@@ -48,7 +48,7 @@ async fn run() -> anyhow::Result<()> {
     };
     surface.configure(&device, &config);
 
-    let mut last_time = Instant::now();
+    let start_time = Instant::now();
     window.as_ref().unwrap().set_visible(true);
     window2.set_visible(true);
     event_loop.run(move |ev, _, cf| {
@@ -92,7 +92,7 @@ async fn run() -> anyhow::Result<()> {
             }
             Event::RedrawEventsCleared => {
                 let current_time = Instant::now();
-                let dt = current_time - last_time;
+                let dt = current_time - start_time;
                 // last_time = current_time;
 
                 if let Some(w) = window.as_ref() {
@@ -118,8 +118,6 @@ async fn run() -> anyhow::Result<()> {
             _ => (),
         }
     });
-
-    Ok(())
 }
 
 fn main() -> anyhow::Result<()> {
