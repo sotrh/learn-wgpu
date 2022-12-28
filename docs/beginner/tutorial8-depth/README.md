@@ -93,7 +93,7 @@ let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescrip
 });
 ```
 
-1. The `depth_compare` function tells us when to discard a new pixel. Using `LESS` means pixels will be drawn front to back. Here are all the values you can use.
+1. The `depth_compare` function tells us when to discard a new pixel. Using `LESS` means pixels will be drawn front to back. The other possible values for a [CompareFunction](https://docs.rs/wgpu/latest/wgpu/enum.CompareFunction.html) that you can use:
 
 ```rust
 #[repr(C)]
