@@ -151,7 +151,7 @@ Here we are defining a config for our surface. This will define how the surface 
 
 The `usage` field describes how `SurfaceTexture`s will be used. `RENDER_ATTACHMENT` specifies that the textures will be used to write to the screen (we'll talk about more `TextureUsages`s later).
 
-The `format` defines how `SurfaceTexture`s will be stored on the gpu. Different displays prefer different formats. We use `surface.get_preferred_format(&adapter)` to figure out the best format to use based on the display you're using.
+The `format` defines how `SurfaceTexture`s will be stored on the gpu. `surface.get_supported_formats(&adapter)` returns a `Vec` of the formats that are supported by that surface. While a surface may support many formats, it usually has a format that it prefers, in which case it places that format first in the returned `Vec`. We use the format in the first position (`[0]`) to get the best format to use for that particular surface.
 
 `width` and `height` are the width and the height in pixels of a `SurfaceTexture`. This should usually be the width and the height of the window.
 
