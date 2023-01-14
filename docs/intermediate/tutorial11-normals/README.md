@@ -114,7 +114,6 @@ impl Material {
 }
 ```
 
-
 Now we can use the texture in the fragment shader.
 
 ```wgsl
@@ -366,12 +365,12 @@ Next, we'll construct the `tangent_matrix` and then transform the vertex's light
 
 ```wgsl
 struct VertexOutput {
-    @builtin(position) clip_position: vec4<f32>;
-    @location(0) tex_coords: vec2<f32>;
+    @builtin(position) clip_position: vec4<f32>,
+    @location(0) tex_coords: vec2<f32>,
     // UPDATED!
-    @location(1) tangent_position: vec3<f32>;
-    @location(2) tangent_light_position: vec3<f32>;
-    @location(3) tangent_view_position: vec3<f32>;
+    @location(1) tangent_position: vec3<f32>,
+    @location(2) tangent_light_position: vec3<f32>,
+    @location(3) tangent_view_position: vec3<f32>,
 };
 
 @vertex
@@ -441,7 +440,7 @@ pub fn from_image(
     img: &image::DynamicImage,
     label: Option<&str>,
     is_normal_map: bool, // NEW!
-) -> Result<(Self, wgpu::CommandBuffer), failure::Error> {
+) -> Result<Self> {
     // ...
     let texture = device.create_texture(&wgpu::TextureDescriptor {
         label,
@@ -460,7 +459,11 @@ pub fn from_image(
 
     // ...
     
-    Ok((Self { texture, view, sampler }, cmd_buffer))
+    Ok(Self {
+        texture,
+        view,
+        sampler,
+    })
 }
 ```
 
