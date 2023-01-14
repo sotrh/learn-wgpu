@@ -1,6 +1,6 @@
 export RES_PATH=learn-wgpu
 # (trap 'killall background' INT;
-# wasm-pack build --out-dir ../../../docs/.vuepress/components/wasm/pong code/showcase/pong
+wasm-pack build --out-dir ../../../docs/.vuepress/components/wasm/pong code/showcase/pong
 wasm-pack build --out-dir ../../../docs/.vuepress/components/wasm/tutorial1_window code/beginner/tutorial1-window
 wasm-pack build --out-dir ../../../docs/.vuepress/components/wasm/tutorial2_surface code/beginner/tutorial2-surface
 wasm-pack build --out-dir ../../../docs/.vuepress/components/wasm/tutorial3_pipeline code/beginner/tutorial3-pipeline

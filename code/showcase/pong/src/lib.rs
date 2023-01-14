@@ -153,7 +153,7 @@ pub fn start() {
 
     menu_system.start(&mut state);
 
-    state.window().set_visible(true);
+    window.set_visible(true);
 
     log::info!("Event Loop...");
 
@@ -198,7 +198,7 @@ pub fn start() {
                 render.resize(size);
                 events.push(state::Event::Resize(size.width as f32, size.height as f32));
             }
-            Event::RedrawRequested(window_id) if window_id == state.window().id() => {
+            Event::RedrawRequested(window_id) if window_id == window.id() => {
                 for event in &events {
                     match event {
                         state::Event::FocusChanged | state::Event::ButtonPressed => {
@@ -255,7 +255,7 @@ pub fn start() {
 
                 render.render_state(&state);
                 if state.game_state != state::GameState::Quiting {
-                    state.window().request_redraw();
+                    window.request_redraw();
                 }
             }
             _ => {}
