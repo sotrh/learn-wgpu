@@ -80,6 +80,10 @@ impl Display {
         })
     }
 
+    pub fn window(&self) -> &Window {
+        &self.window
+    }
+
     pub fn resize(&mut self, width: u32, height: u32) {
         self.config.width = width;
         self.config.height = height;
@@ -222,7 +226,7 @@ pub async fn run<D: Demo>() -> Result<(), Error> {
             Event::Resumed => is_resumed = true,
             Event::Suspended => is_resumed = false,
             Event::RedrawRequested(wid) => {
-                if wid == display.window.id() {
+                if wid == display.window().id() {
                     let now = Instant::now();
                     let dt = now - last_update;
                     last_update = now;
@@ -234,7 +238,7 @@ pub async fn run<D: Demo>() -> Result<(), Error> {
             }
             Event::MainEventsCleared => {
                 if is_focused && is_resumed && !is_redraw_requested {
-                    display.window.request_redraw();
+                    display.window().request_redraw();
                     is_redraw_requested = true;
                 } else {
                     // Freeze time while the demo is not in the foreground
@@ -244,7 +248,7 @@ pub async fn run<D: Demo>() -> Result<(), Error> {
             Event::WindowEvent {
                 event, window_id, ..
             } => {
-                if window_id == display.window.id() {
+                if window_id == display.window().id() {
                     match event {
                         WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
                         WindowEvent::Focused(f) => is_focused = f,

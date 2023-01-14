@@ -64,7 +64,7 @@ struct State {
     // ...
 }
 
-async fn new(window: &Window) -> Self {
+async fn new(window: Window) -> Self {
     // let diffuse_bind_group ...
 
     let camera = Camera {
@@ -203,7 +203,7 @@ struct State {
     camera_bind_group: wgpu::BindGroup,
 }
 
-async fn new(window: &Window) -> Self {
+async fn new(window: Window) -> Self {
     // ...
     Self {
         // ...
@@ -375,7 +375,7 @@ struct State {
 }
 // ...
 impl State {
-    async fn new(window: &Window) -> Self {
+    async fn new(window: Window) -> Self {
         // ...
         let camera_controller = CameraController::new(0.2);
         // ...

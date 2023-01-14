@@ -155,16 +155,23 @@ struct State {
     debug_material: model::Material,
     last_mouse_pos: PhysicalPosition<f64>,
     mouse_pressed: bool,
+    window: Window,
 }
 
 impl State {
-    async fn new(window: &Window) -> Self {
+    async fn new(window: Window) -> Self {
         let size = window.inner_size();
 
         // The instance is a handle to our GPU
         // BackendBit::PRIMARY => Vulkan + Metal + DX12 + Browser WebGPU
         let instance = wgpu::Instance::new(wgpu::Backends::all());
-        let surface = unsafe { instance.create_surface(window) };
+        
+        // # Safety
+        //
+        // The surface needs to live as long as the window that created it.
+        // State owns the window so this should be safe.
+        let surface = unsafe { instance.create_surface(&window) };
+
         let adapter = instance
             .request_adapter(&wgpu::RequestAdapterOptions {
                 power_preference: wgpu::PowerPreference::default(),
@@ -438,6 +445,7 @@ impl State {
         };
 
         Self {
+            window,
             surface,
             device,
             queue,
@@ -463,6 +471,10 @@ impl State {
             last_mouse_pos: (0.0, 0.0).into(),
             mouse_pressed: false,
         }
+    }
+
+    pub fn window(&self) -> &Window {
+        &self.window
     }
 
     fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
@@ -614,16 +626,16 @@ async fn run() {
         .with_title(title)
         .build(&event_loop)
         .unwrap();
-    let mut state = State::new(&window).await; // NEW!
+    let mut state = State::new(window).await; // NEW!
     let mut last_render_time = std::time::Instant::now();
     event_loop.run(move |event, _, control_flow| {
         *control_flow = ControlFlow::Poll;
         match event {
-            Event::MainEventsCleared => window.request_redraw(),
+            Event::MainEventsCleared => state.window().request_redraw(),
             Event::WindowEvent {
                 ref event,
                 window_id,
-            } if window_id == window.id() => {
+            } if window_id == state.window().id() => {
                 if !state.input(event) {
                     match event {
                         WindowEvent::CloseRequested
@@ -646,7 +658,7 @@ async fn run() {
                     }
                 }
             }
-            Event::RedrawRequested(window_id) if window_id == window.id() => {
+            Event::RedrawRequested(window_id) if window_id == state.window().id() => {
                 let now = std::time::Instant::now();
                 let dt = now - last_render_time;
                 last_render_time = now;

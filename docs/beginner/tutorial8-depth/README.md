@@ -123,7 +123,7 @@ struct State {
     // ...
 }
 
-async fn new(window: &Window) -> Self {
+async fn new(window: Window) -> Self {
     // ...
     
     Self {

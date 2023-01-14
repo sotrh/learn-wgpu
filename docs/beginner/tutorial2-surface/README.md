@@ -13,12 +13,17 @@ struct State {
     queue: wgpu::Queue,
     config: wgpu::SurfaceConfiguration,
     size: winit::dpi::PhysicalSize<u32>,
+    window: Window,
 }
 
 impl State {
     // Creating some of the wgpu types requires async code
-    async fn new(window: &Window) -> Self {
+    async fn new(window: Window) -> Self {
         todo!()
+    }
+
+    pub fn window(&self) -> &Window {
+        &self.window
     }
 
     fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
@@ -47,13 +52,19 @@ The code for this is pretty straightforward, but let's break it down a bit.
 ```rust
 impl State {
     // ...
-    async fn new(window: &Window) -> Self {
+    async fn new(window: Window) -> Self {
         let size = window.inner_size();
 
         // The instance is a handle to our GPU
         // Backends::all => Vulkan + Metal + DX12 + Browser WebGPU
         let instance = wgpu::Instance::new(wgpu::Backends::all());
-        let surface = unsafe { instance.create_surface(window) };
+        
+        // # Safety
+        //
+        // The surface needs to live as long as the window that created it.
+        // State owns the window so this should be safe.
+        let surface = unsafe { instance.create_surface(&window) };
+
         let adapter = instance.request_adapter(
             &wgpu::RequestAdapterOptions {
                 power_preference: wgpu::PowerPreference::default(),
@@ -177,6 +188,7 @@ Now that we've configured our surface properly we can add these new fields at th
 
 ```rust
         Self {
+            window,
             surface,
             device,
             queue,
@@ -194,7 +206,7 @@ Since our `State::new()` method is async we need to change `run()` to be async a
 pub async fn run() {
     // Window setup...
 
-    let mut state = State::new(&window).await;
+    let mut state = State::new(window).await;
 
     // Event loop...
 }
@@ -269,7 +281,7 @@ We call this method in `run()` in the event loop for the following events.
 match event {
     // ...
 
-    } if window_id == window.id() => if !state.input(event) {
+    } if window_id == state.window().id() => if !state.input(event) {
         match event {
             // ...
 
@@ -306,7 +318,7 @@ event_loop.run(move |event, _, control_flow| {
         Event::WindowEvent {
             ref event,
             window_id,
-        } if window_id == window.id() => if !state.input(event) { // UPDATED!
+        } if window_id == state.window().id() => if !state.input(event) { // UPDATED!
             match event {
                 WindowEvent::CloseRequested
                 | WindowEvent::KeyboardInput {
@@ -413,7 +425,7 @@ We need to update the event loop again to call this method. We'll also call `upd
 event_loop.run(move |event, _, control_flow| {
     match event {
         // ...
-        Event::RedrawRequested(window_id) if window_id == window.id() => {
+        Event::RedrawRequested(window_id) if window_id == state.window().id() => {
             state.update();
             match state.render() {
                 Ok(_) => {}
@@ -428,7 +440,7 @@ event_loop.run(move |event, _, control_flow| {
         Event::MainEventsCleared => {
             // RedrawRequested will only trigger once, unless we manually
             // request it.
-            window.request_redraw();
+            state.window().request_redraw();
         }
         // ...
     }
