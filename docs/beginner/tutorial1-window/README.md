@@ -83,7 +83,7 @@ If you only want to support desktops, that's all you have to do! In the next tut
 
 If I go through this tutorial about WebGPU and never talk about using it on the web, then I'd hardly call this tutorial complete. Fortunately getting a wgpu application running in a browser is not too difficult once you get things set up.
 
-Let's start with the changes we need to make to are `Cargo.toml`:
+Let's start with the changes we need to make to our `Cargo.toml`:
 
 ```toml
 [lib]
