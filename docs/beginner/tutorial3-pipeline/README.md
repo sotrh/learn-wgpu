@@ -4,7 +4,7 @@
 If you're familiar with OpenGL, you may remember using shader programs. You can think of a pipeline as a more robust version of that. A pipeline describes all the actions the gpu will perform when acting on a set of data. In this section, we will be creating a `RenderPipeline` specifically.
 
 ## Wait, shaders?
-Shaders are mini-programs that you send to the gpu to perform operations on your data. There are 3 main types of shader: vertex, fragment, and compute. There are others such as geometry shaders, but they're more of an advanced topic. For now, we're just going to use vertex, and fragment shaders.
+Shaders are mini-programs that you send to the gpu to perform operations on your data. There are 3 main types of shader: vertex, fragment, and compute. There are others such as geometry shaders or tesselation shaders, but they're not supported by WebGL. They should be avoided in general, [see discussions](https://community.khronos.org/t/does-the-use-of-geometric-shaders-significantly-reduce-performance/106326). For now, we're just going to use vertex, and fragment shaders.
 
 ## Vertex, fragment... what are those?
 A vertex is a point in 3d space (can also be 2d). These vertices are then bundled in groups of 2s to form lines and/or 3s to form triangles.
