@@ -117,9 +117,20 @@ pub enum CompareFunction {
 Don't forget to store the `depth_texture` in `State`.
 
 ```rust
-Self {
-// ...
-depth_texture,
+struct State {
+    // ...
+    depth_texture: Texture,
+    // ...
+}
+
+async fn new(window: &Window) -> Self {
+    // ...
+    
+    Self {
+        // ...
+        depth_texture,
+        // ...
+    }
 }
 ```
 
