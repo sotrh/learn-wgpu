@@ -7,9 +7,9 @@ edition = "2018"
 
 [dependencies]
 anyhow = "1.0"
-bytemuck = { version = "1.4", features = [ "derive" ] }
+bytemuck = { version = "1.12", features = [ "derive" ] }
 cgmath = "0.18"
-env_logger = "0.9"
+env_logger = "0.10"
 pollster = "0.2"
 image = "0.24.2"
 log = "0.4"

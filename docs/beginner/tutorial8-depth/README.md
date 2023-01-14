@@ -54,7 +54,7 @@ impl Texture {
                 min_filter: wgpu::FilterMode::Linear,
                 mipmap_filter: wgpu::FilterMode::Nearest,
                 compare: Some(wgpu::CompareFunction::LessEqual), // 5.
-                lod_min_clamp: -100.0,
+                lod_min_clamp: 0.0,
                 lod_max_clamp: 100.0,
                 ..Default::default()
             }
@@ -93,7 +93,7 @@ let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescrip
 });
 ```
 
-1. The `depth_compare` function tells us when to discard a new pixel. Using `LESS` means pixels will be drawn front to back. The other possible values for a [CompareFunction](https://docs.rs/wgpu/latest/wgpu/enum.CompareFunction.html) that you can use:
+1. The `depth_compare` function tells us when to discard a new pixel. Using `LESS` means pixels will be drawn front to back. Here are the other possible values for a [CompareFunction](https://docs.rs/wgpu/latest/wgpu/enum.CompareFunction.html) that you can use:
 
 ```rust
 #[repr(C)]
@@ -117,9 +117,20 @@ pub enum CompareFunction {
 Don't forget to store the `depth_texture` in `State`.
 
 ```rust
-Self {
-// ...
-depth_texture,
+struct State {
+    // ...
+    depth_texture: Texture,
+    // ...
+}
+
+async fn new(window: Window) -> Self {
+    // ...
+    
+    Self {
+        // ...
+        depth_texture,
+        // ...
+    }
 }
 ```
 

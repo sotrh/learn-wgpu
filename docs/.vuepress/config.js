@@ -6,9 +6,11 @@ module.exports = {
         'vuepress-plugin-code-copy': true,
         '@vuepress/back-to-top': true,
         'seo': {
+            url: (_, $site, path) => ($site.themeConfig.domain || '') + path,
         },
     },
     themeConfig: {
+        domain: '/learn-wgpu',
         author: {
             name: 'Benjamin Hansen',
             twitter: 'https://twitter.com/sotrh760',

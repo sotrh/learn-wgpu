@@ -294,7 +294,7 @@ We need to update `new()` as well.
 
 ```rust
 impl State {
-    async fn new(window: &Window) -> Self {
+    async fn new(window: Window) -> Self {
         // ...
 
         // UPDATED!
@@ -384,7 +384,7 @@ fn main() {
             Event::WindowEvent {
                 ref event,
                 window_id,
-            } if window_id == window.id() && !state.input(event) => {
+            } if window_id == state.window().id() && !state.input(event) => {
                 match event {
                     #[cfg(not(target_arch="wasm32"))]
                     WindowEvent::CloseRequested
@@ -437,14 +437,14 @@ We still need to calculate `dt`. Let's do that in the `main` function.
 ```rust
 fn main() {
     // ...
-    let mut state = State::new(&window).await;
+    let mut state = State::new(window).await;
     let mut last_render_time = instant::Instant::now();  // NEW!
     event_loop.run(move |event, _, control_flow| {
         *control_flow = ControlFlow::Poll;
         match event {
             // ...
             // UPDATED!
-            Event::RedrawRequested(window_id) if window_id == window.id() => {
+            Event::RedrawRequested(window_id) if window_id == state.window().id() => {
                 let now = instant::Instant::now();
                 let dt = now - last_render_time;
                 last_render_time = now;

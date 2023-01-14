@@ -12,11 +12,11 @@ crate-type = ["cdylib", "rlib"]
 cfg-if = "1"
 winit = "0.27"
 wgpu = "0.14"
-env_logger = "0.9"
+env_logger = "0.10"
 log = "0.4"
 pollster = "0.2"
 # NEW!
-bytemuck = { version = "1.4", features = [ "derive" ] }
+bytemuck = { version = "1.12", features = [ "derive" ] }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 console_error_panic_hook = "0.1"
