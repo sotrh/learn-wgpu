@@ -62,7 +62,7 @@ impl Vertex for ModelVertex {
 
 This is basically the same as the original `VertexBufferLayout`, but we added a `VertexAttribute` for the `normal`. Remove the `Vertex` struct in `lib.rs` as we won't need it anymore, and use our new `Vertex` from `model` for the `RenderPipeline`.
 
-We will also remove our homemade `vertex_buffer`, `index_buffer` and `num_indicdes`.
+We will also remove our homemade `vertex_buffer`, `index_buffer` and `num_indices`.
 
 ```rust
 let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
