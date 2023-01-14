@@ -228,7 +228,7 @@ If we try to build WASM now it will fail because `wasm-bindgen` doesn't support 
 [dependencies]
 cfg-if = "1"
 winit = "0.27"
-env_logger = "0.9"
+env_logger = "0.10"
 log = "0.4"
 wgpu = "0.14"
 pollster = "0.2"

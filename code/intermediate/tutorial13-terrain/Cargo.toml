@@ -10,9 +10,9 @@ crate-type = ["cdylib", "rlib"]
 [dependencies]
 cfg-if = "1"
 anyhow = "1.0"
-bytemuck = { version = "1.4", features = [ "derive" ] }
+bytemuck = { version = "1.12", features = [ "derive" ] }
 cgmath = { version = "0.18", features = [ "swizzle" ] }
-env_logger = "0.9"
+env_logger = "0.10"
 pollster = "0.2"
 log = "0.4"
 tobj = { version = "3.2", features = ["async"]}

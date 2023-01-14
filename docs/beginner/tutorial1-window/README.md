@@ -9,7 +9,7 @@ For the beginner stuff, we're going to keep things very simple, we'll add things
 ```toml
 [dependencies]
 winit = "0.27"
-env_logger = "0.9"
+env_logger = "0.10"
 log = "0.4"
 wgpu = "0.14"
 ```
