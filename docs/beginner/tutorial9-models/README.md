@@ -62,6 +62,8 @@ impl Vertex for ModelVertex {
 
 This is basically the same as the original `VertexBufferLayout`, but we added a `VertexAttribute` for the `normal`. Remove the `Vertex` struct in `lib.rs` as we won't need it anymore, and use our new `Vertex` from `model` for the `RenderPipeline`.
 
+We will also remove our homemade `vertex_buffer`, `index_buffer` and `num_indices`.
+
 ```rust
 let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
     // ...
@@ -417,6 +419,8 @@ where
 
 We could have put these methods in an `impl Model`, but I felt it made more sense to have the `RenderPass` do all the rendering, as that's kind of its job. This does mean we have to import `DrawModel` when we go to render though.
 
+When we removed `vertex_buffer`, etc. we also removed their render_pass setup.
+
 ```rust
 // lib.rs
 render_pass.set_vertex_buffer(1, self.instance_buffer.slice(..));
@@ -431,12 +435,10 @@ render_pass.draw_mesh_instanced(&self.obj_model.meshes[0], 0..self.instances.len
 Before that though we need to actually load the model and save it to `State`. Put the following in `State::new()`.
 
 ```rust
-let obj_model = resources::load_model(
-    "cube.obj",
-    &device,
-    &queue,
-    &texture_bind_group_layout,
-).await.unwrap();
+let obj_model =
+    resources::load_model("cube.obj", &device, &queue, &texture_bind_group_layout)
+        .await
+        .unwrap();
 ```
 
 Our new model is a bit bigger than our previous one so we're gonna need to adjust the spacing on our instances a bit.
