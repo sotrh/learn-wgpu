@@ -1,6 +1,7 @@
 use std::iter;
 
 use cgmath::prelude::*;
+use wgpu::{include_spirv_raw};
 use wgpu::util::DeviceExt;
 use winit::{
     event::*,
@@ -295,7 +296,7 @@ struct DepthPass {
 
 impl DepthPass {
     fn new(device: &wgpu::Device, config: &wgpu::SurfaceConfiguration) -> Self {
-        let texture = texture::Texture::create_depth_texture(device, config, "depth_texture");
+        let texture = texture::Texture::create_depth_texture_non_comparison_sampler(device, config, "depth_texture");
 
         let layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
             label: Some("Depth Pass Layout"),
@@ -304,7 +305,7 @@ impl DepthPass {
                     binding: 0,
                     count: None,
                     ty: wgpu::BindingType::Texture {
-                        sample_type: wgpu::TextureSampleType::Depth,
+                        sample_type: wgpu::TextureSampleType::Float { filterable: false },
                         multisampled: false,
                         view_dimension: wgpu::TextureViewDimension::D2,
                     },
@@ -313,7 +314,7 @@ impl DepthPass {
                 wgpu::BindGroupLayoutEntry {
                     binding: 1,
                     count: None,
-                    ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Comparison),
+                    ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::NonFiltering),
                     visibility: wgpu::ShaderStages::FRAGMENT,
                 },
             ],
@@ -412,7 +413,7 @@ impl DepthPass {
     }
 
     fn resize(&mut self, device: &wgpu::Device, config: &wgpu::SurfaceConfiguration) {
-        self.texture = texture::Texture::create_depth_texture(device, config, "depth_texture");
+        self.texture = texture::Texture::create_depth_texture_non_comparison_sampler(device, config, "depth_texture");
         self.bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
             layout: &self.layout,
             entries: &[
