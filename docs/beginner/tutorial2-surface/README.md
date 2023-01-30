@@ -57,13 +57,16 @@ impl State {
 
         // The instance is a handle to our GPU
         // Backends::all => Vulkan + Metal + DX12 + Browser WebGPU
-        let instance = wgpu::Instance::new(wgpu::Backends::all());
+        let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
+            backends: wgpu::Backends::all(),
+            dx12_shader_compiler: Default::default(),
+        });
         
         // # Safety
         //
         // The surface needs to live as long as the window that created it.
         // State owns the window so this should be safe.
-        let surface = unsafe { instance.create_surface(&window) };
+        let surface = unsafe { instance.create_surface(&window) }.unwrap();
 
         let adapter = instance.request_adapter(
             &wgpu::RequestAdapterOptions {
@@ -95,11 +98,13 @@ let adapter = instance
     .enumerate_adapters(wgpu::Backends::all())
     .filter(|adapter| {
         // Check if this adapter supports our surface
-        !surface.get_supported_formats(&adapter).is_empty()
+        adapter.is_surface_supported(&surface)
     })
     .next()
     .unwrap()
 ```
+
+One thing to note is that `enumerate_adapters` isn't available on WASM, so you have to use `request_adapter`.
 
 Another thing to note is that `Adapter`s are locked to a specific backend. If you are on Windows and have 2 graphics cards you'll have at least 4 adapters available to use, 2 Vulkan and 2 DirectX.
 
@@ -148,13 +153,23 @@ You can view a full list of features [here](https://docs.rs/wgpu/latest/wgpu/str
 The `limits` field describes the limit of certain types of resources that we can create. We'll use the defaults for this tutorial, so we can support most devices. You can view a list of limits [here](https://docs.rs/wgpu/latest/wgpu/struct.Limits.html).
 
 ```rust
+        let surface_caps = surface.get_capabilities(&adapter);
+        // Shader code in this tutorial assumes an Srgb surface texture. Using a different
+        // one will result all the colors comming out darker. If you want to support non
+        // Srgb surfaces, you'll need to account for that when drawing to the frame.
+        let surface_format = surface_caps.formats.iter()
+            .copied()
+            .filter(|f| f.describe().srgb)
+            .next()
+            .unwrap_or(surface_caps.formats[0]);
         let config = wgpu::SurfaceConfiguration {
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-            format: surface.get_supported_formats(&adapter)[0],
+            format: surface_format,
             width: size.width,
             height: size.height,
-            present_mode: wgpu::PresentMode::Fifo,
-            alpha_mode: wgpu::CompositeAlphaMode::Auto,
+            present_mode: surface_caps.present_modes[0],
+            alpha_mode: surface_caps.alpha_modes[0],
+            view_formats: vec![surface_format],
         };
         surface.configure(&device, &config);
 ```
@@ -163,7 +178,7 @@ Here we are defining a config for our surface. This will define how the surface 
 
 The `usage` field describes how `SurfaceTexture`s will be used. `RENDER_ATTACHMENT` specifies that the textures will be used to write to the screen (we'll talk about more `TextureUsages`s later).
 
-The `format` defines how `SurfaceTexture`s will be stored on the gpu. `surface.get_supported_formats(&adapter)` returns a `Vec` of the formats that are supported by that surface. While a surface may support many formats, it usually has a format that it prefers, in which case it places that format first in the returned `Vec`. We use the format in the first position (`[0]`) to get the best format to use for that particular surface.
+The `format` defines how `SurfaceTexture`s will be stored on the gpu. We can get a supported format from the `SurfaceCapabilities`.
 
 `width` and `height` are the width and the height in pixels of a `SurfaceTexture`. This should usually be the width and the height of the window.
 
@@ -244,13 +259,13 @@ cfg-if = "1"
 winit = "0.27"
 env_logger = "0.10"
 log = "0.4"
-wgpu = "0.14"
+wgpu = "0.15"
 pollster = "0.2"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 console_error_panic_hook = "0.1.6"
 console_log = "0.2.0"
-wgpu = { version = "0.14", features = ["webgl"]}
+wgpu = { version = "0.15", features = ["webgl"]}
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
 web-sys = { version = "0.3", features = [

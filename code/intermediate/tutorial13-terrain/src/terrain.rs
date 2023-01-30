@@ -205,7 +205,7 @@ impl GenerateChunk for TerrainPipeline {
                 size: (num_vertices * 8 * std::mem::size_of::<f32>() as u32) as _,
                 usage: wgpu::BufferUsages::STORAGE
                     | wgpu::BufferUsages::VERTEX
-                    | wgpu::BufferUsages::MAP_READ,
+                    | wgpu::BufferUsages::COPY_SRC,
                 mapped_at_creation: false,
             });
             let num_elements = self.chunk_size.x * self.chunk_size.y * 6;
@@ -215,7 +215,7 @@ impl GenerateChunk for TerrainPipeline {
                 size: (num_elements * std::mem::size_of::<u32>() as u32) as _,
                 usage: wgpu::BufferUsages::STORAGE
                     | wgpu::BufferUsages::INDEX
-                    | wgpu::BufferUsages::MAP_READ,
+                    | wgpu::BufferUsages::COPY_SRC,
                 mapped_at_creation: false,
             });
             Chunk {
@@ -446,6 +446,7 @@ impl TerrainHackPipeline {
             dimension: wgpu::TextureDimension::D2,
             format: wgpu::TextureFormat::R32Uint,
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::COPY_SRC,
+            view_formats: &[wgpu::TextureFormat::R32Uint],
         })
     }
 }

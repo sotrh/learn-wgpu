@@ -268,7 +268,7 @@ anyhow = "1.0"
 bytemuck = { version = "1.12", features = [ "derive" ] }
 cgmath = "0.18"
 pollster = "0.2"
-wgpu = { version = "0.14", features = ["spirv"]}
+wgpu = { version = "0.15", features = ["spirv"]}
 wgpu_glyph = "0.17"
 rand = "0.8"
 rodio = { version = "0.15", default-features = false, features = ["wav"] }
@@ -287,7 +287,7 @@ web-sys = { version = "0.3.53", features = [
     "Window",
     "Element",
 ]}
-wgpu = { version = "0.14", features = ["spirv", "webgl"]}
+wgpu = { version = "0.15", features = ["spirv", "webgl"]}
 
 [build-dependencies]
 anyhow = "1.0"
