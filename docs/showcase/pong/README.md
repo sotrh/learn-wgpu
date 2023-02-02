@@ -2,6 +2,12 @@
 
 ![](./pong.png)
 
+<div class="warn">
+
+Currently not working, this will be updated when [wgpu_glyph gets updated to 0.15](https://github.com/hecrj/wgpu_glyph/pull/95).
+
+</div>
+
 Practically the "Hello World!" of games. Pong has been remade thousands of times. I know Pong. You know Pong. We all know Pong. That being said, this time I wanted to put in a little more effort than most people do. This showcase has a basic menu system, sounds, and different game states.
 
 The architecture is not the best as I prescribed to the "get things done" mentality. If I were to redo this project, I'd change a lot of things. Regardless, let's get into the postmortem.
