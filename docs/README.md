@@ -25,17 +25,20 @@ I'm using this project to learn wgpu myself, so I might miss some important deta
 ## Special thanks to these patrons!
 
 - David Laban
-- Gunstein Vatnar
 - Lennart
 - Ian Gowen
 - Aron Granberg
 - Bernard Llanos
 - Jan Šipr
 - Zeh Fernando
-- Felix 
 - Youngsuk Kim
 - オリトイツキ
 - Andrea Postal
-- charlesk
-
+- Julius Liu
+- Feng Liang
+- Mattia Samiolo
+- Joris Willems
+- Jani Turkia
+- papyDoctor
+- Filip 
 
