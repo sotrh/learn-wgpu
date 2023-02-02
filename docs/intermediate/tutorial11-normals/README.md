@@ -442,6 +442,12 @@ pub fn from_image(
     is_normal_map: bool, // NEW!
 ) -> Result<Self> {
     // ...
+    // NEW!
+    let format = if is_normal_map {
+        wgpu::TextureFormat::Rgba8Unorm
+    } else {
+        wgpu::TextureFormat::Rgba8UnormSrgb
+    };
     let texture = device.create_texture(&wgpu::TextureDescriptor {
         label,
         size,
@@ -449,12 +455,9 @@ pub fn from_image(
         sample_count: 1,
         dimension: wgpu::TextureDimension::D2,
         // UPDATED!
-        format: if is_normal_map {
-            wgpu::TextureFormat::Rgba8Unorm
-        } else {
-            wgpu::TextureFormat::Rgba8UnormSrgb
-        },
+        format,
         usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
+        view_formats: &[],
     });
 
     // ...

@@ -65,6 +65,14 @@ let diffuse_texture = device.create_texture(
         // COPY_DST means that we want to copy data to this texture
         usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
         label: Some("diffuse_texture"),
+        // This is the same as with the SurfaceConfig. It
+        // specifies what texture formats can be used to
+        // create TextureViews for this texture. The base
+        // texture format (Rgba8UnormSrgb in this case) is
+        // always supported. Note that using a different
+        // texture format is not supported on the WebGL2
+        // backend.
+        view_formats: &[],
     }
 );
 ```
@@ -493,6 +501,7 @@ impl Texture {
                 dimension: wgpu::TextureDimension::D2,
                 format: wgpu::TextureFormat::Rgba8UnormSrgb,
                 usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
+                view_formats: &[],
             }
         );
 

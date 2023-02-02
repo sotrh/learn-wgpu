@@ -169,7 +169,7 @@ The `limits` field describes the limit of certain types of resources that we can
             height: size.height,
             present_mode: surface_caps.present_modes[0],
             alpha_mode: surface_caps.alpha_modes[0],
-            view_formats: vec![surface_format],
+            view_formats: vec![],
         };
         surface.configure(&device, &config);
 ```
@@ -190,15 +190,19 @@ Make sure that the width and height of the `SurfaceTexture` are not 0, as that c
 
 <div class="note">
 
-If you want to let your users pick what `PresentMode` they use, you can use [Surface::get_supported_modes()](https://docs.rs/wgpu/latest/wgpu/struct.Surface.html#method.get_supported_modes) to get a list of all the `PresentMode`s the surface supports:
+If you want to let your users pick what `PresentMode` they use, you can use [SurfaceCapabilities::present_modes](https://docs.rs/wgpu/latest/wgpu/struct.SurfaceCapabilities.html#structfield.present_modes) to get a list of all the `PresentMode`s the surface supports:
 
 ```rust
-let modes = surface.get_supported_modes(&adapter);
+let modes = &surface_caps.present_modes;
 ```
 
 Regardless, `PresentMode::Fifo` will always be supported, and `PresentMode::AutoVsync` and `PresentMode::AutoNoVsync` have fallback support and therefore will work on all platforms.
 
 </div>
+
+`alpha_mode` is honestly not something I'm familiar with. I believe it has something to do with transparent windows, but feel free to open a pull request. For now we'll just use the first `AlphaMode` in the list given by `surface_caps`.
+
+`view_formats` is a list of `TextureFormat`s that you can use when creating `TextureView`s (we'll cover those briefly later in the this tutorial as well as more in depth [in the texture tutorial](../beginner/tutorial5-textures)). As of writing this means that if your surface is srgb color space, you can create a texture view that uses a linear color space.
 
 Now that we've configured our surface properly we can add these new fields at the end of the method.
 
