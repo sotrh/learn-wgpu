@@ -19,8 +19,8 @@ async fn run() -> anyhow::Result<()> {
         .build(&event_loop)?;
 
     let backends = wgpu::Backends::all();
-    let instance = wgpu::Instance::new(backends);
-    let surface = unsafe { instance.create_surface(window.as_ref().unwrap()) };
+    let instance = wgpu::Instance::default();
+    let surface = unsafe { instance.create_surface(window.as_ref().unwrap()) }.unwrap();
     let adapter = instance
         .enumerate_adapters(backends)
         .filter(|a| a.is_surface_supported(&surface))
@@ -41,10 +41,11 @@ async fn run() -> anyhow::Result<()> {
     let mut config = wgpu::SurfaceConfiguration {
         width: inner_size.width,
         height: inner_size.height,
-        format: surface.get_supported_formats(&adapter)[0],
+        format: surface.get_capabilities(&adapter).formats[0],
         usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
         present_mode: Default::default(),
         alpha_mode: wgpu::CompositeAlphaMode::Auto,
+        view_formats: vec![],
     };
     surface.configure(&device, &config);
 

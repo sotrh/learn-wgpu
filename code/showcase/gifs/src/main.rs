@@ -4,7 +4,10 @@ extern crate framework;
 use std::{iter, mem, num::NonZeroU32};
 
 async fn run() {
-    let instance = wgpu::Instance::new(wgpu::Backends::all());
+    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
+            backends: wgpu::Backends::all(),
+            dx12_shader_compiler: Default::default(),
+        });
     let adapter = instance
         .request_adapter(&wgpu::RequestAdapterOptions::default())
         .await
@@ -52,6 +55,7 @@ async fn run() {
         format: wgpu::TextureFormat::Rgba8UnormSrgb,
         usage: wgpu::TextureUsages::COPY_SRC | wgpu::TextureUsages::RENDER_ATTACHMENT,
         label: None,
+        view_formats: &[],
     };
     let render_target = framework::Texture::from_descriptor(&device, rt_desc);
 
