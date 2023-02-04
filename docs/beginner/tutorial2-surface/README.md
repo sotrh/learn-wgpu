@@ -154,9 +154,9 @@ The `limits` field describes the limit of certain types of resources that we can
 
 ```rust
         let surface_caps = surface.get_capabilities(&adapter);
-        // Shader code in this tutorial assumes an Srgb surface texture. Using a different
-        // one will result all the colors comming out darker. If you want to support non
-        // Srgb surfaces, you'll need to account for that when drawing to the frame.
+        // Shader code in this tutorial assumes an sRGB surface texture. Using a different
+        // one will result all the colors coming out darker. If you want to support non
+        // sRGB surfaces, you'll need to account for that when drawing to the frame.
         let surface_format = surface_caps.formats.iter()
             .copied()
             .filter(|f| f.describe().srgb)
