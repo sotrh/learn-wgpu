@@ -61,6 +61,7 @@ module.exports = {
                 title: 'News',
                 collapsable: true,
                 children: [
+                    '/news/0.15/',
                     '/news/0.14/',
                     '/news/0.13/',
                     '/news/0.12/',
