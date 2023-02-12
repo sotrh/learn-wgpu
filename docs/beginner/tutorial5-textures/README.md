@@ -177,7 +177,7 @@ There are 2 options:
 * `Linear`: Select two texels in each dimension and return a linear interpolation between their values.
 * `Nearest`: Return the value of the texel nearest to the texture coordinates. This creates an image that's crisper from far away but pixelated up close. This can be desirable, however, if your textures are designed to be pixelated, like in pixel art games, or voxel games like Minecraft.
 
-Mipmaps are a complex topic and will require [their own section in the future](/todo). For now, we can say that `mipmap_filter` functions similar to `(mag/min)_filter` as it tells the sampler how to blend between mipmaps.
+Mipmaps are a complex topic and will require their own section in the future. For now, we can say that `mipmap_filter` functions similar to `(mag/min)_filter` as it tells the sampler how to blend between mipmaps.
 
 I'm using some defaults for the other fields. If you want to see what they are, check [the wgpu docs](https://docs.rs/wgpu/latest/wgpu/struct.SamplerDescriptor.html).
 
