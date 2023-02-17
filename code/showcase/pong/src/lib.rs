@@ -211,7 +211,7 @@ pub fn start() {
                             sound_system.queue(sound_pack.bounce());
                         }
                         state::Event::Resize(width, height) => {
-                            // TODO: their should be a system that handles this
+                            // TODO: there should be a system that handles this
                             state.player1_score.position = (width * 0.25, 20.0).into();
                             state.player2_score.position = (width * 0.75, 20.0).into();
                             state.win_text.position = (width * 0.5, height * 0.5).into();
