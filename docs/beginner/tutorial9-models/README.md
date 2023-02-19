@@ -7,7 +7,7 @@ Our `lib.rs` file is getting pretty cluttered, let's create a `model.rs` file th
 ```rust
 // model.rs
 pub trait Vertex {
-    fn desc<'a>() -> wgpu::VertexBufferLayout<'a>;
+    fn desc() -> wgpu::VertexBufferLayout<'static>;
 }
 
 #[repr(C)]
@@ -19,7 +19,7 @@ pub struct ModelVertex {
 }
 
 impl Vertex for ModelVertex {
-    fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
+    fn desc() -> wgpu::VertexBufferLayout<'static> {
         todo!();
     }
 }
@@ -33,7 +33,7 @@ Let's define our `VertexBufferLayout`.
 
 ```rust
 impl Vertex for ModelVertex {
-    fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
+    fn desc() -> wgpu::VertexBufferLayout<'static> {
         use std::mem;
         wgpu::VertexBufferLayout {
             array_stride: mem::size_of::<ModelVertex>() as wgpu::BufferAddress,
