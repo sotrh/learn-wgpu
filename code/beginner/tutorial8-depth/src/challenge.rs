@@ -1,7 +1,7 @@
 use std::iter;
 
 use cgmath::prelude::*;
-use wgpu::{include_spirv_raw};
+use wgpu::include_spirv_raw;
 use wgpu::util::DeviceExt;
 use winit::{
     event::*,
@@ -296,7 +296,11 @@ struct DepthPass {
 
 impl DepthPass {
     fn new(device: &wgpu::Device, config: &wgpu::SurfaceConfiguration) -> Self {
-        let texture = texture::Texture::create_depth_texture_non_comparison_sampler(device, config, "depth_texture");
+        let texture = texture::Texture::create_depth_texture_non_comparison_sampler(
+            device,
+            config,
+            "depth_texture",
+        );
 
         let layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
             label: Some("Depth Pass Layout"),
@@ -413,7 +417,11 @@ impl DepthPass {
     }
 
     fn resize(&mut self, device: &wgpu::Device, config: &wgpu::SurfaceConfiguration) {
-        self.texture = texture::Texture::create_depth_texture_non_comparison_sampler(device, config, "depth_texture");
+        self.texture = texture::Texture::create_depth_texture_non_comparison_sampler(
+            device,
+            config,
+            "depth_texture",
+        );
         self.bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
             layout: &self.layout,
             entries: &[
@@ -486,7 +494,7 @@ impl State {
             backends: wgpu::Backends::all(),
             dx12_shader_compiler: Default::default(),
         });
-        
+
         // # Safety
         //
         // The surface needs to live as long as the window that created it.
@@ -523,7 +531,9 @@ impl State {
         // Shader code in this tutorial assumes an Srgb surface texture. Using a different
         // one will result all the colors comming out darker. If you want to support non
         // Srgb surfaces, you'll need to account for that when drawing to the frame.
-        let surface_format = surface_caps.formats.iter()
+        let surface_format = surface_caps
+            .formats
+            .iter()
             .copied()
             .filter(|f| f.describe().srgb)
             .next()
@@ -775,6 +785,7 @@ impl State {
             self.depth_pass.resize(&self.device, &self.config);
 
             self.camera.aspect = self.config.width as f32 / self.config.height as f32;
+            self.window.request_redraw();
         }
     }
 
@@ -894,17 +905,14 @@ async fn run() {
                 match state.render() {
                     Ok(_) => {}
                     // Reconfigure the surface if it's lost or outdated
-                    Err(wgpu::SurfaceError::Lost | wgpu::SurfaceError::Outdated) => state.resize(state.size),
+                    Err(wgpu::SurfaceError::Lost | wgpu::SurfaceError::Outdated) => {
+                        state.resize(state.size)
+                    }
                     // The system is out of memory, we should probably quit
                     Err(wgpu::SurfaceError::OutOfMemory) => *control_flow = ControlFlow::Exit,
                     // We're ignoring timeouts
                     Err(wgpu::SurfaceError::Timeout) => log::warn!("Surface timeout"),
                 }
-            }
-            Event::MainEventsCleared => {
-                // RedrawRequested will only trigger once, unless we manually
-                // request it.
-                state.window().request_redraw();
             }
             _ => {}
         }
