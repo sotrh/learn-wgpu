@@ -410,11 +410,6 @@ async fn run() {
                     Err(wgpu::SurfaceError::Timeout) => log::warn!("Surface timeout"),
                 }
             }
-            // Event::MainEventsCleared => {
-            //     // RedrawRequested will only trigger once, unless we manually
-            //     // request it.
-            //     state.window().request_redraw();
-            // }
             _ => {}
         }
     });
