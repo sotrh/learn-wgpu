@@ -7170,7 +7170,7 @@ __metadata:
     "@vuepress/plugin-back-to-top": ^1.9.5
     vuepress: ^1.9.5
     vuepress-plugin-code-copy: ^1.0.6
-    vuepress-plugin-seo: ^0.1.4
+    vuepress-plugin-seo: ^0.2.0
     vuepress-theme-thindark: ^1.0.1
   languageName: unknown
   linkType: soft
@@ -11397,10 +11397,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vuepress-plugin-seo@npm:^0.1.4":
-  version: 0.1.4
-  resolution: "vuepress-plugin-seo@npm:0.1.4"
-  checksum: 3e3a297b6747f8e06a4146141ade3377b63d4b64fc8d99aebbefe8cd1d573d4c2d702799b6da240e2a7b3e3b85e6650ac484e6536455081cb330f7e6e13479ac
+"vuepress-plugin-seo@npm:^0.2.0":
+  version: 0.2.0
+  resolution: "vuepress-plugin-seo@npm:0.2.0"
+  checksum: 6f2dc722199b496e99640e3173d1e6bba05f6eb6258f65b85bf78a0e4a59258d76f45b56c1fe29941be971f9b657801ec6104011f3b2c7545cde02a095e722b9
   languageName: node
   linkType: hard
 
