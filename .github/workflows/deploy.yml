@@ -12,7 +12,7 @@ jobs:
 
       - name: Build WASM
         run: |
-          curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+          rustup target add wasm32-unknown-unknown
           sh build-wasm.sh
 
       - name: Install and Build Vuepress
