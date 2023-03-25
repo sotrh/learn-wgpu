@@ -40,7 +40,7 @@ export default {
     async loadExample() {
       this.loading = true;
       try {
-        await import(`./wasm/${this.example}/${this.example}.js`);
+        await import(`./wasm/${this.example}/demo.js`);
       } catch (e) {
         // TODO: Figure out a better way to ignore "control flow" errors
         if (`${e}` != "Error: Using exceptions for control flow, don't mind me. This isn't actually an error!") {

@@ -1,6 +1,8 @@
 [workspace]
 resolver = "2"
 members = [
+    "code/wasm-builder",
+
     # beginner tutorials
     "code/beginner/*",
 

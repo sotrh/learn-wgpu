@@ -9,12 +9,11 @@ use crate::{model, texture};
 fn format_url(file_name: &str) -> reqwest::Url {
     let window = web_sys::window().unwrap();
     let location = window.location();
-    let base = reqwest::Url::parse(&format!(
-        "{}/{}/",
-        location.origin().unwrap(),
-        option_env!("RES_PATH").unwrap_or("res"),
-    ))
-    .unwrap();
+    let mut origin = location.origin().unwrap();
+    if !origin.ends_with("learn-wgpu") {
+        origin = format!("{}/learn-wgpu", origin);
+    }
+    let base = reqwest::Url::parse(&format!("{}/", origin,)).unwrap();
     base.join(file_name).unwrap()
 }
 

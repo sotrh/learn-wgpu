@@ -287,7 +287,7 @@ console_log = "0.2.0"
 getrandom = { version = "0.2", features = ["js"] }
 rodio = { version = "0.15", default-features = false, features = ["wasm-bindgen", "wav"] }
 wasm-bindgen-futures = "0.4.20"
-wasm-bindgen = "0.2.76"
+wasm-bindgen = "=0.2.84"
 web-sys = { version = "0.3.53", features = [
     "Document",
     "Window",
