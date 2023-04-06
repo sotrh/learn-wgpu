@@ -435,7 +435,7 @@ If you use a color picker on the magenta pentagon, you'll get a hex value of #BC
 
 Most monitors use a color space known as sRGB. Our surface is (most likely depending on what is returned from `surface.get_preferred_format()`) using an sRGB texture format. The sRGB format stores colors according to their relative brightness instead of their actual brightness. The reason for this is that our eyes don't perceive light linearly. We notice more differences in darker colors than we do in lighter colors.
 
-You get the correct color using the following formula: `srgb_color = ((rgb_color / 255 + 0.055) / 1.055) ^ 2.4`. Doing this with an RGB value of (188, 0, 188) will give us (0.5028864580325687, 0.0, 0.5028864580325687). A little off from our (0.5, 0.0, 0.5). Instead of doing manual color conversation, you'll likely save a lot of time by using textures instead as they are stored as sRGB by default, so they don't suffer from the same color inaccuracies that vertex colors do. We'll cover textures in the next lesson.
+You get the correct color using the following formula: `srgb_color = ((rgb_color / 255 + 0.055) / 1.055) ^ 2.4`. Doing this with an RGB value of (188, 0, 188) will give us (0.5028864580325687, 0.0, 0.5028864580325687). A little off from our (0.5, 0.0, 0.5). Instead of doing manual color conversion, you'll likely save a lot of time by using textures instead as they are stored as sRGB by default, so they don't suffer from the same color inaccuracies that vertex colors do. We'll cover textures in the next lesson.
 
 ## Challenge
 Create a more complex shape than the one we made (aka. more than three triangles) using a vertex buffer and an index buffer. Toggle between the two with the space key.
