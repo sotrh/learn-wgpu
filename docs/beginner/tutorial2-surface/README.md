@@ -221,13 +221,33 @@ Now that we've configured our surface properly we can add these new fields at th
 
 Since our `State::new()` method is async we need to change `run()` to be async as well so that we can await it.
 
+Our `window` has beened moved to the State instance, we will need to update our `event_loop` to reflect this.
+
 ```rust
 pub async fn run() {
     // Window setup...
 
     let mut state = State::new(window).await;
 
-    // Event loop...
+    event_loop.run(move |event, _, control_flow| match event {
+        Event::WindowEvent {
+            ref event,
+            window_id,
+        } if window_id == state.window().id() => match event {
+            WindowEvent::CloseRequested
+            | WindowEvent::KeyboardInput {
+                input:
+                    KeyboardInput {
+                        state: ElementState::Pressed,
+                        virtual_keycode: Some(VirtualKeyCode::Escape),
+                        ..
+                    },
+                ..
+            } => *control_flow = ControlFlow::Exit,
+            _ => {}
+        },
+        _ => {}
+    });
 }
 ```
 
