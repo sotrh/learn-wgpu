@@ -306,19 +306,17 @@ We call this method in `run()` in the event loop for the following events.
 match event {
     // ...
 
-    } if window_id == state.window().id() => if !state.input(event) {
-        match event {
-            // ...
+    } if window_id == state.window().id() => match event {
+        // ...
 
-            WindowEvent::Resized(physical_size) => {
-                state.resize(*physical_size);
-            }
-            WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
-                // new_inner_size is &&mut so we have to dereference it twice
-                state.resize(**new_inner_size);
-            }
-            // ...
+        WindowEvent::Resized(physical_size) => {
+            state.resize(*physical_size);
         }
+        WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
+            // new_inner_size is &&mut so we have to dereference it twice
+            state.resize(**new_inner_size);
+        }
+        // ...
     }
 }
 ```
