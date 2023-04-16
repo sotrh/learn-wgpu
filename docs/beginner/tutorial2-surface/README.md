@@ -96,10 +96,11 @@ The options I've passed to `request_adapter` aren't guaranteed to work for all d
 ```rust
 let adapter = instance
     .enumerate_adapters(wgpu::Backends::all())
-    .find(|adapter| {
+    .filter(|adapter| {
         // Check if this adapter supports our surface
         adapter.is_surface_supported(&surface)
     })
+    .next()
     .unwrap()
 ```
 
@@ -158,7 +159,8 @@ The `limits` field describes the limit of certain types of resources that we can
         // sRGB surfaces, you'll need to account for that when drawing to the frame.
         let surface_format = surface_caps.formats.iter()
             .copied()
-            .find(|f| f.is_srgb())            
+            .filter(|f| f.describe().srgb)
+            .next()
             .unwrap_or(surface_caps.formats[0]);
         let config = wgpu::SurfaceConfiguration {
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
@@ -205,7 +207,7 @@ Regardless, `PresentMode::Fifo` will always be supported, and `PresentMode::Auto
 Now that we've configured our surface properly we can add these new fields at the end of the method.
 
 ```rust
-    async fn new(window: Window) -> Self {
+    async fn new(window: &Window) -> Self {
         // ...
 
         Self {
@@ -256,7 +258,7 @@ Now that `run()` is async, `main()` will need some way to await the future. We c
 ```toml
 [dependencies]
 # other deps...
-pollster = "0.3"
+pollster = "0.2"
 ```
 
 We then use the `block_on` function provided by pollster to await our future:
@@ -273,29 +275,11 @@ Don't use `block_on` inside of an async function if you plan to support WASM. Fu
 
 </div>
 
-If we try to build WASM now it will fail because `wasm-bindgen` doesn't support using async functions as `start` methods. You could switch to calling `run` manually in javascript, but for simplicity, we'll add the [wasm-bindgen-futures](https://docs.rs/wasm-bindgen-futures) crate to our WASM dependencies as that doesn't require us to change any code. Your dependencies should look something like this:
+<div class="note">
 
-```toml
-[dependencies]
-cfg-if = "1"
-winit = "0.28"
-env_logger = "0.10"
-log = "0.4"
-wgpu = "0.17"
-pollster = "0.3"
+`wasm-bindgen` does not support using async functions as `start` methods, and would fail to build WASM. You could switch to calling `run` manually in javascript, but for simplicity, we added the [wasm-bindgen-futures](https://docs.rs/wasm-bindgen-futures) crate to our WASM dependencies as that doesn't require us to change any code.
 
-[target.'cfg(target_arch = "wasm32")'.dependencies]
-console_error_panic_hook = "0.1.6"
-console_log = "1.0"
-wgpu = { version = "0.17", features = ["webgl"]}
-wasm-bindgen = "0.2"
-wasm-bindgen-futures = "0.4"
-web-sys = { version = "0.3", features = [
-    "Document",
-    "Window",
-    "Element",
-]}
-```
+</div>
 
 ## resize()
 If we want to support resizing in our application, we're going to need to reconfigure the `surface` every time the window's size changes. That's the reason we stored the physical `size` and the `config` used to configure the `surface`. With all of these, the resize method is very simple.
@@ -320,7 +304,7 @@ We call this method in `run()` in the event loop for the following events.
 match event {
     // ...
 
-    } if window_id == state.window().id() => {
+    } if window_id == state.window().id() => if !state.input(event) {
         match event {
             // ...
 
