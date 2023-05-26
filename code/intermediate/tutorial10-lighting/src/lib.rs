@@ -191,7 +191,7 @@ struct InstanceRaw {
 }
 
 impl model::Vertex for InstanceRaw {
-    fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
+    fn desc() -> wgpu::VertexBufferLayout<'static> {
         use std::mem;
         wgpu::VertexBufferLayout {
             array_stride: mem::size_of::<InstanceRaw>() as wgpu::BufferAddress,
@@ -388,8 +388,7 @@ impl State {
         // Srgb surfaces, you'll need to account for that when drawing to the frame.
         let surface_format = surface_caps.formats.iter()
             .copied()
-            .filter(|f| f.describe().srgb)
-            .next()
+            .find(|f| f.describe().srgb)
             .unwrap_or(surface_caps.formats[0]);
         let config = wgpu::SurfaceConfiguration {
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,

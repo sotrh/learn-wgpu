@@ -139,7 +139,7 @@ We're going to need to create a new `VertexBufferLayout` for `InstanceRaw`.
 
 ```rust
 impl InstanceRaw {
-    fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
+    fn desc() -> wgpu::VertexBufferLayout<'static> {
         use std::mem;
         wgpu::VertexBufferLayout {
             array_stride: mem::size_of::<InstanceRaw>() as wgpu::BufferAddress,

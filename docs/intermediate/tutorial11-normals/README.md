@@ -207,7 +207,7 @@ We'll need to upgrade our `VertexBufferLayout` as well.
 
 ```rust
 impl Vertex for ModelVertex {
-    fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
+    fn desc() -> wgpu::VertexBufferLayout<'static> {
         use std::mem;
         wgpu::VertexBufferLayout {
             array_stride: mem::size_of::<ModelVertex>() as wgpu::BufferAddress,

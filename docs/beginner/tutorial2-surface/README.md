@@ -96,11 +96,10 @@ The options I've passed to `request_adapter` aren't guaranteed to work for all d
 ```rust
 let adapter = instance
     .enumerate_adapters(wgpu::Backends::all())
-    .filter(|adapter| {
+    .find(|adapter| {
         // Check if this adapter supports our surface
         adapter.is_surface_supported(&surface)
     })
-    .next()
     .unwrap()
 ```
 
@@ -159,8 +158,7 @@ The `limits` field describes the limit of certain types of resources that we can
         // sRGB surfaces, you'll need to account for that when drawing to the frame.
         let surface_format = surface_caps.formats.iter()
             .copied()
-            .filter(|f| f.describe().srgb)
-            .next()
+            .find(|f| f.describe().srgb)            
             .unwrap_or(surface_caps.formats[0]);
         let config = wgpu::SurfaceConfiguration {
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
