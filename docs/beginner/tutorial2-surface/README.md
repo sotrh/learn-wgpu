@@ -226,6 +226,7 @@ Since our `State::new()` method is async we need to change `run()` to be async a
 Our `window` has beened moved to the State instance, we will need to update our `event_loop` to reflect this.
 
 ```rust
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen(start))]
 pub async fn run() {
     // Window setup...
 
