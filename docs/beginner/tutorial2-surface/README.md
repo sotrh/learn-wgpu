@@ -300,7 +300,7 @@ We call this method in `run()` in the event loop for the following events.
 match event {
     // ...
 
-    } if window_id == state.window().id() => if !state.input(event) {
+    } if window_id == state.window().id() => {
         match event {
             // ...
 
