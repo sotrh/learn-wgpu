@@ -236,7 +236,7 @@ Now that `run()` is async, `main()` will need some way to await the future. We c
 ```toml
 [dependencies]
 # other deps...
-pollster = "0.2"
+pollster = "0.3"
 ```
 
 We then use the `block_on` function provided by pollster to await our future:
@@ -258,15 +258,15 @@ If we try to build WASM now it will fail because `wasm-bindgen` doesn't support 
 ```toml
 [dependencies]
 cfg-if = "1"
-winit = "0.27"
+winit = "0.28"
 env_logger = "0.10"
 log = "0.4"
 wgpu = "0.16"
-pollster = "0.2"
+pollster = "0.3"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 console_error_panic_hook = "0.1.6"
-console_log = "0.2.0"
+console_log = "1.0"
 wgpu = { version = "0.16", features = ["webgl"]}
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"

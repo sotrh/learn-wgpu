@@ -13,9 +13,9 @@ anyhow = "1.0"
 bytemuck = { version = "1.12", features = [ "derive" ] }
 env_logger = "0.10"
 log = "0.4"
-pollster = "0.2"
+pollster = "0.3"
 wgpu = "0.16"
-winit = "0.27"
+winit = "0.28"
 
 [dependencies.image]
 version = "0.24"
@@ -24,7 +24,7 @@ features = ["png", "jpeg"]
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 console_error_panic_hook = "0.1"
-console_log = "0.2"
+console_log = "1.0"
 wgpu = { version = "0.16", features = ["webgl"]}
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"

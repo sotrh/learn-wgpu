@@ -107,11 +107,20 @@ pub struct StagingBuffer {
 }
 
 impl StagingBuffer {
-    pub fn new<T: bytemuck::Pod + Sized>(device: &wgpu::Device, data: &[T], is_index_buffer: bool) -> StagingBuffer {
+    pub fn new<T: bytemuck::Pod + Sized>(
+        device: &wgpu::Device,
+        data: &[T],
+        is_index_buffer: bool,
+    ) -> StagingBuffer {
         StagingBuffer {
             buffer: device.create_buffer_init(&BufferInitDescriptor {
                 contents: bytemuck::cast_slice(data),
-                usage: wgpu::BufferUsages::COPY_SRC | if is_index_buffer { wgpu::BufferUsages::INDEX } else { wgpu::BufferUsages::empty() },
+                usage: wgpu::BufferUsages::COPY_SRC
+                    | if is_index_buffer {
+                        wgpu::BufferUsages::INDEX
+                    } else {
+                        wgpu::BufferUsages::empty()
+                    },
                 label: Some("Staging Buffer"),
             }),
             size: size_of_slice(data) as wgpu::BufferAddress,

@@ -269,11 +269,11 @@ In order for wasm-pack to work properly I first needed to add some dependencies:
 ```toml[dependencies]
 cfg-if = "1"
 env_logger = "0.10"
-winit = "0.27"
+winit = "0.28"
 anyhow = "1.0"
 bytemuck = { version = "1.12", features = [ "derive" ] }
 cgmath = "0.18"
-pollster = "0.2"
+pollster = "0.3"
 wgpu = { version = "0.16", features = ["spirv"]}
 wgpu_glyph = "0.17"
 rand = "0.8"
@@ -283,11 +283,11 @@ instant = "0.1"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 console_error_panic_hook = "0.1.6"
-console_log = "0.2.0"
+console_log = "1.0"
 getrandom = { version = "0.2", features = ["js"] }
 rodio = { version = "0.15", default-features = false, features = ["wasm-bindgen", "wav"] }
 wasm-bindgen-futures = "0.4.20"
-wasm-bindgen = "=0.2.84"
+wasm-bindgen = "=0.2.86"
 web-sys = { version = "0.3.53", features = [
     "Document",
     "Window",

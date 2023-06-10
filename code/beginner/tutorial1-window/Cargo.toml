@@ -13,17 +13,17 @@ path = "src/main.rs"
 
 [dependencies]
 cfg-if = "1"
-winit = "0.27"
+winit = "0.28"
 env_logger = "0.10"
 log = "0.4"
 wgpu = "0.16"
-pollster = "0.2"
+pollster = "0.3"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 console_error_panic_hook = "0.1.6"
-console_log = "0.2.0"
+console_log = "1.0"
 wgpu = { version = "0.16", features = ["webgl"]}
-wasm-bindgen = "=0.2.84"
+wasm-bindgen = "=0.2.86"
 wasm-bindgen-futures = "0.4.30"
 web-sys = { version = "0.3.53", features = [
     "Document",

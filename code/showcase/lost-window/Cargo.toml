@@ -8,5 +8,5 @@ edition = "2021"
 [dependencies]
 anyhow = "1"
 wgpu = "0.16"
-winit = "0.27"
-pollster = "0.2"
+winit = "0.28"
+pollster = "0.3"
