@@ -168,7 +168,7 @@ impl State {
             backends: wgpu::Backends::all(),
             dx12_shader_compiler: Default::default(),
         });
-        
+
         // # Safety
         //
         // The surface needs to live as long as the window that created it.
@@ -205,9 +205,11 @@ impl State {
         // Shader code in this tutorial assumes an Srgb surface texture. Using a different
         // one will result all the colors comming out darker. If you want to support non
         // Srgb surfaces, you'll need to account for that when drawing to the frame.
-        let surface_format = surface_caps.formats.iter()
+        let surface_format = surface_caps
+            .formats
+            .iter()
             .copied()
-            .find(|f| f.describe().srgb)
+            .find(|f| f.is_srgb())
             .unwrap_or(surface_caps.formats[0]);
         let config = wgpu::SurfaceConfiguration {
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,

@@ -331,7 +331,13 @@ where
     ) {
         for mesh in &model.meshes {
             let material = &model.materials[mesh.material];
-            self.draw_mesh_instanced(mesh, material, instances.clone(), camera_bind_group, light_bind_group);
+            self.draw_mesh_instanced(
+                mesh,
+                material,
+                instances.clone(),
+                camera_bind_group,
+                light_bind_group,
+            );
         }
     }
 
@@ -344,7 +350,13 @@ where
         light_bind_group: &'b wgpu::BindGroup,
     ) {
         for mesh in &model.meshes {
-            self.draw_mesh_instanced(mesh, material, instances.clone(), camera_bind_group, light_bind_group);
+            self.draw_mesh_instanced(
+                mesh,
+                material,
+                instances.clone(),
+                camera_bind_group,
+                light_bind_group,
+            );
         }
     }
 }
@@ -422,7 +434,12 @@ where
         light_bind_group: &'b wgpu::BindGroup,
     ) {
         for mesh in &model.meshes {
-            self.draw_light_mesh_instanced(mesh, instances.clone(), camera_bind_group, light_bind_group);
+            self.draw_light_mesh_instanced(
+                mesh,
+                instances.clone(),
+                camera_bind_group,
+                light_bind_group,
+            );
         }
     }
 }

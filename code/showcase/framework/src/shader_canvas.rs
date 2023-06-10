@@ -107,7 +107,6 @@ pub struct ShaderCanvasBuilder<'a> {
 
 impl<'a> ShaderCanvasBuilder<'a> {
     pub fn new() -> Self {
-        
         Self {
             canvas_size: [256.0; 2],
             clear_color: [0.0, 0.0, 0.0, 1.0],

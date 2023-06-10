@@ -450,7 +450,7 @@ winit = "0.27"
 env_logger = "0.10"
 log = "0.4"
 pollster = "0.2"
-wgpu = "0.15"
+wgpu = "0.16"
 bytemuck = { version = "1.12", features = [ "derive" ] }
 anyhow = "1.0" # NEW!
 ```

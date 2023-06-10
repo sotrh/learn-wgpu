@@ -234,7 +234,7 @@ impl State {
             backends: wgpu::Backends::all(),
             dx12_shader_compiler: Default::default(),
         });
-        
+
         // # Safety
         //
         // The surface needs to live as long as the window that created it.
@@ -271,9 +271,11 @@ impl State {
         // Shader code in this tutorial assumes an Srgb surface texture. Using a different
         // one will result all the colors comming out darker. If you want to support non
         // Srgb surfaces, you'll need to account for that when drawing to the frame.
-        let surface_format = surface_caps.formats.iter()
+        let surface_format = surface_caps
+            .formats
+            .iter()
             .copied()
-            .find(|f| f.describe().srgb)
+            .find(|f| f.is_srgb())
             .unwrap_or(surface_caps.formats[0]);
         let config = wgpu::SurfaceConfiguration {
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
@@ -621,7 +623,12 @@ impl State {
         self.mouse_ray = Ray::with_start_end(mouse_world_pos, self.camera.position.to_vec());
 
         self.selected_mesh = None;
-        if self.obj_model.bounding_box.intersect(&self.mouse_ray).is_some() {
+        if self
+            .obj_model
+            .bounding_box
+            .intersect(&self.mouse_ray)
+            .is_some()
+        {
             let mut t = f32::NEG_INFINITY;
             for (i, mesh) in self.obj_model.meshes.iter().enumerate() {
                 if let Some((_, ti)) = mesh.bounding_box.intersect(&self.mouse_ray) {

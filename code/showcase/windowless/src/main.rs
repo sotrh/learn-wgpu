@@ -2,9 +2,9 @@ use std::num::NonZeroU32;
 
 async fn run() {
     let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
-            backends: wgpu::Backends::all(),
-            dx12_shader_compiler: Default::default(),
-        });
+        backends: wgpu::Backends::all(),
+        dx12_shader_compiler: Default::default(),
+    });
     let adapter = instance
         .request_adapter(&wgpu::RequestAdapterOptions {
             power_preference: wgpu::PowerPreference::default(),
@@ -169,8 +169,8 @@ async fn run() {
             buffer: &output_buffer,
             layout: wgpu::ImageDataLayout {
                 offset: 0,
-                bytes_per_row: NonZeroU32::new(u32_size * texture_size),
-                rows_per_image: NonZeroU32::new(texture_size),
+                bytes_per_row: Some(u32_size * texture_size),
+                rows_per_image: Some(texture_size),
             },
         },
         texture_desc.size,
@@ -198,10 +198,8 @@ async fn run() {
         let buffer =
             ImageBuffer::<Rgba<u8>, _>::from_raw(texture_size, texture_size, data).unwrap();
         buffer.save("image.png").unwrap();
-
     }
     output_buffer.unmap();
-
 }
 
 fn main() {

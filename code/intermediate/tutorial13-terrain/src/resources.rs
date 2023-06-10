@@ -256,7 +256,7 @@ pub async fn load_model(
 
 //             println!("data.len(): {}", data.len());
 //             let data_t: &[T] = bytemuck::cast_slice(&data[..]);
-            
+
 //             output.extend(data_t.iter().map(f));
 //         });
 //         device.poll(wgpu::Maintain::Wait);

@@ -1,4 +1,4 @@
-use std::{process::Command, path::PathBuf};
+use std::{path::PathBuf, process::Command};
 
 use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
 use wasm_bindgen_cli_support::Bindgen;
@@ -69,7 +69,11 @@ fn main() -> anyhow::Result<()> {
     }
 
     let time_taken = std::time::Instant::now() - start_time;
-    log::info!("Success fully processed {} target(s) in {:?}", targets.len(), time_taken);
+    log::info!(
+        "Success fully processed {} target(s) in {:?}",
+        targets.len(),
+        time_taken
+    );
 
     Ok(())
 }

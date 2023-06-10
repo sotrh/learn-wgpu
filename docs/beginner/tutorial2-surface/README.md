@@ -158,7 +158,7 @@ The `limits` field describes the limit of certain types of resources that we can
         // sRGB surfaces, you'll need to account for that when drawing to the frame.
         let surface_format = surface_caps.formats.iter()
             .copied()
-            .find(|f| f.describe().srgb)            
+            .find(|f| f.is_srgb())            
             .unwrap_or(surface_caps.formats[0]);
         let config = wgpu::SurfaceConfiguration {
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
@@ -261,13 +261,13 @@ cfg-if = "1"
 winit = "0.27"
 env_logger = "0.10"
 log = "0.4"
-wgpu = "0.15"
+wgpu = "0.16"
 pollster = "0.2"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 console_error_panic_hook = "0.1.6"
 console_log = "0.2.0"
-wgpu = { version = "0.15", features = ["webgl"]}
+wgpu = { version = "0.16", features = ["webgl"]}
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
 web-sys = { version = "0.3", features = [
