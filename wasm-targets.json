@@ -46,5 +46,9 @@
     {
         "package": "tutorial12-camera",
         "out": "docs/.vuepress/components/wasm/tutorial12_camera"
+    },
+    {
+        "package": "pong",
+        "out": "docs/.vuepress/components/wasm/pong"
     }
 ]

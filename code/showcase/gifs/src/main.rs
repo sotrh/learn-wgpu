@@ -5,9 +5,9 @@ use std::{iter, mem, num::NonZeroU32};
 
 async fn run() {
     let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
-            backends: wgpu::Backends::all(),
-            dx12_shader_compiler: Default::default(),
-        });
+        backends: wgpu::Backends::all(),
+        dx12_shader_compiler: Default::default(),
+    });
     let adapter = instance
         .request_adapter(&wgpu::RequestAdapterOptions::default())
         .await
@@ -18,12 +18,12 @@ async fn run() {
                 label: Some("Device"),
                 features: wgpu::Features::empty(),
                 // WebGL doesn't support all of wgpu's features, so if
-                    // we're building for the web we'll have to disable some.
-                    limits: if cfg!(target_arch = "wasm32") {
-                        wgpu::Limits::downlevel_webgl2_defaults()
-                    } else {
-                        wgpu::Limits::default()
-                    },
+                // we're building for the web we'll have to disable some.
+                limits: if cfg!(target_arch = "wasm32") {
+                    wgpu::Limits::downlevel_webgl2_defaults()
+                } else {
+                    wgpu::Limits::default()
+                },
             },
             None, // Trace path
         )
@@ -122,8 +122,8 @@ async fn run() {
                 buffer: &output_buffer,
                 layout: wgpu::ImageDataLayout {
                     offset: 0,
-                    bytes_per_row: NonZeroU32::new(padded_bytes_per_row),
-                    rows_per_image: NonZeroU32::new(texture_size),
+                    bytes_per_row: Some(padded_bytes_per_row),
+                    rows_per_image: Some(texture_size),
                 },
             },
             render_target.desc.size,

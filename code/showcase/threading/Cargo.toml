@@ -13,12 +13,12 @@ anyhow = "1.0"
 bytemuck = { version = "1.12", features = [ "derive" ] }
 cgmath = "0.18"
 env_logger = "0.10"
-pollster = "0.2"
+pollster = "0.3"
 log = "0.4"
 rayon = "1.4" # NEW!
 tobj = { version = "3.2", features = ["async"]}
-wgpu = { version = "0.15"}
-winit = "0.27"
+wgpu = { version = "0.16"}
+winit = "0.28"
 instant = "0.1"
 async-std = "1"
 
@@ -30,8 +30,8 @@ features = ["png", "jpeg"]
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 reqwest = { version = "0.11" }
 console_error_panic_hook = "0.1"
-console_log = "0.2"
-wgpu = { version = "0.15", features = ["webgl"]}
+console_log = "1.0"
+wgpu = { version = "0.16", features = ["webgl"]}
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
 web-sys = { version = "0.3", features = [

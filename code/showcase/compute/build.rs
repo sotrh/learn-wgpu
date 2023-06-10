@@ -7,8 +7,8 @@ use naga::front::glsl::Options;
 use naga::front::glsl::Parser;
 use rayon::prelude::*;
 use std::env;
-use std::{fs::read_to_string, path::PathBuf};
 use std::result::Result::Ok;
+use std::{fs::read_to_string, path::PathBuf};
 
 pub fn load_shader(src_path: PathBuf) -> Result<()> {
     let extension = src_path
@@ -47,7 +47,6 @@ pub fn load_shader(src_path: PathBuf) -> Result<()> {
     .validate(&module)?;
     let flags = wgsl::WriterFlags::empty();
     std::fs::write(wgsl_path, wgsl::write_string(&module, &info, flags)?)?;
-
 
     Ok(())
 }

@@ -14,8 +14,8 @@ use wasm_bindgen::prelude::*;
 mod camera;
 mod model;
 mod resources;
-mod texture;
 mod terrain;
+mod texture;
 
 use model::{DrawLight, DrawModel, Vertex};
 
@@ -231,7 +231,7 @@ impl State {
             backends: wgpu::Backends::all(),
             dx12_shader_compiler: Default::default(),
         });
-        
+
         // # Safety
         //
         // The surface needs to live as long as the window that created it.
@@ -268,9 +268,11 @@ impl State {
         // Shader code in this tutorial assumes an Srgb surface texture. Using a different
         // one will result all the colors comming out darker. If you want to support non
         // Srgb surfaces, you'll need to account for that when drawing to the frame.
-        let surface_format = surface_caps.formats.iter()
+        let surface_format = surface_caps
+            .formats
+            .iter()
             .copied()
-            .find(|f| f.describe().srgb)
+            .find(|f| f.is_srgb())
             .unwrap_or(surface_caps.formats[0]);
         let config = wgpu::SurfaceConfiguration {
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
@@ -540,9 +542,24 @@ impl State {
 
         let mut terrain = terrain::Terrain::new(chunk_size, min_max_height);
         terrain.gen_chunk(&device, &queue, &terrain_pipeline, cgmath::Vector3::zero());
-        terrain.gen_chunk(&device, &queue, &terrain_pipeline, (0.0, 0.0, -(chunk_size.y as f32)).into());
-        terrain.gen_chunk(&device, &queue, &terrain_pipeline, (-(chunk_size.x as f32), 0.0, -(chunk_size.y as f32)).into());
-        terrain.gen_chunk(&device, &queue, &terrain_pipeline, (-(chunk_size.x as f32), 0.0, 0.0).into());
+        terrain.gen_chunk(
+            &device,
+            &queue,
+            &terrain_pipeline,
+            (0.0, 0.0, -(chunk_size.y as f32)).into(),
+        );
+        terrain.gen_chunk(
+            &device,
+            &queue,
+            &terrain_pipeline,
+            (-(chunk_size.x as f32), 0.0, -(chunk_size.y as f32)).into(),
+        );
+        terrain.gen_chunk(
+            &device,
+            &queue,
+            &terrain_pipeline,
+            (-(chunk_size.x as f32), 0.0, 0.0).into(),
+        );
 
         Self {
             window,
@@ -699,7 +716,12 @@ impl State {
             //     &self.light_bind_group,
             // );
 
-            self.terrain_pipeline.render(&mut render_pass, &self.terrain, &self.camera_bind_group, &self.light_bind_group);
+            self.terrain_pipeline.render(
+                &mut render_pass,
+                &self.terrain,
+                &self.camera_bind_group,
+                &self.light_bind_group,
+            );
         }
         self.queue.submit(iter::once(encoder.finish()));
         output.present();

@@ -1,4 +1,4 @@
-use anyhow::{Context, bail, Result};
+use anyhow::{bail, Context, Result};
 use fs_extra::copy_items;
 use fs_extra::dir::CopyOptions;
 use glob::glob;
@@ -40,12 +40,12 @@ pub fn load_shader(src_path: PathBuf) -> anyhow::Result<()> {
     };
 
     let flags = naga::valid::ValidationFlags::all();
-    let info = naga::valid::Validator::new(
-        flags,
-        naga::valid::Capabilities::empty(),
-    )
-    .validate(&module)?;
-    std::fs::write(wgsl_path, wgsl::write_string(&module, &info, wgsl::WriterFlags::all())?)?;
+    let info =
+        naga::valid::Validator::new(flags, naga::valid::Capabilities::empty()).validate(&module)?;
+    std::fs::write(
+        wgsl_path,
+        wgsl::write_string(&module, &info, wgsl::WriterFlags::all())?,
+    )?;
 
     Ok(())
 }

@@ -1,10 +1,10 @@
+use anyhow::Context;
 use glob::glob;
 use naga::back::wgsl;
 use naga::front::glsl::Options;
 use naga::front::glsl::Parser;
 use rayon::prelude::*;
 use std::{fs::read_to_string, path::PathBuf};
-use anyhow::Context;
 
 pub fn load_shader(src_path: PathBuf) -> anyhow::Result<()> {
     let extension = src_path

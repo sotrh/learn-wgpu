@@ -1,11 +1,7 @@
 use cgmath::InnerSpace;
 
 fn vmul(a: cgmath::Vector3<f32>, b: cgmath::Vector3<f32>) -> cgmath::Vector3<f32> {
-    cgmath::Vector3::new(
-        a.x * b.x,
-        a.y * b.y,
-        a.z * b.z,
-    )
+    cgmath::Vector3::new(a.x * b.x, a.y * b.y, a.z * b.z)
 }
 
 pub struct BoundingBox {
@@ -79,11 +75,7 @@ pub struct Ray {
 impl Ray {
     pub fn new(dir: cgmath::Vector3<f32>, orig: cgmath::Vector3<f32>) -> Self {
         let invdir = 1.0 / dir;
-        Self {
-            dir,
-            orig,
-            invdir,
-        }
+        Self { dir, orig, invdir }
     }
 
     pub fn with_start_end(start: cgmath::Vector3<f32>, end: cgmath::Vector3<f32>) -> Self {
@@ -97,14 +89,22 @@ mod tests {
     use super::*;
 
     fn vec3(x: f32, y: f32, z: f32) -> cgmath::Vector3<f32> {
-        return cgmath::Vector3 { x, y, z }
+        return cgmath::Vector3 { x, y, z };
     }
 
     #[test]
     fn box_ray_intersect() {
         let b = BoundingBox {
-            min: cgmath::Vector3 { x: -1.0, y: -1.0, z: -1.0 },
-            max: cgmath::Vector3 { x: 1.0, y: 1.0, z: 1.0 },
+            min: cgmath::Vector3 {
+                x: -1.0,
+                y: -1.0,
+                z: -1.0,
+            },
+            max: cgmath::Vector3 {
+                x: 1.0,
+                y: 1.0,
+                z: 1.0,
+            },
         };
 
         let test_data = [

@@ -100,8 +100,8 @@ Update dependencies to support SPIR-V module.
 [dependencies]
 image = "0.23"
 shaderc = "0.7"
-wgpu = { version = "0.15", features = ["spirv"] }
-pollster = "0.2"
+wgpu = { version = "0.16", features = ["spirv"] }
+pollster = "0.3"
 ```
 
 Using that we'll create a simple `RenderPipeline`.

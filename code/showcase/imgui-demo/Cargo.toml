@@ -8,8 +8,8 @@ edition = "2018"
 
 [dependencies]
 anyhow = "1.0"
-wgpu = "0.15"
-pollster = "0.2"
+wgpu = "0.16"
+pollster = "0.3"
 imgui = "0.7"
 imgui-wgpu = "0.17"
 imgui-winit-support = "0.7"

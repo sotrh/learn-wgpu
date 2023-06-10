@@ -17,8 +17,13 @@ impl SoundSystem {
         let sink = rodio::Sink::try_new(&stream_handle).unwrap();
         sink.set_volume(0.5);
 
-        let spatial_sink =
-            rodio::SpatialSink::try_new(&stream_handle, [0.0, 0.0, 0.0], [-1.0, 0.0, 0.0], [1.0, 0.0, 0.0]).unwrap();
+        let spatial_sink = rodio::SpatialSink::try_new(
+            &stream_handle,
+            [0.0, 0.0, 0.0],
+            [-1.0, 0.0, 0.0],
+            [1.0, 0.0, 0.0],
+        )
+        .unwrap();
 
         Self {
             stream,

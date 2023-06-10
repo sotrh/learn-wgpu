@@ -9,8 +9,8 @@ edition = "2018"
 [dependencies]
 image = "0.24"
 shaderc = "0.8"
-wgpu = { version = "0.15", features = ["spirv"] }
-pollster = "0.2"
+wgpu = { version = "0.16", features = ["spirv"] }
+pollster = "0.3"
 futures-intrusive = "0.4"
 
 [[bin]]
