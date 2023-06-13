@@ -200,7 +200,7 @@ Regardless, `PresentMode::Fifo` will always be supported, and `PresentMode::Auto
 
 `alpha_mode` is honestly not something I'm familiar with. I believe it has something to do with transparent windows, but feel free to open a pull request. For now we'll just use the first `AlphaMode` in the list given by `surface_caps`.
 
-`view_formats` is a list of `TextureFormat`s that you can use when creating `TextureView`s (we'll cover those briefly later in the this tutorial as well as more in depth [in the texture tutorial](../tutorial5-textures)). As of writing this means that if your surface is srgb color space, you can create a texture view that uses a linear color space.
+`view_formats` is a list of `TextureFormat`s that you can use when creating `TextureView`s (we'll cover those briefly later in this tutorial as well as more in depth [in the texture tutorial](../tutorial5-textures)). As of writing this means that if your surface is srgb color space, you can create a texture view that uses a linear color space.
 
 Now that we've configured our surface properly we can add these new fields at the end of the method.
 
