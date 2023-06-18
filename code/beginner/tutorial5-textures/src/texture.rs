@@ -56,8 +56,8 @@ impl Texture {
             &rgba,
             wgpu::ImageDataLayout {
                 offset: 0,
-                bytes_per_row: Some(4 * dimensions.0),
-                rows_per_image: Some(dimensions.1),
+                bytes_per_row: std::num::NonZeroU32::new(4 * dimensions.0).map(|n| n.get()),
+                rows_per_image: std::num::NonZeroU32::new(dimensions.1).map(|n| n.get()),
             },
             size,
         );
