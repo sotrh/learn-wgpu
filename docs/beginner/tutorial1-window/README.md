@@ -43,6 +43,8 @@ pub fn run() {
     let window = WindowBuilder::new().build(&event_loop).unwrap();
 
     event_loop.run(move |event, _, control_flow| match event {
+        *control_flow = ControlFlow::Wait;
+
         Event::WindowEvent {
             ref event,
             window_id,
