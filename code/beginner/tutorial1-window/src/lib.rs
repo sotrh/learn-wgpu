@@ -42,6 +42,7 @@ pub fn run() {
 
     event_loop.run(move |event, _, control_flow| match event {
         *control_flow = ControlFlow::Wait;
+    
         Event::WindowEvent {
             ref event,
             window_id,
