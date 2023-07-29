@@ -159,8 +159,15 @@ let camera_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupL
 });
 ```
 
-1. We only really need camera information in the vertex shader, as that's what we'll use to manipulate our vertices.
-2. The `dynamic` field indicates whether this buffer will change size or not. This is useful if we want to store an array of things in our uniforms.
+Some things to note:
+
+1. We set `visibility` to `ShaderStages::VERTEX` as we only really need camera information in the vertex shader, as
+    that's what we'll use to manipulate our vertices.
+2. The `has_dynamic_offset` means that the location of the data in the buffer may change. This will be the case if you
+    store multiple sets of data that vary in size in a single buffer. If you set this to true you'll have to supply the
+    offsets later.
+3. `min_binding_size` specifies the smallest size the buffer can be. You don't have to specify this, so we
+    leave it `None`. If you want to know more you can check [the docs](https://docs.rs/wgpu/latest/wgpu/enum.BindingType.html#variant.Buffer.field.min_binding_size).
 
 Now we can create the actual bind group.
 
