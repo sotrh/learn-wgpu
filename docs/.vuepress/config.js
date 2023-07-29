@@ -41,7 +41,6 @@ module.exports = {
                     '/intermediate/tutorial10-lighting/',
                     '/intermediate/tutorial11-normals/',
                     '/intermediate/tutorial12-camera/',
-                    // '/intermediate/tutorial13-threading/',
                 ],
             },
             {
@@ -54,13 +53,14 @@ module.exports = {
                     '/showcase/pong/',
                     '/showcase/compute/',
                     '/showcase/alignment/',
-                    // '/showcase/imgui-demo/',
                 ]
             },
             {
                 title: 'News',
                 collapsable: true,
                 children: [
+                    '/news/0.17/',
+                    '/news/0.16/',
                     '/news/0.15/',
                     '/news/0.14/',
                     '/news/0.13/',

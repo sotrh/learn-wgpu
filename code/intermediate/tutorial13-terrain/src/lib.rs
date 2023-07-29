@@ -16,6 +16,7 @@ mod model;
 mod resources;
 mod terrain;
 mod texture;
+mod bindgroups; // NEW!
 
 use model::{DrawLight, DrawModel, Vertex};
 
@@ -154,13 +155,11 @@ struct State {
     light_buffer: wgpu::Buffer,
     light_bind_group: wgpu::BindGroup,
     light_render_pipeline: wgpu::RenderPipeline,
-    #[allow(dead_code)]
-    debug_material: model::Material,
+    terrain_material: model::Material, // UPDATED!
     mouse_pressed: bool,
     // NEW!
     terrain: terrain::Terrain,
     terrain_pipeline: terrain::TerrainPipeline,
-    terrain_hack_pipeline: terrain::TerrainHackPipeline,
 }
 
 fn create_render_pipeline(
@@ -488,9 +487,9 @@ impl State {
             )
         };
 
-        let debug_material = {
-            let diffuse_bytes = include_bytes!("../res/cobble-diffuse.png");
-            let normal_bytes = include_bytes!("../res/cobble-normal.png");
+        let terrain_material = {
+            let diffuse_bytes = include_bytes!("../res/slate2-tiled-bl4/slate2-tiled-albedo2.png");
+            let normal_bytes = include_bytes!("../res/slate2-tiled-bl4/slate2-tiled-ogl.png");
 
             let diffuse_texture = texture::Texture::from_bytes(
                 &device,
@@ -498,6 +497,7 @@ impl State {
                 diffuse_bytes,
                 "res/alt-diffuse.png",
                 false,
+                wgpu::AddressMode::Repeat,
             )
             .unwrap();
             let normal_texture = texture::Texture::from_bytes(
@@ -506,6 +506,7 @@ impl State {
                 normal_bytes,
                 "res/alt-normal.png",
                 true,
+                wgpu::AddressMode::Repeat,
             )
             .unwrap();
 
@@ -519,7 +520,7 @@ impl State {
         };
 
         let chunk_size = (256, 256).into();
-        let min_max_height = (-5.0, 5.0).into();
+        let min_max_height = (-20.0, 20.0).into();
         // let min_max_height = (0.0, 10.0).into();
         let terrain_pipeline = terrain::TerrainPipeline::new(
             &device,
@@ -527,15 +528,7 @@ impl State {
             min_max_height,
             &camera_bind_group_layout,
             &light_bind_group_layout,
-            config.format,
-            Some(texture::Texture::DEPTH_FORMAT),
-        );
-        let terrain_hack_pipeline = terrain::TerrainHackPipeline::new(
-            &device,
-            chunk_size,
-            min_max_height,
-            &camera_bind_group_layout,
-            &light_bind_group_layout,
+            &texture_bind_group_layout,
             config.format,
             Some(texture::Texture::DEPTH_FORMAT),
         );
@@ -584,12 +577,11 @@ impl State {
             light_bind_group,
             light_render_pipeline,
             #[allow(dead_code)]
-            debug_material,
+            terrain_material,
             mouse_pressed: false,
             // NEW!
             terrain,
             terrain_pipeline,
-            terrain_hack_pipeline,
         }
     }
 
@@ -708,19 +700,20 @@ impl State {
                 &self.light_bind_group,
             );
 
-            // render_pass.set_pipeline(&self.render_pipeline);
-            // render_pass.draw_model_instanced(
-            //     &self.obj_model,
-            //     0..self.instances.len() as u32,
-            //     &self.camera_bind_group,
-            //     &self.light_bind_group,
-            // );
+            render_pass.set_pipeline(&self.render_pipeline);
+            render_pass.draw_model_instanced(
+                &self.obj_model,
+                0..self.instances.len() as u32,
+                &self.camera_bind_group,
+                &self.light_bind_group,
+            );
 
             self.terrain_pipeline.render(
                 &mut render_pass,
                 &self.terrain,
                 &self.camera_bind_group,
                 &self.light_bind_group,
+                &self.terrain_material.bind_group,
             );
         }
         self.queue.submit(iter::once(encoder.finish()));

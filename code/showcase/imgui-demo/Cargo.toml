@@ -8,7 +8,7 @@ edition = "2018"
 
 [dependencies]
 anyhow = "1.0"
-wgpu = "0.16"
+wgpu = "0.17"
 pollster = "0.3"
 imgui = "0.7"
 imgui-wgpu = "0.17"

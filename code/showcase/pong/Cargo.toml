@@ -15,8 +15,9 @@ anyhow = "1.0"
 bytemuck = { version = "1.12", features = [ "derive" ] }
 cgmath = "0.18"
 pollster = "0.3"
-wgpu = { version = "0.16", features = ["spirv"]}
-wgpu_glyph = "0.20"
+wgpu = { version = "0.17", features = ["spirv"]}
+#wgpu_glyph = { version = "0.20", path = "../../../../wgpu_glyph" }
+wgpu_glyph = { version = "0.20", git = "https://github.com/sotrh/wgpu_glyph.git" }
 rand = "0.8"
 rodio = { version = "0.16", default-features = false, features = ["wav"] }
 log = "0.4"
@@ -28,13 +29,13 @@ console_log = "1.0"
 getrandom = { version = "0.2", features = ["js"] }
 rodio = { version = "0.16", default-features = false, features = ["wasm-bindgen", "wav"] }
 wasm-bindgen-futures = "0.4.20"
-wasm-bindgen = "=0.2.86"
+wasm-bindgen = "=0.2.87"
 web-sys = { version = "0.3.53", features = [
     "Document",
     "Window",
     "Element",
 ]}
-wgpu = { version = "0.16", features = ["spirv", "webgl"]}
+wgpu = { version = "0.17", features = ["spirv", "webgl"]}
 
 [build-dependencies]
 anyhow = "1.0"

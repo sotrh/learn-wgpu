@@ -1,6 +1,6 @@
 use anyhow::*;
 use image::GenericImageView;
-use std::num::NonZeroU32;
+use wgpu::AddressMode;
 
 pub struct Texture {
     pub texture: wgpu::Texture,
@@ -60,9 +60,10 @@ impl Texture {
         bytes: &[u8],
         label: &str,
         is_normal_map: bool,
+        address_mode: AddressMode, // NEW!
     ) -> Result<Self> {
         let img = image::load_from_memory(bytes)?;
-        Self::from_image(device, queue, &img, Some(label), is_normal_map)
+        Self::from_image(device, queue, &img, Some(label), is_normal_map, address_mode) // UPDATED!
     }
 
     pub fn from_image(
@@ -71,6 +72,7 @@ impl Texture {
         img: &image::DynamicImage,
         label: Option<&str>,
         is_normal_map: bool,
+        address_mode: AddressMode, // NEW!
     ) -> Result<Self> {
         let dimensions = img.dimensions();
         let rgba = img.to_rgba8();
@@ -114,9 +116,10 @@ impl Texture {
 
         let view = texture.create_view(&wgpu::TextureViewDescriptor::default());
         let sampler = device.create_sampler(&wgpu::SamplerDescriptor {
-            address_mode_u: wgpu::AddressMode::ClampToEdge,
-            address_mode_v: wgpu::AddressMode::ClampToEdge,
-            address_mode_w: wgpu::AddressMode::ClampToEdge,
+            // UPDATED!
+            address_mode_u: address_mode, 
+            address_mode_v: address_mode,
+            address_mode_w: address_mode,
             mag_filter: wgpu::FilterMode::Linear,
             min_filter: wgpu::FilterMode::Nearest,
             mipmap_filter: wgpu::FilterMode::Nearest,

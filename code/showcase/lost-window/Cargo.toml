@@ -7,6 +7,6 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1"
-wgpu = "0.16"
+wgpu = "0.17"
 winit = "0.28"
 pollster = "0.3"

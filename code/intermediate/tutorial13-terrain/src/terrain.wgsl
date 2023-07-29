@@ -274,8 +274,41 @@ fn color23(p: vec2<f32>) -> vec3<f32> {
 
 @fragment
 fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
-    var color = smoothstep(vec3<f32>(0.0), vec3<f32>(0.1), fract(in.world_pos));
-    color = mix(vec3<f32>(0.5, 0.1, 0.7), vec3<f32>(0.2, 0.2, 0.2), vec3<f32>(color.x * color.y * color.z));
+    // Adapted from https://bgolus.medium.com/normal-mapping-for-a-triplanar-shader-10bf39dca05a
+    var blend = abs(in.normal);
+    blend /= blend.x + blend.y + blend.z;
+
+    let uv_x = in.world_pos.zy * 0.1;
+    let uv_y = in.world_pos.xz * 0.1;
+    let uv_z = in.world_pos.xy * 0.1;
+    
+    let albedo_x = textureSample(t_diffuse, s_diffuse, uv_x).rgb;
+    let albedo_y = textureSample(t_diffuse, s_diffuse, uv_y).rgb;
+    let albedo_z = textureSample(t_diffuse, s_diffuse, uv_z).rgb;
+    let albedo = albedo_x * blend.x + albedo_y * blend.y + albedo_z * blend.z;
+
+    var tnormal_x = 2.0 * textureSample(t_normal, s_normal, uv_x).xyz - 1.0;
+    var tnormal_y = 2.0 * textureSample(t_normal, s_normal, uv_y).xyz - 1.0;
+    var tnormal_z = 2.0 * textureSample(t_normal, s_normal, uv_z).xyz - 1.0;
+
+    tnormal_x = vec3(
+        tnormal_x.xy + in.normal.zy,
+        abs(tnormal_x.z) * in.normal.x,
+    );
+    tnormal_y = vec3(
+        tnormal_y.xy + in.normal.xz,
+        abs(tnormal_y.z) * in.normal.y,
+    );
+    tnormal_z = vec3(
+        tnormal_z.xy + in.normal.xy,
+        abs(tnormal_z.z) * in.normal.z,
+    );
+
+    let world_normal = normalize(
+        tnormal_x.zyx * blend.x +
+        tnormal_y.xzy * blend.y +
+        tnormal_z.xyz * blend.z
+    );
 
     let ambient_strength = 0.1;
     let ambient_color = light.color * ambient_strength;
@@ -284,13 +317,13 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     let view_dir = normalize(camera.view_pos.xyz - in.world_pos);
     let half_dir = normalize(view_dir + light_dir);
 
-    let diffuse_strength = max(dot(in.normal, light_dir), 0.0);
+    let diffuse_strength = max(dot(world_normal, light_dir), 0.0);
     let diffuse_color = diffuse_strength * light.color;
 
-    let specular_strength = pow(max(dot(in.normal, half_dir), 0.0), 32.0);
+    let specular_strength = pow(max(dot(world_normal, half_dir), 0.0), 32.0);
     let specular_color = specular_strength * light.color;
 
-    let result = (ambient_color + diffuse_color + specular_color) * color;
+    let result = (ambient_color + diffuse_color + specular_color) * albedo.rgb;
 
     return vec4<f32>(result, 1.0);
 }
