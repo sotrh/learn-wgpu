@@ -1,12 +1,6 @@
 # Pong
 
-![](./pong.png)
-
-<div class="warn">
-
-Currently not working, this will be updated when [wgpu_glyph gets updated to 0.15](https://github.com/hecrj/wgpu_glyph/pull/95).
-
-</div>
+![A screenshot of pong](./pong.png)
 
 Practically the "Hello World!" of games. Pong has been remade thousands of times. I know Pong. You know Pong. We all know Pong. That being said, this time I wanted to put in a little more effort than most people do. This showcase has a basic menu system, sounds, and different game states.
 
@@ -274,7 +268,7 @@ anyhow = "1.0"
 bytemuck = { version = "1.12", features = [ "derive" ] }
 cgmath = "0.18"
 pollster = "0.3"
-wgpu = { version = "0.16", features = ["spirv"]}
+wgpu = { version = "0.17", features = ["spirv"]}
 wgpu_glyph = "0.17"
 rand = "0.8"
 rodio = { version = "0.15", default-features = false, features = ["wav"] }
@@ -287,13 +281,13 @@ console_log = "1.0"
 getrandom = { version = "0.2", features = ["js"] }
 rodio = { version = "0.15", default-features = false, features = ["wasm-bindgen", "wav"] }
 wasm-bindgen-futures = "0.4.20"
-wasm-bindgen = "=0.2.86"
+wasm-bindgen = "=0.2.87"
 web-sys = { version = "0.3.53", features = [
     "Document",
     "Window",
     "Element",
 ]}
-wgpu = { version = "0.16", features = ["spirv", "webgl"]}
+wgpu = { version = "0.17", features = ["spirv", "webgl"]}
 
 [build-dependencies]
 anyhow = "1.0"
