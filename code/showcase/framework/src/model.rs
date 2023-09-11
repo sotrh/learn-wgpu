@@ -118,7 +118,7 @@ pub struct Model<'a> {
 }
 
 impl<'a> Model<'a> {
-    pub fn load<P: AsRef<Path>>(
+    pub fn load_obj<P: AsRef<Path>>(
         device: &wgpu::Device,
         queue: &wgpu::Queue,
         layout: &wgpu::BindGroupLayout,

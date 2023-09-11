@@ -1,7 +1,7 @@
 extern crate framework;
 
 // use anyhow::*;
-use std::{iter, mem, num::NonZeroU32};
+use std::{iter, mem};
 
 async fn run() {
     let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
