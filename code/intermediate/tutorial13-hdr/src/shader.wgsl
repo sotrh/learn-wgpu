@@ -3,6 +3,7 @@
 struct Camera {
     view_pos: vec4<f32>,
     view_proj: mat4x4<f32>,
+    inv_view_proj: mat4x4<f32>, // NEW!
 }
 @group(1) @binding(0)
 var<uniform> camera: Camera;
@@ -34,9 +35,13 @@ struct InstanceInput {
 struct VertexOutput {
     @builtin(position) clip_position: vec4<f32>,
     @location(0) tex_coords: vec2<f32>,
-    @location(1) tangent_position: vec3<f32>,
-    @location(2) tangent_light_position: vec3<f32>,
-    @location(3) tangent_view_position: vec3<f32>,
+    // Updated!
+    @location(1) world_position: vec3<f32>,
+    @location(2) world_view_position: vec3<f32>,
+    @location(3) world_light_position: vec3<f32>,
+    @location(4) world_normal: vec3<f32>,
+    @location(5) world_tangent: vec3<f32>,
+    @location(6) world_bitangent: vec3<f32>,
 }
 
 @vertex
@@ -56,24 +61,17 @@ fn vs_main(
         instance.normal_matrix_2,
     );
 
-    // Construct the tangent matrix
-    let world_normal = normalize(normal_matrix * model.normal);
-    let world_tangent = normalize(normal_matrix * model.tangent);
-    let world_bitangent = normalize(normal_matrix * model.bitangent);
-    let tangent_matrix = transpose(mat3x3<f32>(
-        world_tangent,
-        world_bitangent,
-        world_normal,
-    ));
-
+    // UPDATED!
     let world_position = model_matrix * vec4<f32>(model.position, 1.0);
 
     var out: VertexOutput;
     out.clip_position = camera.view_proj * world_position;
     out.tex_coords = model.tex_coords;
-    out.tangent_position = tangent_matrix * world_position.xyz;
-    out.tangent_view_position = tangent_matrix * camera.view_pos.xyz;
-    out.tangent_light_position = tangent_matrix * light.position;
+    out.world_normal = normalize(normal_matrix * model.normal);
+    out.world_tangent = normalize(normal_matrix * model.tangent);
+    out.world_bitangent = normalize(normal_matrix * model.bitangent);
+    out.world_position = world_position.xyz;
+    out.world_view_position = camera.view_pos.xyz;
     return out;
 }
 
@@ -88,6 +86,13 @@ var t_normal: texture_2d<f32>;
 @group(0) @binding(3)
 var s_normal: sampler;
 
+@group(3)
+@binding(0)
+var env_map: texture_cube<f32>;
+@group(3)
+@binding(1)
+var env_sampler: sampler;
+
 @fragment
 fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     let object_color: vec4<f32> = textureSample(t_diffuse, s_diffuse, in.tex_coords);
@@ -97,10 +102,25 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     let ambient_strength = 0.1;
     let ambient_color = light.color * ambient_strength;
 
-    // Create the lighting vectors
+    // NEW!
+    // Adjust the tangent and bitangent using the Gramm-Schmidt process
+    // This makes sure that they are perpedicular to each other and the
+    // normal of the surface.
+    let world_tangent = normalize(in.world_tangent - dot(in.world_tangent, in.world_normal) * in.world_normal);
+    let world_bitangent = cross(world_tangent, in.world_normal);
+
+    // Convert the normal sample to world space
+    let TBN = mat3x3(
+        world_tangent,
+        world_bitangent,
+        in.world_normal,
+    );
     let tangent_normal = object_normal.xyz * 2.0 - 1.0;
-    let light_dir = normalize(in.tangent_light_position - in.tangent_position);
-    let view_dir = normalize(in.tangent_view_position - in.tangent_position);
+    let world_normal = TBN * tangent_normal;
+
+    // Create the lighting vectors
+    let light_dir = normalize(in.world_light_position - in.world_position);
+    let view_dir = normalize(in.world_view_position - in.world_position);
     let half_dir = normalize(view_dir + light_dir);
 
     let diffuse_strength = max(dot(tangent_normal, light_dir), 0.0);
@@ -109,7 +129,13 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     let specular_strength = pow(max(dot(tangent_normal, half_dir), 0.0), 32.0);
     let specular_color = specular_strength * light.color;
 
-    let result = (ambient_color + diffuse_color + specular_color) * object_color.xyz;
+    // NEW!
+    // Calculate reflections
+    let world_view = normalize(in.world_view_position - in.world_position);
+    let world_reflect = reflect(world_view, world_normal);
+    let env_ambient = textureSample(env_map, env_sampler, world_reflect).rgb;
+
+    let result = (env_ambient + diffuse_color + specular_color) * object_color.xyz;
 
     return vec4<f32>(result, object_color.a);
 }

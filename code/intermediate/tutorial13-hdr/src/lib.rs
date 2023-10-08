@@ -26,6 +26,7 @@ const NUM_INSTANCES_PER_ROW: u32 = 10;
 struct CameraUniform {
     view_position: [f32; 4],
     view_proj: [[f32; 4]; 4],
+    inv_view_proj: [[f32; 4]; 4], // NEW!
 }
 
 impl CameraUniform {
@@ -33,13 +34,16 @@ impl CameraUniform {
         Self {
             view_position: [0.0; 4],
             view_proj: cgmath::Matrix4::identity().into(),
+            inv_view_proj: cgmath::Matrix4::identity().into(),
         }
     }
 
     // UPDATED!
     fn update_view_proj(&mut self, camera: &camera::Camera, projection: &camera::Projection) {
         self.view_position = camera.position.to_homogeneous().into();
-        self.view_proj = (projection.calc_matrix() * camera.calc_matrix()).into()
+        let view_proj = projection.calc_matrix() * camera.calc_matrix();
+        self.view_proj = view_proj.into();
+        self.inv_view_proj = view_proj.invert().unwrap().into();
     }
 }
 
@@ -157,7 +161,10 @@ struct State {
     #[allow(dead_code)]
     debug_material: model::Material,
     mouse_pressed: bool,
+    // NEW!
     hdr: hdr::HdrPipeline,
+    environment_bind_group: wgpu::BindGroup,
+    sky_pipeline: wgpu::RenderPipeline,
 }
 
 fn create_render_pipeline(
@@ -202,7 +209,7 @@ fn create_render_pipeline(
         depth_stencil: depth_format.map(|format| wgpu::DepthStencilState {
             format,
             depth_write_enabled: true,
-            depth_compare: wgpu::CompareFunction::Less,
+            depth_compare: wgpu::CompareFunction::LessEqual, // UDPATED!
             stencil: wgpu::StencilState::default(),
             bias: wgpu::DepthBiasState::default(),
         }),
@@ -218,7 +225,7 @@ fn create_render_pipeline(
 }
 
 impl State {
-    async fn new(window: Window) -> Self {
+    async fn new(window: Window) -> anyhow::Result<Self> {
         let size = window.inner_size();
 
         // The instance is a handle to our GPU
@@ -246,8 +253,8 @@ impl State {
             .request_device(
                 &wgpu::DeviceDescriptor {
                     label: None,
-                    features: wgpu::Features::empty(),
                     // UPDATED!
+                    features: wgpu::Features::all_webgpu_mask(),
                     limits: wgpu::Limits::downlevel_defaults(),
                 },
                 None, // Trace path
@@ -317,7 +324,6 @@ impl State {
                 label: Some("texture_bind_group_layout"),
             });
 
-        // UPDATED!
         let camera = camera::Camera::new((0.0, 5.0, 10.0), cgmath::Deg(-90.0), cgmath::Deg(-20.0));
         let projection =
             camera::Projection::new(config.width, config.height, cgmath::Deg(45.0), 0.1, 100.0);
@@ -431,7 +437,56 @@ impl State {
         let depth_texture =
             texture::Texture::create_depth_texture(&device, &config, "depth_texture");
 
+        // NEW!
         let hdr = hdr::HdrPipeline::new(&device, &config);
+
+        let hdr_loader = resources::HdrLoader::new(&device);
+        let sky_bytes = resources::load_binary("pure-sky.hdr").await?;
+        let sky_texture = hdr_loader.from_equirectangular_bytes(
+            &device,
+            &queue,
+            &sky_bytes,
+            1080,
+            Some("Sky Texture"),
+        )?;
+
+        let environment_layout =
+            device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+                label: Some("environment_layout"),
+                entries: &[
+                    wgpu::BindGroupLayoutEntry {
+                        binding: 0,
+                        visibility: wgpu::ShaderStages::FRAGMENT,
+                        ty: wgpu::BindingType::Texture {
+                            sample_type: wgpu::TextureSampleType::Float { filterable: false },
+                            view_dimension: wgpu::TextureViewDimension::Cube,
+                            multisampled: false,
+                        },
+                        count: None,
+                    },
+                    wgpu::BindGroupLayoutEntry {
+                        binding: 1,
+                        visibility: wgpu::ShaderStages::FRAGMENT,
+                        ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::NonFiltering),
+                        count: None,
+                    },
+                ],
+            });
+
+        let environment_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("environment_bind_group"),
+            layout: &environment_layout,
+            entries: &[
+                wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: wgpu::BindingResource::TextureView(&sky_texture.view()),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 1,
+                    resource: wgpu::BindingResource::Sampler(sky_texture.sampler()),
+                },
+            ],
+        });
 
         let render_pipeline_layout =
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
@@ -440,6 +495,7 @@ impl State {
                     &texture_bind_group_layout,
                     &camera_bind_group_layout,
                     &light_bind_group_layout,
+                    &environment_layout, // UPDATED!
                 ],
                 push_constant_ranges: &[],
             });
@@ -479,6 +535,24 @@ impl State {
             )
         };
 
+        // NEW!
+        let sky_pipeline = {
+            let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+                label: Some("Sky Pipeline Layout"),
+                bind_group_layouts: &[&camera_bind_group_layout, &environment_layout],
+                push_constant_ranges: &[],
+            });
+            let shader = wgpu::include_wgsl!("sky.wgsl");
+            create_render_pipeline(
+                &device,
+                &layout,
+                hdr.format(),
+                Some(texture::Texture::DEPTH_FORMAT),
+                &[],
+                shader,
+            )
+        };
+
         let debug_material = {
             let diffuse_bytes = include_bytes!("../res/cobble-diffuse.png");
             let normal_bytes = include_bytes!("../res/cobble-normal.png");
@@ -509,7 +583,7 @@ impl State {
             )
         };
 
-        Self {
+        Ok(Self {
             window,
             surface,
             device,
@@ -534,8 +608,11 @@ impl State {
             #[allow(dead_code)]
             debug_material,
             mouse_pressed: false,
-            hdr, // NEW!
-        }
+            // NEW!
+            hdr,
+            environment_bind_group,
+            sky_pipeline,
+        })
     }
 
     pub fn window(&self) -> &Window {
@@ -661,7 +738,13 @@ impl State {
                 0..self.instances.len() as u32,
                 &self.camera_bind_group,
                 &self.light_bind_group,
+                &self.environment_bind_group,
             );
+
+            render_pass.set_pipeline(&self.sky_pipeline);
+            render_pass.set_bind_group(0, &self.camera_bind_group, &[]);
+            render_pass.set_bind_group(1, &self.environment_bind_group, &[]);
+            render_pass.draw(0..3, 0..1);
         }
 
         // NEW!
@@ -676,7 +759,7 @@ impl State {
 }
 
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen(start))]
-pub async fn run() {
+pub async fn run() -> anyhow::Result<()> {
     cfg_if::cfg_if! {
         if #[cfg(target_arch = "wasm32")] {
             std::panic::set_hook(Box::new(console_error_panic_hook::hook));
@@ -712,13 +795,12 @@ pub async fn run() {
             .expect("Couldn't append canvas to document body.");
     }
 
-    let mut state = State::new(window).await; // NEW!
+    let mut state = State::new(window).await?; // NEW!
     let mut last_render_time = instant::Instant::now();
     event_loop.run(move |event, _, control_flow| {
         *control_flow = ControlFlow::Poll;
         match event {
             Event::MainEventsCleared => state.window().request_redraw(),
-            // NEW!
             Event::DeviceEvent {
                 event: DeviceEvent::MouseMotion{ delta, },
                 .. // We're not using device_id currently

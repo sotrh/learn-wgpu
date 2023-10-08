@@ -23,7 +23,7 @@ instant = "0.1"
 [dependencies.image]
 version = "0.24"
 default-features = false
-features = ["png", "jpeg"]
+features = ["png", "jpeg", "hdr"]
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 reqwest = { version = "0.11" }
