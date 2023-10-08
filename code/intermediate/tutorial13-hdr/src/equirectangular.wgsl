@@ -24,5 +24,5 @@ fn compute_equirect_to_cubemap(
     var side = SIDES[gid.z];
     // We use textureLoad() as textureSample() is not allowed in compute shaders
     let samp = textureLoad(src, vec2(0, 0), 0);
-    textureStore(output, gid.xy, gid.z, vec4(side * 2.0 + 1.0, 1.0));
+    textureStore(output, gid.xy, gid.z, vec4(side * 0.5 + 0.5, 1.0));
 }

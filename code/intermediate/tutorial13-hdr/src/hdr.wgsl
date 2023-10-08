@@ -49,5 +49,6 @@ fn fs_main(vs: VertexOutput) -> @location(0) vec4<f32> {
     let hdr = textureSample(hdr_image, hdr_sampler, vs.uv);
     let sdr = aces_tone_map(hdr.rgb);
     let size = vec2<f32>(textureDimensions(hdr_image));
-    return vec4(sdr, hdr.a);
+    // return vec4(sdr, hdr.a);
+    return hdr;
 }

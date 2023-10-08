@@ -2,8 +2,10 @@
 
 struct Camera {
     view_pos: vec4<f32>,
+    view: mat4x4<f32>,
     view_proj: mat4x4<f32>,
-    inv_view_proj: mat4x4<f32>, // NEW!
+    inv_proj: mat4x4<f32>,
+    inv_view: mat4x4<f32>,
 }
 @group(1) @binding(0)
 var<uniform> camera: Camera;
@@ -133,9 +135,14 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     // Calculate reflections
     let world_view = normalize(in.world_view_position - in.world_position);
     let world_reflect = reflect(world_view, world_normal);
-    let env_ambient = textureSample(env_map, env_sampler, world_reflect).rgb;
+    let env_ambient = textureSample(env_map, env_sampler, world_reflect * vec3(1.0, 1.0, -1.0)).rgb;
 
-    let result = (env_ambient + diffuse_color + specular_color) * object_color.xyz;
+    // let result = (env_ambient + diffuse_color + specular_color) * object_color.xyz;
+    // let result = env_ambient;
+    var result = in.world_normal;
+    if (in.clip_position.x > 400.0) {
+        result = world_normal;
+    }
 
     return vec4<f32>(result, object_color.a);
 }
