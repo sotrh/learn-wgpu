@@ -125,24 +125,19 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     let view_dir = normalize(in.world_view_position - in.world_position);
     let half_dir = normalize(view_dir + light_dir);
 
-    let diffuse_strength = max(dot(tangent_normal, light_dir), 0.0);
+    let diffuse_strength = max(dot(world_normal, light_dir), 0.0);
     let diffuse_color = light.color * diffuse_strength;
 
-    let specular_strength = pow(max(dot(tangent_normal, half_dir), 0.0), 32.0);
+    let specular_strength = pow(max(dot(world_normal, half_dir), 0.0), 32.0);
     let specular_color = specular_strength * light.color;
 
     // NEW!
     // Calculate reflections
-    let world_view = normalize(in.world_view_position - in.world_position);
-    let world_reflect = reflect(world_view, world_normal);
-    let env_ambient = textureSample(env_map, env_sampler, world_reflect * vec3(1.0, 1.0, -1.0)).rgb;
+    let rev_view_dir = normalize(in.world_position - in.world_view_position);
+    let world_reflect = reflect(rev_view_dir, world_normal);
+    let env_ambient = textureSample(env_map, env_sampler, world_reflect).rgb;
 
-    // let result = (env_ambient + diffuse_color + specular_color) * object_color.xyz;
-    // let result = env_ambient;
-    var result = in.world_normal;
-    if (in.clip_position.x > 400.0) {
-        result = world_normal;
-    }
+    let result = (env_ambient + diffuse_color + specular_color) * object_color.xyz;
 
     return vec4<f32>(result, object_color.a);
 }

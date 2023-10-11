@@ -73,8 +73,15 @@ impl HdrPipeline {
             push_constant_ranges: &[],
         });
 
-        let pipeline =
-            create_render_pipeline(device, &pipeline_layout, config.format, None, &[], shader);
+        let pipeline = create_render_pipeline(
+            device,
+            &pipeline_layout,
+            config.format,
+            None,
+            &[],
+            wgpu::PrimitiveTopology::TriangleList,
+            shader,
+        );
 
         Self {
             pipeline,

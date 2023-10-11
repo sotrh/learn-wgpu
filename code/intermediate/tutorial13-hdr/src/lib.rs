@@ -16,6 +16,7 @@ mod hdr;
 mod model;
 mod resources;
 mod texture;
+mod debug;
 
 use model::{DrawLight, DrawModel, Vertex};
 
@@ -174,6 +175,7 @@ struct State {
     hdr: hdr::HdrPipeline,
     environment_bind_group: wgpu::BindGroup,
     sky_pipeline: wgpu::RenderPipeline,
+    debug: debug::Debug,
 }
 
 fn create_render_pipeline(
@@ -182,6 +184,7 @@ fn create_render_pipeline(
     color_format: wgpu::TextureFormat,
     depth_format: Option<wgpu::TextureFormat>,
     vertex_layouts: &[wgpu::VertexBufferLayout],
+    topology: wgpu::PrimitiveTopology,
     shader: wgpu::ShaderModuleDescriptor,
 ) -> wgpu::RenderPipeline {
     let shader = device.create_shader_module(shader);
@@ -204,7 +207,7 @@ fn create_render_pipeline(
             })],
         }),
         primitive: wgpu::PrimitiveState {
-            topology: wgpu::PrimitiveTopology::TriangleList,
+            topology,
             strip_index_format: None,
             front_face: wgpu::FrontFace::Ccw,
             cull_mode: Some(wgpu::Face::Back),
@@ -402,7 +405,7 @@ impl State {
         });
 
         let obj_model =
-            resources::load_model("cube.obj", &device, &queue, &texture_bind_group_layout)
+            resources::load_model("floor.obj", &device, &queue, &texture_bind_group_layout)
                 .await
                 .unwrap();
 
@@ -520,6 +523,7 @@ impl State {
                 hdr.format(),
                 Some(texture::Texture::DEPTH_FORMAT),
                 &[model::ModelVertex::desc(), InstanceRaw::desc()],
+                wgpu::PrimitiveTopology::TriangleList,
                 shader,
             )
         };
@@ -540,6 +544,7 @@ impl State {
                 hdr.format(),
                 Some(texture::Texture::DEPTH_FORMAT),
                 &[model::ModelVertex::desc()],
+                wgpu::PrimitiveTopology::TriangleList,
                 shader,
             )
         };
@@ -558,6 +563,7 @@ impl State {
                 hdr.format(),
                 Some(texture::Texture::DEPTH_FORMAT),
                 &[],
+                wgpu::PrimitiveTopology::TriangleList,
                 shader,
             )
         };
@@ -592,6 +598,8 @@ impl State {
             )
         };
 
+        let debug = debug::Debug::new(&device, &camera_bind_group_layout, surface_format);
+
         Ok(Self {
             window,
             surface,
@@ -621,6 +629,7 @@ impl State {
             hdr,
             environment_bind_group,
             sky_pipeline,
+            debug,
         })
     }
 
@@ -759,6 +768,22 @@ impl State {
         // NEW!
         // Apply tonemapping
         self.hdr.process(&mut encoder, &view);
+
+        {
+            let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                label: Some("Debug"),
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                    view: &view,
+                    resolve_target: None,
+                    ops: wgpu::Operations {
+                        load: wgpu::LoadOp::Load,
+                        store: true,
+                    },
+                })],
+                depth_stencil_attachment: None,
+            });
+            self.debug.draw_axis(&mut pass, &self.camera_bind_group);
+        }
 
         self.queue.submit(iter::once(encoder.finish()));
         output.present();
