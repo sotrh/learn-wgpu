@@ -207,7 +207,7 @@ Regardless, `PresentMode::Fifo` will always be supported, and `PresentMode::Auto
 Now that we've configured our surface properly we can add these new fields at the end of the method.
 
 ```rust
-    async fn new(window: &Window) -> Self {
+    async fn new(window: Window) -> Self {
         // ...
 
         Self {
@@ -261,7 +261,7 @@ Now that `run()` is async, `main()` will need some way to await the future. We c
 ```toml
 [dependencies]
 # other deps...
-pollster = "0.2"
+pollster = "0.3"
 ```
 
 We then use the `block_on` function provided by pollster to await our future:
