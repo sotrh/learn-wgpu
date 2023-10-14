@@ -405,7 +405,7 @@ impl State {
         });
 
         let obj_model =
-            resources::load_model("floor.obj", &device, &queue, &texture_bind_group_layout)
+            resources::load_model("cobble_sphere.obj", &device, &queue, &texture_bind_group_layout)
                 .await
                 .unwrap();
 

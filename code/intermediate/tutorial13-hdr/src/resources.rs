@@ -77,7 +77,7 @@ pub async fn load_model(
     let obj_text = load_string(file_name).await?;
     let obj_cursor = Cursor::new(obj_text);
     let mut obj_reader = BufReader::new(obj_cursor);
-    
+
     println!("HERE++++++++++++++");
     let (models, obj_materials) = tobj::load_obj_buf_async(
         &mut obj_reader,
@@ -304,9 +304,25 @@ impl HdrLoader {
             meta.width,
             meta.height,
             self.texture_format,
-            wgpu::TextureUsages::TEXTURE_BINDING,
+            wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
             wgpu::FilterMode::Linear,
             None,
+        );
+
+        queue.write_texture(
+            wgpu::ImageCopyTexture {
+                texture: &src.texture,
+                mip_level: 0,
+                origin: wgpu::Origin3d::ZERO,
+                aspect: wgpu::TextureAspect::All,
+            },
+            &bytemuck::cast_slice(&pixels),
+            wgpu::ImageDataLayout {
+                offset: 0,
+                bytes_per_row: Some(src.size.width * std::mem::size_of::<[f32; 4]>() as u32),
+                rows_per_image: Some(src.size.height),
+            },
+            src.size,
         );
 
         let dst = texture::CubeTexture::create_2d(
@@ -315,7 +331,8 @@ impl HdrLoader {
             dst_size,
             self.texture_format,
             1,
-            wgpu::TextureUsages::STORAGE_BINDING | wgpu::TextureUsages::TEXTURE_BINDING,
+            wgpu::TextureUsages::STORAGE_BINDING
+                | wgpu::TextureUsages::TEXTURE_BINDING,
             wgpu::FilterMode::Nearest,
             label,
         );

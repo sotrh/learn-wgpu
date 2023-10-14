@@ -121,7 +121,7 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     let world_normal = TBN * tangent_normal;
 
     // Create the lighting vectors
-    let light_dir = normalize(in.world_light_position - in.world_position);
+    let light_dir = normalize(light.position - in.world_position);
     let view_dir = normalize(in.world_view_position - in.world_position);
     let half_dir = normalize(view_dir + light_dir);
 
@@ -133,8 +133,7 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
 
     // NEW!
     // Calculate reflections
-    let rev_view_dir = normalize(in.world_position - in.world_view_position);
-    let world_reflect = reflect(rev_view_dir, world_normal);
+    let world_reflect = reflect(-view_dir, world_normal);
     let env_ambient = textureSample(env_map, env_sampler, world_reflect).rgb;
 
     let result = (env_ambient + diffuse_color + specular_color) * object_color.xyz;

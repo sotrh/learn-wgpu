@@ -1,15 +1,11 @@
-use std::io::Cursor;
-
 use anyhow::*;
-use image::{
-    codecs::hdr::{HdrDecoder, Rgbe8Pixel},
-    GenericImageView,
-};
+use image::GenericImageView;
 
 pub struct Texture {
     pub texture: wgpu::Texture,
     pub view: wgpu::TextureView,
     pub sampler: wgpu::Sampler,
+    pub size: wgpu::Extent3d,
 }
 
 impl Texture {
@@ -54,6 +50,7 @@ impl Texture {
             texture,
             view,
             sampler,
+            size, // NEW!
         }
     }
 
@@ -179,6 +176,7 @@ impl Texture {
             texture,
             view,
             sampler,
+            size, // NEW!
         }
     }
 }
