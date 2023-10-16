@@ -52,8 +52,9 @@ impl CameraUniform {
         self.view = view.into();
         self.view_proj = view_proj.into();
         self.inv_proj = proj.invert().unwrap().into();
-        self.inv_view = view.invert().unwrap().into();
         // self.inv_proj = proj.transpose().into();
+        // self.inv_view = view.invert().unwrap().into();
+        self.inv_view = view.transpose().into();
     }
 }
 
@@ -405,7 +406,7 @@ impl State {
         });
 
         let obj_model =
-            resources::load_model("cobble_sphere.obj", &device, &queue, &texture_bind_group_layout)
+            resources::load_model("cube.obj", &device, &queue, &texture_bind_group_layout)
                 .await
                 .unwrap();
 

@@ -73,12 +73,10 @@ pub async fn load_model(
     queue: &wgpu::Queue,
     layout: &wgpu::BindGroupLayout,
 ) -> anyhow::Result<model::Model> {
-    println!("HERE++++++++++++++");
     let obj_text = load_string(file_name).await?;
     let obj_cursor = Cursor::new(obj_text);
     let mut obj_reader = BufReader::new(obj_cursor);
 
-    println!("HERE++++++++++++++");
     let (models, obj_materials) = tobj::load_obj_buf_async(
         &mut obj_reader,
         &tobj::LoadOptions {
@@ -87,7 +85,6 @@ pub async fn load_model(
             ..Default::default()
         },
         |p| async move {
-            println!("mat: {p}");
             let mat_text = load_string(&p).await.unwrap();
             tobj::load_mtl_buf(&mut BufReader::new(Cursor::new(mat_text)))
         },
@@ -96,7 +93,6 @@ pub async fn load_model(
 
     let mut materials = Vec::new();
     for m in obj_materials? {
-        println!("Loading textures");
         let diffuse_texture = load_texture(&m.diffuse_texture, false, device, queue).await?;
         let normal_texture = load_texture(&m.normal_texture, true, device, queue).await?;
 

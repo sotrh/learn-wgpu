@@ -99,10 +99,6 @@ var env_sampler: sampler;
 fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     let object_color: vec4<f32> = textureSample(t_diffuse, s_diffuse, in.tex_coords);
     let object_normal: vec4<f32> = textureSample(t_normal, s_normal, in.tex_coords);
-    
-    // We don't need (or want) much ambient light, so 0.1 is fine
-    let ambient_strength = 0.1;
-    let ambient_color = light.color * ambient_strength;
 
     // NEW!
     // Adjust the tangent and bitangent using the Gramm-Schmidt process
@@ -134,9 +130,10 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     // NEW!
     // Calculate reflections
     let world_reflect = reflect(-view_dir, world_normal);
-    let env_ambient = textureSample(env_map, env_sampler, world_reflect).rgb;
+    let reflection = textureSample(env_map, env_sampler, world_reflect).rgb;
+    let shininess = 0.1;
 
-    let result = (env_ambient + diffuse_color + specular_color) * object_color.xyz;
+    let result = (diffuse_color + specular_color) * object_color.xyz + reflection * shininess;
 
     return vec4<f32>(result, object_color.a);
 }
