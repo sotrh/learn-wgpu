@@ -2,6 +2,7 @@ use wgpu::Operations;
 
 use crate::{create_render_pipeline, texture};
 
+/// Owns the render texture and controls tonemapping
 pub struct HdrPipeline {
     pipeline: wgpu::RenderPipeline,
     bind_group: wgpu::BindGroup,
@@ -17,6 +18,8 @@ impl HdrPipeline {
         let width = config.width;
         let height = config.height;
 
+        // We could use `Rgba32Float`, but that requires some extra
+        // features to be enabled.
         let format = wgpu::TextureFormat::Rgba16Float;
 
         let texture = texture::Texture::create_2d_texture(
@@ -94,6 +97,7 @@ impl HdrPipeline {
         }
     }
 
+    /// Resize the HDR texture
     pub fn resize(&mut self, device: &wgpu::Device, width: u32, height: u32) {
         self.texture = texture::Texture::create_2d_texture(
             device,
@@ -122,14 +126,18 @@ impl HdrPipeline {
         self.height = height;
     }
 
+    /// Exposes the HDR texture
     pub fn view(&self) -> &wgpu::TextureView {
         &self.texture.view
     }
 
+    /// The format of the HDR texture
     pub fn format(&self) -> wgpu::TextureFormat {
         self.format
     }
 
+    /// This renders the internal HDR texture to the [TextureView]
+    /// supplied as parameter.
     pub fn process(&self, encoder: &mut wgpu::CommandEncoder, output: &wgpu::TextureView) {
         let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("Hdr::process"),
