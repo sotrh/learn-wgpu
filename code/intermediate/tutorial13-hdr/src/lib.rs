@@ -16,6 +16,8 @@ mod hdr;
 mod model;
 mod resources;
 mod texture;
+
+#[cfg(feature = "debug")]
 mod debug;
 
 use model::{DrawLight, DrawModel, Vertex};
@@ -52,8 +54,6 @@ impl CameraUniform {
         self.view = view.into();
         self.view_proj = view_proj.into();
         self.inv_proj = proj.invert().unwrap().into();
-        // self.inv_proj = proj.transpose().into();
-        // self.inv_view = view.invert().unwrap().into();
         self.inv_view = view.transpose().into();
     }
 }
@@ -176,6 +176,7 @@ struct State {
     hdr: hdr::HdrPipeline,
     environment_bind_group: wgpu::BindGroup,
     sky_pipeline: wgpu::RenderPipeline,
+    #[cfg(feature = "debug")]
     debug: debug::Debug,
 }
 
@@ -244,6 +245,10 @@ impl State {
         // The instance is a handle to our GPU
         // BackendBit::PRIMARY => Vulkan + Metal + DX12 + Browser WebGPU
         let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
+            // UPDATED
+            #[cfg(target_arch="wasm32")]
+            backends: wgpu::Backends::BROWSER_WEBGPU,
+            #[cfg(not(target_arch="wasm32"))]
             backends: wgpu::Backends::all(),
             dx12_shader_compiler: Default::default(),
         });
@@ -267,7 +272,8 @@ impl State {
                 &wgpu::DeviceDescriptor {
                     label: None,
                     // UPDATED!
-                    features: wgpu::Features::all_webgpu_mask(),
+                    features: wgpu::Features::empty(),
+                    // UPDATED!
                     limits: wgpu::Limits::downlevel_defaults(),
                 },
                 None, // Trace path
@@ -599,6 +605,7 @@ impl State {
             )
         };
 
+        #[cfg(feature = "debug")]
         let debug = debug::Debug::new(&device, &camera_bind_group_layout, surface_format);
 
         Ok(Self {
@@ -630,6 +637,8 @@ impl State {
             hdr,
             environment_bind_group,
             sky_pipeline,
+
+            #[cfg(feature = "debug")]
             debug,
         })
     }
@@ -768,6 +777,7 @@ impl State {
         // Apply tonemapping
         self.hdr.process(&mut encoder, &view);
 
+        #[cfg(feature = "debug")]
         {
             let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: Some("Debug"),
@@ -792,7 +802,7 @@ impl State {
 }
 
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen(start))]
-pub async fn run() -> anyhow::Result<()> {
+pub async fn run() {
     cfg_if::cfg_if! {
         if #[cfg(target_arch = "wasm32")] {
             std::panic::set_hook(Box::new(console_error_panic_hook::hook));
@@ -828,7 +838,7 @@ pub async fn run() -> anyhow::Result<()> {
             .expect("Couldn't append canvas to document body.");
     }
 
-    let mut state = State::new(window).await?; // NEW!
+    let mut state = State::new(window).await.unwrap(); // NEW!
     let mut last_render_time = instant::Instant::now();
     event_loop.run(move |event, _, control_flow| {
         *control_flow = ControlFlow::Poll;

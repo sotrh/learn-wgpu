@@ -29,9 +29,8 @@ fn vs_main(
         (id >> 1u) & 1u,
     ));
     var out: VertexOutput;
-    // out.clip_position = vec4(uv * vec2(4.0, -4.0) + vec2(-1.0, 1.0), 0.0, 1.0);
     out.clip_position = vec4(uv * 4.0 - 1.0, 1.0, 1.0);
-    out.frag_position = vec4(uv * 4.0 - 1.0, 1.0, 1.0);
+    out.frag_position = out.clip_position;
     return out;
 }
 
@@ -40,10 +39,7 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     let view_pos_homogeneous = camera.inv_proj * in.clip_position;
     let view_ray_direction = view_pos_homogeneous.xyz / view_pos_homogeneous.w;
     var ray_direction = normalize((camera.inv_view * vec4(view_ray_direction, 0.0)).xyz);
-    // ray_direction.z *= -1.0;
 
-    // let sample = vec4(ray_direction, 1.0);
     let sample = textureSample(env_map, env_sampler, ray_direction);
-    // let sample = in.clip_position;
     return sample;
 }

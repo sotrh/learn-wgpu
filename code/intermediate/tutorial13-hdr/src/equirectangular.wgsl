@@ -1,4 +1,4 @@
-const PI: f32 = 3.14159;
+const PI: f32 = 3.1415926535897932384626433832795;
 
 struct Face {
     forward: vec3<f32>,
@@ -12,15 +12,22 @@ var src: texture_2d<f32>;
 
 @group(0)
 @binding(1)
-var output: texture_storage_2d_array<rgba32float, write>;
+var dst: texture_storage_2d_array<rgba32float, write>;
 
 
 @compute
-@workgroup_size(1, 1, 1)
+@workgroup_size(16, 16, 1)
 fn compute_equirect_to_cubemap(
     @builtin(global_invocation_id)
     gid: vec3<u32>,
 ) {
+    // If texture size is not divisible by 32 we
+    // need to make sure we don't try to write to
+    // pixels that don't exist.
+    if gid.x >= u32(textureDimensions(dst).x) {
+        return;
+    }
+
     var FACES: array<Face, 6> = array(
         // FACES +X
         Face(
@@ -60,13 +67,12 @@ fn compute_equirect_to_cubemap(
         ),
     );
 
-    let face = FACES[gid.z];
-
     // Get texture coords relative to cubemap face
-    let dst_dimensions = vec2<f32>(textureDimensions(output));
+    let dst_dimensions = vec2<f32>(textureDimensions(dst));
     let cube_uv = vec2<f32>(gid.xy) / dst_dimensions * 2.0 - 1.0;
 
     // Get spherical coordinate from cube_uv
+    let face = FACES[gid.z];
     let spherical = normalize(face.forward + face.right * cube_uv.x + face.up * cube_uv.y);
 
     // Get coordinate on the equirectangular texture
@@ -77,8 +83,5 @@ fn compute_equirect_to_cubemap(
     // We use textureLoad() as textureSample() is not allowed in compute shaders
     var sample = textureLoad(src, eq_pixel, 0);
 
-    // sample = vec4(cube_uv * 0.5 + 0.5, 0.0, 1.0);
-    // sample = vec4(spherical * 0.5 + 0.5, 1.0);
-
-    textureStore(output, gid.xy, gid.z, sample);
+    textureStore(dst, gid.xy, gid.z, sample);
 }

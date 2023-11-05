@@ -181,15 +181,6 @@ impl Texture {
     }
 }
 
-pub enum CubeSide {
-    PosX = 0,
-    NegX = 1,
-    PosY = 2,
-    NegY = 3,
-    PosZ = 4,
-    NegZ = 5,
-}
-
 pub struct CubeTexture {
     texture: wgpu::Texture,
     sampler: wgpu::Sampler,

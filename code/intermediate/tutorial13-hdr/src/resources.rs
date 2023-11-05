@@ -358,9 +358,10 @@ impl HdrLoader {
         let mut encoder = device.create_command_encoder(&Default::default());
         let mut pass = encoder.begin_compute_pass(&wgpu::ComputePassDescriptor { label });
 
+        let num_workgroups = (dst_size + 15) / 16;
         pass.set_pipeline(&self.equirect_to_cubemap);
         pass.set_bind_group(0, &bind_group, &[]);
-        pass.dispatch_workgroups(dst_size, dst_size, 6);
+        pass.dispatch_workgroups(num_workgroups, num_workgroups, 6);
 
         drop(pass);
 
