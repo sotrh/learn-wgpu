@@ -308,7 +308,7 @@ If you run your program now, it'll take a little longer to start, but it will st
                             a: 1.0,
                         }
                     ),
-                    store: true,
+                    store: wgpu::StoreOp::Store,
                 }
             })
         ],

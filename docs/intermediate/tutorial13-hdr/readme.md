@@ -196,7 +196,7 @@ impl HdrPipeline {
                 resolve_target: None,
                 ops: Operations {
                     load: wgpu::LoadOp::Load,
-                    store: true,
+                    store: wgpu::StoreOp::Store,
                 },
             })],
             depth_stencil_attachment: None,
@@ -366,7 +366,7 @@ let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 b: 0.3,
                 a: 1.0,
             }),
-            store: true,
+            store: wgpu::StoreOp::Store,
         },
     })],
     depth_stencil_attachment: Some(
@@ -566,7 +566,7 @@ Consequently we are going to remove the webgl feature from
 `Cargo.toml`. This line in particular:
 
 ```toml
-wgpu = { version = "0.17", features = ["webgl"]}
+wgpu = { version = "0.18", features = ["webgl"]}
 ```
 
 </div>

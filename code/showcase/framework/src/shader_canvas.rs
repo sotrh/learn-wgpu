@@ -85,10 +85,12 @@ impl ShaderCanvas {
                 resolve_target: None,
                 ops: wgpu::Operations {
                     load: wgpu::LoadOp::Load,
-                    store: true,
+                    store: wgpu::StoreOp::Store,
                 },
             })],
             depth_stencil_attachment: None,
+            occlusion_query_set: None,
+            timestamp_writes: None,
         });
         pass.set_bind_group(0, &self.simulation_bind_group, &[]);
         pass.set_pipeline(&self.pipeline);

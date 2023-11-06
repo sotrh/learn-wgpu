@@ -302,6 +302,7 @@ impl framework::Demo for Snow {
         let mut encoder = display.device.create_command_encoder(&Default::default());
         let mut move_pass = encoder.begin_compute_pass(&wgpu::ComputePassDescriptor {
             label: Some("move_pass"),
+            timestamp_writes: None,
         });
         move_pass.set_pipeline(&self.move_particles);
         move_pass.set_bind_group(0, &self.particle_bind_groups[self.iteration % 2], &[]);
@@ -331,10 +332,12 @@ impl framework::Demo for Snow {
                 resolve_target: None,
                 ops: wgpu::Operations {
                     load: wgpu::LoadOp::Clear(wgpu::Color::BLACK),
-                    store: true,
+                    store: wgpu::StoreOp::Store,
                 },
             })],
             depth_stencil_attachment: None,
+            occlusion_query_set: None,
+            timestamp_writes: None,
         });
 
         draw_pass.set_pipeline(&self.draw_particles);

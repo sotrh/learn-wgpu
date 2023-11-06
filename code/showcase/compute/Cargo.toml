@@ -14,7 +14,7 @@ image = "0.24"
 log = "0.4"
 rayon = "1.4"
 tobj = "2.0"
-wgpu = "0.17"
+wgpu = "0.18"
 winit = "0.28"
 
 [build-dependencies]

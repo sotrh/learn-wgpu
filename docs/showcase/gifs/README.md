@@ -112,7 +112,7 @@ for c in &colors {
                             a: 1.0,
                         }
                     ),
-                    store: true,
+                    store: wgpu::StoreOp::Store,
                 },
             }
         ],

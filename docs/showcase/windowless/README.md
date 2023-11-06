@@ -100,7 +100,7 @@ Update dependencies to support SPIR-V module.
 [dependencies]
 image = "0.23"
 shaderc = "0.7"
-wgpu = { version = "0.17", features = ["spirv"] }
+wgpu = { version = "0.18", features = ["spirv"] }
 pollster = "0.3"
 ```
 
@@ -207,7 +207,7 @@ The `RenderPass` is where things get interesting. A render pass requires at leas
                         b: 0.3,
                         a: 1.0,
                     }),
-                    store: true,
+                    store: wgpu::StoreOp::Store,
                 },
             }
         ],

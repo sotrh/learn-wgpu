@@ -272,6 +272,7 @@ impl GenerateChunk for TerrainPipeline {
 
         let mut cpass = encoder.begin_compute_pass(&wgpu::ComputePassDescriptor {
             label: Some("TerrainPipeline: ComputePass"),
+            timestamp_writes: None,
         });
         cpass.set_pipeline(&self.gen_pipeline);
         cpass.set_bind_group(0, &bind_group, &[]);

@@ -133,8 +133,7 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     let reflection = textureSample(env_map, env_sampler, world_reflect).rgb;
     let shininess = 0.1;
 
-    // let result = (diffuse_color + specular_color) * object_color.xyz + reflection * shininess;
-    let result = reflection;
+    let result = (diffuse_color + specular_color) * object_color.xyz + reflection * shininess;
 
     return vec4<f32>(result, object_color.a);
 }

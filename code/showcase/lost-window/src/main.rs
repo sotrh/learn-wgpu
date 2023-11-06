@@ -89,6 +89,8 @@ async fn run() -> anyhow::Result<()> {
                         ops: Default::default(),
                     })],
                     depth_stencil_attachment: None,
+                    occlusion_query_set: None,
+                    timestamp_writes: None,
                 }));
                 queue.submit([encoder.finish()]);
                 frame.present();

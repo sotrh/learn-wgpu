@@ -3,7 +3,7 @@ use std::num::NonZeroU32;
 async fn run() {
     let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
         backends: wgpu::Backends::all(),
-        dx12_shader_compiler: Default::default(),
+        ..Default::default()
     });
     let adapter = instance
         .request_adapter(&wgpu::RequestAdapterOptions {
@@ -147,10 +147,12 @@ async fn run() {
                         b: 0.3,
                         a: 1.0,
                     }),
-                    store: true,
+                    store: wgpu::StoreOp::Store,
                 },
             })],
             depth_stencil_attachment: None,
+            occlusion_query_set: None,
+            timestamp_writes: None,
         };
         let mut render_pass = encoder.begin_render_pass(&render_pass_desc);
 

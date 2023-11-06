@@ -1,6 +1,6 @@
 use anyhow::*;
 use image::GenericImageView;
-use std::{num::NonZeroU32, path::Path};
+use std::path::Path;
 
 pub struct Texture {
     pub texture: wgpu::Texture,

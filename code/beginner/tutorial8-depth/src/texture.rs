@@ -1,5 +1,3 @@
-use std::num::NonZeroU32;
-
 use anyhow::*;
 use image::GenericImageView;
 
@@ -54,6 +52,7 @@ impl Texture {
         }
     }
 
+    #[allow(unused)]
     pub fn create_depth_texture_non_comparison_sampler(
         device: &wgpu::Device,
         config: &wgpu::SurfaceConfiguration,

@@ -62,7 +62,7 @@ impl State {
         // Backends::all => Vulkan + Metal + DX12 + Browser WebGPU
         let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
             backends: wgpu::Backends::all(),
-            dx12_shader_compiler: Default::default(),
+            ..Default::default()
         });
         
         // # Safety
@@ -264,13 +264,13 @@ cfg-if = "1"
 winit = "0.28"
 env_logger = "0.10"
 log = "0.4"
-wgpu = "0.17"
+wgpu = "0.18"
 pollster = "0.3"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 console_error_panic_hook = "0.1.6"
 console_log = "1.0"
-wgpu = { version = "0.17", features = ["webgl"]}
+wgpu = { version = "0.18", features = ["webgl"]}
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
 web-sys = { version = "0.3", features = [
@@ -423,7 +423,7 @@ Now we can get to clearing the screen (long time coming). We need to use the `en
                         b: 0.3,
                         a: 1.0,
                     }),
-                    store: true,
+                    store: wgpu::StoreOp::Store,
                 },
             })],
             depth_stencil_attachment: None,
@@ -511,7 +511,7 @@ Some(wgpu::RenderPassColorAttachment {
             b: 0.3,
             a: 1.0,
         }),
-        store: true,
+        store: wgpu::StoreOp::Store,
     },
 })
 ```

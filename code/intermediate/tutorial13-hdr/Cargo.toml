@@ -16,7 +16,7 @@ env_logger = "0.10"
 pollster = "0.3"
 log = "0.4"
 tobj = { version = "3.2", features = ["async"]}
-wgpu = { version = "0.17"}
+wgpu = { version = "0.18"}
 winit = "0.28"
 instant = "0.1"
 

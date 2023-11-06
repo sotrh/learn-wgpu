@@ -362,6 +362,7 @@ impl ModelLoader {
                 {
                     let mut pass = encoder.begin_compute_pass(&wgpu::ComputePassDescriptor {
                         label: Some("Compute Pass"),
+                        timestamp_writes: None,
                     });
                     pass.set_pipeline(&self.pipeline);
                     pass.set_bind_group(0, &calc_bind_group, &[]);

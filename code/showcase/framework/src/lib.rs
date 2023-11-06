@@ -36,7 +36,7 @@ impl Display {
         let size = window.inner_size();
         let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
             backends: wgpu::Backends::all(),
-            dx12_shader_compiler: Default::default(),
+            ..Default::default()
         });
         let surface = unsafe { instance.create_surface(&window) }.unwrap();
         let adapter = instance
