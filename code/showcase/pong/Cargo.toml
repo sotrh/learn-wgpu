@@ -16,8 +16,7 @@ bytemuck = { version = "1.12", features = [ "derive" ] }
 cgmath = "0.18"
 pollster = "0.3"
 wgpu = { version = "0.18", features = ["spirv"]}
-#wgpu_glyph = { version = "0.20", path = "../../../../wgpu_glyph" }
-wgpu_glyph = { version = "0.20", git = "https://github.com/sotrh/wgpu_glyph.git" }
+wgpu_glyph = { version = "0.21", git = "https://github.com/hecrj/wgpu_glyph.git" }
 rand = "0.8"
 rodio = { version = "0.16", default-features = false, features = ["wav"] }
 log = "0.4"
