@@ -4,7 +4,7 @@
 Some of you reading this are very experienced with opening up windows in Rust and probably have your favorite windowing library, but this guide is designed for everybody, so it's something that we need to cover. Luckily, you don't need to read this if you know what you're doing. One thing that you do need to know is that whatever windowing solution you use needs to support the [raw-window-handle](https://github.com/rust-windowing/raw-window-handle) crate.
 
 ## What crates are we using?
-For the beginner stuff, we're going to keep things very simple, we'll add things as we go, but I've listed the relevant `Cargo.toml` bits below.
+For the beginner stuff, we're going to keep things very simple. We'll add things as we go, but I've listed the relevant `Cargo.toml` bits below.
 
 ```toml
 [dependencies]
@@ -15,7 +15,7 @@ wgpu = "0.18"
 ```
 
 ## Using Rust's new resolver
-As of version 0.10, wgpu requires cargo's [newest feature resolver](https://doc.rust-lang.org/cargo/reference/resolver.html#feature-resolver-version-2), which is the default in the 2021 edition (any new project started with Rust version 1.56.0 or newer). However, if you are still using the 2018 edition, you must include `resolver = "2"` in either the `[package]` section of `Cargo.toml` if you are working on a single crate, or the `[workspace]` section of the root `Cargo.toml` in a workspace.
+As of version 0.10, wgpu requires Cargo's [newest feature resolver](https://doc.rust-lang.org/cargo/reference/resolver.html#feature-resolver-version-2), which is the default in the 2021 edition (any new project started with Rust version 1.56.0 or newer). However, if you are still using the 2018 edition, you must include `resolver = "2"` in either the `[package]` section of `Cargo.toml` if you are working on a single crate or the `[workspace]` section of the root `Cargo.toml` in a workspace.
 
 ## env_logger
 It is very important to enable logging via `env_logger::init();`.
@@ -25,7 +25,7 @@ This means if you don't include `env_logger::init()`, wgpu will fail silently, l
 
 ## Create a new project
 run ```cargo new project_name``` where project_name is the name of the project.  
-(In the example below I have used 'tutorial1_window')
+(In the example below, I have used 'tutorial1_window')
 
 ## The code
 There's not much going on here yet, so I'm just going to post the code in full. Just paste this into your `lib.rs` or equivalent.
@@ -65,7 +65,7 @@ pub fn run() {
 
 ```
 
-All this does is create a window, and keep it open until the user closes it, or presses escape. Next, we'll need a `main.rs` to run the code. It's quite simple, it just imports `run()` and, well, runs it!
+All this does is create a window and keep it open until the user closes it or presses escape. Next, we'll need a `main.rs` to run the code. It's quite simple, it just imports `run()` and, well, runs it!
 
 ```rust
 use tutorial1_window::run;
@@ -75,13 +75,13 @@ fn main() {
 }
 ```
 
-(Where 'tutorial1_window' is the name of the project you created with cargo earlier)  
+(Where 'tutorial1_window' is the name of the project you created with Cargo earlier)  
 
 If you only want to support desktops, that's all you have to do! In the next tutorial, we'll start using wgpu!
 
 ## Added support for the web
 
-If I go through this tutorial about WebGPU and never talk about using it on the web, then I'd hardly call this tutorial complete. Fortunately getting a wgpu application running in a browser is not too difficult once you get things set up.
+If I go through this tutorial about WebGPU and never talk about using it on the web, then I'd hardly call this tutorial complete. Fortunately, getting a wgpu application running in a browser is not too difficult once you get things set up.
 
 Let's start with the changes we need to make to our `Cargo.toml`:
 
@@ -90,13 +90,13 @@ Let's start with the changes we need to make to our `Cargo.toml`:
 crate-type = ["cdylib", "rlib"]
 ```
 
-These lines tell cargo that we want to allow our crate to build a native Rust static library (rlib) and a C/C++ compatible library (cdylib). We need rlib if we want to run wgpu in a desktop environment. We need cdylib to create the Web Assembly that the browser will run.
+These lines tell Cargo that we want to allow our crate to build a native Rust static library (rlib) and a C/C++ compatible library (cdylib). We need rlib if we want to run wgpu in a desktop environment. We need cdylib to create the Web Assembly that the browser will run.
 
 <div class="note">
 
 ## Web Assembly
 
-Web Assembly i.e. WASM, is a binary format supported by most modern browsers that allows lower-level languages such as Rust to run on a web page. This allows us to write the bulk of our application in Rust and use a few lines of Javascript to get it running in a web browser.
+Web Assembly, i.e. WASM, is a binary format supported by most modern browsers that allows lower-level languages such as Rust to run on a web page. This allows us to write the bulk of our application in Rust and use a few lines of Javascript to get it running in a web browser.
 
 </div>
 
@@ -122,15 +122,15 @@ web-sys = { version = "0.3", features = [
 
 The [cfg-if](https://docs.rs/cfg-if) crate adds a macro that makes using platform-specific code more manageable.
 
-The `[target.'cfg(target_arch = "wasm32")'.dependencies]` line tells cargo to only include these dependencies if we are targeting the `wasm32` architecture. The next few dependencies just make interfacing with javascript a lot easier.
+The `[target.'cfg(target_arch = "wasm32")'.dependencies]` line tells Cargo to only include these dependencies if we are targeting the `wasm32` architecture. The next few dependencies just make interfacing with JavaScript a lot easier.
 
-* [console_error_panic_hook](https://docs.rs/console_error_panic_hook) configures the `panic!` macro to send errors to the javascript console. Without this when you encounter panics, you'll be left in the dark about what caused them.
+* [console_error_panic_hook](https://docs.rs/console_error_panic_hook) configures the `panic!` macro to send errors to the javascript console. Without this, when you encounter panics, you'll be left in the dark about what caused them.
 * [console_log](https://docs.rs/console_log) implements the [log](https://docs.rs/log) API. It sends all logs to the javascript console. It can be configured to only send logs of a particular log level. This is also great for debugging.
-* We need to enable WebGL feature on wgpu if we want to run on most current browsers. Support is in the works for using the WebGPU api directly, but that is only possible on experimental versions of browsers such as Firefox Nightly and Chrome Canary.<br>
-  You're welcome to test this code on these browsers (and the wgpu devs would appreciate it as well), but for sake of simplicity, I'm going to stick to using the WebGL feature until the WebGPU api gets to a more stable state.<br>
-  If you want more details check out the guide for compiling for the web on [wgpu's repo](https://github.com/gfx-rs/wgpu/wiki/Running-on-the-Web-with-WebGPU-and-WebGL)
+* We need to enable the WebGL feature on wgpu if we want to run on most current browsers. Support is in the works for using the WebGPU api directly, but that is only possible on experimental versions of browsers such as Firefox Nightly and Chrome Canary.<br>
+  You're welcome to test this code on these browsers (and the wgpu devs would appreciate it as well), but for the sake of simplicity, I'm going to stick to using the WebGL feature until the WebGPU api gets to a more stable state.<br>
+  If you want more details, check out the guide for compiling for the web on [wgpu's repo](https://github.com/gfx-rs/wgpu/wiki/Running-on-the-Web-with-WebGPU-and-WebGL)
 * [wasm-bindgen](https://docs.rs/wasm-bindgen) is the most important dependency in this list. It's responsible for generating the boilerplate code that will tell the browser how to use our crate. It also allows us to expose methods in Rust that can be used in Javascript, and vice-versa.<br>
-  I won't get into the specifics of wasm-bindgen, so if you need a primer (or just a refresher) check out [this](https://rustwasm.github.io/wasm-bindgen/)
+  I won't get into the specifics of wasm-bindgen, so if you need a primer (or just a refresher), check out [this](https://rustwasm.github.io/wasm-bindgen/)
 * [web-sys](https://docs.rs/web-sys) is a crate that includes many methods and structures that are available in a normal javascript application: `get_element_by_id`, `append_child`. The features listed are only the bare minimum of what we need currently.
 
 ## More code
@@ -151,7 +151,7 @@ pub fn run() {
 }
 ```
 
-Then we need to toggle what logger we are using based on if we are in WASM land or not. Add the following to the top of the run function replacing the `env_logger::init()` line:
+Then we need to toggle what logger we are using based on whether we are in WASM land or not. Add the following to the top of the run function, replacing the `env_logger::init()` line:
 
 ```rust
 cfg_if::cfg_if! {
@@ -164,7 +164,7 @@ cfg_if::cfg_if! {
 }
 ```
 
-This will set up `console_log` and `console_error_panic_hook` in a web build, and will initialize `env_logger` in a normal build. This is important as `env_logger` doesn't support Web Assembly at the moment.
+This will set up `console_log` and `console_error_panic_hook` in a web build and will initialize `env_logger` in a normal build. This is important as `env_logger` doesn't support Web Assembly at the moment.
 
 Next, after we create our event loop and window, we need to add a canvas to the HTML document that we will host our application:
 
@@ -218,7 +218,7 @@ const init = await import('./pkg/game.js');
 init().then(() => console.log("WASM Loaded"));
 ```
 
-This site uses [Vuepress](https://vuepress.vuejs.org/), so I load the WASM in a Vue component. How you handle your WASM will depend on what you want to do. If you want to check out how I'm doing things take a look at [this](https://github.com/sotrh/learn-wgpu/blob/master/docs/.vuepress/components/WasmExample.vue).
+This site uses [Vuepress](https://vuepress.vuejs.org/), so I load the WASM in a Vue component. How you handle your WASM will depend on what you want to do. If you want to check out how I'm doing things, take a look at [this](https://github.com/sotrh/learn-wgpu/blob/master/docs/.vuepress/components/WasmExample.vue).
 
 <div class="note">
 
@@ -260,7 +260,7 @@ You'll then need to run the WASM code in an ES6 Module:
 
 </div>
 
-Press the button below and you will see the code running!
+Press the button below, and you will see the code running!
 
 <WasmExample example="tutorial1_window"></WasmExample>
 
