@@ -427,6 +427,8 @@ Now we can get to clearing the screen (long time coming). We need to use the `en
                 },
             })],
             depth_stencil_attachment: None,
+            occlusion_query_set: None,
+            timestamp_writes: None,
         });
     }
 
