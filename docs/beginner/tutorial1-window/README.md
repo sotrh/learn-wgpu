@@ -19,7 +19,7 @@ As of version 0.10, wgpu requires Cargo's [newest feature resolver](https://doc.
 
 ## env_logger
 It is very important to enable logging via `env_logger::init();`.
-When wgpu hits any error it panics with a generic message, while logging the real error via the log crate.
+When wgpu hits any error, it panics with a generic message, while logging the real error via the log crate.
 This means if you don't include `env_logger::init()`, wgpu will fail silently, leaving you very confused!  
 (This has been done in the code below)
 
@@ -65,7 +65,7 @@ pub fn run() {
 
 ```
 
-All this does is create a window and keep it open until the user closes it or presses escape. Next, we'll need a `main.rs` to run the code. It's quite simple, it just imports `run()` and, well, runs it!
+All this does is create a window and keep it open until the user closes it or presses escape. Next, we'll need a `main.rs` to run the code. It's quite simple. It just imports `run()` and, well, runs it!
 
 ```rust
 use tutorial1_window::run;
@@ -129,9 +129,9 @@ The `[target.'cfg(target_arch = "wasm32")'.dependencies]` line tells Cargo to on
 * We need to enable the WebGL feature on wgpu if we want to run on most current browsers. Support is in the works for using the WebGPU api directly, but that is only possible on experimental versions of browsers such as Firefox Nightly and Chrome Canary.<br>
   You're welcome to test this code on these browsers (and the wgpu devs would appreciate it as well), but for the sake of simplicity, I'm going to stick to using the WebGL feature until the WebGPU api gets to a more stable state.<br>
   If you want more details, check out the guide for compiling for the web on [wgpu's repo](https://github.com/gfx-rs/wgpu/wiki/Running-on-the-Web-with-WebGPU-and-WebGL)
-* [wasm-bindgen](https://docs.rs/wasm-bindgen) is the most important dependency in this list. It's responsible for generating the boilerplate code that will tell the browser how to use our crate. It also allows us to expose methods in Rust that can be used in Javascript, and vice-versa.<br>
+* [wasm-bindgen](https://docs.rs/wasm-bindgen) is the most important dependency in this list. It's responsible for generating the boilerplate code that will tell the browser how to use our crate. It also allows us to expose methods in Rust that can be used in JavaScript and vice-versa.<br>
   I won't get into the specifics of wasm-bindgen, so if you need a primer (or just a refresher), check out [this](https://rustwasm.github.io/wasm-bindgen/)
-* [web-sys](https://docs.rs/web-sys) is a crate that includes many methods and structures that are available in a normal javascript application: `get_element_by_id`, `append_child`. The features listed are only the bare minimum of what we need currently.
+* [web-sys](https://docs.rs/web-sys) is a crate with many methods and structures available in a normal javascript application: `get_element_by_id`, `append_child`. The features listed are only the bare minimum of what we need currently.
 
 ## More code
 
@@ -151,7 +151,7 @@ pub fn run() {
 }
 ```
 
-Then we need to toggle what logger we are using based on whether we are in WASM land or not. Add the following to the top of the run function, replacing the `env_logger::init()` line:
+Then, we need to toggle what logger we are using based on whether we are in WASM land or not. Add the following to the top of the run function, replacing the `env_logger::init()` line:
 
 ```rust
 cfg_if::cfg_if! {
@@ -199,19 +199,19 @@ That's all the web-specific code we need for now. The next thing we need to do i
 
 ## Wasm Pack
 
-Now you can build a wgpu application with just wasm-bindgen, but I ran into some issues doing that. For one, you need to install wasm-bindgen on your computer as well as include it as a dependency. The version you install as a dependency **needs** to exactly match the version you installed, otherwise, your build will fail.
+Now you can build a wgpu application with just wasm-bindgen, but I ran into some issues doing that. For one, you need to install wasm-bindgen on your computer as well as include it as a dependency. The version you install as a dependency **needs** to exactly match the version you installed. Otherwise, your build will fail.
 
-To get around this shortcoming, and to make the lives of everyone reading this easier, I opted to add [wasm-pack](https://rustwasm.github.io/docs/wasm-pack/) to the mix. Wasm-pack handles installing the correct version of wasm-bindgen for you, and it supports building for different types of web targets as well: browser, NodeJS, and bundlers such as webpack.
+To get around this shortcoming and to make the lives of everyone reading this easier, I opted to add [wasm-pack](https://rustwasm.github.io/docs/wasm-pack/) to the mix. Wasm-pack handles installing the correct version of wasm-bindgen for you, and it supports building for different types of web targets as well: browser, NodeJS, and bundlers such as webpack.
 
 To use wasm-pack, first, you need to [install it](https://rustwasm.github.io/wasm-pack/installer/).
 
-Once you've done that, we can use it to build our crate. If you only have one crate in your project, you can just use `wasm-pack build`. If you're using a workspace, you'll have to specify what crate you want to build. Imagine your crate is a directory called `game`, you would use:
+Once you've done that, we can use it to build our crate. If you only have one crate in your project, you can just use `wasm-pack build`. If you're using a workspace, you'll have to specify what crate you want to build. Imagine your crate is a directory called `game`. You would then use:
 
 ```bash
 wasm-pack build game
 ```
 
-Once wasm-pack is done building you'll have a `pkg` directory in the same directory as your crate. This has all the javascript code needed to run the WASM code. You'd then import the WASM module in javascript:
+Once wasm-pack is done building, you'll have a `pkg` directory in the same directory as your crate. This has all the javascript code needed to run the WASM code. You'd then import the WASM module in javascript:
 
 ```js
 const init = await import('./pkg/game.js');
