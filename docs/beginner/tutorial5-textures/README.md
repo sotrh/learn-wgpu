@@ -400,7 +400,7 @@ Now that we have our vertex shader outputting our `tex_coords`, we need to chang
 
 @group(0) @binding(0)
 var t_diffuse: texture_2d<f32>;
-@group(0)@binding(1)
+@group(0) @binding(1)
 var s_diffuse: sampler;
 
 @fragment
