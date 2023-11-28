@@ -1,14 +1,14 @@
 # Normal Mapping
 
-With just lighting, our scene is already looking pretty good. Still, our models are still overly smooth. This is understandable because we are using a very simple model. If we were using a texture that was supposed to be smooth, this wouldn't be a problem, but our brick texture is supposed to be rougher. We could solve this by adding more geometry, but that would slow our scene down, and it be would hard to know where to add new polygons. This is where normal mapping comes in.
+With just lighting, our scene is already looking pretty good. Still, our models are still overly smooth. This is understandable because we are using a very simple model. If we were using a texture that was supposed to be smooth, this wouldn't be a problem, but our brick texture is supposed to be rougher. We could solve this by adding more geometry, but that would slow our scene down, and it would be hard to know where to add new polygons. This is where normal mapping comes in.
 
-Remember in [the instancing tutorial](/beginner/tutorial7-instancing/#a-different-way-textures), we experimented with storing instance data in a texture? A normal map is doing just that with normal data! We'll use the normals in the normal map in our lighting calculation in addition to the vertex normal.
+Remember when we experimented with storing instance data in a texture in [the instancing tutorial](/beginner/tutorial7-instancing/#a-different-way-textures)? A normal map is doing just that with normal data! We'll use the normals in the normal map in our lighting calculation in addition to the vertex normal.
 
 The brick texture I found came with a normal map. Let's take a look at it!
 
 ![./cube-normal.png](./cube-normal.png)
 
-The r, g, and b components of the texture correspond to the x, y, and z components or the normals. All the z values should be positive, that's why the normal map has a bluish tint.
+The r, g, and b components of the texture correspond to the x, y, and z components or the normals. All the z values should be positive. That's why the normal map has a bluish tint.
 
 We'll need to modify our `Material` struct in `model.rs` to include a `normal_texture`.
 
@@ -49,7 +49,7 @@ let texture_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroup
 });
 ```
 
-We'll need to actually load the normal map. We'll do this in the loop where we create the materials in the `load_model()` function in `resources.rs`.
+We'll need to load the normal map. We'll do this in the loop where we create the materials in the `load_model()` function in `resources.rs`.
 
 ```rust
 // resources.rs
@@ -114,7 +114,7 @@ impl Material {
 }
 ```
 
-Now we can use the texture in the fragment shader.
+Now, we can use the texture in the fragment shader.
 
 ```wgsl
 // Fragment shader
@@ -164,31 +164,31 @@ Parts of the scene are dark when they should be lit up, and vice versa.
 
 ## Tangent Space to World Space
 
-I mentioned briefly in the [lighting tutorial](/intermediate/tutorial10-lighting/#the-normal-matrix), that we were doing our lighting calculation in "world space". This meant that the entire scene was oriented with respect to the *world's* coordinate system. When we pull the normal data from our normal texture, all the normals are in what's known as pointing roughly in the positive z direction. That means that our lighting calculation thinks all of the surfaces of our models are facing in roughly the same direction. This is referred to as `tangent space`.
+I mentioned briefly in the [lighting tutorial](/intermediate/tutorial10-lighting/#the-normal-matrix) that we were doing our lighting calculation in "world space". This meant that the entire scene was oriented with respect to the *world's* coordinate system. When we pull the normal data from our normal texture, all the normals are in what's known as pointing roughly in the positive z direction. That means that our lighting calculation thinks all of the surfaces of our models are facing in roughly the same direction. This is referred to as `tangent space`.
 
-If we remember the [lighting-tutorial](/intermediate/tutorial10-lighting/#), we used the vertex normal to indicate the direction of the surface. It turns out we can use that to transform our normals from `tangent space` into `world space`. In order to do that we need to draw from the depths of linear algebra.
+If we remember the [lighting-tutorial](/intermediate/tutorial10-lighting/#), we used the vertex normal to indicate the direction of the surface. It turns out we can use that to transform our normals from `tangent space` into `world space`. In order to do that, we need to draw from the depths of linear algebra.
 
-We can create a matrix that represents a coordinate system using 3 vectors that are perpendicular (or orthonormal) to each other. Basically, we define the x, y, and z axes of our coordinate system.
+We can create a matrix that represents a coordinate system using three vectors that are perpendicular (or orthonormal) to each other. Basically, we define the x, y, and z axes of our coordinate system.
 
 ```wgsl
 let coordinate_system = mat3x3<f32>(
-    vec3(1, 0, 0), // x axis (right)
-    vec3(0, 1, 0), // y axis (up)
-    vec3(0, 0, 1)  // z axis (forward)
+    vec3(1, 0, 0), // x-axis (right)
+    vec3(0, 1, 0), // y-axis (up)
+    vec3(0, 0, 1)  // z-axis (forward)
 );
 ```
 
 We're going to create a matrix that will represent the coordinate space relative to our vertex normals. We're then going to use that to transform our normal map data to be in world space.
 
-## The tangent, and the bitangent
+## The tangent and the bitangent
 
-We have one of the 3 vectors we need, the normal. What about the others? These are the tangent and bitangent vectors. A tangent represents any vector that is parallel with a surface (aka. doesn't intersect with it). The tangent is always perpendicular to the normal vector. The bitangent is a tangent vector that is perpendicular to the other tangent vector. Together the tangent, bitangent, and normal represent the x, y, and z axes respectively.
+We have one of the three vectors we need, the normal. What about the others? These are the tangent and bitangent vectors. A tangent represents any vector parallel with a surface (aka. doesn't intersect with it). The tangent is always perpendicular to the normal vector. The bitangent is a tangent vector that is perpendicular to the other tangent vector. Together, the tangent, bitangent, and normal represent the x, y, and z axes, respectively.
 
-Some model formats include the tanget and bitangent (sometimes called the binormal) in the vertex data, but OBJ does not. We'll have to calculate them manually. Luckily we can derive our tangent and bitangent from our existing vertex data. Take a look at the following diagram.
+Some model formats include the tangent and bitangent (sometimes called the binormal) in the vertex data, but OBJ does not. We'll have to calculate them manually. Luckily, we can derive our tangent and bitangent from our existing vertex data. Take a look at the following diagram.
 
 ![](./tangent_space.png)
 
-Basically, we can use the edges of our triangles, and our normal to calculate the tangent and bitangent. But first, we need to update our `ModelVertex` struct in `model.rs`.
+Basically, we can use the edges of our triangles and our normal to calculate the tangent and bitangent. But first, we need to update our `ModelVertex` struct in `model.rs`.
 
 ```rust
 #[repr(C)]
@@ -232,7 +232,7 @@ impl Vertex for ModelVertex {
 }
 ```
 
-Now we can calculate the new tangent and bitangent vectors. Update the mesh generation in `load_model()` in `resource.rs` to use the following code:
+Now, we can calculate the new tangent and bitangent vectors. Update the mesh generation in `load_model()` in `resource.rs` to use the following code:
 
 ```rust
 let meshes = models
@@ -349,7 +349,7 @@ let meshes = models
 
 ## World Space to Tangent Space
 
-Since the normal map by default is in tangent space, we need to transform all the other variables used in that calculation to tangent space as well. We'll need to construct the tangent matrix in the vertex shader. First, we need our `VertexInput` to include the tangent and bitangents we calculated earlier.
+Since the normal map, by default, is in tangent space, we need to transform all the other variables used in that calculation to tangent space as well. We'll need to construct the tangent matrix in the vertex shader. First, we need our `VertexInput` to include the tangent and bitangents we calculated earlier.
 
 ```wgsl
 struct VertexInput {
@@ -429,7 +429,7 @@ We get the following from this calculation.
 
 ## Srgb and normal textures
 
-We've been using `Rgba8UnormSrgb` for all our textures. The `Srgb` bit specifies that we will be using [standard red green blue color space](https://en.wikipedia.org/wiki/SRGB). This is also known as linear color space. Linear color space has less color density. Even so, it is often used for diffuse textures, as they are typically made in `Srgb` color space.
+We've been using `Rgba8UnormSrgb` for all our textures. The `Srgb` bit specifies that we will be using [standard RGB (red, green, blue) color space](https://en.wikipedia.org/wiki/SRGB). This is also known as linear color space. Linear color space has less color density. Even so, it is often used for diffuse textures, as they are typically made in `Srgb` color space.
 
 Normal textures aren't made with `Srgb`. Using `Rgba8UnormSrgb` can change how the GPU samples the texture. This can make the resulting simulation [less accurate](https://medium.com/@bgolus/generating-perfect-normal-maps-for-unity-f929e673fc57#b86c). We can avoid these issues by using `Rgba8Unorm` when we create the texture. Let's add an `is_normal_map` method to our `Texture` struct.
 
@@ -589,7 +589,7 @@ impl State {
 }
 ```
 
-Then to render with the `debug_material` I used the `draw_model_instanced_with_material()` that I created.
+Then, to render with the `debug_material`, I used the `draw_model_instanced_with_material()` that I created.
 
 ```rust
 render_pass.set_pipeline(&self.render_pipeline);
@@ -606,7 +606,7 @@ That gives us something like this.
 
 ![](./debug_material.png)
 
-You can find the textures I use in the Github Repository.
+You can find the textures I use in the GitHub Repository.
 
 <WasmExample example="tutorial11_normals"></WasmExample>
 
