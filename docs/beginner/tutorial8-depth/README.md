@@ -1,24 +1,24 @@
 # The Depth Buffer
 
-Let's take a closer look at the last example at an angle.
+Let's take a closer look at the last example from an angle.
 
 ![depth_problems.png](./depth_problems.png)
 
-Models that should be in the back are getting rendered ahead of ones that should be in the front. This is caused by the draw order. By default, pixel data from a new object will replace old pixel data.
+Models that should be in the back are getting rendered ahead of those in the front. This is caused by the draw order. By default, pixel data from a new object will replace old pixel data.
 
-There are two ways to solve this: sort the data from back to front, or use what's known as a depth buffer.
+There are two ways to solve this: sort the data from back to front or use what's known as a depth buffer.
 
 ## Sorting from back to front
 
-This is the go-to method for 2d rendering as it's pretty easy to know what's supposed to go in front of what. You can just use the z order. In 3d rendering, it gets a little trickier because the order of the objects changes based on the camera angle.
+This is the go-to method for 2D rendering as it's pretty easy to know what's supposed to go in front of what. You can just use the z-order. In 3d rendering, it gets a little trickier because the order of the objects changes based on the camera angle.
 
-A simple way of doing this is to sort all the objects by their distance to the camera's position. There are flaws with this method though as when a large object is behind a small object, parts of the large object that should be in front of the small object will be rendered behind it. We'll also run into issues with objects that overlap *themselves*.
+A simple way of doing this is to sort all the objects by their distance from the camera's position. There are flaws with this method, though, as when a large object is behind a small object, parts of the large object that should be in front of the small object will be rendered behind it. We'll also run into issues with objects that overlap *themselves*.
 
-If we want to do this properly we need to have pixel-level precision. That's where a *depth buffer* comes in.
+If we want to do this properly, we need to have pixel-level precision. That's where a *depth buffer* comes in.
 
 ## A pixels depth
 
-A depth buffer is a black and white texture that stores the z-coordinate of rendered pixels. Wgpu can use this when drawing new pixels to determine whether to replace the data or keep it. This technique is called depth testing. This will fix our draw order problem without needing us to sort our objects!
+A depth buffer is a black and white texture that stores the z-coordinate of rendered pixels. Wgpu can use this when drawing new pixels to determine whether to replace or keep the data. This technique is called depth testing. This will fix our draw order problem without needing us to sort our objects!
 
 Let's make a function to create the depth texture in `texture.rs`.
 
@@ -66,11 +66,11 @@ impl Texture {
 }
 ```
 
-1. We need the DEPTH_FORMAT for when we create the depth stage of the `render_pipeline` and for creating the depth texture itself.
-2. Our depth texture needs to be the same size as our screen if we want things to render correctly. We can use our `config` to make sure that our depth texture is the same size as our surface textures.
+1. We need the DEPTH_FORMAT for creating the depth stage of the `render_pipeline` and for creating the depth texture itself.
+2. Our depth texture needs to be the same size as our screen if we want things to render correctly. We can use our `config` to ensure our depth texture is the same size as our surface textures.
 3. Since we are rendering to this texture, we need to add the `RENDER_ATTACHMENT` flag to it.
 4. We technically don't *need* a sampler for a depth texture, but our `Texture` struct requires it, and we need one if we ever want to sample it.
-5. If we do decide to render our depth texture, we need to use `CompareFunction::LessEqual`. This is due to how the `sampler_comparison` and `textureSampleCompare()` interacts with the `texture()` function in GLSL.
+5. If we do decide to render our depth texture, we need to use `CompareFunction::LessEqual`. This is due to how the `sampler_comparison` and `textureSampleCompare()` interact with the `texture()` function in GLSL.
 
 We create our `depth_texture` in `State::new()`.
 
@@ -113,7 +113,7 @@ pub enum CompareFunction {
 }
 ```
 
-2. There's another type of buffer called a stencil buffer. It's common practice to store the stencil buffer and depth buffer in the same texture. These fields control values for stencil testing. Since we aren't using a stencil buffer, we'll use default values. We'll cover stencil buffers [later](../../todo).
+2. There's another type of buffer called a stencil buffer. It's common practice to store the stencil buffer and depth buffer in the same texture. These fields control values for stencil testing. We'll use default values since we aren't using a stencil buffer. We'll cover stencil buffers [later](../../todo).
 
 Don't forget to store the `depth_texture` in `State`.
 
@@ -165,13 +165,13 @@ let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
 });
 ```
 
-And that's all we have to do! No shader code needed! If you run the application, the depth issues will be fixed.
+And that's all we have to do! No shader code is needed! If you run the application, the depth issues will be fixed.
 
 ![forest_fixed.png](./forest_fixed.png)
 
 ## Challenge
 
-Since the depth buffer is a texture, we can sample it in the shader. Because it's a depth texture, we'll have to use the `sampler_comparison` uniform type and the `textureSampleCompare` function instead of `sampler`, and `sampler2D` respectively. Create a bind group for the depth texture (or reuse an existing one), and render it to the screen.
+Since the depth buffer is a texture, we can sample it in the shader. Because it's a depth texture, we'll have to use the `sampler_comparison` uniform type and the `textureSampleCompare` function instead of `sampler` and `sampler2D` respectively. Create a bind group for the depth texture (or reuse an existing one), and render it to the screen.
 
 <WasmExample example="tutorial8_depth"></WasmExample>
 
