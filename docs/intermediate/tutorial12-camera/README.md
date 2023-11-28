@@ -1,6 +1,6 @@
 # A Better Camera
 
-I've been putting this off for a while. Implementing a camera isn't specifically related to using WGPU properly, but it's been bugging me so let's do it.
+I've been putting this off for a while. Implementing a camera isn't specifically related to using WGPU properly, but it's been bugging me, so let's do it.
 
 `lib.rs` is getting a little crowded, so let's create a `camera.rs` file to put our camera code. The first things we're going to put in it are some imports and our `OPENGL_TO_WGPU_MATRIX`.
 
@@ -80,7 +80,7 @@ impl Camera {
 
 ## The Projection
 
-I've decided to split the projection from the camera. The projection only really needs to change if the window resizes, so let's create a `Projection` struct.
+I've decided to split the projection from the camera. The projection only needs to change if the window resizes, so let's create a `Projection` struct.
 
 ```rust
 pub struct Projection {
@@ -235,7 +235,7 @@ impl CameraController {
 
         // If process_mouse isn't called every frame, these values
         // will not get set to zero, and the camera will rotate
-        // when moving in a non cardinal direction.
+        // when moving in a non-cardinal direction.
         self.rotate_horizontal = 0.0;
         self.rotate_vertical = 0.0;
 
@@ -251,7 +251,7 @@ impl CameraController {
 
 ## Cleaning up `lib.rs`
 
-First things first we need to delete `Camera` and `CameraController` as well as the extra `OPENGL_TO_WGPU_MATRIX` from `lib.rs`. Once you've done that import `camera.rs`.
+First things first, we need to delete `Camera` and `CameraController`, as well as the extra `OPENGL_TO_WGPU_MATRIX` from `lib.rs`. Once you've done that, import `camera.rs`.
 
 ```rust
 mod model;
@@ -320,7 +320,7 @@ impl State {
 }
 ```
 
-We need to change our `projection` in `resize` as well.
+We also need to change our `projection` in `resize`.
 
 ```rust
 fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
@@ -332,7 +332,7 @@ fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
 
 `input()` will need to be updated as well. Up to this point, we have been using `WindowEvent`s for our camera controls. While this works, it's not the best solution. The [winit docs](https://docs.rs/winit/0.24.0/winit/event/enum.WindowEvent.html?search=#variant.CursorMoved) inform us that OS will often transform the data for the `CursorMoved` event to allow effects such as cursor acceleration.
 
-Now to fix this we could change the `input()` function to process `DeviceEvent` instead of `WindowEvent`, but keyboard and button presses don't get emitted as `DeviceEvent`s on MacOS and WASM. Instead, we'll just remove the `CursorMoved` check in `input()`, and a manual call to `camera_controller.process_mouse()` in the `run()` function.
+Now, to fix this, we could change the `input()` function to process `DeviceEvent` instead of `WindowEvent`, but keyboard and button presses don't get emitted as `DeviceEvent`s on MacOS and WASM. Instead, we'll just remove the `CursorMoved` check in `input()` and a manual call to `camera_controller.process_mouse()` in the `run()` function.
 
 ```rust
 // UPDATED!
@@ -412,7 +412,7 @@ fn main() {
 }
 ```
 
-The `update` function requires a bit more explanation. The `update_camera` function on the `CameraController` has a parameter `dt: Duration` which is the delta time or time between frames. This is to help smooth out the camera movement so that it's not locked by the framerate. Currently, we aren't calculating `dt`, so I decided to pass it into `update` as a parameter.
+The `update` function requires a bit more explanation. The `update_camera` function on the `CameraController` has a parameter `dt: Duration`, which is the delta time or time between frames. This is to help smooth out the camera movement so that it's not locked by the framerate. Currently, we aren't calculating `dt`, so I decided to pass it into `update` as a parameter.
 
 ```rust
 fn update(&mut self, dt: instant::Duration) {
@@ -424,7 +424,7 @@ fn update(&mut self, dt: instant::Duration) {
 }
 ```
 
-While we're at it, let's use `dt` for the light's rotation as well.
+While we're at it, let's also use `dt` for the light's rotation.
 
 ```rust
 self.light_uniform.position =
