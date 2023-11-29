@@ -866,7 +866,7 @@ let sky_pipeline = {
 };
 ```
 
-One thing to not here. We added the primitive format to `create_render_pipeline()`. Also, we changed the depth compare function to `CompareFunction::LessEqual` (we'll discuss why when we go over the sky shader). Here are the changes to that:
+One thing to note here. We added the primitive format to `create_render_pipeline()`. Also, we changed the depth compare function to `CompareFunction::LessEqual` (we'll discuss why when we go over the sky shader). Here are the changes to that:
 
 ```rust
 fn create_render_pipeline(
