@@ -99,10 +99,11 @@ The options I've passed to `request_adapter` aren't guaranteed to work for all d
 ```rust
 let adapter = instance
     .enumerate_adapters(wgpu::Backends::all())
-    .find(|adapter| {
+    .filter(|adapter| {
         // Check if this adapter supports our surface
         adapter.is_surface_supported(&surface)
     })
+    .next()
     .unwrap()
 ```
 
@@ -161,7 +162,8 @@ The `limits` field describes the limit of certain types of resources that we can
         // sRGB surfaces, you'll need to account for that when drawing to the frame.
         let surface_format = surface_caps.formats.iter()
             .copied()
-            .find(|f| f.is_srgb())            
+            .filter(|f| f.describe().srgb)
+            .next()
             .unwrap_or(surface_caps.formats[0]);
         let config = wgpu::SurfaceConfiguration {
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
@@ -224,13 +226,36 @@ Now that we've configured our surface properly, we can add these new fields at t
 
 Since our `State::new()` method is async, we need to change `run()` to be async as well so that we can await it.
 
+Our `window` has beened moved to the State instance, we will need to update our `event_loop` to reflect this.
+
 ```rust
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen(start))]
 pub async fn run() {
     // Window setup...
 
     let mut state = State::new(window).await;
 
-    // Event loop...
+    event_loop.run(move |event, _, control_flow| {
+        match event {
+            Event::WindowEvent {
+                ref event,
+                window_id,
+            } if window_id == state.window().id() => match event {
+                WindowEvent::CloseRequested
+                | WindowEvent::KeyboardInput {
+                    input:
+                        KeyboardInput {
+                            state: ElementState::Pressed,
+                            virtual_keycode: Some(VirtualKeyCode::Escape),
+                            ..
+                        },
+                    ..
+                } => *control_flow = ControlFlow::Exit,
+                _ => {}
+            },
+            _ => {}
+        }
+    });
 }
 ```
 
@@ -303,7 +328,7 @@ We call this method `run()` in the event loop for the following events.
 match event {
     // ...
 
-    } if window_id == state.window().id() => {
+    } if window_id == state.window().id() => if !state.input(event) {
         match event {
             // ...
 
