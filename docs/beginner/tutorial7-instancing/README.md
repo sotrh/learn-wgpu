@@ -17,15 +17,15 @@ pub fn draw_indexed(
 )
 ```
 
-The `instances` parameter takes a `Range<u32>`. This parameter tells the GPU how many copies, or instances, of the model we want to draw. Currently, we are specifying `0..1`, which instructs the GPU to draw our model once, and then stop. If we used `0..5`, our code would draw 5 instances.
+The `instances` parameter takes a `Range<u32>`. This parameter tells the GPU how many copies, or instances, of the model we want to draw. Currently, we are specifying `0..1`, which instructs the GPU to draw our model once and then stop. If we used `0..5`, our code would draw five instances.
 
-The fact that `instances` is a `Range<u32>` may seem weird as using `1..2` for instances would still draw 1 instance of our object. Seems like it would be simpler to just use a `u32` right? The reason it's a range is that sometimes we don't want to draw **all** of our objects. Sometimes we want to draw a selection of them, because others are not in frame, or we are debugging and want to look at a particular set of instances.
+The fact that `instances` is a `Range<u32>` may seem weird, as using `1..2` for instances would still draw one instance of our object. It seems like it would be simpler just to use a `u32`, right? The reason it's a range is that sometimes we don't want to draw **all** of our objects. Sometimes, we want to draw a selection of them because others are not in the frame, or we are debugging and want to look at a particular set of instances.
 
-Ok, now we know how to draw multiple instances of an object, how do we tell wgpu what particular instance to draw? We are going to use something known as an instance buffer.
+Ok, now we know how to draw multiple instances of an object. How do we tell wgpu what particular instance to draw? We are going to use something known as an instance buffer.
 
 ## The Instance Buffer
 
-We'll create an instance buffer in a similar way to how we create a uniform buffer. First, we'll create a struct called `Instance`.
+We'll create an instance buffer similarly to how we create a uniform buffer. First, we'll create a struct called `Instance`.
 
 ```rust
 // lib.rs
@@ -40,11 +40,11 @@ struct Instance {
 
 <div class="note">
 
-A `Quaternion` is a mathematical structure often used to represent rotation. The math behind them is beyond me (it involves imaginary numbers and 4D space) so I won't be covering them here. If you really want to dive into them [here's a Wolfram Alpha article](https://mathworld.wolfram.com/Quaternion.html).
+A `Quaternion` is a mathematical structure often used to represent rotation. The math behind them is beyond me (it involves imaginary numbers and 4D space), so I won't be covering them here. If you really want to dive into them [here's a Wolfram Alpha article](https://mathworld.wolfram.com/Quaternion.html).
 
 </div>
 
-Using these values directly in the shader would be a pain as quaternions don't have a WGSL analog. I don't feel like writing the math in the shader, so we'll convert the `Instance` data into a matrix and store it into a struct called `InstanceRaw`.
+Using these values directly in the shader would be a pain, as quaternions don't have a WGSL analog. I don't feel like writing the math in the shader, so we'll convert the `Instance` data into a matrix and store it in a struct called `InstanceRaw`.
 
 ```rust
 // NEW!
@@ -70,7 +70,7 @@ impl Instance {
 }
 ```
 
-Now we need to add 2 fields to `State`: `instances`, and `instance_buffer`.
+Now we need to add two fields to `State`: `instances` and `instance_buffer`.
 
 ```rust
 struct State {
@@ -79,7 +79,7 @@ struct State {
 }
 ```
 
-The `cgmath` crate uses traits to provide common mathematical methods across its structs such as `Vector3`, and these traits must be imported before these methods can be called.  For convenience, the `prelude` module within the crate provides the most common of these extension crates when it is imported.
+The `cgmath` crate uses traits to provide common mathematical methods across its structs, such as `Vector3`, which must be imported before these methods can be called. For convenience, the `prelude` module within the crate provides the most common of these extension crates when it is imported.
 
 To import this prelude module, put this line near the top of `lib.rs`.
 
@@ -94,7 +94,7 @@ const NUM_INSTANCES_PER_ROW: u32 = 10;
 const INSTANCE_DISPLACEMENT: cgmath::Vector3<f32> = cgmath::Vector3::new(NUM_INSTANCES_PER_ROW as f32 * 0.5, 0.0, NUM_INSTANCES_PER_ROW as f32 * 0.5);
 ```
 
-Now we can create the actual instances.
+Now, we can create the actual instances.
 
 ```rust
 impl State {
@@ -106,7 +106,7 @@ impl State {
 
                 let rotation = if position.is_zero() {
                     // this is needed so an object at (0, 0, 0) won't get scaled to zero
-                    // as Quaternions can effect scale if they're not created correctly
+                    // as Quaternions can affect scale if they're not created correctly
                     cgmath::Quaternion::from_axis_angle(cgmath::Vector3::unit_z(), cgmath::Deg(0.0))
                 } else {
                     cgmath::Quaternion::from_axis_angle(position.normalize(), cgmath::Deg(45.0))
@@ -152,8 +152,8 @@ impl InstanceRaw {
                 // for each vec4. We'll have to reassemble the mat4 in the shader.
                 wgpu::VertexAttribute {
                     offset: 0,
-                    // While our vertex shader only uses locations 0, and 1 now, in later tutorials we'll
-                    // be using 2, 3, and 4, for Vertex. We'll start at slot 5 not conflict with them later
+                    // While our vertex shader only uses locations 0, and 1 now, in later tutorials, we'll
+                    // be using 2, 3, and 4, for Vertex. We'll start at slot 5, not conflict with them later
                     shader_location: 5,
                     format: wgpu::VertexFormat::Float32x4,
                 },
@@ -203,7 +203,7 @@ Self {
 }
 ```
 
-The last change we need to make is in the `render()` method. We need to bind our `instance_buffer` and we need to change the range we're using in `draw_indexed()` to include the number of instances.
+The last change we need to make is in the `render()` method. We need to bind our `instance_buffer` and change the range we're using in `draw_indexed()` to include the number of instances.
 
 ```rust
 render_pass.set_pipeline(&self.render_pipeline);
@@ -220,7 +220,7 @@ render_pass.draw_indexed(0..self.num_indices, 0, 0..self.instances.len() as _);
 
 <div class="warning">
 
-Make sure if you add new instances to the `Vec`, that you recreate the `instance_buffer` and as well as `camera_bind_group`, otherwise your new instances won't show up correctly.
+Make sure that if you add new instances to the `Vec`, you recreate the `instance_buffer` as well as `camera_bind_group`. Otherwise, your new instances won't show up correctly.
 
 </div>
 

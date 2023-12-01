@@ -2,7 +2,7 @@
 
 Up to this point, we have been drawing super simple shapes. While we can make a game with just triangles, trying to draw highly detailed objects would massively limit what devices could even run our game. However, we can get around this problem with **textures**.
 
-Textures are images overlaid on a triangle mesh to make it seem more detailed. There are multiple types of textures such as normal maps, bump maps, specular maps, and diffuse maps. We're going to talk about diffuse maps, or more simply, the color texture.
+Textures are images overlaid on a triangle mesh to make it seem more detailed. There are multiple types of textures, such as normal maps, bump maps, specular maps, and diffuse maps. We're going to talk about diffuse maps or, more simply, the color texture.
 
 ## Loading an image from a file
 
@@ -19,15 +19,15 @@ default-features = false
 features = ["png", "jpeg"]
 ```
 
-The jpeg decoder that `image` includes uses [rayon](https://docs.rs/rayon) to speed up the decoding with threads. WASM doesn't support threads currently so we need to disable this so that our code won't crash when we try to load a jpeg on the web.
+The jpeg decoder that `image` includes uses [rayon](https://docs.rs/rayon) to speed up the decoding with threads. WASM doesn't support threads currently, so we need to disable this so our code won't crash when we try to load a jpeg on the web.
 
 <div class="note">
 
-Decoding jpegs in WASM isn't very performant. If you want to speed up image loading in general in WASM you could opt to use the browser's built-in decoders instead of `image` when building with `wasm-bindgen`. This will involve creating an `<img>` tag in Rust to get the image, and then a `<canvas>` to get the pixel data, but I'll leave this as an exercise for the reader.
+Decoding jpegs in WASM isn't very performant. If you want to speed up image loading in general in WASM, you could opt to use the browser's built-in decoders instead of `image` when building with `wasm-bindgen`. This will involve creating an `<img>` tag in Rust to get the image and then a `<canvas>` to get the pixel data, but I'll leave this as an exercise for the reader.
 
 </div>
 
-In `State`'s `new()` method add the following just after configuring the `surface`:
+In `State`'s `new()` method, add the following just after configuring the `surface`:
 
 ```rust
 surface.configure(&device, &config);
@@ -41,7 +41,7 @@ use image::GenericImageView;
 let dimensions = diffuse_image.dimensions();
 ```
 
-Here we grab the bytes from our image file and load them into an image which is then converted into a `Vec` of rgba bytes. We also save the image's dimensions for when we create the actual `Texture`.
+Here, we grab the bytes from our image file and load them into an image, which is then converted into a `Vec` of RGBA bytes. We also save the image's dimensions for when we create the actual `Texture`.
 
 Now, let's create the `Texture`:
 
@@ -59,7 +59,7 @@ let diffuse_texture = device.create_texture(
         mip_level_count: 1, // We'll talk about this a little later
         sample_count: 1,
         dimension: wgpu::TextureDimension::D2,
-        // Most images are stored using sRGB so we need to reflect that here.
+        // Most images are stored using sRGB, so we need to reflect that here.
         format: wgpu::TextureFormat::Rgba8UnormSrgb,
         // TEXTURE_BINDING tells wgpu that we want to use this texture in shaders
         // COPY_DST means that we want to copy data to this texture
@@ -79,7 +79,7 @@ let diffuse_texture = device.create_texture(
 
 ## Getting data into a Texture
 
-The `Texture` struct has no methods to interact with the data directly. However, we can use a method on the `queue` we created earlier called `write_texture` to load the texture in. Let's take a look at how we do that:
+The `Texture` struct has no methods to interact with the data directly. However, we can use a method on the `queue` we created earlier called `write_texture` to load in the texture. Let's take a look at how we do that:
 
 ```rust
 queue.write_texture(
@@ -104,7 +104,7 @@ queue.write_texture(
 
 <div class="note">
 
-The old way of writing data to a texture was to copy the pixel data to a buffer and then copy it to the texture. Using `write_texture` is a bit more efficient as it uses one buffer less - I'll leave it here though in case you need it.
+The old way of writing data to a texture was to copy the pixel data to a buffer and then copy it to the texture. Using `write_texture` is a bit more efficient as it uses one buffer less - I'll leave it here, though, in case you need it.
 
 ```rust
 let buffer = device.create_buffer_init(
@@ -173,11 +173,11 @@ The `address_mode_*` parameters determine what to do if the sampler gets a textu
 
 The `mag_filter` and `min_filter` fields describe what to do when the sample footprint is smaller or larger than one texel. These two fields usually work when the mapping in the scene is far from or close to the camera.
 
-There are 2 options:
+There are two options:
 * `Linear`: Select two texels in each dimension and return a linear interpolation between their values.
-* `Nearest`: Return the value of the texel nearest to the texture coordinates. This creates an image that's crisper from far away but pixelated up close. This can be desirable, however, if your textures are designed to be pixelated, like in pixel art games, or voxel games like Minecraft.
+* `Nearest`: Return the texel value nearest to the texture coordinates. This creates an image that's crisper from far away but pixelated up close. This can be desirable, however, if your textures are designed to be pixelated, like in pixel art games or voxel games like Minecraft.
 
-Mipmaps are a complex topic and will require their own section in the future. For now, we can say that `mipmap_filter` functions similar to `(mag/min)_filter` as it tells the sampler how to blend between mipmaps.
+Mipmaps are a complex topic and will require their own section in the future. For now, we can say that `mipmap_filter` functions are similar to `(mag/min)_filter` as it tells the sampler how to blend between mipmaps.
 
 I'm using some defaults for the other fields. If you want to see what they are, check [the wgpu docs](https://docs.rs/wgpu/latest/wgpu/struct.SamplerDescriptor.html).
 
@@ -214,7 +214,7 @@ let texture_bind_group_layout =
             });
 ```
 
-Our `texture_bind_group_layout` has two entries: one for a sampled texture at binding 0, and one for a sampler at binding 1. Both of these bindings are visible only to the fragment shader as specified by `FRAGMENT`. The possible values for this field are any bitwise combination of `NONE`, `VERTEX`, `FRAGMENT`, or `COMPUTE`. Most of the time we'll only use `FRAGMENT` for textures and samplers, but it's good to know what else is available.
+Our `texture_bind_group_layout` has two entries: one for a sampled texture at binding 0 and one for a sampler at binding 1. Both of these bindings are visible only to the fragment shader as specified by `FRAGMENT`. The possible values for this field are any bitwise combination of `NONE`, `VERTEX`, `FRAGMENT`, or `COMPUTE`. Most of the time, we'll only use `FRAGMENT` for textures and samplers, but it's good to know what else is available.
 
 With `texture_bind_group_layout`, we can now create our `BindGroup`:
 
@@ -237,7 +237,7 @@ let diffuse_bind_group = device.create_bind_group(
 );
 ```
 
-Looking at this you might get a bit of déjà vu! That's because a `BindGroup` is a more specific declaration of the `BindGroupLayout`. The reason they're separate is that it allows us to swap out `BindGroup`s on the fly, so long as they all share the same `BindGroupLayout`. Each texture and sampler we create will need to be added to a `BindGroup`. For our purposes, we'll create a new bind group for each texture.
+Looking at this, you might get a bit of déjà vu! That's because a `BindGroup` is a more specific declaration of the `BindGroupLayout`. The reason they're separate is that it allows us to swap out `BindGroup`s on the fly, so long as they all share the same `BindGroupLayout`. Each texture and sampler we create will need to be added to a `BindGroup`. For our purposes, we'll create a new bind group for each texture.
 
 Now that we have our `diffuse_bind_group`, let's add it to our `State` struct:
 
@@ -294,7 +294,7 @@ render_pass.draw_indexed(0..self.num_indices, 0, 0..1);
 
 ## PipelineLayout
 
-Remember the `PipelineLayout` we created back in [the pipeline section](learn-wgpu/beginner/tutorial3-pipeline#how-do-we-use-the-shaders)? Now we finally get to use it! The `PipelineLayout` contains a list of `BindGroupLayout`s that the pipeline can use. Modify `render_pipeline_layout` to use our `texture_bind_group_layout`.
+Remember the `PipelineLayout` we created back in [the pipeline section](learn-wgpu/beginner/tutorial3-pipeline#how-do-we-use-the-shaders)? Now, we finally get to use it! The `PipelineLayout` contains a list of `BindGroupLayout`s that the pipeline can use. Modify `render_pipeline_layout` to use our `texture_bind_group_layout`.
 
 ```rust
 async fn new(...) {
@@ -313,7 +313,7 @@ async fn new(...) {
 ## A change to the VERTICES
 There are a few things we need to change about our `Vertex` definition. Up to now, we've been using a `color` attribute to set the color of our mesh. Now that we're using a texture, we want to replace our `color` with `tex_coords`. These coordinates will then be passed to the `Sampler` to retrieve the appropriate color.
 
-Since our `tex_coords` are two dimensional, we'll change the field to take two floats instead of three.
+Since our `tex_coords` are two-dimensional, we'll change the field to take two floats instead of three.
 
 First, we'll change the `Vertex` struct:
 
@@ -413,11 +413,11 @@ The variables `t_diffuse` and `s_diffuse` are what's known as uniforms. We'll go
 
 ## The results
 
-If we run our program now we should get the following result:
+If we run our program now, we should get the following result:
 
 ![an upside down tree on a pentagon](./upside-down.png)
 
-That's weird, our tree is upside down! This is because wgpu's world coordinates have the y-axis pointing up, while texture coordinates have the y-axis pointing down. In other words, (0, 0) in texture coordinates corresponds to the top-left of the image, while (1, 1) is the bottom right.
+That's weird. Our tree is upside down! This is because wgpu's world coordinates have the y-axis pointing up, while texture coordinates have the y-axis pointing down. In other words, (0, 0) in texture coordinates corresponds to the top-left of the image, while (1, 1) is the bottom right.
 
 ![happy-tree-uv-coords.png](./happy-tree-uv-coords.png)
 
@@ -541,11 +541,11 @@ impl Texture {
 
 <div class="note">
 
-Notice that we're using `to_rgba8()` instead of `as_rgba8()`. PNGs work fine with `as_rgba8()`, as they have an alpha channel. But, JPEGs don't have an alpha channel, and the code would panic if we try to call `as_rgba8()` on the JPEG texture image we are going to use. Instead, we can use `to_rgba8()` to handle such an image, which will generate a new image buffer with alpha channel even if the original image does not have one.
+Notice that we're using `to_rgba8()` instead of `as_rgba8()`. PNGs work fine with `as_rgba8()`, as they have an alpha channel. But JPEGs don't have an alpha channel, and the code would panic if we try to call `as_rgba8()` on the JPEG texture image we are going to use. Instead, we can use `to_rgba8()` to handle such an image, which will generate a new image buffer with an alpha channel even if the original image does not have one.
 
 </div>
 
-We need to import `texture.rs` as a module, so somewhere at the top of `lib.rs` add the following.
+We need to import `texture.rs` as a module, so at the top of `lib.rs` add the following.
 
 ```rust
 mod texture;
@@ -608,7 +608,7 @@ impl State {
 
 Phew!
 
-With these changes in place, the code should be working the same as it was before, but we now have a much easier way to create textures.
+With these changes in place, the code should be working the same as before, but we now have a much easier way to create textures.
 
 ## Challenge
 

@@ -1,21 +1,21 @@
 # The Pipeline
 
 ## What's a pipeline?
-If you're familiar with OpenGL, you may remember using shader programs. You can think of a pipeline as a more robust version of that. A pipeline describes all the actions the gpu will perform when acting on a set of data. In this section, we will be creating a `RenderPipeline` specifically.
+If you're familiar with OpenGL, you may remember using shader programs. You can think of a pipeline as a more robust version of that. A pipeline describes all the actions the GPU will perform when acting on a set of data. In this section, we will be creating a `RenderPipeline` specifically.
 
 ## Wait, shaders?
-Shaders are mini-programs that you send to the gpu to perform operations on your data. There are 3 main types of shader: vertex, fragment, and compute. There are others such as geometry shaders or tesselation shaders, but they're not supported by WebGL. They should be avoided in general, [see discussions](https://community.khronos.org/t/does-the-use-of-geometric-shaders-significantly-reduce-performance/106326). For now, we're just going to use vertex, and fragment shaders.
+Shaders are mini-programs that you send to the GPU to perform operations on your data. There are three main types of shaders: vertex, fragment, and compute. There are others, such as geometry shaders or tesselation shaders, but they're not supported by WebGL. They should be avoided in general ([see discussions](https://community.khronos.org/t/does-the-use-of-geometric-shaders-significantly-reduce-performance/106326)). For now, we're just going to use vertex and fragment shaders.
 
 ## Vertex, fragment... what are those?
-A vertex is a point in 3d space (can also be 2d). These vertices are then bundled in groups of 2s to form lines and/or 3s to form triangles.
+A vertex is a point in 3D space (can also be 2D). These vertices are then bundled in groups of 2s to form lines and/or 3s to form triangles.
 
 <img alt="Vertices Graphic" src="./tutorial3-pipeline-vertices.png" />
 
-Most modern rendering uses triangles to make all shapes, from simple shapes (such as cubes) to complex ones (such as people). These triangles are stored as vertices which are the points that make up the corners of the triangles.
+Most modern rendering uses triangles to make all shapes, from simple shapes (such as cubes) to complex ones (such as people). These triangles are stored as vertices, which are the points that make up the corners of the triangles.
 
 <!-- Todo: Find/make an image to put here -->
 
-We use a vertex shader to manipulate the vertices, in order to transform the shape to look the way we want it.
+We use a vertex shader to manipulate the vertices in order to transform the shape to look the way we want it.
 
 The vertices are then converted into fragments. Every pixel in the result image gets at least one fragment. Each fragment has a color that will be copied to its corresponding pixel. The fragment shader decides what color the fragment will be.
 
@@ -23,14 +23,14 @@ The vertices are then converted into fragments. Every pixel in the result image 
 
 [WebGPU Shading Language](https://www.w3.org/TR/WGSL/) (WGSL) is the shader language for WebGPU.
 WGSL's development focuses on getting it to easily convert into the shader language corresponding to the backend; for example, SPIR-V for Vulkan, MSL for Metal, HLSL for DX12, and GLSL for OpenGL.
-The conversion is done internally and we usually don't need to care about the details.
+The conversion is done internally, and we usually don't need to care about the details.
 In the case of wgpu, it's done by the library called [naga](https://github.com/gfx-rs/naga).
 
 Note that, at the time of writing this, some WebGPU implementations also support SPIR-V, but it's just a temporary measure during the transition period to WGSL and will be removed (If you are curious about the drama behind SPIR-V and WGSL, please refer to [this blog post](https://kvark.github.io/spirv/2021/05/01/spirv-horrors.html)).
 
 <div class="note">
 
-If you've gone through this tutorial before you'll likely notice that I've switched from using GLSL to using WGSL. Given that GLSL support is a secondary concern and that WGSL is the first-class language of WGPU, I've elected to convert all the tutorials to use WGSL. Some showcase examples still use GLSL, but the main tutorial and all examples going forward will be using WGSL.
+If you've gone through this tutorial before, you'll likely notice that I've switched from using GLSL to using WGSL. Given that GLSL support is a secondary concern and that WGSL is the first-class language of WGPU, I've elected to convert all the tutorials to use WGSL. Some showcase examples still use GLSL, but the main tutorial and all examples going forward will be using WGSL.
 
 </div>
 
@@ -62,7 +62,7 @@ fn vs_main(
 }
 ```
 
-First, we declare `struct` to store the output of our vertex shader. This consists of only one field currently which is our vertex's `clip_position`. The `@builtin(position)` bit tells WGPU that this is the value we want to use as the vertex's [clip coordinates](https://en.wikipedia.org/wiki/Clip_coordinates). This is analogous to GLSL's `gl_Position` variable.
+First, we declare `struct` to store the output of our vertex shader. This currently consists of only one field, which is our vertex's `clip_position`. The `@builtin(position)` bit tells WGPU that this is the value we want to use as the vertex's [clip coordinates](https://en.wikipedia.org/wiki/Clip_coordinates). This is analogous to GLSL's `gl_Position` variable.
 
 <div class="note">
 
@@ -70,9 +70,9 @@ Vector types such as `vec4` are generic. Currently, you must specify the type of
 
 </div>
 
-The next part of the shader code is the `vs_main` function. We are using `@vertex` to mark this function as a valid entry point for a vertex shader. We expect a `u32` called `in_vertex_index` which gets its value from `@builtin(vertex_index)`.
+The next part of the shader code is the `vs_main` function. We are using `@vertex` to mark this function as a valid entry point for a vertex shader. We expect a `u32` called `in_vertex_index`, which gets its value from `@builtin(vertex_index)`.
 
-We then declare a variable called `out` using our `VertexOutput` struct. We create two other variables for the `x`, and `y`, of a triangle.
+We then declare a variable called `out` using our `VertexOutput` struct. We create two other variables for the `x` and `y` of a triangle.
 
 <div class="note">
 
@@ -86,11 +86,11 @@ Variables defined with `var` can be modified but must specify their type. Variab
 
 </div>
 
-Now we can save our `clip_position` to `out`. We then just return `out` and we're done with the vertex shader!
+Now we can save our `clip_position` to `out`. We then just return `out`, and we're done with the vertex shader!
 
 <div class="note">
 
-We technically didn't need a struct for this example, and could have just done something like the following:
+We technically didn't need a struct for this example and could have just done something like the following:
 
 ```wgsl
 @vertex
@@ -120,7 +120,7 @@ This sets the color of the current fragment to brown.
 
 <div class="note">
 
-Notice that the entry point for the vertex shader was named `vs_main` and that the entry point for the fragment shader is called `fs_main`. In earlier versions of wgpu it was ok for both these functions to have the same name, but newer versions of the [WGSL spec](https://www.w3.org/TR/WGSL/#declaration-and-scope) require these names to be different. Therefore, the above-mentioned naming scheme (which is adopted from the `wgpu` examples) is used throughout the tutorial.
+Notice that the entry point for the vertex shader was named `vs_main` and that the entry point for the fragment shader is called `fs_main`. In earlier versions of wgpu, it was ok for both these functions to have the same name, but newer versions of the [WGSL spec](https://www.w3.org/TR/WGSL/#declaration-and-scope) require these names to be different. Therefore, the above-mentioned naming scheme (which is adopted from the `wgpu` examples) is used throughout the tutorial.
 
 </div>
 
@@ -128,7 +128,7 @@ The `@location(0)` bit tells WGPU to store the `vec4` value returned by this fun
 
 <div class="note">
 
-Something to note about `@builtin(position)`, in the fragment shader this value is in [framebuffer space](https://gpuweb.github.io/gpuweb/#coordinate-systems). This means that if your window is 800x600, the x and y of `clip_position` would be between 0-800 and 0-600 respectively with the y = 0 being the top of the screen. This can be useful if you want to know pixel coordinates of a given fragment, but if you want the position coordinates you'll have to pass them in separately.
+Something to note about `@builtin(position)`, in the fragment shader, this value is in [framebuffer space](https://gpuweb.github.io/gpuweb/#coordinate-systems). This means that if your window is 800x600, the x and y of `clip_position` would be between 0-800 and 0-600, respectively, with the y = 0 being the top of the screen. This can be useful if you want to know the pixel coordinates of a given fragment, but if you want the position coordinates, you'll have to pass them in separately.
 
 ```wgsl
 struct VertexOutput {
@@ -167,7 +167,7 @@ struct State {
 }
 ```
 
-Now let's move to the `new()` method, and start making the pipeline. We'll have to load in those shaders we made earlier, as the `render_pipeline` requires those.
+Now, let's move to the `new()` method and start making the pipeline. We'll have to load in those shaders we made earlier, as the `render_pipeline` requires those.
 
 ```rust
 let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
@@ -264,11 +264,11 @@ The rest of the method is pretty simple:
 2. `count` determines how many samples the pipeline will use. Multisampling is a complex topic, so we won't get into it here.
 3. `mask` specifies which samples should be active. In this case, we are using all of them.
 4. `alpha_to_coverage_enabled` has to do with anti-aliasing. We're not covering anti-aliasing here, so we'll leave this as false now.
-5. `multiview` indicates how many array layers the render attachments can have. We won't be rendering to array textures so we can set this to `None`.
+5. `multiview` indicates how many array layers the render attachments can have. We won't be rendering to array textures, so we can set this to `None`.
 
 <!-- https://gamedev.stackexchange.com/questions/22507/what-is-the-alphatocoverage-blend-state-useful-for -->
 
-Now, all we have to do is add the `render_pipeline` to `State` and then we can use it!
+Now, all we have to do is add the `render_pipeline` to `State`, and then we can use it!
 
 ```rust
 // new()
@@ -325,7 +325,7 @@ If you run your program now, it'll take a little longer to start, but it will st
 We didn't change much, but let's talk about what we did change.
 1. We renamed `_render_pass` to `render_pass` and made it mutable.
 2. We set the pipeline on the `render_pass` using the one we just created.
-3. We tell `wgpu` to draw *something* with 3 vertices, and 1 instance. This is where `@builtin(vertex_index)` comes from.
+3. We tell `wgpu` to draw *something* with three vertices and one instance. This is where `@builtin(vertex_index)` comes from.
 
 With all that you should be seeing a lovely brown triangle.
 
