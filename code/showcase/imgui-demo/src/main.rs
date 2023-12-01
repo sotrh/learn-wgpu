@@ -119,7 +119,7 @@ impl framework::Demo for ImguiDemo {
                 resolve_target: None,
                 ops: wgpu::Operations {
                     load: wgpu::LoadOp::Load,
-                    store: true,
+                    store: wgpu::StoreOp::Store,
                 },
             }],
             depth_stencil_attachment: None,

@@ -29,7 +29,7 @@ In other news WebGPU has been added to Chrome 113 and up! Currently the Linux ve
 reqwest = { version = "0.11" }
 console_error_panic_hook = "0.1"
 console_log = "1.0"
-# wgpu = { version = "0.17", features = ["webgl"]}
+# wgpu = { version = "0.18", features = ["webgl"]}
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
 web-sys = { version = "0.3", features = [

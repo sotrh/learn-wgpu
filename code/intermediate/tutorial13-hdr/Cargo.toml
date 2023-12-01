@@ -1,0 +1,44 @@
+[package]
+name = "tutorial13-hdr"
+version = "0.1.0"
+authors = ["Ben Hansen (sotrh)"]
+edition = "2018"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+cfg-if = "1"
+anyhow = "1.0"
+bytemuck = { version = "1.12", features = [ "derive" ] }
+cgmath = "0.18"
+env_logger = "0.10"
+pollster = "0.3"
+log = "0.4"
+tobj = { version = "3.2", features = ["async"]}
+wgpu = { version = "0.18"}
+winit = "0.28"
+instant = "0.1"
+
+[dependencies.image]
+version = "0.24"
+default-features = false
+features = ["png", "jpeg", "hdr"]
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+reqwest = { version = "0.11" }
+console_error_panic_hook = "0.1"
+console_log = "1.0"
+wasm-bindgen = "0.2"
+wasm-bindgen-futures = "0.4"
+web-sys = { version = "0.3", features = [
+    "Document",
+    "Window",
+    "Element",
+    "Location",
+]}
+
+[build-dependencies]
+anyhow = "1.0"
+fs_extra = "1.2"
+glob = "0.3"

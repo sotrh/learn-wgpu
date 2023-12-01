@@ -14,7 +14,7 @@ This is not an in-depth guide on how to use Imgui. But here are some of the basi
 
 ```toml
 imgui = "0.7"
-imgui-wgpu = "0.17"
+imgui-wgpu = "0.18"
 imgui-winit-support = "0.7"
 ```
 
@@ -127,7 +127,7 @@ let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
         resolve_target: None,
         ops: wgpu::Operations {
             load: wgpu::LoadOp::Load,
-            store: true,
+            store: wgpu::StoreOp::Store,
         },
     }],
     depth_stencil_attachment: None,

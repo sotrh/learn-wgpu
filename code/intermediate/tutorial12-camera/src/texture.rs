@@ -1,6 +1,5 @@
 use anyhow::*;
 use image::GenericImageView;
-use std::num::NonZeroU32;
 
 pub struct Texture {
     pub texture: wgpu::Texture,

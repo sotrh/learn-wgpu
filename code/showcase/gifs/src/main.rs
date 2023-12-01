@@ -1,12 +1,12 @@
 extern crate framework;
 
 // use anyhow::*;
-use std::{iter, mem, num::NonZeroU32};
+use std::{iter, mem};
 
 async fn run() {
     let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
         backends: wgpu::Backends::all(),
-        dx12_shader_compiler: Default::default(),
+        ..Default::default()
     });
     let adapter = instance
         .request_adapter(&wgpu::RequestAdapterOptions::default())
@@ -100,10 +100,12 @@ async fn run() {
                         b: c[2],
                         a: 1.0,
                     }),
-                    store: true,
+                    store: wgpu::StoreOp::Store,
                 },
             })],
             depth_stencil_attachment: None,
+            occlusion_query_set: None,
+            timestamp_writes: None,
         });
 
         rpass.set_pipeline(&render_pipeline);

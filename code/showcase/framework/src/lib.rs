@@ -36,7 +36,7 @@ impl Display {
         let size = window.inner_size();
         let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
             backends: wgpu::Backends::all(),
-            dx12_shader_compiler: Default::default(),
+            ..Default::default()
         });
         let surface = unsafe { instance.create_surface(&window) }.unwrap();
         let adapter = instance
@@ -102,6 +102,10 @@ impl Display {
         self.config.width = width;
         self.config.height = height;
         self.surface.configure(&self.device, &self.config);
+    }
+
+    pub fn surface(&self) -> &wgpu::Surface {
+        &self.surface
     }
 }
 
@@ -210,6 +214,7 @@ impl UniformBinding {
 pub trait Demo: 'static + Sized {
     fn init(display: &Display) -> Result<Self, Error>;
     fn process_mouse(&mut self, dx: f64, dy: f64);
+    fn process_keyboard(&mut self, key: VirtualKeyCode, pressed: bool);
     fn resize(&mut self, display: &Display);
     fn update(&mut self, display: &Display, dt: Duration);
     fn render(&mut self, display: &mut Display);
@@ -273,6 +278,13 @@ pub async fn run<D: Demo>() -> Result<(), Error> {
                         WindowEvent::Resized(new_inner_size) => {
                             display.resize(new_inner_size.width, new_inner_size.height);
                             demo.resize(&display);
+                        }
+                        WindowEvent::KeyboardInput { input: KeyboardInput {
+                            virtual_keycode: Some(key),
+                            state,
+                            ..
+                        }, .. } => {
+                            demo.process_keyboard(key, state == ElementState::Pressed);
                         }
                         _ => {}
                     }

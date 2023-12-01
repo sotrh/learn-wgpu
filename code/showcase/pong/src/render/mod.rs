@@ -42,7 +42,7 @@ impl Render {
         // BackendBit::PRIMARY => Vulkan + Metal + DX12 + Browser WebGPU
         let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
             backends: wgpu::Backends::all(),
-            dx12_shader_compiler: Default::default(),
+            ..Default::default()
         });
 
         // # Safety
@@ -175,6 +175,8 @@ impl Render {
                         ops: wgpu::Operations::default(),
                     })],
                     depth_stencil_attachment: None,
+                    timestamp_writes: None,
+                    occlusion_query_set: None,
                 });
 
                 if num_indices != 0 {

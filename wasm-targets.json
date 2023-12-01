@@ -48,6 +48,10 @@
         "out": "docs/.vuepress/components/wasm/tutorial12_camera"
     },
     {
+        "package": "tutorial13-hdr",
+        "out": "docs/.vuepress/components/wasm/tutorial13_hdr"
+    },
+    {
         "package": "pong",
         "out": "docs/.vuepress/components/wasm/pong"
     }

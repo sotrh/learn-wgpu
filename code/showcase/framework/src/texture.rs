@@ -1,7 +1,7 @@
 use anyhow::*;
 use image::GenericImageView;
 use std::path::Path;
-use std::{mem, num::NonZeroU32};
+use std::mem;
 
 use crate::buffer;
 

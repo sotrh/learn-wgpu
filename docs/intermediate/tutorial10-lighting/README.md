@@ -1,10 +1,10 @@
 # Working with Lights
 
-While we can tell that our scene is 3d because of our camera, it still feels very flat. That's because our model stays the same color regardless of how it's oriented. If we want to change that we need to add lighting to our scene.
+While we can tell our scene is 3D because of our camera, it still feels very flat. That's because our model stays the same color regardless of its orientation. If we want to change that, we need to add lighting to our scene.
 
-In the real world, a light source emits photons that bounce around until they enter our eyes. The color we see is the light's original color minus whatever energy it lost while it was bouncing around.
+In the real world, a light source emits photons that bounce around until they enter our eyes. The color we see is the light's original color minus whatever energy it lost while bouncing around.
 
-In the computer graphics world, modeling individual photons would be hilariously computationally expensive. A single 100 Watt light bulb emits about 3.27 x 10^20 photons *per second*. Just imagine that for the sun! To get around this, we're gonna use math to cheat.
+In the computer graphics world, modeling individual photons would be hilariously computationally expensive. A single 100 Watt light bulb emits about 3.27 x 10^20 photons *per second*. Just imagine that for the sun! To get around this, we're going to use math to cheat.
 
 Let's discuss a few options.
 
@@ -14,9 +14,9 @@ This is an *advanced* topic, and we won't be covering it in depth here. It's the
 
 ## The Blinn-Phong Model
 
-Ray/path tracing is often too computationally expensive for most real-time applications (though that is starting to change), so a more efficient, if less accurate method based on the [Phong reflection model](https://en.wikipedia.org/wiki/Phong_shading) is often used. It splits up the lighting calculation into three (3) parts: ambient lighting, diffuse lighting, and specular lighting. We're going to be learning the [Blinn-Phong model](https://en.wikipedia.org/wiki/Blinn%E2%80%93Phong_reflection_model), which cheats a bit at the specular calculation to speed things up.
+Ray/path tracing is often too computationally expensive for most real-time applications (though that is starting to change), so a more efficient, if less accurate method based on the [Phong reflection model](https://en.wikipedia.org/wiki/Phong_shading) is often used. It splits up the lighting calculation into three parts: ambient lighting, diffuse lighting, and specular lighting. We're going to be learning the [Blinn-Phong model](https://en.wikipedia.org/wiki/Blinn%E2%80%93Phong_reflection_model), which cheats a bit at the specular calculation to speed things up.
 
-Before we can get into that though, we need to add a light to our scene.
+Before we can get into that, though, we need to add a light to our scene.
 
 ```rust
 // lib.rs
@@ -37,14 +37,10 @@ Our `LightUniform` represents a colored point in space. We're just going to use 
 
 <div class="note">
 
-The rule of thumb for alignment with WGSL structs is field alignments are
-always powers of 2. For example, a `vec3` may only have 3 float fields giving
-it a size of 12, the alignment will be bumped up to the next power of 2 being
-16. This means that you have to be more careful with how you layout your struct
-    in Rust.
+The rule of thumb for alignment with WGSL structs is field alignments are always powers of 2. For example, a `vec3` may only have three float fields, giving it a size of 12. The alignment will be bumped up to the next power of 2 being 16. This means that you have to be more careful with how you layout your struct in Rust.
 
-Some developers choose the use `vec4`s instead of `vec3`s to avoid alignment
-issues. You can learn more about the alignment rules in the [wgsl spec](https://www.w3.org/TR/WGSL/#alignment-and-size)
+Some developers choose to use `vec4`s instead of `vec3`s to avoid alignment
+issues. You can learn more about the alignment rules in the [WGSL spec](https://www.w3.org/TR/WGSL/#alignment-and-size)
 
 </div>
 
@@ -97,7 +93,7 @@ let light_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
 });
 ```
 
-Add those to `State`, and also update the `render_pipeline_layout`.
+Add those to `State` and also update the `render_pipeline_layout`.
 
 ```rust
 let render_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
@@ -109,7 +105,7 @@ let render_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayout
 });
 ```
 
-Let's also update the light's position in the `update()` method, so we can see what our objects look like from different angles.
+Let's also update the light's position in the `update()` method to see what our objects look like from different angles.
 
 ```rust
 // Update the light
@@ -297,7 +293,7 @@ where
 }
 ```
 
-With that done we can create another render pipeline for our light.
+With that done, we can create another render pipeline for our light.
 
 ```rust
 // lib.rs
@@ -322,7 +318,7 @@ let light_render_pipeline = {
 };
 ```
 
-I chose to create a separate layout for the `light_render_pipeline`, as it doesn't need all the resources that the regular `render_pipeline` needs (main just the textures).
+I chose to create a separate layout for the `light_render_pipeline`, as it doesn't need all the resources that the regular `render_pipeline` needs (mainly just the textures).
 
 With that in place, we need to write the actual shaders.
 
@@ -371,7 +367,7 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
 }
 ```
 
-Now we could manually implement the draw code for the light in `render()`, but to keep with the pattern we developed, let's create a new trait called `DrawLight`.
+Now, we could manually implement the draw code for the light in `render()`, but to keep with the pattern we developed, let's create a new trait called `DrawLight`.
 
 ```rust
 // model.rs
@@ -487,9 +483,9 @@ With all that, we'll end up with something like this.
 
 ## Ambient Lighting
 
-Light has a tendency to bounce around before entering our eyes. That's why you can see in areas that are in shadow. Actually modeling this interaction is computationally expensive, so we cheat. We define an ambient lighting value that stands for the light bouncing off other parts of the scene to light our objects.
+Light has a tendency to bounce around before entering our eyes. That's why you can see in areas that are in shadow. Modeling this interaction would be computationally expensive, so we will cheat. We define an ambient lighting value for the light bouncing off other parts of the scene to light our objects.
 
-The ambient part is based on the light color as well as the object color. We've already added our `light_bind_group`, so we just need to use it in our shader. In `shader.wgsl`, add the following below the texture uniforms.
+The ambient part is based on the light color and the object color. We've already added our `light_bind_group`, so we just need to use it in our shader. In `shader.wgsl`, add the following below the texture uniforms.
 
 ```wgsl
 struct Light {
@@ -500,7 +496,7 @@ struct Light {
 var<uniform> light: Light;
 ```
 
-Then we need to update our main shader code to calculate and use the ambient color value.
+Then, we need to update our main shader code to calculate and use the ambient color value.
 
 ```wgsl
 @fragment
@@ -523,11 +519,11 @@ With that, we should get something like this.
 
 ## Diffuse Lighting
 
-Remember the normal vectors that were included with our model? We're finally going to use them. Normals represent the direction a surface is facing. By comparing the normal of a fragment with a vector pointing to a light source, we get a value of how light/dark that fragment should be. We compare the vector using the dot product to get the cosine of the angle between them.
+Remember the normal vectors that were included in our model? We're finally going to use them. Normals represent the direction a surface is facing. By comparing the normal of a fragment with a vector pointing to a light source, we get a value of how light/dark that fragment should be. We compare the vectors using the dot product to get the cosine of the angle between them.
 
 ![./normal_diagram.png](./normal_diagram.png)
 
-If the dot product of the normal and light vector is 1.0, that means that the current fragment is directly in line with the light source and will receive the light's full intensity. A value of 0.0 or lower means that the surface is perpendicular or facing away from the light, and therefore will be dark.
+If the dot product of the normal and light vector is 1.0, that means that the current fragment is directly in line with the light source and will receive the light's full intensity. A value of 0.0 or lower means that the surface is perpendicular or facing away from the light and, therefore, will be dark.
 
 We're going to need to pull in the normal vector into our `shader.wgsl`.
 
@@ -539,7 +535,7 @@ struct VertexInput {
 };
 ```
 
-We're also going to want to pass that value, as well as the vertex's position to the fragment shader.
+We're also going to want to pass that value, as well as the vertex's position, to the fragment shader.
 
 ```wgsl
 struct VertexOutput {
@@ -574,7 +570,7 @@ fn vs_main(
 }
 ```
 
-With that, we can do the actual calculation. Below the `ambient_color` calculation, but above `result`, add the following.
+With that, we can do the actual calculation. Add the following below the `ambient_color` calculation but above the `result`.
 
 ```wgsl
 let light_dir = normalize(light.position - in.world_position);
@@ -600,7 +596,7 @@ Remember when I said passing the vertex normal directly to the fragment shader w
 ```rust
 const NUM_INSTANCES_PER_ROW: u32 = 1;
 
-// In the loop we create the instances in
+// In the loop, we create the instances in
 let rotation = cgmath::Quaternion::from_axis_angle((0.0, 1.0, 0.0).into(), cgmath::Deg(180.0));
 ```
 
@@ -614,15 +610,15 @@ That should give us something that looks like this.
 
 ![./diffuse_wrong.png](./diffuse_wrong.png)
 
-This is clearly wrong as the light is illuminating the wrong side of the cube. This is because we aren't rotating our normals with our object, so no matter what direction the object faces, the normals will always face the same way.
+This is clearly wrong, as the light is illuminating the wrong side of the cube. This is because we aren't rotating our normals with our object, so no matter what direction the object faces, the normals will always face the same way.
 
 ![./normal_not_rotated.png](./normal_not_rotated.png)
 
-We need to use the model matrix to transform the normals to be in the right direction. We only want the rotation data though. A normal represents a direction and should be a unit vector throughout the calculation. We can get our normals in the right direction using what is called a normal matrix.
+We need to use the model matrix to transform the normals to be in the right direction. We only want the rotation data, though. A normal represents a direction and should be a unit vector throughout the calculation. We can get our normals in the right direction using what is called a normal matrix.
 
-We could compute the normal matrix in the vertex shader, but that would involve inverting the `model_matrix`, and WGSL doesn't actually have an inverse function. We would have to code our own. On top of that computing, the inverse of a matrix is actually really expensive, especially doing that computation for every vertex.
+We could compute the normal matrix in the vertex shader, but that would involve inverting the `model_matrix`, and WGSL doesn't actually have an inverse function. We would have to code our own. On top of that, computing the inverse of a matrix is actually really expensive, especially doing that computation for every vertex.
 
-Instead, we're going to add a `normal` matrix field to `InstanceRaw`. Instead of inverting the model matrix, we'll just be using the instance's rotation to create a `Matrix3`.
+Instead, we're going to add a `normal` matrix field to `InstanceRaw`. Instead of inverting the model matrix, we'll just use the instance's rotation to create a `Matrix3`.
 
 <div class="note">
 
@@ -651,13 +647,13 @@ impl model::Vertex for InstanceRaw {
             attributes: &[
                 wgpu::VertexAttribute {
                     offset: 0,
-                    // While our vertex shader only uses locations 0, and 1 now, in later tutorials we'll
-                    // be using 2, 3, and 4, for Vertex. We'll start at slot 5 not conflict with them later
+                    // While our vertex shader only uses locations 0, and 1 now, in later tutorials, we'll
+                    // be using 2, 3, and 4 for Vertex. We'll start at slot 5 to not conflict with them later
                     shader_location: 5,
                     format: wgpu::VertexFormat::Float32x4,
                 },
                 // A mat4 takes up 4 vertex slots as it is technically 4 vec4s. We need to define a slot
-                // for each vec4. We don't have to do this in code though.
+                // for each vec4. We don't have to do this in code, though.
                 wgpu::VertexAttribute {
                     offset: mem::size_of::<[f32; 4]>() as wgpu::BufferAddress,
                     shader_location: 6,
@@ -716,7 +712,7 @@ impl Instance {
 }
 ```
 
-Now we need to reconstruct the normal matrix in the vertex shader.
+Now, we need to reconstruct the normal matrix in the vertex shader.
 
 ```wgsl
 struct InstanceInput {
@@ -766,9 +762,9 @@ fn vs_main(
 
 <div class="note">
 
-I'm currently doing things in [world space](https://gamedev.stackexchange.com/questions/65783/what-are-world-space-and-eye-space-in-game-development). Doing things in view-space also known as eye-space, is more standard as objects can have lighting issues when they are further away from the origin. If we wanted to use view-space, we would have included the rotation due to the view matrix as well. We'd also have to transform our light's position using something like `view_matrix * model_matrix * light_position` to keep the calculation from getting messed up when the camera moves.
+I'm currently doing things in [world space](https://gamedev.stackexchange.com/questions/65783/what-are-world-space-and-eye-space-in-game-development). Doing things in view-space, also known as eye-space, is more standard as objects can have lighting issues when they are further away from the origin. If we wanted to use view-space, we would have included the rotation due to the view matrix as well. We'd also have to transform our light's position using something like `view_matrix * model_matrix * light_position` to keep the calculation from getting messed up when the camera moves.
 
-There are advantages to using view space. The main one is when you have massive worlds doing lighting and other calculations in model spacing can cause issues as floating-point precision degrades when numbers get really large. View space keeps the camera at the origin meaning all calculations will be using smaller numbers. The actual lighting math ends up the same, but it does require a bit more setup.
+There are advantages to using view space. The main one is that when you have massive worlds doing lighting and other calculations in model spacing, it can cause issues as floating-point precision degrades when numbers get really large. View space keeps the camera at the origin meaning all calculations will be using smaller numbers. The actual lighting math ends up the same, but it does require a bit more setup.
 
 </div>
 
@@ -776,21 +772,21 @@ With that change, our lighting now looks correct.
 
 ![./diffuse_right.png](./diffuse_right.png)
 
-Bringing back our other objects, and adding the ambient lighting gives us this.
+Bringing back our other objects and adding the ambient lighting gives us this.
 
 ![./ambient_diffuse_lighting.png](./ambient_diffuse_lighting.png);
 
 <div class="note">
 
-If you can guarantee that your model matrix will always apply uniform scaling to your objects, you can get away with just using the model matrix. Github user @julhe pointed shared this code with me that does the trick:
+If you can guarantee that your model matrix will always apply uniform scaling to your objects, you can get away with just using the model matrix. Github user @julhe shared this code with me that does the trick:
 
 ```wgsl
 out.world_normal = (model_matrix * vec4<f32>(model.normal, 0.0)).xyz;
 ```
 
-This works by exploiting the fact that by multiplying a 4x4 matrix by a vector with 0 in the w component, only the rotation and scaling will be applied to the vector. You'll need to normalize this vector though as normals need to be unit length for the calculations to work.
+This works by exploiting the fact that by multiplying a 4x4 matrix by a vector with 0 in the w component, only the rotation and scaling will be applied to the vector. You'll need to normalize this vector, though, as normals need to be unit length for the calculations to work.
 
-The scaling factor *needs* to be uniform in order for this to work. If it's not the resulting normal will be skewed as you can see in the following image.
+The scaling factor *needs* to be uniform in order for this to work. If it's not, the resulting normal will be skewed, as you can see in the following image.
 
 ![./normal-scale-issue.png](./normal-scale-issue.png)
 
@@ -863,7 +859,7 @@ let camera_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupL
 });
 ```
 
-We're going to get the direction from the fragment's position to the camera, and use that with the normal to calculate the `reflect_dir`.
+We're going to get the direction from the fragment's position to the camera and use that with the normal to calculate the `reflect_dir`.
 
 ```wgsl
 // shader.wgsl
@@ -872,7 +868,7 @@ let view_dir = normalize(camera.view_pos.xyz - in.world_position);
 let reflect_dir = reflect(-light_dir, in.world_normal);
 ```
 
-Then we use the dot product to calculate the `specular_strength` and use that to compute the `specular_color`.
+Then, we use the dot product to calculate the `specular_strength` and use that to compute the `specular_color`.
 
 ```wgsl
 let specular_strength = pow(max(dot(view_dir, reflect_dir), 0.0), 32.0);
@@ -889,13 +885,13 @@ With that, you should have something like this.
 
 ![./ambient_diffuse_specular_lighting.png](./ambient_diffuse_specular_lighting.png)
 
-If we just look at the `specular_color` on its own we get this.
+If we just look at the `specular_color` on its own, we get this.
 
 ![./specular_lighting.png](./specular_lighting.png)
 
 ## The half direction
 
-Up to this point, we've actually only implemented the Phong part of Blinn-Phong. The Phong reflection model works well, but it can break down under [certain circumstances](https://learnopengl.com/Advanced-Lighting/Advanced-Lighting). The Blinn part of Blinn-Phong comes from the realization that if you add the `view_dir`, and `light_dir` together, normalize the result and use the dot product of that and the `normal`, you get roughly the same results without the issues that using `reflect_dir` had.
+Up to this point, we've actually only implemented the Phong part of Blinn-Phong. The Phong reflection model works well, but it can break down under [certain circumstances](https://learnopengl.com/Advanced-Lighting/Advanced-Lighting). The Blinn part of Blinn-Phong comes from the realization that if you add the `view_dir` and `light_dir` together, normalize the result and use the dot product of that and the `normal`, you get roughly the same results without the issues that using `reflect_dir` had.
 
 ```wgsl
 let view_dir = normalize(camera.view_pos.xyz - in.world_position);
