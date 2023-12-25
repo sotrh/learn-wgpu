@@ -189,7 +189,7 @@ The `format` defines how `SurfaceTexture`s will be stored on the GPU. We can get
 Make sure that the width and height of the `SurfaceTexture` are not 0, as that can cause your app to crash.
 </div>
 
-`present_mode` uses `wgpu::PresentMode` enum, which determines how to sync the surface with the display. The option we picked, `PresentMode::Fifo`, will cap the display rate at the display's framerate. This is essentially VSync. This mode is guaranteed to be supported on all platforms. There are other options, and you can see all of them [in the docs](https://docs.rs/wgpu/latest/wgpu/enum.PresentMode.html)
+`present_mode` uses `wgpu::PresentMode` enum, which determines how to sync the surface with the display. For the sake of simplicity, we select the first available option. If you do not want runtime selection, `PresentMode::Fifo` will cap the display rate at the display's framerate. This is essentially VSync. This mode is guaranteed to be supported on all platforms. There are other options, and you can see all of them [in the docs](https://docs.rs/wgpu/latest/wgpu/enum.PresentMode.html)
 
 <div class="note">
 
