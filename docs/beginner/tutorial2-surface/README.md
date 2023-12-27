@@ -189,7 +189,7 @@ The `format` defines how `SurfaceTexture`s will be stored on the GPU. We can get
 Make sure that the width and height of the `SurfaceTexture` are not 0, as that can cause your app to crash.
 </div>
 
-`present_mode` uses `wgpu::PresentMode` enum, which determines how to sync the surface with the display. The option we picked, `PresentMode::Fifo`, will cap the display rate at the display's framerate. This is essentially VSync. This mode is guaranteed to be supported on all platforms. There are other options, and you can see all of them [in the docs](https://docs.rs/wgpu/latest/wgpu/enum.PresentMode.html)
+`present_mode` uses `wgpu::PresentMode` enum, which determines how to sync the surface with the display. For the sake of simplicity, we select the first available option. If you do not want runtime selection, `PresentMode::Fifo` will cap the display rate at the display's framerate. This is essentially VSync. This mode is guaranteed to be supported on all platforms. There are other options, and you can see all of them [in the docs](https://docs.rs/wgpu/latest/wgpu/enum.PresentMode.html)
 
 <div class="note">
 
@@ -547,7 +547,7 @@ The `RenderPassColorAttachment` has the `view` field, which informs `wgpu` what 
 
 The `resolve_target` is the texture that will receive the resolved output. This will be the same as `view` unless multisampling is enabled. We don't need to specify this, so we leave it as `None`.
 
-The `ops` field takes a `wpgu::Operations` object. This tells wgpu what to do with the colors on the screen (specified by `view`). The `load` field tells wgpu how to handle colors stored from the previous frame. Currently, we are clearing the screen with a bluish color. The `store` field tells wgpu whether we want to store the rendered results to the `Texture` behind our `TextureView` (in this case, it's the `SurfaceTexture`). We use `true` as we do want to store our render results.
+The `ops` field takes a `wpgu::Operations` object. This tells wgpu what to do with the colors on the screen (specified by `view`). The `load` field tells wgpu how to handle colors stored from the previous frame. Currently, we are clearing the screen with a bluish color. The `store` field tells wgpu whether we want to store the rendered results to the `Texture` behind our `TextureView` (in this case, it's the `SurfaceTexture`). We use `StoreOp::Store` as we do want to store our render results.
 
 <div class="note">
 
