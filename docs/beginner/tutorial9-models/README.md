@@ -341,19 +341,33 @@ pub async fn load_model(
     let meshes = models
         .into_iter()
         .map(|m| {
-            let vertices = (0..m.mesh.positions.len() / 3)
-                .map(|i| model::ModelVertex {
-                    position: [
-                        m.mesh.positions[i * 3],
-                        m.mesh.positions[i * 3 + 1],
-                        m.mesh.positions[i * 3 + 2],
-                    ],
-                    tex_coords: [m.mesh.texcoords[i * 2], 1.0 - m.mesh.texcoords[i * 2 + 1]],
-                    normal: [
-                        m.mesh.normals[i * 3],
-                        m.mesh.normals[i * 3 + 1],
-                        m.mesh.normals[i * 3 + 2],
-                    ],
+                let vertices = (0..m.mesh.positions.len() / 3)
+                .map(|i| {
+                    if m.mesh.normals.is_empty(){
+                        model::ModelVertex {
+                            position: [
+                                m.mesh.positions[i * 3],
+                                m.mesh.positions[i * 3 + 1],
+                                m.mesh.positions[i * 3 + 2],
+                            ],
+                            tex_coords: [m.mesh.texcoords[i * 2], 1.0 - m.mesh.texcoords[i * 2 + 1]],
+                            normal: [0.0, 0.0, 0.0],
+                        }
+                    }else{
+                        model::ModelVertex {
+                            position: [
+                                m.mesh.positions[i * 3],
+                                m.mesh.positions[i * 3 + 1],
+                                m.mesh.positions[i * 3 + 2],
+                            ],
+                            tex_coords: [m.mesh.texcoords[i * 2], 1.0 - m.mesh.texcoords[i * 2 + 1]],
+                            normal: [
+                                m.mesh.normals[i * 3],
+                                m.mesh.normals[i * 3 + 1],
+                                m.mesh.normals[i * 3 + 2],
+                            ],
+                        }
+                    }
                 })
                 .collect::<Vec<_>>();
 
