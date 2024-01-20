@@ -446,11 +446,11 @@ For convenience, let's pull our texture code into its own module. We'll first ne
 [dependencies]
 image = "0.23"
 cgmath = "0.18"
-winit = "0.28"
+winit = { version = "0.29", features = ["rwh_05"] }
 env_logger = "0.10"
 log = "0.4"
 pollster = "0.3"
-wgpu = "0.18"
+wgpu = "0.19"
 bytemuck = { version = "1.12", features = [ "derive" ] }
 anyhow = "1.0" # NEW!
 ```

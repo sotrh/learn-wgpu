@@ -7,6 +7,6 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1"
-wgpu = "0.18"
-winit = "0.28"
+wgpu = "0.19"
+winit = { version = "0.29", features = ["rwh_05"] }
 pollster = "0.3"

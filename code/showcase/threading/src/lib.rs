@@ -4,7 +4,8 @@ use std::iter;
 use wgpu::util::DeviceExt;
 use winit::{
     event::*,
-    event_loop::{ControlFlow, EventLoop},
+    event_loop::EventLoop,
+    keyboard::{KeyCode, PhysicalKey},
     window::Window,
 };
 
@@ -130,9 +131,9 @@ struct LightUniform {
     _padding2: u32,
 }
 
-struct State {
-    window: Window,
-    surface: wgpu::Surface,
+struct State<'a> {
+    window: &'a Window,
+    surface: wgpu::Surface<'a>,
     device: wgpu::Device,
     queue: wgpu::Queue,
     config: wgpu::SurfaceConfiguration,
@@ -218,8 +219,8 @@ fn create_render_pipeline(
     })
 }
 
-impl State {
-    async fn new(window: Window) -> Self {
+impl<'a> State<'a> {
+    async fn new(window: &'a Window) -> State<'a> {
         let size = window.inner_size();
 
         // The instance is a handle to our GPU
@@ -229,15 +230,11 @@ impl State {
             ..Default::default()
         });
 
-        // # Safety
-        //
-        // The surface needs to live as long as the window that created it.
-        // State owns the window so this should be safe.
-        let surface = unsafe { instance.create_surface(&window) }.unwrap();
+        let surface = instance.create_surface(window).unwrap();
 
         let adapter = instance
             .request_adapter(&wgpu::RequestAdapterOptions {
-                power_preference: wgpu::PowerPreference::default(),
+                power_preference: wgpu::PowerPreference::HighPerformance,
                 compatible_surface: Some(&surface),
                 force_fallback_adapter: false,
             })
@@ -247,10 +244,10 @@ impl State {
             .request_device(
                 &wgpu::DeviceDescriptor {
                     label: None,
-                    features: wgpu::Features::empty(),
+                    required_features: wgpu::Features::empty(),
                     // WebGL doesn't support all of wgpu's features, so if
                     // we're building for the web we'll have to disable some.
-                    limits: if cfg!(target_arch = "wasm32") {
+                    required_limits: if cfg!(target_arch = "wasm32") {
                         wgpu::Limits::downlevel_webgl2_defaults()
                     } else {
                         wgpu::Limits::default()
@@ -278,6 +275,7 @@ impl State {
             height: size.height,
             present_mode: surface_caps.present_modes[0],
             alpha_mode: surface_caps.alpha_modes[0],
+            desired_maximum_frame_latency: 2, // The max number of frames that can be in the queue
             view_formats: vec![],
         };
 
@@ -573,9 +571,9 @@ impl State {
     fn input(&mut self, event: &WindowEvent) -> bool {
         match event {
             WindowEvent::KeyboardInput {
-                input:
-                    KeyboardInput {
-                        virtual_keycode: Some(key),
+                event:
+                    KeyEvent {
+                        physical_key: PhysicalKey::Code(key),
                         state,
                         ..
                     },
@@ -694,7 +692,7 @@ pub async fn run() {
         }
     }
 
-    let event_loop = EventLoop::new();
+    let event_loop = EventLoop::new().unwrap();
     let title = env!("CARGO_PKG_NAME");
     let window = winit::window::WindowBuilder::new()
         .with_title(title)
@@ -720,20 +718,19 @@ pub async fn run() {
             .expect("Couldn't append canvas to document body.");
     }
 
-    let mut state = State::new(window).await; // NEW!
+    let mut state = State::new(&window).await; // NEW!
     let mut last_render_time = instant::Instant::now();
-    event_loop.run(move |event, _, control_flow| {
-        *control_flow = ControlFlow::Poll;
+
+    // let window = &window;
+    event_loop.run(move |event, control_flow| {
+        // let _ = window;
         match event {
-            Event::MainEventsCleared => state.window().request_redraw(),
-            // NEW!
             Event::DeviceEvent {
                 event: DeviceEvent::MouseMotion{ delta, },
                 .. // We're not using device_id currently
             } => if state.mouse_pressed {
                 state.camera_controller.process_mouse(delta.0, delta.1)
             }
-            // UPDATED!
             Event::WindowEvent {
                 ref event,
                 window_id,
@@ -742,39 +739,37 @@ pub async fn run() {
                     #[cfg(not(target_arch="wasm32"))]
                     WindowEvent::CloseRequested
                     | WindowEvent::KeyboardInput {
-                        input:
-                            KeyboardInput {
+                        event:
+                            KeyEvent {
                                 state: ElementState::Pressed,
-                                virtual_keycode: Some(VirtualKeyCode::Escape),
+                                physical_key: PhysicalKey::Code(KeyCode::Escape),
                                 ..
                             },
                         ..
-                    } => *control_flow = ControlFlow::Exit,
+                    } => control_flow.exit(),
                     WindowEvent::Resized(physical_size) => {
                         state.resize(*physical_size);
                     }
-                    WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
-                        state.resize(**new_inner_size);
+                    WindowEvent::RedrawRequested => {
+                        state.window().request_redraw();
+                        let now = instant::Instant::now();
+                        let dt = now - last_render_time;
+                        last_render_time = now;
+                        state.update(dt);
+                        match state.render() {
+                            Ok(_) => {}
+                            // Reconfigure the surface if it's lost or outdated
+                            Err(wgpu::SurfaceError::Lost | wgpu::SurfaceError::Outdated) => state.resize(state.size),
+                            // The system is out of memory, we should probably quit
+                            Err(wgpu::SurfaceError::OutOfMemory) => control_flow.exit(),
+                            // We're ignoring timeouts
+                            Err(wgpu::SurfaceError::Timeout) => log::warn!("Surface timeout"),
+                        }
                     }
                     _ => {}
                 }
             }
-            Event::RedrawRequested(window_id) if window_id == state.window().id() => {
-                let now = instant::Instant::now();
-                let dt = now - last_render_time;
-                last_render_time = now;
-                state.update(dt);
-                match state.render() {
-                    Ok(_) => {}
-                    // Reconfigure the surface if it's lost or outdated
-                    Err(wgpu::SurfaceError::Lost | wgpu::SurfaceError::Outdated) => state.resize(state.size),
-                    // The system is out of memory, we should probably quit
-                    Err(wgpu::SurfaceError::OutOfMemory) => *control_flow = ControlFlow::Exit,
-                    // We're ignoring timeouts
-                    Err(wgpu::SurfaceError::Timeout) => log::warn!("Surface timeout"),
-                }
-            }
             _ => {}
         }
-    });
+    }).unwrap();
 }

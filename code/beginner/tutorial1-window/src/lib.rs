@@ -1,7 +1,7 @@
 use winit::{
     event::*,
-    event_loop::{ControlFlow, EventLoop},
-    window::WindowBuilder,
+    event_loop::EventLoop,
+    window::WindowBuilder, keyboard::{KeyCode, PhysicalKey},
 };
 
 #[cfg(target_arch = "wasm32")]
@@ -18,7 +18,7 @@ pub fn run() {
         }
     }
 
-    let event_loop = EventLoop::new();
+    let event_loop = EventLoop::new().unwrap();
     let window = WindowBuilder::new().build(&event_loop).unwrap();
 
     #[cfg(target_arch = "wasm32")]
@@ -40,23 +40,23 @@ pub fn run() {
             .expect("Couldn't append canvas to document body.");
     }
 
-    event_loop.run(move |event, _, control_flow| match event {
+    event_loop.run(move |event, control_flow| match event {
         Event::WindowEvent {
             ref event,
             window_id,
         } if window_id == window.id() => match event {
             WindowEvent::CloseRequested
             | WindowEvent::KeyboardInput {
-                input:
-                    KeyboardInput {
+                event:
+                    KeyEvent {
                         state: ElementState::Pressed,
-                        virtual_keycode: Some(VirtualKeyCode::Escape),
+                        physical_key: PhysicalKey::Code(KeyCode::Escape),
                         ..
                     },
                 ..
-            } => *control_flow = ControlFlow::Exit,
+            } => control_flow.exit(),
             _ => {}
         },
         _ => {}
-    });
+    }).unwrap();
 }
