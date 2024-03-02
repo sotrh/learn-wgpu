@@ -59,12 +59,8 @@ impl State {
         let size = window.inner_size();
 
         // The instance is a handle to our GPU
-        // Backends::all => Vulkan + Metal + DX12 + Browser WebGPU
-        let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
-            backends: wgpu::Backends::all(),
-            ..Default::default()
-        });
-        
+        let instance = wgpu::Instance::default();
+
         // # Safety
         //
         // The surface needs to live as long as the window that created it.
