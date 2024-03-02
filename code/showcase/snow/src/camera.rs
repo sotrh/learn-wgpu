@@ -1,9 +1,6 @@
 use std::{f32::consts::FRAC_PI_2, time::Duration};
 
-use winit::{
-    dpi::PhysicalPosition,
-    event::MouseScrollDelta, keyboard::KeyCode,
-};
+use winit::{dpi::PhysicalPosition, event::MouseScrollDelta, keyboard::KeyCode};
 
 const SAFE_FRAC_PI_2: f32 = FRAC_PI_2 - 0.0001;
 

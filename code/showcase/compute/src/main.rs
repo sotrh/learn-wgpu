@@ -5,7 +5,7 @@ use wgpu::util::DeviceExt;
 use winit::{
     dpi::PhysicalPosition,
     event::*,
-    event_loop::{EventLoop},
+    event_loop::EventLoop,
     keyboard::{KeyCode, PhysicalKey},
     window::Window,
 };

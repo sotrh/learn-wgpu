@@ -1701,16 +1701,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "lost-window"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "pollster",
- "wgpu",
- "winit",
-]
-
-[[package]]
 name = "malloc_buf"
 version = "0.0.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"

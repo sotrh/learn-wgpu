@@ -1,5 +1,3 @@
-use std::num::NonZeroU32;
-
 async fn run() {
     let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
         backends: wgpu::Backends::all(),
