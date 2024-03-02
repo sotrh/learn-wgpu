@@ -1,6 +1,9 @@
-use std::{time::Duration, f32::consts::FRAC_PI_2};
+use std::{f32::consts::FRAC_PI_2, time::Duration};
 
-use winit::{event::{VirtualKeyCode, MouseScrollDelta}, dpi::PhysicalPosition};
+use winit::{
+    dpi::PhysicalPosition,
+    event::{MouseScrollDelta, VirtualKeyCode},
+};
 
 const SAFE_FRAC_PI_2: f32 = FRAC_PI_2 - 0.0001;
 
@@ -12,11 +15,7 @@ pub struct Camera {
 }
 
 impl Camera {
-    pub fn new<V: Into<glam::Vec3>>(
-        position: V,
-        yaw: f32,
-        pitch: f32,
-    ) -> Self {
+    pub fn new<V: Into<glam::Vec3>>(position: V, yaw: f32, pitch: f32) -> Self {
         Self {
             position: position.into(),
             yaw,
@@ -95,11 +94,7 @@ impl CameraController {
     }
 
     pub fn process_keyboard(&mut self, key: VirtualKeyCode, pressed: bool) -> bool {
-        let amount = if pressed {
-            1.0
-        } else {
-            0.0
-        };
+        let amount = if pressed { 1.0 } else { 0.0 };
         match key {
             VirtualKeyCode::W | VirtualKeyCode::Up => {
                 self.amount_forward = amount;

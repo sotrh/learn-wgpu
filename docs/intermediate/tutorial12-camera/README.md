@@ -293,8 +293,8 @@ You'll need to import `winit::dpi::PhysicalPosition` if you haven't already.
 We need to update `new()` as well.
 
 ```rust
-impl State {
-    async fn new(window: Window) -> Self {
+impl<'a> State<'a> {
+    async fn new(window: &'a Window) -> State<'a> {
         // ...
 
         // UPDATED!
@@ -369,8 +369,7 @@ Here are the changes to `run()`:
 ```rust
 fn main() {
     // ...
-    event_loop.run(move |event, _, control_flow| {
-        *control_flow = ControlFlow::Poll;
+    event_loop.run(move |event, control_flow| {
         match event {
             // ...
             // NEW!
@@ -389,14 +388,14 @@ fn main() {
                     #[cfg(not(target_arch="wasm32"))]
                     WindowEvent::CloseRequested
                     | WindowEvent::KeyboardInput {
-                        input:
-                            KeyboardInput {
+                        event:
+                            KeyEvent {
                                 state: ElementState::Pressed,
-                                virtual_keycode: Some(VirtualKeyCode::Escape),
+                                physical_key: PhysicalKey::Code(KeyCode::Escape),
                                 ..
                             },
                         ..
-                    } => *control_flow = ControlFlow::Exit,
+                    } => control_flow.exit(),
                     WindowEvent::Resized(physical_size) => {
                         state.resize(*physical_size);
                     }
@@ -437,10 +436,9 @@ We still need to calculate `dt`. Let's do that in the `main` function.
 ```rust
 fn main() {
     // ...
-    let mut state = State::new(window).await;
+    let mut state = State::new(&window).await;
     let mut last_render_time = instant::Instant::now();  // NEW!
-    event_loop.run(move |event, _, control_flow| {
-        *control_flow = ControlFlow::Poll;
+    event_loop.run(move |event, control_flow| {
         match event {
             // ...
             // UPDATED!

@@ -1,6 +1,6 @@
 # High Dynamic Range Rendering
 
-Up to this point, we've been using the sRGB colorspace to render our scene. While this is fine, it limits what we can do with our lighting. We are using `TextureFormat::Bgra8UnormSrgb` (on most systems) for our surface texture. This means we have 8 bits for each red, green, blue and alpha channel. While the channels are stored as integers between 0 and 255 inclusively, they get converted to and from floating point values between 0.0 and 1.0. The TL:DR of this is that using 8-bit textures, we only get 256 possible values in each channel.
+Up to this point, we've been using the sRGB colorspace to render our scene. While this is fine, itrequired_limits what we can do with our lighting. We are using `TextureFormat::Bgra8UnormSrgb` (on most systems) for our surface texture. This means we have 8 bits for each red, green, blue and alpha channel. While the channels are stored as integers between 0 and 255 inclusively, they get converted to and from floating point values between 0.0 and 1.0. The TL:DR of this is that using 8-bit textures, we only get 256 possible values in each channel.
 
 The kicker with this is most of the precision gets used to represent darker values of the scene. This means that bright objects like light bulbs have the same value as exceedingly bright objects like the sun. This inaccuracy makes realistic lighting difficult to do right. Because of this, we are going to switch our rendering system to use high dynamic range in order to give our scene more flexibility and enable us to leverage more advanced techniques such as Physically Based Rendering.
 
@@ -290,7 +290,7 @@ struct State {
     hdr: hdr::HdrPipeline,
 }
 
-impl State {
+impl<'a> State<'a> {
     pub fn new(window: Window) -> anyhow::Result<Self> {
         // ...
         // NEW!
@@ -477,7 +477,7 @@ let (device, queue) = adapter
             // UPDATED!
             features: wgpu::Features::all_webgpu_mask(),
             // UPDATED!
-            limits: wgpu::Limits::downlevel_defaults(),
+           required_limits: wgpu::Limits::downlevel_defaults(),
         },
         None, // Trace path
     )
@@ -910,8 +910,8 @@ struct State {
 }
 
 // ...
-impl State {
-    async fn new(window: Window) -> anyhow::Result<Self> {
+impl<'a> State<'a> {
+    async fn new(window: &'a Window) -> anyhow::Result<State<'a>> {
         // ...
         Ok(Self {
             // ...

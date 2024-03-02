@@ -16,10 +16,10 @@ async fn run() {
         .request_device(
             &wgpu::DeviceDescriptor {
                 label: Some("Device"),
-                features: wgpu::Features::empty(),
+                required_features: wgpu::Features::empty(),
                 // WebGL doesn't support all of wgpu's features, so if
                 // we're building for the web we'll have to disable some.
-                limits: if cfg!(target_arch = "wasm32") {
+                required_limits: if cfg!(target_arch = "wasm32") {
                     wgpu::Limits::downlevel_webgl2_defaults()
                 } else {
                     wgpu::Limits::default()

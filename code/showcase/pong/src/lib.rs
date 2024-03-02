@@ -27,7 +27,7 @@ pub fn start() {
         }
     }
 
-    let event_loop = EventLoop::new();
+    let event_loop = EventLoop::new().unwrap();
     let monitor = event_loop.primary_monitor().unwrap();
     let video_mode = monitor.video_modes().next();
     let size = video_mode
@@ -159,7 +159,7 @@ pub fn start() {
 
     log::info!("Event Loop...");
 
-    event_loop.run(move |event, _, control_flow| {
+    event_loop.run(move |event, control_flow| {
         *control_flow = if state.game_state == state::GameState::Quiting {
             ControlFlow::Exit
         } else {

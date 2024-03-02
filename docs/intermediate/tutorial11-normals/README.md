@@ -568,7 +568,7 @@ I found a cobblestone texture with a matching normal map and created a `debug_ma
 
 ```rust
 // lib.rs
-impl State {
+impl<'a> State<'a> {
     async fn new(window: &Window) -> Result<Self> {
         // ...
         let debug_material = {

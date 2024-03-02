@@ -63,7 +63,14 @@ impl Texture {
         address_mode: AddressMode, // NEW!
     ) -> Result<Self> {
         let img = image::load_from_memory(bytes)?;
-        Self::from_image(device, queue, &img, Some(label), is_normal_map, address_mode) // UPDATED!
+        Self::from_image(
+            device,
+            queue,
+            &img,
+            Some(label),
+            is_normal_map,
+            address_mode,
+        ) // UPDATED!
     }
 
     pub fn from_image(
@@ -117,7 +124,7 @@ impl Texture {
         let view = texture.create_view(&wgpu::TextureViewDescriptor::default());
         let sampler = device.create_sampler(&wgpu::SamplerDescriptor {
             // UPDATED!
-            address_mode_u: address_mode, 
+            address_mode_u: address_mode,
             address_mode_v: address_mode,
             address_mode_w: address_mode,
             mag_filter: wgpu::FilterMode::Linear,

@@ -242,8 +242,8 @@ Looking at this, you might get a bit of déjà vu! That's because a `BindGroup` 
 Now that we have our `diffuse_bind_group`, let's add it to our `State` struct:
 
 ```rust
-struct State {
-    surface: wgpu::Surface,
+struct State<'a> {
+    surface: wgpu::Surface<'a>,
     device: wgpu::Device,
     queue: wgpu::Queue,
     config: wgpu::SurfaceConfiguration,
@@ -259,7 +259,7 @@ struct State {
 Make sure we return these fields in the `new` method:
 
 ```rust
-impl State {
+impl<'a> State<'a> {
     async fn new() -> Self {
         // ...
         Self {
@@ -593,7 +593,7 @@ struct State {
 ```
 
 ```rust
-impl State {
+impl<'a> State<'a> {
     async fn new() -> Self {
         // ...
         Self {

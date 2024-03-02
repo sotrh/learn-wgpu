@@ -327,8 +327,7 @@ impl HdrLoader {
             dst_size,
             self.texture_format,
             1,
-            wgpu::TextureUsages::STORAGE_BINDING
-                | wgpu::TextureUsages::TEXTURE_BINDING,
+            wgpu::TextureUsages::STORAGE_BINDING | wgpu::TextureUsages::TEXTURE_BINDING,
             wgpu::FilterMode::Nearest,
             label,
         );
@@ -356,7 +355,10 @@ impl HdrLoader {
         });
 
         let mut encoder = device.create_command_encoder(&Default::default());
-        let mut pass = encoder.begin_compute_pass(&wgpu::ComputePassDescriptor { label, timestamp_writes: None });
+        let mut pass = encoder.begin_compute_pass(&wgpu::ComputePassDescriptor {
+            label,
+            timestamp_writes: None,
+        });
 
         let num_workgroups = (dst_size + 15) / 16;
         pass.set_pipeline(&self.equirect_to_cubemap);

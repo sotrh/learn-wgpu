@@ -241,8 +241,7 @@ impl GenerateChunk for TerrainPipeline {
         let gen_buffer = device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("TerrainPipeline: ChunkData"),
             size: size_of_val(&data) as _,
-            usage: wgpu::BufferUsages::UNIFORM
-                | wgpu::BufferUsages::COPY_DST,
+            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
             mapped_at_creation: false,
         });
         queue.write_buffer(&gen_buffer, 0, bytemuck::bytes_of(&data));

@@ -7,8 +7,8 @@ For convenience, we're going to pack all the fields into a struct and create som
 // lib.rs
 use winit::window::Window;
 
-struct State {
-    surface: wgpu::Surface,
+struct State<'a> {
+    surface: wgpu::Surface<'a>,
     device: wgpu::Device,
     queue: wgpu::Queue,
     config: wgpu::SurfaceConfiguration,
@@ -16,12 +16,12 @@ struct State {
     // The window must be declared after the surface so
     // it gets dropped after it as the surface contains
     // unsafe references to the window's resources.
-    window: Window,
+    window: &'a Window,
 }
 
-impl State {
+impl<'a> State<'a> {
     // Creating some of the wgpu types requires async code
-    async fn new(window: Window) -> Self {
+    async fn new(window: &'a Window) -> State<'a> {
         todo!()
     }
 
@@ -53,9 +53,9 @@ I'm glossing over `State`s fields, but they'll make more sense as I explain the 
 The code for this is pretty straightforward, but let's break it down a bit.
 
 ```rust
-impl State {
+impl<'a> State<'a> {
     // ...
-    async fn new(window: Window) -> Self {
+    async fn new(window: &'a Window) -> State<'a> {
         let size = window.inner_size();
 
         // The instance is a handle to our GPU
@@ -127,10 +127,10 @@ Let's use the `adapter` to create the device and queue.
 ```rust
         let (device, queue) = adapter.request_device(
             &wgpu::DeviceDescriptor {
-                features: wgpu::Features::empty(),
+                required_features: wgpu::Features::empty(),
                 // WebGL doesn't support all of wgpu's features, so if
                 // we're building for the web, we'll have to disable some.
-                limits: if cfg!(target_arch = "wasm32") {
+               required_limits: if cfg!(target_arch = "wasm32") {
                     wgpu::Limits::downlevel_webgl2_defaults()
                 } else {
                     wgpu::Limits::default()
@@ -145,7 +145,7 @@ The `features` field on `DeviceDescriptor` allows us to specify what extra featu
 
 <div class="note">
 
-The graphics card you have limits the features you can use. If you want to use certain features, you may need to limit what devices you support or provide workarounds.
+The graphics card you haverequired_limits the features you can use. If you want to use certain features, you may need to limit what devices you support or provide workarounds.
 
 You can get a list of features supported by your device using `adapter.features()` or `device.features()`.
 
@@ -153,7 +153,7 @@ You can view a full list of features [here](https://docs.rs/wgpu/latest/wgpu/str
 
 </div>
 
-The `limits` field describes the limit of certain types of resources that we can create. We'll use the defaults for this tutorial so we can support most devices. You can view a list of limits [here](https://docs.rs/wgpu/latest/wgpu/struct.Limits.html).
+The `limits` field describes the limit of certain types of resources that we can create. We'll use the defaults for this tutorial so we can support most devices. You can view a list ofrequired_limits [here](https://docs.rs/wgpu/latest/wgpu/struct.Limits.html).
 
 ```rust
         let surface_caps = surface.get_capabilities(&adapter);
@@ -173,6 +173,7 @@ The `limits` field describes the limit of certain types of resources that we can
             present_mode: surface_caps.present_modes[0],
             alpha_mode: surface_caps.alpha_modes[0],
             view_formats: vec![],
+            desired_maximum_frame_latency: 2,
         };
         surface.configure(&device, &config);
 ```
@@ -210,7 +211,7 @@ Regardless, `PresentMode::Fifo` will always be supported, and `PresentMode::Auto
 Now that we've configured our surface properly, we can add these new fields at the end of the method.
 
 ```rust
-    async fn new(window: Window) -> Self {
+    async fn new(window: &'a Window) -> State<'a> {
         // ...
 
         Self {
@@ -233,9 +234,9 @@ Our `window` has beened moved to the State instance, we will need to update our 
 pub async fn run() {
     // Window setup...
 
-    let mut state = State::new(window).await;
+    let mut state = State::new(&window).await;
 
-    event_loop.run(move |event, _, control_flow| {
+    event_loop.run(move |event, control_flow| {
         match event {
             Event::WindowEvent {
                 ref event,

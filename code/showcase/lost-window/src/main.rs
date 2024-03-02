@@ -7,7 +7,7 @@ use winit::{
 };
 
 async fn run() -> anyhow::Result<()> {
-    let event_loop = EventLoop::new();
+    let event_loop = EventLoop::new().unwrap();
     let mut window = Some(
         WindowBuilder::new()
             .with_visible(false)
@@ -31,7 +31,7 @@ async fn run() -> anyhow::Result<()> {
             &wgpu::DeviceDescriptor {
                 label: None,
                 features: Default::default(),
-                limits: Default::default(),
+                required_limits: Default::default(),
             },
             None,
         )

@@ -239,10 +239,15 @@ impl CubeTexture {
         }
     }
 
-    pub fn texture(&self) -> &wgpu::Texture { &self.texture }
-    
-    pub fn view(&self) -> &wgpu::TextureView { &self.view }
+    pub fn texture(&self) -> &wgpu::Texture {
+        &self.texture
+    }
 
-    pub fn sampler(&self) -> &wgpu::Sampler { &self.sampler }
+    pub fn view(&self) -> &wgpu::TextureView {
+        &self.view
+    }
 
+    pub fn sampler(&self) -> &wgpu::Sampler {
+        &self.sampler
+    }
 }

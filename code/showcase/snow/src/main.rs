@@ -2,7 +2,7 @@ mod camera;
 
 use std::f32::consts::PI;
 
-use camera::{Camera, Projection, CameraController};
+use camera::{Camera, CameraController, Projection};
 use wgpu::util::{BufferInitDescriptor, DeviceExt};
 
 const MAX_PARTICLES: u32 = 1000;
@@ -181,21 +181,25 @@ impl framework::Demo for Snow {
                     entries: &[wgpu::BindGroupLayoutEntry {
                         binding: 0,
                         visibility: wgpu::ShaderStages::VERTEX,
-                        ty: wgpu::BindingType::Buffer { ty: wgpu::BufferBindingType::Uniform, has_dynamic_offset: false, min_binding_size: None },
+                        ty: wgpu::BindingType::Buffer {
+                            ty: wgpu::BufferBindingType::Uniform,
+                            has_dynamic_offset: false,
+                            min_binding_size: None,
+                        },
                         count: None,
                     }],
                 });
 
-        let uniforms_bind_group = display.device.create_bind_group(&wgpu::BindGroupDescriptor {
-            label: Some("uniforms_bind_group"),
-            layout: &uniforms_bind_group_layout,
-            entries: &[
-                wgpu::BindGroupEntry {
+        let uniforms_bind_group = display
+            .device
+            .create_bind_group(&wgpu::BindGroupDescriptor {
+                label: Some("uniforms_bind_group"),
+                layout: &uniforms_bind_group_layout,
+                entries: &[wgpu::BindGroupEntry {
                     binding: 0,
                     resource: uniform_buffer.as_entire_binding(),
-                }
-            ],
-        });
+                }],
+            });
 
         let draw_particles_layout =
             display
@@ -260,14 +264,15 @@ impl framework::Demo for Snow {
         self.camera_controller.process_mouse(dx, dy);
         self.uniforms_dirty = true;
     }
-    
+
     fn process_keyboard(&mut self, key: winit::event::VirtualKeyCode, pressed: bool) {
         self.camera_controller.process_keyboard(key, pressed);
         self.uniforms_dirty = true;
     }
 
     fn resize(&mut self, display: &framework::Display) {
-        self.projection.resize(display.config.width, display.config.height);
+        self.projection
+            .resize(display.config.width, display.config.height);
         self.uniforms_dirty = true;
         self.uniforms_dirty = true;
     }
@@ -278,7 +283,9 @@ impl framework::Demo for Snow {
             self.uniforms_dirty = false;
             self.camera_controller.update_camera(&mut self.camera, dt);
             self.uniforms.view_proj = self.projection.calc_matrix() * self.camera.calc_matrix();
-            display.queue.write_buffer(&self.uniform_buffer, 0, bytemuck::bytes_of(&self.uniforms));
+            display
+                .queue
+                .write_buffer(&self.uniform_buffer, 0, bytemuck::bytes_of(&self.uniforms));
         }
 
         let dt = dt.as_secs_f32();
