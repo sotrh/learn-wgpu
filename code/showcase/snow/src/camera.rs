@@ -2,7 +2,7 @@ use std::{f32::consts::FRAC_PI_2, time::Duration};
 
 use winit::{
     dpi::PhysicalPosition,
-    event::{MouseScrollDelta, VirtualKeyCode},
+    event::MouseScrollDelta, keyboard::KeyCode,
 };
 
 const SAFE_FRAC_PI_2: f32 = FRAC_PI_2 - 0.0001;
@@ -93,30 +93,30 @@ impl CameraController {
         }
     }
 
-    pub fn process_keyboard(&mut self, key: VirtualKeyCode, pressed: bool) -> bool {
+    pub fn process_keyboard(&mut self, key: KeyCode, pressed: bool) -> bool {
         let amount = if pressed { 1.0 } else { 0.0 };
         match key {
-            VirtualKeyCode::W | VirtualKeyCode::Up => {
+            KeyCode::KeyW | KeyCode::ArrowUp => {
                 self.amount_forward = amount;
                 true
             }
-            VirtualKeyCode::S | VirtualKeyCode::Down => {
+            KeyCode::KeyS | KeyCode::ArrowDown => {
                 self.amount_backward = amount;
                 true
             }
-            VirtualKeyCode::A | VirtualKeyCode::Left => {
+            KeyCode::KeyA | KeyCode::ArrowLeft => {
                 self.amount_left = amount;
                 true
             }
-            VirtualKeyCode::D | VirtualKeyCode::Right => {
+            KeyCode::KeyD | KeyCode::ArrowRight => {
                 self.amount_right = amount;
                 true
             }
-            VirtualKeyCode::Space => {
+            KeyCode::Space => {
                 self.amount_up = amount;
                 true
             }
-            VirtualKeyCode::LShift => {
+            KeyCode::ShiftLeft => {
                 self.amount_down = amount;
                 true
             }

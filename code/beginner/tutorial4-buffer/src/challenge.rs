@@ -3,7 +3,7 @@ use std::iter;
 use wgpu::util::DeviceExt;
 use winit::{
     event::*,
-    event_loop::{ControlFlow, EventLoop},
+    event_loop::{EventLoop},
     keyboard::{KeyCode, PhysicalKey},
     window::{Window, WindowBuilder},
 };

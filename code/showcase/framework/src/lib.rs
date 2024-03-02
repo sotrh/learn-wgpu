@@ -234,7 +234,7 @@ pub async fn run<D: Demo>() -> Result<(), Error> {
     let mut last_update = Instant::now();
     let mut is_resumed = true;
     let mut is_focused = true;
-    let mut is_redraw_requested = true;
+    let _is_redraw_requested = true;
 
     event_loop.run(move |event, control_flow| {
         if is_resumed && is_focused {

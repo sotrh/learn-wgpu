@@ -4,6 +4,7 @@ use std::f32::consts::PI;
 
 use camera::{Camera, CameraController, Projection};
 use wgpu::util::{BufferInitDescriptor, DeviceExt};
+use winit::keyboard::KeyCode;
 
 const MAX_PARTICLES: u32 = 1000;
 const PARTICLE_SIZE: u64 = 4 * 4 * 2;
@@ -265,7 +266,7 @@ impl framework::Demo for Snow {
         self.uniforms_dirty = true;
     }
 
-    fn process_keyboard(&mut self, key: winit::event::VirtualKeyCode, pressed: bool) {
+    fn process_keyboard(&mut self, key: KeyCode, pressed: bool) {
         self.camera_controller.process_keyboard(key, pressed);
         self.uniforms_dirty = true;
     }
