@@ -16,7 +16,7 @@ bytemuck = { version = "1.12", features = [ "derive" ] }
 cgmath = "0.18"
 pollster = "0.3"
 wgpu = { version = "0.19", features = ["spirv"]}
-wgpu_glyph = { version = "0.21", git = "https://github.com/hecrj/wgpu_glyph.git" }
+wgpu_glyph = { version = "0.22", git = "https://github.com/hecrj/wgpu_glyph.git" }
 rand = "0.8"
 rodio = { version = "0.16", default-features = false, features = ["wav"] }
 log = "0.4"
@@ -28,8 +28,8 @@ console_log = "1.0"
 getrandom = { version = "0.2", features = ["js"] }
 rodio = { version = "0.16", default-features = false, features = ["wasm-bindgen", "wav"] }
 wasm-bindgen-futures = "0.4.20"
-wasm-bindgen = "=0.2.90"
-web-sys = { version = "0.3.53", features = [
+wasm-bindgen = "0.2"
+web-sys = { version = "0.3", features = [
     "Document",
     "Window",
     "Element",

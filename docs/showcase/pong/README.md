@@ -281,8 +281,8 @@ console_log = "1.0"
 getrandom = { version = "0.2", features = ["js"] }
 rodio = { version = "0.15", default-features = false, features = ["wasm-bindgen", "wav"] }
 wasm-bindgen-futures = "0.4.20"
-wasm-bindgen = "=0.2.90"
-web-sys = { version = "0.3.53", features = [
+wasm-bindgen = "0.2"
+web-sys = { version = "0.3", features = [
     "Document",
     "Window",
     "Element",
@@ -366,7 +366,7 @@ We then have to do some web-specific stuff if we are on that platform.
         .and_then(|win| win.document())
         .and_then(|doc| {
             let dst = doc.get_element_by_id("wasm-example")?;
-            let canvas = web_sys::Element::from(window.canvas());
+            let canvas = web_sys::Element::from(window.canvas()?);
             dst.append_child(&canvas).ok()?;
 
             // Request fullscreen, if denied, continue as normal

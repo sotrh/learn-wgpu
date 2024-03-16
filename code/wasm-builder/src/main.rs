@@ -1,5 +1,6 @@
-use std::{path::PathBuf, process::Command};
+use std::{path::PathBuf, process::{Command, ExitStatus}};
 
+use anyhow::bail;
 use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
 use wasm_bindgen_cli_support::Bindgen;
 
@@ -37,7 +38,11 @@ fn main() -> anyhow::Result<()> {
     for target in &targets {
         command.arg("-p").arg(&target.package);
     }
-    command.spawn()?.wait()?;
+    let status = command.spawn()?.wait()?;
+
+    if !status.success() {
+        bail!("Failed to compile WASM with code ({status})");
+    }
 
     let errors = targets
         .par_iter()

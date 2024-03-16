@@ -2,8 +2,8 @@
 
 use crate::state;
 
-pub const PLAYER_SPEED: f32 = 0.05;
-pub const BALL_SPEED: f32 = 0.025;
+pub const PLAYER_SPEED: f32 = 1.5;
+pub const BALL_SPEED: f32 = 1.0;
 
 const BOUNCE_ANGLE: f32 = std::f32::consts::FRAC_PI_2;
 

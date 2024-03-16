@@ -13,7 +13,8 @@ use wasm_bindgen::prelude::*;
 
 use winit::dpi::PhysicalSize;
 use winit::event::*;
-use winit::event_loop::{ControlFlow, EventLoop};
+use winit::event_loop::{EventLoop, EventLoopWindowTarget};
+use winit::keyboard::{KeyCode, PhysicalKey};
 use winit::window::{Fullscreen, WindowBuilder};
 
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen(start))]
@@ -40,10 +41,6 @@ pub fn start() {
         .build(&event_loop)
         .unwrap();
 
-    if window.fullscreen().is_none() {
-        window.set_inner_size(PhysicalSize::new(512, 512));
-    }
-
     window.set_cursor_visible(false);
 
     #[cfg(target_arch = "wasm32")]
@@ -53,7 +50,7 @@ pub fn start() {
             .and_then(|win| win.document())
             .and_then(|doc| {
                 let dst = doc.get_element_by_id("wasm-example")?;
-                let canvas = web_sys::Element::from(window.canvas());
+                let canvas = web_sys::Element::from(window.canvas()?);
                 dst.append_child(&canvas).ok()?;
 
                 // Request fullscreen, if denied, continue as normal
@@ -159,13 +156,9 @@ pub fn start() {
 
     log::info!("Event Loop...");
 
+    let window = &window;
+    let mut last_time = instant::Instant::now();
     event_loop.run(move |event, control_flow| {
-        *control_flow = if state.game_state == state::GameState::Quiting {
-            ControlFlow::Exit
-        } else {
-            ControlFlow::Poll
-        };
-
         match event {
             Event::WindowEvent {
                 event: WindowEvent::CloseRequested,
@@ -176,10 +169,10 @@ pub fn start() {
             Event::WindowEvent {
                 event:
                     WindowEvent::KeyboardInput {
-                        input:
-                            KeyboardInput {
+                        event:
+                            KeyEvent {
                                 state: element_state,
-                                virtual_keycode: Some(key),
+                                physical_key: PhysicalKey::Code(key),
                                 ..
                             },
                         ..
@@ -201,10 +194,13 @@ pub fn start() {
                 render.resize(size);
                 events.push(state::Event::Resize(size.width as f32, size.height as f32));
             }
-            Event::RedrawEventsCleared => {
+            Event::WindowEvent {
+                event: WindowEvent::RedrawRequested,
+                ..
+            } => {
+                let dt = last_time.elapsed();
+                last_time = instant::Instant::now();
                 window.request_redraw();
-            }
-            Event::RedrawRequested(window_id) if window_id == window.id() => {
                 for event in &events {
                     match event {
                         state::Event::FocusChanged | state::Event::ButtonPressed => {
@@ -226,24 +222,24 @@ pub fn start() {
                 }
                 events.clear();
 
-                visiblity_system.update_state(&input, &mut state, &mut events);
+                visiblity_system.update_state(&input, dt, &mut state, &mut events);
                 match state.game_state {
                     state::GameState::MainMenu => {
-                        menu_system.update_state(&input, &mut state, &mut events);
+                        menu_system.update_state(&input, dt, &mut state, &mut events);
                         if state.game_state == state::GameState::Serving {
                             serving_system.start(&mut state);
                         }
                     }
                     state::GameState::Serving => {
-                        serving_system.update_state(&input, &mut state, &mut events);
-                        play_system.update_state(&input, &mut state, &mut events);
+                        serving_system.update_state(&input, dt, &mut state, &mut events);
+                        play_system.update_state(&input, dt, &mut state, &mut events);
                         if state.game_state == state::GameState::Playing {
                             play_system.start(&mut state);
                         }
                     }
                     state::GameState::Playing => {
-                        ball_system.update_state(&input, &mut state, &mut events);
-                        play_system.update_state(&input, &mut state, &mut events);
+                        ball_system.update_state(&input, dt, &mut state, &mut events);
+                        play_system.update_state(&input, dt, &mut state, &mut events);
                         if state.game_state == state::GameState::Serving {
                             serving_system.start(&mut state);
                         } else if state.game_state == state::GameState::GameOver {
@@ -251,12 +247,14 @@ pub fn start() {
                         }
                     }
                     state::GameState::GameOver => {
-                        game_over_system.update_state(&input, &mut state, &mut events);
+                        game_over_system.update_state(&input, dt, &mut state, &mut events);
                         if state.game_state == state::GameState::MainMenu {
                             menu_system.start(&mut state);
                         }
                     }
-                    state::GameState::Quiting => {}
+                    state::GameState::Quiting => {
+                        control_flow.exit();
+                    }
                 }
 
                 render.render_state(&state);
@@ -266,17 +264,17 @@ pub fn start() {
             }
             _ => {}
         }
-    });
+    }).unwrap();
 }
 
 fn process_input(
     element_state: ElementState,
-    keycode: VirtualKeyCode,
-    control_flow: &mut ControlFlow,
+    keycode: KeyCode,
+    control_flow: &EventLoopWindowTarget<()>,
 ) {
     match (keycode, element_state) {
-        (VirtualKeyCode::Escape, ElementState::Pressed) => {
-            *control_flow = ControlFlow::Exit;
+        (KeyCode::Escape, ElementState::Pressed) => {
+            control_flow.exit()
         }
         _ => {}
     }

@@ -1,9 +1,11 @@
 # Dependencies and the window
 
 ## Boring, I know
+
 Some of you reading this are very experienced with opening up windows in Rust and probably have your favorite windowing library, but this guide is designed for everybody, so it's something that we need to cover. Luckily, you don't need to read this if you know what you're doing. One thing that you do need to know is that whatever windowing solution you use needs to support the [raw-window-handle](https://github.com/rust-windowing/raw-window-handle) crate.
 
 ## What crates are we using?
+
 For the beginner stuff, we're going to keep things very simple. We'll add things as we go, but I've listed the relevant `Cargo.toml` bits below.
 
 ```toml
@@ -11,29 +13,34 @@ For the beginner stuff, we're going to keep things very simple. We'll add things
 winit = { version = "0.29", features = ["rwh_05"] }
 env_logger = "0.10"
 log = "0.4"
-wgpu = "0.19"
+wgpu = "0.19.3"
 ```
 
 ## Using Rust's new resolver
+
 As of version 0.10, wgpu requires Cargo's [newest feature resolver](https://doc.rust-lang.org/cargo/reference/resolver.html#feature-resolver-version-2), which is the default in the 2021 edition (any new project started with Rust version 1.56.0 or newer). However, if you are still using the 2018 edition, you must include `resolver = "2"` in either the `[package]` section of `Cargo.toml` if you are working on a single crate or the `[workspace]` section of the root `Cargo.toml` in a workspace.
 
 ## env_logger
+
 It is very important to enable logging via `env_logger::init();`.
 When wgpu hits any error, it panics with a generic message, while logging the real error via the log crate.
 This means if you don't include `env_logger::init()`, wgpu will fail silently, leaving you very confused!  
 (This has been done in the code below)
 
 ## Create a new project
+
 run ```cargo new project_name``` where project_name is the name of the project.  
 (In the example below, I have used 'tutorial1_window')
 
 ## The code
+
 There's not much going on here yet, so I'm just going to post the code in full. Just paste this into your `lib.rs` or equivalent.
 
 ```rust
 use winit::{
     event::*,
-    event_loop::{ControlFlow, EventLoop},
+    event_loop::EventLoop,
+    keyboard::{KeyCode, PhysicalKey},
     window::WindowBuilder,
 };
 
@@ -49,10 +56,10 @@ pub fn run() {
         } if window_id == window.id() => match event {
             WindowEvent::CloseRequested
             | WindowEvent::KeyboardInput {
-                input:
-                    KeyboardInput {
+                event:
+                    KeyEvent {
                         state: ElementState::Pressed,
-                        virtual_keycode: Some(VirtualKeyCode::Escape),
+                        physical_key: PhysicalKey::Code(KeyCode::Escape),
                         ..
                     },
                 ..
@@ -174,14 +181,14 @@ Next, after we create our event loop and window, we need to add a canvas to the 
     // Winit prevents sizing with CSS, so we have to set
     // the size manually when on web.
     use winit::dpi::PhysicalSize;
-    window.set_inner_size(PhysicalSize::new(450, 400));
+    window.request_inner_size(PhysicalSize::new(450, 400)).unwrap();
     
     use winit::platform::web::WindowExtWebSys;
     web_sys::window()
         .and_then(|win| win.document())
         .and_then(|doc| {
             let dst = doc.get_element_by_id("wasm-example")?;
-            let canvas = web_sys::Element::from(window.canvas());
+            let canvas = web_sys::Element::from(window.canvas()?);
             dst.append_child(&canvas).ok()?;
             Some(())
         })

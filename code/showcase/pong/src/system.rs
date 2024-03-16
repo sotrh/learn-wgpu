@@ -9,6 +9,7 @@ pub trait System {
     fn update_state(
         &self,
         input: &input::Input,
+        dt: instant::Duration,
         state: &mut state::State,
         events: &mut Vec<state::Event>,
     );
@@ -19,6 +20,7 @@ impl System for VisibilitySystem {
     fn update_state(
         &self,
         _input: &input::Input,
+        _dt: instant::Duration,
         state: &mut state::State,
         _events: &mut Vec<state::Event>,
     ) {
@@ -60,6 +62,7 @@ impl System for MenuSystem {
     fn update_state(
         &self,
         input: &input::Input,
+        _dt: instant::Duration,
         state: &mut state::State,
         events: &mut Vec<state::Event>,
     ) {
@@ -92,21 +95,23 @@ impl System for PlaySystem {
     fn update_state(
         &self,
         input: &input::Input,
+        dt: instant::Duration,
         state: &mut state::State,
         _events: &mut Vec<state::Event>,
     ) {
+        let dt = dt.as_secs_f32();
         // move the players
         if input.p1_up_pressed {
-            state.player1.position.y += util::PLAYER_SPEED;
+            state.player1.position.y += util::PLAYER_SPEED * dt;
         }
         if input.p1_down_pressed {
-            state.player1.position.y -= util::PLAYER_SPEED;
+            state.player1.position.y -= util::PLAYER_SPEED * dt;
         }
         if input.p2_up_pressed {
-            state.player2.position.y += util::PLAYER_SPEED;
+            state.player2.position.y += util::PLAYER_SPEED * dt;
         }
         if input.p2_down_pressed {
-            state.player2.position.y -= util::PLAYER_SPEED;
+            state.player2.position.y -= util::PLAYER_SPEED * dt;
         }
 
         // normalize players
@@ -134,22 +139,25 @@ impl System for BallSystem {
     fn update_state(
         &self,
         _input: &input::Input,
+        dt: instant::Duration,
         state: &mut state::State,
         events: &mut Vec<state::Event>,
     ) {
+        let dt = dt.as_secs_f32();
+        
         // bounce the ball off the players
         if state.player1.contains(&state.ball) {
             events.push(state::Event::BallBounce(state.ball.position));
-            state.ball.position.x -= state.ball.velocity.x - state.player1.size.x;
+            state.ball.position.x -= state.ball.velocity.x * dt - state.player1.size.x;
             state.ball.velocity = util::calc_ball_velocity(&state.ball, &state.player1);
         } else if state.player2.contains(&state.ball) {
             events.push(state::Event::BallBounce(state.ball.position));
-            state.ball.position.x -= state.ball.velocity.x + state.player2.size.x;
+            state.ball.position.x -= state.ball.velocity.x * dt + state.player2.size.x;
             state.ball.velocity.x *= -state.player2.size.y;
             state.ball.velocity = util::calc_ball_velocity(&state.ball, &state.player2);
         }
 
-        state.ball.position += state.ball.velocity;
+        state.ball.position += state.ball.velocity * dt;
         if state.ball.position.y > 1.0 {
             events.push(state::Event::BallBounce(state.ball.position));
             state.ball.position.y = 1.0;
@@ -199,12 +207,11 @@ impl System for ServingSystem {
     fn update_state(
         &self,
         _input: &input::Input,
+        _dt: instant::Duration,
         state: &mut state::State,
         _events: &mut Vec<state::Event>,
     ) {
-        let current_time = instant::Instant::now();
-        let delta_time = current_time - self.last_time;
-        if delta_time.as_secs_f32() > 2.0 {
+        if self.last_time.elapsed().as_secs_f32() > 2.0 {
             log::info!("Serving...");
             state.game_state = state::GameState::Playing;
         }
@@ -242,12 +249,11 @@ impl System for GameOverSystem {
     fn update_state(
         &self,
         _input: &input::Input,
+        _dt: instant::Duration,
         state: &mut state::State,
         _events: &mut Vec<state::Event>,
     ) {
-        let current_time = instant::Instant::now();
-        let delta_time = current_time - self.last_time;
-        if delta_time.as_secs_f32() > 1.0 {
+        if self.last_time.elapsed().as_secs_f32() > 1.0 {
             state.game_state = state::GameState::MainMenu;
         }
     }
