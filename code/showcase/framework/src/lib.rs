@@ -36,7 +36,7 @@ impl<'a> Display<'a> {
     pub async fn new(window: &'a Window) -> Result<Display<'a>, Error> {
         let size = window.inner_size();
         let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
-            backends: wgpu::Backends::all(),
+            backends: wgpu::Backends::PRIMARY,
             ..Default::default()
         });
         let surface = instance.create_surface(window).unwrap();

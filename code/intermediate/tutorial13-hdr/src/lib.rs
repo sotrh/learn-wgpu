@@ -250,7 +250,7 @@ impl<'a> State<'a> {
             #[cfg(target_arch = "wasm32")]
             backends: wgpu::Backends::BROWSER_WEBGPU,
             #[cfg(not(target_arch = "wasm32"))]
-            backends: wgpu::Backends::all(),
+            backends: wgpu::Backends::PRIMARY,
             ..Default::default()
         });
 
