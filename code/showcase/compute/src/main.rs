@@ -219,7 +219,6 @@ impl<'a> State<'a> {
             desired_maximum_frame_latency: 2,
         };
 
-        surface.configure(&device, &config);
 
         let texture_bind_group_layout =
             device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {

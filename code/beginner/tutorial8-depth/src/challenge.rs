@@ -546,7 +546,6 @@ impl<'a> State<'a> {
             view_formats: vec![],
             desired_maximum_frame_latency: 2,
         };
-        surface.configure(&device, &config);
 
         let diffuse_bytes = include_bytes!("happy-tree.png");
         let diffuse_texture =

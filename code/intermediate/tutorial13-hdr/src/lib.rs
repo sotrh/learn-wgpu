@@ -299,7 +299,6 @@ impl<'a> State<'a> {
             desired_maximum_frame_latency: 2,
         };
 
-        surface.configure(&device, &config);
 
         let texture_bind_group_layout =
             device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
@@ -827,7 +826,7 @@ pub async fn run() {
         // Winit prevents sizing with CSS, so we have to set
         // the size manually when on web.
         use winit::dpi::PhysicalSize;
-        window.request_inner_size(PhysicalSize::new(450, 400)).unwrap();
+        let _ = window.request_inner_size(PhysicalSize::new(450, 400));
 
         use winit::platform::web::WindowExtWebSys;
         web_sys::window()

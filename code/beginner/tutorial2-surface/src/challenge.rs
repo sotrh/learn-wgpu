@@ -85,7 +85,6 @@ impl<'a> State<'a> {
             desired_maximum_frame_latency: 2,
             view_formats: vec![],
         };
-        surface.configure(&device, &config);
 
         let clear_color = wgpu::Color::BLACK;
 

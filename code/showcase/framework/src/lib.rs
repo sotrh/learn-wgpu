@@ -85,7 +85,6 @@ impl<'a> Display<'a> {
             view_formats: vec![],
             desired_maximum_frame_latency: 2,
         };
-        surface.configure(&device, &config);
 
         Ok(Self {
             surface,

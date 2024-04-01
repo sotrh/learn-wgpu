@@ -181,7 +181,7 @@ Next, after we create our event loop and window, we need to add a canvas to the 
     // Winit prevents sizing with CSS, so we have to set
     // the size manually when on web.
     use winit::dpi::PhysicalSize;
-    window.request_inner_size(PhysicalSize::new(450, 400)).unwrap();
+    let _ = window.request_inner_size(PhysicalSize::new(450, 400));
     
     use winit::platform::web::WindowExtWebSys;
     web_sys::window()

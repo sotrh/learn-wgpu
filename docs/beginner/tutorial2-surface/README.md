@@ -175,7 +175,6 @@ The `limits` field describes the limit of certain types of resources that we can
             view_formats: vec![],
             desired_maximum_frame_latency: 2,
         };
-        surface.configure(&device, &config);
 ```
 
 Here we are defining a config for our surface. This will define how the surface creates its underlying `SurfaceTexture`s. We will talk about `SurfaceTexture` when we get to the `render` function. For now, let's talk about the config's fields.

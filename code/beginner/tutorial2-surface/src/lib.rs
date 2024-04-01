@@ -29,7 +29,7 @@ impl<'a> State<'a> {
         // The instance is a handle to our GPU
         // BackendBit::PRIMARY => Vulkan + Metal + DX12 + Browser WebGPU
         let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
-            backends: wgpu::Backends::all(),
+            backends: wgpu::Backends::PRIMARY,
             ..Default::default()
         });
 
@@ -83,7 +83,6 @@ impl<'a> State<'a> {
             desired_maximum_frame_latency: 2,
             view_formats: vec![],
         };
-        surface.configure(&device, &config);
 
         Self {
             surface,
@@ -161,7 +160,7 @@ pub async fn run() {
     cfg_if::cfg_if! {
         if #[cfg(target_arch = "wasm32")] {
             std::panic::set_hook(Box::new(console_error_panic_hook::hook));
-            console_log::init_with_level(log::Level::Warn).expect("Couldn't initialize logger");
+            console_log::init_with_level(log::Level::Info).expect("Couldn't initialize logger");
         } else {
             env_logger::init();
         }
@@ -175,7 +174,6 @@ pub async fn run() {
         // Winit prevents sizing with CSS, so we have to set
         // the size manually when on web.
         use winit::dpi::PhysicalSize;
-        //window.request_inner_size(PhysicalSize::new(450, 400)).unwrap();
 
         use winit::platform::web::WindowExtWebSys;
         web_sys::window()
@@ -187,6 +185,8 @@ pub async fn run() {
                 Some(())
             })
             .expect("Couldn't append canvas to document body.");
+
+        let _ = window.request_inner_size(PhysicalSize::new(450, 400));
     }
 
     // State::new uses async code, so we're going to wait for it to finish
@@ -213,6 +213,7 @@ pub async fn run() {
                                 ..
                             } => control_flow.exit(),
                             WindowEvent::Resized(physical_size) => {
+                                log::info!("physical_size: {physical_size:?}");
                                 state.resize(*physical_size);
                             }
                             WindowEvent::RedrawRequested => {
