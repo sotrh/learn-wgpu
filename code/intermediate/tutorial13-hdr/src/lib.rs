@@ -247,10 +247,10 @@ impl<'a> State<'a> {
         // BackendBit::PRIMARY => Vulkan + Metal + DX12 + Browser WebGPU
         let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
             // UPDATED
+            #[cfg(not(target_arch="wasm32"))]
+            backends: wgpu::Backends::PRIMARY,
             #[cfg(target_arch = "wasm32")]
             backends: wgpu::Backends::BROWSER_WEBGPU,
-            #[cfg(not(target_arch = "wasm32"))]
-            backends: wgpu::Backends::PRIMARY,
             ..Default::default()
         });
 

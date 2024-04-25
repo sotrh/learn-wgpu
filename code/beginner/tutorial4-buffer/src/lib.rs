@@ -85,7 +85,10 @@ impl<'a> State<'a> {
         // The instance is a handle to our GPU
         // BackendBit::PRIMARY => Vulkan + Metal + DX12 + Browser WebGPU
         let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
+            #[cfg(not(target_arch="wasm32"))]
             backends: wgpu::Backends::PRIMARY,
+            #[cfg(target_arch="wasm32")]
+            backends: wgpu::Backends::GL,
             ..Default::default()
         });
 
@@ -326,6 +329,7 @@ pub async fn run() {
 
     // State::new uses async code, so we're going to wait for it to finish
     let mut state = State::new(&window).await;
+    let mut surface_configured = false;
 
     event_loop
         .run(move |event, control_flow| {
@@ -347,11 +351,17 @@ pub async fn run() {
                                 ..
                             } => control_flow.exit(),
                             WindowEvent::Resized(physical_size) => {
+                                surface_configured = true;
                                 state.resize(*physical_size);
                             }
                             WindowEvent::RedrawRequested => {
                                 // This tells winit that we want another frame after this one
                                 state.window().request_redraw();
+
+                                if !surface_configured {
+                                    return;
+                                }
+
                                 state.update();
                                 match state.render() {
                                     Ok(_) => {}
