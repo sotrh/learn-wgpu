@@ -284,17 +284,32 @@ impl HdrLoader {
         dst_size: u32,
         label: Option<&str>,
     ) -> anyhow::Result<texture::CubeTexture> {
+        log::info!("creating decoder");
         let hdr_decoder = HdrDecoder::new(Cursor::new(data))?;
         let meta = hdr_decoder.metadata();
-        let mut pixels = vec![[0.0, 0.0, 0.0, 0.0]; meta.width as usize * meta.height as usize];
-        hdr_decoder.read_image_transform(
-            |pix| {
+        log::info!("reading image");
+        #[cfg(not(target_arch="wasm32"))]
+        let pixels = {
+            let mut pixels = vec![[0.0, 0.0, 0.0, 0.0]; meta.width as usize * meta.height as usize];
+            hdr_decoder.read_image_transform(
+                |pix| {
+                    let rgb = pix.to_hdr();
+                    [rgb.0[0], rgb.0[1], rgb.0[2], 1.0f32]
+                },
+                &mut pixels[..],
+            )?;
+            pixels
+        };
+        #[cfg(target_arch="wasm32")]
+        let pixels = hdr_decoder.read_image_native()?
+            .into_iter()
+            .map(|pix| {
                 let rgb = pix.to_hdr();
                 [rgb.0[0], rgb.0[1], rgb.0[2], 1.0f32]
-            },
-            &mut pixels[..],
-        )?;
+            })
+            .collect::<Vec<_>>();
 
+        log::info!("creating texture");
         let src = texture::Texture::create_2d_texture(
             device,
             meta.width,
@@ -305,6 +320,7 @@ impl HdrLoader {
             None,
         );
 
+        log::info!("writing texture");
         queue.write_texture(
             wgpu::ImageCopyTexture {
                 texture: &src.texture,

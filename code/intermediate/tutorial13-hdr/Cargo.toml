@@ -37,6 +37,7 @@ web-sys = { version = "0.3", features = [
     "Element",
     "Location",
 ]}
+instant = { version = "0.1", features = [ "wasm-bindgen" ] }
 
 [build-dependencies]
 anyhow = "1.0"

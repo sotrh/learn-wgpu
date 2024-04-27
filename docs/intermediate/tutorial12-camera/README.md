@@ -27,7 +27,12 @@ const SAFE_FRAC_PI_2: f32 = FRAC_PI_2 - 0.0001;
 `std::time::Instant` panics on WASM, so we'll use the [instant crate](https://docs.rs/instant). You'll want to include it in your `Cargo.toml`:
 
 ```toml
+[dependencies]
+# ...
 instant = "0.1"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+instant = { version = "0.1", features = [ "wasm-bindgen" ] }
 ```
 
 </div>
