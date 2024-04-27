@@ -144,7 +144,7 @@ impl System for BallSystem {
         events: &mut Vec<state::Event>,
     ) {
         let dt = dt.as_secs_f32();
-        
+
         // bounce the ball off the players
         if state.player1.contains(&state.ball) {
             events.push(state::Event::BallBounce(state.ball.position));

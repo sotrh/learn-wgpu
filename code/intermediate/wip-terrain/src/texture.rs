@@ -16,7 +16,7 @@ impl Texture {
         config: &wgpu::SurfaceConfiguration,
         label: &str,
     ) -> Self {
-let size = wgpu::Extent3d {
+        let size = wgpu::Extent3d {
             width: config.width.max(1),
             height: config.height.max(1),
             depth_or_array_layers: 1,

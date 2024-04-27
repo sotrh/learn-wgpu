@@ -158,113 +158,115 @@ pub fn start() {
 
     let window = &window;
     let mut last_time = instant::Instant::now();
-    event_loop.run(move |event, control_flow| {
-        match event {
-            Event::WindowEvent {
-                event: WindowEvent::CloseRequested,
-                ..
-            } => {
-                state.game_state = state::GameState::Quiting;
-            }
-            Event::WindowEvent {
-                event:
-                    WindowEvent::KeyboardInput {
-                        event:
-                            KeyEvent {
-                                state: element_state,
-                                physical_key: PhysicalKey::Code(key),
-                                ..
-                            },
-                        ..
-                    },
-                ..
-            } => {
-                let input_handled = match state.game_state {
-                    state::GameState::Quiting => true,
-                    _ => input.update(key, element_state),
-                };
-                if !input_handled {
-                    process_input(element_state, key, control_flow);
+    event_loop
+        .run(move |event, control_flow| {
+            match event {
+                Event::WindowEvent {
+                    event: WindowEvent::CloseRequested,
+                    ..
+                } => {
+                    state.game_state = state::GameState::Quiting;
                 }
-            }
-            Event::WindowEvent {
-                event: WindowEvent::Resized(size),
-                ..
-            } => {
-                render.resize(size);
-                events.push(state::Event::Resize(size.width as f32, size.height as f32));
-            }
-            Event::WindowEvent {
-                event: WindowEvent::RedrawRequested,
-                ..
-            } => {
-                let dt = last_time.elapsed();
-                last_time = instant::Instant::now();
-                window.request_redraw();
-                for event in &events {
-                    match event {
-                        state::Event::FocusChanged | state::Event::ButtonPressed => {
-                            sound_system.queue(sound_pack.bounce());
-                        }
-                        state::Event::BallBounce(_pos) => {
-                            sound_system.queue(sound_pack.bounce());
-                        }
-                        state::Event::Score(_) => {
-                            sound_system.queue(sound_pack.bounce());
-                        }
-                        state::Event::Resize(width, height) => {
-                            // TODO: there should be a system that handles this
-                            state.player1_score.position = (width * 0.25, 20.0).into();
-                            state.player2_score.position = (width * 0.75, 20.0).into();
-                            state.win_text.position = (width * 0.5, height * 0.5).into();
-                        }
+                Event::WindowEvent {
+                    event:
+                        WindowEvent::KeyboardInput {
+                            event:
+                                KeyEvent {
+                                    state: element_state,
+                                    physical_key: PhysicalKey::Code(key),
+                                    ..
+                                },
+                            ..
+                        },
+                    ..
+                } => {
+                    let input_handled = match state.game_state {
+                        state::GameState::Quiting => true,
+                        _ => input.update(key, element_state),
+                    };
+                    if !input_handled {
+                        process_input(element_state, key, control_flow);
                     }
                 }
-                events.clear();
-
-                visiblity_system.update_state(&input, dt, &mut state, &mut events);
-                match state.game_state {
-                    state::GameState::MainMenu => {
-                        menu_system.update_state(&input, dt, &mut state, &mut events);
-                        if state.game_state == state::GameState::Serving {
-                            serving_system.start(&mut state);
-                        }
-                    }
-                    state::GameState::Serving => {
-                        serving_system.update_state(&input, dt, &mut state, &mut events);
-                        play_system.update_state(&input, dt, &mut state, &mut events);
-                        if state.game_state == state::GameState::Playing {
-                            play_system.start(&mut state);
-                        }
-                    }
-                    state::GameState::Playing => {
-                        ball_system.update_state(&input, dt, &mut state, &mut events);
-                        play_system.update_state(&input, dt, &mut state, &mut events);
-                        if state.game_state == state::GameState::Serving {
-                            serving_system.start(&mut state);
-                        } else if state.game_state == state::GameState::GameOver {
-                            game_over_system.start(&mut state);
-                        }
-                    }
-                    state::GameState::GameOver => {
-                        game_over_system.update_state(&input, dt, &mut state, &mut events);
-                        if state.game_state == state::GameState::MainMenu {
-                            menu_system.start(&mut state);
-                        }
-                    }
-                    state::GameState::Quiting => {
-                        control_flow.exit();
-                    }
+                Event::WindowEvent {
+                    event: WindowEvent::Resized(size),
+                    ..
+                } => {
+                    render.resize(size);
+                    events.push(state::Event::Resize(size.width as f32, size.height as f32));
                 }
-
-                render.render_state(&state);
-                if state.game_state != state::GameState::Quiting {
+                Event::WindowEvent {
+                    event: WindowEvent::RedrawRequested,
+                    ..
+                } => {
+                    let dt = last_time.elapsed();
+                    last_time = instant::Instant::now();
                     window.request_redraw();
+                    for event in &events {
+                        match event {
+                            state::Event::FocusChanged | state::Event::ButtonPressed => {
+                                sound_system.queue(sound_pack.bounce());
+                            }
+                            state::Event::BallBounce(_pos) => {
+                                sound_system.queue(sound_pack.bounce());
+                            }
+                            state::Event::Score(_) => {
+                                sound_system.queue(sound_pack.bounce());
+                            }
+                            state::Event::Resize(width, height) => {
+                                // TODO: there should be a system that handles this
+                                state.player1_score.position = (width * 0.25, 20.0).into();
+                                state.player2_score.position = (width * 0.75, 20.0).into();
+                                state.win_text.position = (width * 0.5, height * 0.5).into();
+                            }
+                        }
+                    }
+                    events.clear();
+
+                    visiblity_system.update_state(&input, dt, &mut state, &mut events);
+                    match state.game_state {
+                        state::GameState::MainMenu => {
+                            menu_system.update_state(&input, dt, &mut state, &mut events);
+                            if state.game_state == state::GameState::Serving {
+                                serving_system.start(&mut state);
+                            }
+                        }
+                        state::GameState::Serving => {
+                            serving_system.update_state(&input, dt, &mut state, &mut events);
+                            play_system.update_state(&input, dt, &mut state, &mut events);
+                            if state.game_state == state::GameState::Playing {
+                                play_system.start(&mut state);
+                            }
+                        }
+                        state::GameState::Playing => {
+                            ball_system.update_state(&input, dt, &mut state, &mut events);
+                            play_system.update_state(&input, dt, &mut state, &mut events);
+                            if state.game_state == state::GameState::Serving {
+                                serving_system.start(&mut state);
+                            } else if state.game_state == state::GameState::GameOver {
+                                game_over_system.start(&mut state);
+                            }
+                        }
+                        state::GameState::GameOver => {
+                            game_over_system.update_state(&input, dt, &mut state, &mut events);
+                            if state.game_state == state::GameState::MainMenu {
+                                menu_system.start(&mut state);
+                            }
+                        }
+                        state::GameState::Quiting => {
+                            control_flow.exit();
+                        }
+                    }
+
+                    render.render_state(&state);
+                    if state.game_state != state::GameState::Quiting {
+                        window.request_redraw();
+                    }
                 }
+                _ => {}
             }
-            _ => {}
-        }
-    }).unwrap();
+        })
+        .unwrap();
 }
 
 fn process_input(
@@ -273,9 +275,7 @@ fn process_input(
     control_flow: &EventLoopWindowTarget<()>,
 ) {
     match (keycode, element_state) {
-        (KeyCode::Escape, ElementState::Pressed) => {
-            control_flow.exit()
-        }
+        (KeyCode::Escape, ElementState::Pressed) => control_flow.exit(),
         _ => {}
     }
 }

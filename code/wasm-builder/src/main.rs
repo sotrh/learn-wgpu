@@ -1,4 +1,7 @@
-use std::{path::PathBuf, process::{Command, ExitStatus}};
+use std::{
+    path::PathBuf,
+    process::{Command, ExitStatus},
+};
 
 use anyhow::bail;
 use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};

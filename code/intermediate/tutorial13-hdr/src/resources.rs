@@ -286,8 +286,8 @@ impl HdrLoader {
     ) -> anyhow::Result<texture::CubeTexture> {
         let hdr_decoder = HdrDecoder::new(Cursor::new(data))?;
         let meta = hdr_decoder.metadata();
-        
-        #[cfg(not(target_arch="wasm32"))]
+
+        #[cfg(not(target_arch = "wasm32"))]
         let pixels = {
             let mut pixels = vec![[0.0, 0.0, 0.0, 0.0]; meta.width as usize * meta.height as usize];
             hdr_decoder.read_image_transform(
@@ -299,8 +299,9 @@ impl HdrLoader {
             )?;
             pixels
         };
-        #[cfg(target_arch="wasm32")]
-        let pixels = hdr_decoder.read_image_native()?
+        #[cfg(target_arch = "wasm32")]
+        let pixels = hdr_decoder
+            .read_image_native()?
             .into_iter()
             .map(|pix| {
                 let rgb = pix.to_hdr();
