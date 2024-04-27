@@ -105,7 +105,7 @@ impl HdrPipeline {
         let pipeline = create_render_pipeline(
             device,
             &pipeline_layout,
-            config.format,
+            config.format.add_srgb_suffix(),
             None,
             // We'll use some math to generate the vertex data in
             // the shader, so we don't need any vertex buffers
@@ -567,16 +567,27 @@ impl HdrLoader {
     ) -> anyhow::Result<texture::CubeTexture> {
         let hdr_decoder = HdrDecoder::new(Cursor::new(data))?;
         let meta = hdr_decoder.metadata();
-        let mut pixels = vec![[0.0, 0.0, 0.0, 0.0]; meta.width as usize * meta.height as usize];
-        hdr_decoder.read_image_transform(
-            |pix| {
-                // There's no Rgb32Float format, so we need
-                // an extra float
+        
+        #[cfg(not(target_arch="wasm32"))]
+        let pixels = {
+            let mut pixels = vec![[0.0, 0.0, 0.0, 0.0]; meta.width as usize * meta.height as usize];
+            hdr_decoder.read_image_transform(
+                |pix| {
+                    let rgb = pix.to_hdr();
+                    [rgb.0[0], rgb.0[1], rgb.0[2], 1.0f32]
+                },
+                &mut pixels[..],
+            )?;
+            pixels
+        };
+        #[cfg(target_arch="wasm32")]
+        let pixels = hdr_decoder.read_image_native()?
+            .into_iter()
+            .map(|pix| {
                 let rgb = pix.to_hdr();
                 [rgb.0[0], rgb.0[1], rgb.0[2], 1.0f32]
-            },
-            &mut pixels[..],
-        )?;
+            })
+            .collect::<Vec<_>>();
 
         let src = texture::Texture::create_2d_texture(
             device,
@@ -1200,6 +1211,48 @@ A little note on the reflection math. The `view_dir` gives us the direction to t
 Here's the finished scene:
 
 ![with-reflections](./with-reflections.png)
+
+## Output too dark on WebGPU?
+
+WebGPU doesn't support using sRGB texture formats as the
+output for a surface. We can get around this by making the
+texture view used to render use the sRGB version of the
+format. To do this we need to change the surface config
+we use to allow view formats with sRGB.
+
+```rust
+let config = wgpu::SurfaceConfiguration {
+    usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+    format: surface_format,
+    width: size.width,
+    height: size.height,
+    present_mode: surface_caps.present_modes[0],
+    alpha_mode: surface_caps.alpha_modes[0],
+    // NEW!
+    view_formats: vec![surface_format.add_srgb_suffix()],
+    desired_maximum_frame_latency: 2,
+};
+```
+
+Then we need to create a view with sRGB enabled in
+`State::render()`.
+
+```rust
+let view = output
+    .texture
+    .create_view(&wgpu::TextureViewDescriptor {
+        format: Some(self.config.format.add_srgb_suffix()),
+        ..Default::default()
+    });
+```
+
+You may have noticed as well that in `HdrPipeline::new()`
+we use `config.format.add_srgb_suffix()` when creating
+the render pipeline. This is required as if we don't
+the sRGB enabled `TextureView` won't work with the
+render pipeline.
+
+With that you should get the sRGB output as expected.
 
 ## Demo
 

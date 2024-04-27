@@ -295,7 +295,8 @@ impl<'a> State<'a> {
             height: size.height,
             present_mode: surface_caps.present_modes[0],
             alpha_mode: surface_caps.alpha_modes[0],
-            view_formats: vec![],
+            // NEW!
+            view_formats: vec![surface_format.add_srgb_suffix()],
             desired_maximum_frame_latency: 2,
         };
 
@@ -714,7 +715,10 @@ impl<'a> State<'a> {
         let output = self.surface.get_current_texture()?;
         let view = output
             .texture
-            .create_view(&wgpu::TextureViewDescriptor::default());
+            .create_view(&wgpu::TextureViewDescriptor {
+                format: Some(self.config.format.add_srgb_suffix()),
+                ..Default::default()
+            });
 
         let mut encoder = self
             .device

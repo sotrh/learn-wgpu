@@ -79,7 +79,7 @@ impl HdrPipeline {
         let pipeline = create_render_pipeline(
             device,
             &pipeline_layout,
-            config.format,
+            config.format.add_srgb_suffix(),
             None,
             &[],
             wgpu::PrimitiveTopology::TriangleList,
