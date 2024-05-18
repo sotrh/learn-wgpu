@@ -49,7 +49,7 @@ pub fn run() {
     let event_loop = EventLoop::new().unwrap();
     let window = WindowBuilder::new().build(&event_loop).unwrap();
 
-    event_loop.run(move |event, _, control_flow| match event {
+    event_loop.run(move |event, control_flow| match event {
         Event::WindowEvent {
             ref event,
             window_id,
@@ -63,7 +63,7 @@ pub fn run() {
                         ..
                     },
                 ..
-            } => *control_flow = ControlFlow::Exit,
+            } => control_flow.exit(),
             _ => {}
         },
         _ => {}
