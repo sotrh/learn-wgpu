@@ -1,12 +1,15 @@
 # Buffers and Indices
 
 ## We're finally talking about them!
+
 You were probably getting sick of me saying stuff like, "We'll get to that when we talk about buffers". Well, now's the time to finally talk about buffers, but first...
 
 ## What is a buffer?
+
 A buffer is a blob of data on the GPU. A buffer is guaranteed to be contiguous, meaning that all the data is stored sequentially in memory. Buffers are generally used to store simple things like structs or arrays, but they can store more complex stuff such as graph structures like trees (provided all the nodes are stored together and don't reference anything outside the buffer). We are going to use buffers a lot, so let's get started with two of the most important ones: the vertex buffer and the index buffer.
 
 ## The vertex buffer
+
 Previously, we've stored vertex data directly in the vertex shader. While that worked fine to get our bootstraps on, it simply won't do for the long term. The types of objects we need to draw will vary in size, and recompiling the shader whenever we need to update the model would massively slow down our program. Instead, we are going to use buffers to store the vertex data we want to draw. Before we do that, though, we need to describe what a vertex looks like. We'll do this by creating a new struct.
 
 ```rust
@@ -435,7 +438,9 @@ If you use a color picker on the magenta pentagon, you'll get a hex value of #BC
 
 Most monitors use a color space known as sRGB. Our surface is (most likely depending on what is returned from `surface.get_preferred_format()`) using an sRGB texture format. The sRGB format stores colors according to their relative brightness instead of their actual brightness. The reason for this is that our eyes don't perceive light linearly. We notice more differences in darker colors than in lighter colors.
 
-You get the correct color using the following formula: `srgb_color = ((rgb_color / 255 + 0.055) / 1.055) ^ 2.4`. Doing this with an RGB value of (188, 0, 188) will give us (0.5028864580325687, 0.0, 0.5028864580325687). A little off from our (0.5, 0.0, 0.5). Instead of doing a manual color conversion, you'll likely save a lot of time by using textures instead, as they are stored as sRGB by default, so they don't suffer from the same color inaccuracies that vertex colors do. We'll cover textures in the next lesson.
+Most software that uses colors stores them in sRGB format (or a similar proprietary one). Wgpu expects values in linear color space, so we have to convert the values.
+
+You get the correct color using the following formula: `rgb_color = ((srgb_color / 255 + 0.055) / 1.055) ^ 2.4`. Doing this with an sRGB value of (188, 0, 188) will give us (0.5028864580325687, 0.0, 0.5028864580325687). A little off from our (0.5, 0.0, 0.5). Instead of doing a manual color conversion, you'll likely save a lot of time by using textures instead, as if they are store in an sRGB texture, the conversion to linear will happen automatically. We'll cover textures in the next lesson.
 
 ## Challenge
 Create a more complex shape than the one we made (aka. more than three triangles) using a vertex buffer and an index buffer. Toggle between the two with the space key.

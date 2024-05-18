@@ -429,9 +429,13 @@ We get the following from this calculation.
 
 ## Srgb and normal textures
 
-We've been using `Rgba8UnormSrgb` for all our textures. The `Srgb` bit specifies that we will be using [standard RGB (red, green, blue) color space](https://en.wikipedia.org/wiki/SRGB). This is also known as linear color space. Linear color space has less color density. Even so, it is often used for diffuse textures, as they are typically made in `Srgb` color space.
+We've been using `Rgba8UnormSrgb` for all our textures. Srgb is a non-linear color space. It is ideal for monitors because human color perception isn't linear either and Srgb was designed to match the quirkiness of our human color perception.
 
-Normal textures aren't made with `Srgb`. Using `Rgba8UnormSrgb` can change how the GPU samples the texture. This can make the resulting simulation [less accurate](https://medium.com/@bgolus/generating-perfect-normal-maps-for-unity-f929e673fc57#b86c). We can avoid these issues by using `Rgba8Unorm` when we create the texture. Let's add an `is_normal_map` method to our `Texture` struct.
+But Srgb is an inappropriate color space for data that must be operated on mathematically. Such data should be in a linear (not gamma-corrected) color space. When a GPU samples a texture with Srgb in the name, it converts the data from non-linear gamma-corrected Srgb to a linear non-gamma-corrected color space first so that you can do math on it (and it does the opposite conversion if you write back to a Srgb texture).
+
+Normal maps are already stored in a linear format. So we should be specifying the linear space for the texture so it doesn't do an inappropriate conversion when we read from it.
+
+We need to specify `Rgba8Unorm` when we create the texture. Let's add an `is_normal_map` method to our Texture struct.
 
 ```rust
 pub fn from_image(
