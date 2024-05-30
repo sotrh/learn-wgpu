@@ -10,8 +10,8 @@ fn format_url(file_name: &str) -> reqwest::Url {
     let window = web_sys::window().unwrap();
     let location = window.location();
     let mut origin = location.origin().unwrap();
-    if !origin.ends_with("learn-wgpu") {
-        origin = format!("{}/learn-wgpu", origin);
+    if !origin.ends_with("res") {
+        origin = format!("{}/res", origin);
     }
     let base = reqwest::Url::parse(&format!("{}/", origin,)).unwrap();
     base.join(file_name).unwrap()
@@ -118,34 +118,40 @@ pub async fn load_model(
         .into_iter()
         .map(|m| {
             let vertices = (0..m.mesh.positions.len() / 3)
-            .map(|i| {
-                if m.mesh.normals.is_empty(){
-                    model::ModelVertex {
-                        position: [
-                            m.mesh.positions[i * 3],
-                            m.mesh.positions[i * 3 + 1],
-                            m.mesh.positions[i * 3 + 2],
-                        ],
-                        tex_coords: [m.mesh.texcoords[i * 2], 1.0 - m.mesh.texcoords[i * 2 + 1]],
-                        normal: [0.0, 0.0, 0.0],
+                .map(|i| {
+                    if m.mesh.normals.is_empty() {
+                        model::ModelVertex {
+                            position: [
+                                m.mesh.positions[i * 3],
+                                m.mesh.positions[i * 3 + 1],
+                                m.mesh.positions[i * 3 + 2],
+                            ],
+                            tex_coords: [
+                                m.mesh.texcoords[i * 2],
+                                1.0 - m.mesh.texcoords[i * 2 + 1],
+                            ],
+                            normal: [0.0, 0.0, 0.0],
+                        }
+                    } else {
+                        model::ModelVertex {
+                            position: [
+                                m.mesh.positions[i * 3],
+                                m.mesh.positions[i * 3 + 1],
+                                m.mesh.positions[i * 3 + 2],
+                            ],
+                            tex_coords: [
+                                m.mesh.texcoords[i * 2],
+                                1.0 - m.mesh.texcoords[i * 2 + 1],
+                            ],
+                            normal: [
+                                m.mesh.normals[i * 3],
+                                m.mesh.normals[i * 3 + 1],
+                                m.mesh.normals[i * 3 + 2],
+                            ],
+                        }
                     }
-                }else{
-                    model::ModelVertex {
-                        position: [
-                            m.mesh.positions[i * 3],
-                            m.mesh.positions[i * 3 + 1],
-                            m.mesh.positions[i * 3 + 2],
-                        ],
-                        tex_coords: [m.mesh.texcoords[i * 2], 1.0 - m.mesh.texcoords[i * 2 + 1]],
-                        normal: [
-                            m.mesh.normals[i * 3],
-                            m.mesh.normals[i * 3 + 1],
-                            m.mesh.normals[i * 3 + 2],
-                        ],
-                    }
-                }
-            })
-            .collect::<Vec<_>>();
+                })
+                .collect::<Vec<_>>();
 
             let vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
                 label: Some(&format!("{:?} Vertex Buffer", file_name)),

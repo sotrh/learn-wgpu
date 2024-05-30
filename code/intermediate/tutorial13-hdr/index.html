@@ -11,7 +11,7 @@
 <body>
     <div id="wasm-example"></div>
     <script type="module">
-        import init from "./pkg/tutorial12_camera.js";
+        import init from "./pkg/tutorial13_hdr.js";
         init().then(() => {
             console.log("WASM Loaded");
         });
@@ -20,8 +20,14 @@
         body {
             background-color: #444;
         }
+
         canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
             background-color: black;
+            width: 100svw;
+            height: 100svh;
         }
     </style>
 </body>
