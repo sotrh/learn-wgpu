@@ -148,7 +148,7 @@ The `features` field on `DeviceDescriptor` allows us to specify what extra featu
 
 <div class="note">
 
-The graphics card you haverequired_limits the features you can use. If you want to use certain features, you may need to limit what devices you support or provide workarounds.
+The graphics card you have limits the features you can use. If you want to use certain features, you may need to limit what devices you support or provide workarounds.
 
 You can get a list of features supported by your device using `adapter.features()` or `device.features()`.
 
@@ -156,7 +156,7 @@ You can view a full list of features [here](https://docs.rs/wgpu/latest/wgpu/str
 
 </div>
 
-The `limits` field describes the limit of certain types of resources that we can create. We'll use the defaults for this tutorial so we can support most devices. You can view a list ofrequired_limits [here](https://docs.rs/wgpu/latest/wgpu/struct.Limits.html).
+The `limits` field describes the limit of certain types of resources that we can create. We'll use the defaults for this tutorial so we can support most devices. You can view a list of limits [here](https://docs.rs/wgpu/latest/wgpu/struct.Limits.html).
 
 ```rust
         let surface_caps = surface.get_capabilities(&adapter);
