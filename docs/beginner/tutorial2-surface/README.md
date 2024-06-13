@@ -241,14 +241,14 @@ pub async fn run() {
             } if window_id == state.window().id() => match event {
                 WindowEvent::CloseRequested
                 | WindowEvent::KeyboardInput {
-                    input:
-                        KeyboardInput {
+                    event:
+                        KeyEvent {
                             state: ElementState::Pressed,
-                            virtual_keycode: Some(VirtualKeyCode::Escape),
+                            physical_key: PhysicalKey::Code(KeyCode::Escape),
                             ..
                         },
                     ..
-                } => *control_flow = ControlFlow::Exit,
+                } => control_flow.exit(),
                 _ => {}
             },
             _ => {}
@@ -360,7 +360,7 @@ We need to do a little more work in the event loop. We want `State` to have prio
 
 ```rust
 // run()
-event_loop.run(move |event, _, control_flow| {
+event_loop.run(move |event, control_flow| {
     match event {
         Event::WindowEvent {
             ref event,
@@ -369,14 +369,14 @@ event_loop.run(move |event, _, control_flow| {
             match event {
                 WindowEvent::CloseRequested
                 | WindowEvent::KeyboardInput {
-                    input:
-                        KeyboardInput {
+                    event:
+                        KeyEvent {
                             state: ElementState::Pressed,
-                            virtual_keycode: Some(VirtualKeyCode::Escape),
+                            physical_key: PhysicalKey::Code(KeyCode::Escape),
                             ..
                         },
                     ..
-                } => *control_flow = ControlFlow::Exit,
+                } => control_flow.exit(),
                 WindowEvent::Resized(physical_size) => {
                     state.resize(*physical_size);
                 }

@@ -344,9 +344,9 @@ Now, to fix this, we could change the `input()` function to process `DeviceEvent
 fn input(&mut self, event: &WindowEvent) -> bool {
     match event {
         WindowEvent::KeyboardInput {
-            input:
-                KeyboardInput {
-                    virtual_keycode: Some(key),
+            event:
+                KeyEvent {
+                    physical_key: PhysicalKey::Code(key),
                     state,
                     ..
                 },
