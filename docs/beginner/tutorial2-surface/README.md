@@ -224,7 +224,7 @@ Now that we've configured our surface properly, we can add these new fields at t
 
 Since our `State::new()` method is async, we need to change `run()` to be async as well so that we can await it.
 
-Our `window` has beened moved to the State instance, we will need to update our `event_loop` to reflect this.
+Our `window` has been moved to the State instance, we will need to update our `event_loop` to reflect this.
 
 ```rust
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen(start))]
@@ -320,7 +320,7 @@ pub fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
 
 There's nothing different here from the initial `surface` configuration, so I won't get into it.
 
-We call this method `run()` in the event loop for the following events.
+We call this method `resize()` in the event loop for the following events.
 
 ```rust
 match event {
