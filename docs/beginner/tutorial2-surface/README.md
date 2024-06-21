@@ -329,13 +329,8 @@ match event {
     } if window_id == state.window().id() => if !state.input(event) {
         match event {
             // ...
-
             WindowEvent::Resized(physical_size) => {
                 state.resize(*physical_size);
-            }
-            WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
-                // new_inner_size is &&mut so we have to dereference it twice
-                state.resize(**new_inner_size);
             }
             // ...
         }
@@ -379,9 +374,6 @@ event_loop.run(move |event, control_flow| {
                 } => control_flow.exit(),
                 WindowEvent::Resized(physical_size) => {
                     state.resize(*physical_size);
-                }
-                WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
-                    state.resize(**new_inner_size);
                 }
                 _ => {}
             }
@@ -473,8 +465,8 @@ We need to update the event loop again to call this method. We'll also call `upd
 // run()
 event_loop.run(move |event, _, control_flow| {
     match event {
-        // ...
-        Event::RedrawRequested(window_id) if window_id == state.window().id() => {
+        // ... with the other WindowEvents
+        WindowEvent::RedrawRequested(window_id) if window_id == state.window().id() => {
             state.update();
             match state.render() {
                 Ok(_) => {}
@@ -486,7 +478,9 @@ event_loop.run(move |event, _, control_flow| {
                 Err(e) => eprintln!("{:?}", e),
             }
         }
-        Event::MainEventsCleared => {
+
+        // ... at the end of the WindowEvent block
+        Event::AboutToWait => {
             // RedrawRequested will only trigger once unless we manually
             // request it.
             state.window().request_redraw();
