@@ -208,6 +208,7 @@ let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescrip
         module: &shader,
         entry_point: "vs_main", // 1.
         buffers: &[], // 2.
+        compilation_options: wgpu::PipelineCompilationOptions::default(),
     },
     fragment: Some(wgpu::FragmentState { // 3.
         module: &shader,
@@ -217,6 +218,7 @@ let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescrip
             blend: Some(wgpu::BlendState::REPLACE),
             write_mask: wgpu::ColorWrites::ALL,
         })],
+        compilation_options: wgpu::PipelineCompilationOptions::default(),
     }),
     // continued ...
 ```
