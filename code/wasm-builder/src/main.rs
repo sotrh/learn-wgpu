@@ -1,6 +1,6 @@
 use std::{
     path::PathBuf,
-    process::{Command, ExitStatus},
+    process::Command,
 };
 
 use anyhow::bail;

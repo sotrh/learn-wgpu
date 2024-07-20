@@ -63,6 +63,7 @@ impl<'a> Display<'a> {
                     } else {
                         wgpu::Limits::default()
                     },
+                    memory_hints: Default::default(),
                 },
                 None,
             )

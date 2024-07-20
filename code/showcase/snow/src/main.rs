@@ -153,6 +153,8 @@ impl framework::Demo for Snow {
                     layout: Some(&move_pipeline_layout),
                     module: &shader,
                     entry_point: "move_particles",
+                    compilation_options: Default::default(),
+                    cache: None,
                 });
 
         let camera = Camera::new(glam::vec3(0.0, 0.0, 0.0), 0.0, 0.0);
@@ -221,6 +223,7 @@ impl framework::Demo for Snow {
                         module: &shader,
                         entry_point: "vs_main",
                         buffers: &[PARTICLE_LAYOUT],
+                        compilation_options: Default::default(),
                     },
                     primitive: wgpu::PrimitiveState {
                         topology: wgpu::PrimitiveTopology::PointList,
@@ -236,8 +239,11 @@ impl framework::Demo for Snow {
                             blend: Some(wgpu::BlendState::REPLACE),
                             write_mask: wgpu::ColorWrites::ALL,
                         })],
+                        compilation_options: Default::default(),
+
                     }),
                     multiview: None,
+                    cache: None,
                 });
 
         Ok(Self {

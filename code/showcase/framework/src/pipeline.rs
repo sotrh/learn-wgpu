@@ -218,11 +218,13 @@ impl<'a> RenderPipelineBuilder<'a> {
                 module: &vs,
                 entry_point: "main",
                 buffers: &self.vertex_buffers,
+                compilation_options: Default::default(),
             },
             fragment: Some(wgpu::FragmentState {
                 module: &fs,
                 entry_point: "main",
                 targets: &self.color_states,
+                compilation_options: Default::default(),
             }),
             primitive: wgpu::PrimitiveState {
                 topology: self.primitive_topology,
@@ -239,6 +241,7 @@ impl<'a> RenderPipelineBuilder<'a> {
                 alpha_to_coverage_enabled: self.alpha_to_coverage_enabled,
             },
             multiview: self.multiview,
+            cache: None,
         });
         Ok(pipeline)
     }

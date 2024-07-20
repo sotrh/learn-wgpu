@@ -1,12 +1,15 @@
 # The Pipeline
 
 ## What's a pipeline?
+
 If you're familiar with OpenGL, you may remember using shader programs. You can think of a pipeline as a more robust version of that. A pipeline describes all the actions the GPU will perform when acting on a set of data. In this section, we will be creating a `RenderPipeline` specifically.
 
 ## Wait, shaders?
+
 Shaders are mini-programs that you send to the GPU to perform operations on your data. There are three main types of shaders: vertex, fragment, and compute. There are others, such as geometry shaders or tesselation shaders, but they're not supported by WebGL. They should be avoided in general ([see discussions](https://community.khronos.org/t/does-the-use-of-geometric-shaders-significantly-reduce-performance/106326)). For now, we're just going to use vertex and fragment shaders.
 
 ## Vertex, fragment... what are those?
+
 A vertex is a point in 3D space (can also be 2D). These vertices are then bundled in groups of 2s to form lines and/or 3s to form triangles.
 
 <img alt="Vertices Graphic" src="./tutorial3-pipeline-vertices.png" />
@@ -41,6 +44,7 @@ The WGSL spec and its inclusion in WGPU are still in development. If you run int
 </div>
 
 ## Writing the shaders
+
 In the same folder as `main.rs`, create a file `shader.wgsl`. Write the following code in `shader.wgsl`.
 
 ```wgsl
@@ -152,6 +156,7 @@ fn vs_main(
 </div>
 
 ## How do we use the shaders?
+
 This is the part where we finally make the thing in the title: the pipeline. First, let's modify `State` to include the following.
 
 ```rust
@@ -185,7 +190,6 @@ let shader = device.create_shader_module(wgpu::include_wgsl!("shader.wgsl"));
 ```
 
 </div>
-
 
 One more thing, we need to create a `PipelineLayout`. We'll get more into this after we cover `Buffer`s.
 
@@ -224,6 +228,7 @@ let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescrip
 ```
 
 Several things to note here:
+
 1. Here you can specify which function inside the shader should be the `entry_point`. These are the functions we marked with `@vertex` and `@fragment`
 2. The `buffers` field tells `wgpu` what type of vertices we want to pass to the vertex shader. We're specifying the vertices in the vertex shader itself, so we'll leave this empty. We'll put something there in the next tutorial.
 3. The `fragment` is technically optional, so you have to wrap it in `Some()`. We need it if we want to store color data to the `surface`.
@@ -258,15 +263,18 @@ The `primitive` field describes how to interpret our vertices when converting th
         alpha_to_coverage_enabled: false, // 4.
     },
     multiview: None, // 5.
+    cache: None, // 6.
 });
 ```
 
 The rest of the method is pretty simple:
+
 1. We're not using a depth/stencil buffer currently, so we leave `depth_stencil` as `None`. *This will change later*.
 2. `count` determines how many samples the pipeline will use. Multisampling is a complex topic, so we won't get into it here.
 3. `mask` specifies which samples should be active. In this case, we are using all of them.
 4. `alpha_to_coverage_enabled` has to do with anti-aliasing. We're not covering anti-aliasing here, so we'll leave this as false now.
 5. `multiview` indicates how many array layers the render attachments can have. We won't be rendering to array textures, so we can set this to `None`.
+6. `cache` allows wgpu to cache shader compilation data. Only really useful for Android build targets.
 
 <!-- https://gamedev.stackexchange.com/questions/22507/what-is-the-alphatocoverage-blend-state-useful-for -->
 
@@ -284,6 +292,7 @@ Self {
     render_pipeline,
 }
 ```
+
 ## Using a pipeline
 
 If you run your program now, it'll take a little longer to start, but it will still show the blue screen we got in the last section. That's because we created the `render_pipeline`, but we still need to modify the code in `render()` to actually use it.
@@ -325,6 +334,7 @@ If you run your program now, it'll take a little longer to start, but it will st
 ```
 
 We didn't change much, but let's talk about what we did change.
+
 1. We renamed `_render_pass` to `render_pass` and made it mutable.
 2. We set the pipeline on the `render_pass` using the one we just created.
 3. We tell `wgpu` to draw *something* with three vertices and one instance. This is where `@builtin(vertex_index)` comes from.
@@ -333,10 +343,9 @@ With all that you should be seeing a lovely brown triangle.
 
 ![Said lovely brown triangle](./tutorial3-pipeline-triangle.png)
 
-
 ## Challenge
-Create a second pipeline that uses the triangle's position data to create a color that it then sends to the fragment shader. Have the app swap between these when you press the spacebar. *Hint: you'll need to modify* `VertexOutput`
 
+Create a second pipeline that uses the triangle's position data to create a color that it then sends to the fragment shader. Have the app swap between these when you press the spacebar. *Hint: you'll need to modify* `VertexOutput`
 
 <WasmExample example="tutorial3_pipeline"></WasmExample>
 

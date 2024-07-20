@@ -87,6 +87,7 @@ pub enum Event {
     ButtonPressed,
     FocusChanged,
     BallBounce(cgmath::Vector2<f32>),
+    #[allow(unused)]
     Score(u32),
     Resize(f32, f32),
 }

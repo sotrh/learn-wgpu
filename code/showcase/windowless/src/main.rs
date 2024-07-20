@@ -93,6 +93,7 @@ async fn run() {
             module: &vs_module,
             entry_point: "main",
             buffers: &[],
+            compilation_options: Default::default(),
         },
         fragment: Some(wgpu::FragmentState {
             module: &fs_module,
@@ -105,6 +106,7 @@ async fn run() {
                 }),
                 write_mask: wgpu::ColorWrites::ALL,
             })],
+            compilation_options: Default::default(),
         }),
         primitive: wgpu::PrimitiveState {
             topology: wgpu::PrimitiveTopology::TriangleList,
@@ -127,6 +129,7 @@ async fn run() {
         // If the pipeline will be used with a multiview render pass, this
         // indicates how many array layers the attachments will have.
         multiview: None,
+        cache: None,
     });
 
     let mut encoder =

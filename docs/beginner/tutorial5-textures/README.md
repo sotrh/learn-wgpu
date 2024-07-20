@@ -450,8 +450,8 @@ winit = { version = "0.29", features = ["rwh_05"] }
 env_logger = "0.10"
 log = "0.4"
 pollster = "0.3"
-wgpu = "0.19"
-bytemuck = { version = "1.12", features = [ "derive" ] }
+wgpu = "22.0"
+bytemuck = { version = "1.16", features = [ "derive" ] }
 anyhow = "1.0" # NEW!
 ```
 
@@ -462,6 +462,7 @@ use image::GenericImageView;
 use anyhow::*;
 
 pub struct Texture {
+    #[allow(unused)]
     pub texture: wgpu::Texture,
     pub view: wgpu::TextureView,
     pub sampler: wgpu::Sampler,

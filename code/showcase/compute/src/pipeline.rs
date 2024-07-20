@@ -55,6 +55,7 @@ pub fn create_render_pipeline(
             module: &vs_module,
             entry_point: "main",
             buffers: vertex_layouts,
+            compilation_options: Default::default(),
         },
         fragment: Some(wgpu::FragmentState {
             module: &fs_module,
@@ -64,6 +65,7 @@ pub fn create_render_pipeline(
                 blend: None,
                 write_mask: wgpu::ColorWrites::ALL,
             })],
+            compilation_options: Default::default(),
         }),
         primitive: wgpu::PrimitiveState {
             topology: wgpu::PrimitiveTopology::TriangleList,
@@ -90,6 +92,7 @@ pub fn create_render_pipeline(
         // If the pipeline will be used with a multiview render pass, this
         // indicates how many array layers the attachments will have.
         multiview: None,
+        cache: None,
     })
 }
 
@@ -109,6 +112,8 @@ pub fn create_compute_pipeline(
         layout: Some(&layout),
         module: &device.create_shader_module(shader_src),
         entry_point: "main",
+        cache: None,
+        compilation_options: Default::default(),
     });
     pipeline
 }

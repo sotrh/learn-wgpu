@@ -13,8 +13,18 @@ For the beginner stuff, we're going to keep things very simple. We'll add things
 winit = { version = "0.29", features = ["rwh_05"] }
 env_logger = "0.10"
 log = "0.4"
-wgpu = "0.19.3"
+wgpu = "22.0"
 ```
+
+<div class="warning">
+
+Note that we are using version `0.29` of winit. This is not the most recent version.
+The reason for this is version `0.30` and beyond include breaking changes that will
+require a lot of code changes. I've created a local branch to mess around with it, but
+there's a work around on the [tracking issue](https://github.com/sotrh/learn-wgpu/issues/549)
+if you absolutely need the latest version of winit.
+
+</div>
 
 ## Using Rust's new resolver
 
@@ -117,7 +127,7 @@ cfg-if = "1"
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 console_error_panic_hook = "0.1.6"
 console_log = "1.0"
-wgpu = { version = "0.19", features = ["webgl"]}
+wgpu = { version = "22.0", features = ["webgl"]}
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4.30"
 web-sys = { version = "0.3", features = [
