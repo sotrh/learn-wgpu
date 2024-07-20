@@ -126,6 +126,7 @@ impl CameraController {
         self.rotate_vertical = mouse_dy as f32;
     }
 
+    #[allow(unused)]
     pub fn process_scroll(&mut self, delta: &MouseScrollDelta) {
         self.scroll = match delta {
             // I'm assuming a line is about 100 pixels

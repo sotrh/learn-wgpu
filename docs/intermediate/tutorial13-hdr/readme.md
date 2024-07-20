@@ -492,7 +492,7 @@ You may have noted that we have switched from `downlevel_webgl2_defaults()` to `
 Consequently, we are going to remove the WebGL feature from `Cargo.toml`. This line in particular:
 
 ```toml
-wgpu = { version = "0.19", features = ["webgl"]}
+wgpu = { version = "22.0", features = ["webgl"]}
 ```
 
 </div>
@@ -548,6 +548,8 @@ impl HdrLoader {
                 layout: Some(&pipeline_layout),
                 module: &module,
                 entry_point: "compute_equirect_to_cubemap",
+                compilation_options: Default::default(),
+                cache: None,
             });
 
         Self {

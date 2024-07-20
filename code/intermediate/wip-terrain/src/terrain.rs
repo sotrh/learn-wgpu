@@ -12,7 +12,9 @@ struct ChunkData {
 
 pub struct Terrain {
     chunks: Vec<Chunk>,
+    #[allow(unused)]
     chunk_size: cgmath::Vector2<u32>,
+    #[allow(unused)]
     min_max_height: cgmath::Vector2<f32>,
 }
 
@@ -127,6 +129,8 @@ impl TerrainPipeline {
             layout: Some(&pipeline_layout),
             module: &shader,
             entry_point: "gen_terrain_compute",
+            compilation_options: Default::default(),
+            cache: None,
         });
 
         let render_pipeline_layout =
@@ -291,6 +295,7 @@ impl GenerateChunk for TerrainPipeline {
 
 #[repr(C)]
 #[derive(Debug, Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
+#[allow(unused)]
 struct GenData {
     chunk_size: [u32; 2],
     chunk_corner: [i32; 2],
@@ -302,6 +307,7 @@ struct GenData {
 }
 
 impl GenData {
+    #[allow(unused)]
     pub fn new(
         texture_size: u32,
         start_index: u32,

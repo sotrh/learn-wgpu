@@ -3,6 +3,7 @@ use image::GenericImageView;
 use std::path::Path;
 
 pub struct Texture {
+    #[allow(unused)]
     pub texture: wgpu::Texture,
     pub view: wgpu::TextureView,
     pub sampler: wgpu::Sampler,

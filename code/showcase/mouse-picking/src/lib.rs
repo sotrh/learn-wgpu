@@ -182,6 +182,7 @@ fn create_render_pipeline(
             module: &shader,
             entry_point: "vs_main",
             buffers: vertex_layouts,
+            compilation_options: Default::default(),
         },
         fragment: Some(wgpu::FragmentState {
             module: &shader,
@@ -194,6 +195,7 @@ fn create_render_pipeline(
                 }),
                 write_mask: wgpu::ColorWrites::ALL,
             })],
+            compilation_options: Default::default(),
         }),
         primitive: wgpu::PrimitiveState {
             topology: wgpu::PrimitiveTopology::TriangleList,
@@ -222,6 +224,7 @@ fn create_render_pipeline(
         // If the pipeline will be used with a multiview render pass, this
         // indicates how many array layers the attachments will have.
         multiview: None,
+        cache: None,
     })
 }
 
@@ -261,6 +264,7 @@ impl<'a> State<'a> {
                     } else {
                         wgpu::Limits::default()
                     },
+                    memory_hints: Default::default(),
                 },
                 None, // Trace path
             )

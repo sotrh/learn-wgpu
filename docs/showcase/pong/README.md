@@ -2,6 +2,15 @@
 
 ![A screenshot of pong](./pong.png)
 
+<div class="warning">
+
+This example is not working as of `wgpu = "22.0"`. If the crate updates to
+the latest version I'll switch it over, but given that the crate maintainer
+is directing users to use [glypon](https://github.com/grovesNL/glyphon?tab=readme-ov-file)
+I'm considering either switching to using that, or writing my own text code.
+
+</div>
+
 Practically the "Hello World!" of games. Pong has been remade thousands of times. I know Pong. You know Pong. We all know Pong. That being said, this time I wanted to put in a little more effort than most people do. This showcase has a basic menu system, sounds, and different game states.
 
 The architecture is not the best as I prescribed to the "get things done" mentality. If I were to redo this project, I'd change a lot of things. Regardless, let's get into the postmortem.
@@ -265,10 +274,10 @@ cfg-if = "1"
 env_logger = "0.10"
 winit = { version = "0.29", features = ["rwh_05"] }
 anyhow = "1.0"
-bytemuck = { version = "1.12", features = [ "derive" ] }
+bytemuck = { version = "1.16", features = [ "derive" ] }
 cgmath = "0.18"
 pollster = "0.3"
-wgpu = { version = "0.19", features = ["spirv"]}
+wgpu = { version = "22.0", features = ["spirv"]}
 wgpu_glyph = "0.19"
 rand = "0.8"
 rodio = { version = "0.15", default-features = false, features = ["wav"] }
@@ -287,7 +296,7 @@ web-sys = { version = "0.3", features = [
     "Window",
     "Element",
 ]}
-wgpu = { version = "0.19", features = ["spirv", "webgl"]}
+wgpu = { version = "22.0", features = ["spirv", "webgl"]}
 
 [build-dependencies]
 anyhow = "1.0"
@@ -387,6 +396,6 @@ Everything else works the same.
 
 A fun project to work on. It was overly architected, and kinda hard to make changes, but a good experience nonetheless.
 
-Try the code down below! (Controls currently require a keyboard.)
+<!-- Try the code down below! (Controls currently require a keyboard.)
 
-<WasmExample example="pong"></WasmExample>
+<WasmExample example="pong"></WasmExample> -->

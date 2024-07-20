@@ -211,6 +211,7 @@ impl<'a> ShaderCanvasBuilder<'a> {
                 entry_point: "main",
                 module: &vert_module,
                 buffers: &[],
+                compilation_options: Default::default(),
             },
             fragment: Some(wgpu::FragmentState {
                 entry_point: "main",
@@ -223,6 +224,7 @@ impl<'a> ShaderCanvasBuilder<'a> {
                     }),
                     write_mask: wgpu::ColorWrites::ALL,
                 })],
+                compilation_options: Default::default(),
             }),
             primitive: wgpu::PrimitiveState {
                 topology: wgpu::PrimitiveTopology::TriangleList,
@@ -246,6 +248,8 @@ impl<'a> ShaderCanvasBuilder<'a> {
             // If the pipeline will be used with a multiview render pass, this
             // indicates how many array layers the attachments will have.
             multiview: None,
+            // Useful for optimizing shader compilation on Android
+            cache: None,
         });
 
         Ok(ShaderCanvas {

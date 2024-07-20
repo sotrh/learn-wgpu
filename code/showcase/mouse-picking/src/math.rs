@@ -1,9 +1,5 @@
 use cgmath::InnerSpace;
 
-fn vmul(a: cgmath::Vector3<f32>, b: cgmath::Vector3<f32>) -> cgmath::Vector3<f32> {
-    cgmath::Vector3::new(a.x * b.x, a.y * b.y, a.z * b.z)
-}
-
 pub struct BoundingBox {
     pub min: cgmath::Vector3<f32>,
     pub max: cgmath::Vector3<f32>,

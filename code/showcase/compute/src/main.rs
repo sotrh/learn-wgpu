@@ -195,6 +195,7 @@ impl<'a> State<'a> {
                     } else {
                         wgpu::Limits::default()
                     },
+                    memory_hints: Default::default(),
                 },
                 None, // Trace path
             )
