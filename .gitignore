@@ -13,6 +13,7 @@ output/
 secrets.txt
 tree.txt
 Chunk*
+debug-targets.json
 
 .yarn/*
 !.yarn/releases
