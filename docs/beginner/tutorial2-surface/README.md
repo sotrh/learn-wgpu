@@ -135,6 +135,7 @@ Let's use the `adapter` to create the device and queue.
                     wgpu::Limits::default()
                 },
                 label: None,
+                memory_hints: Default::default(),
             },
             None, // Trace path
         ).await.unwrap();
