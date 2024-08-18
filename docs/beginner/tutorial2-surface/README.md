@@ -129,12 +129,13 @@ Let's use the `adapter` to create the device and queue.
                 required_features: wgpu::Features::empty(),
                 // WebGL doesn't support all of wgpu's features, so if
                 // we're building for the web, we'll have to disable some.
-               required_limits: if cfg!(target_arch = "wasm32") {
+                required_limits: if cfg!(target_arch = "wasm32") {
                     wgpu::Limits::downlevel_webgl2_defaults()
                 } else {
                     wgpu::Limits::default()
                 },
                 label: None,
+                memory_hints: Default::default(),
             },
             None, // Trace path
         ).await.unwrap();
@@ -153,6 +154,8 @@ You can view a full list of features [here](https://docs.rs/wgpu/latest/wgpu/str
 </div>
 
 The `limits` field describes the limit of certain types of resources that we can create. We'll use the defaults for this tutorial so we can support most devices. You can view a list of limits [here](https://docs.rs/wgpu/latest/wgpu/struct.Limits.html).
+
+The `memory_hints` field provides the adapter with a preferred memory allocation strategy, if supproted. You can view the available options [here](https://wgpu.rs/doc/wgpu/enum.MemoryHints.html).
 
 ```rust
         let surface_caps = surface.get_capabilities(&adapter);
