@@ -477,7 +477,7 @@ let (device, queue) = adapter
             // UPDATED!
             features: wgpu::Features::all_webgpu_mask(),
             // UPDATED!
-           required_limits: wgpu::Limits::downlevel_defaults(),
+            required_limits: wgpu::Limits::downlevel_defaults(),
         },
         None, // Trace path
     )
