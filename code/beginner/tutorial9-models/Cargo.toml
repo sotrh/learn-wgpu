@@ -15,7 +15,7 @@ cgmath = "0.18"
 env_logger = "0.10"
 pollster = "0.3"
 log = "0.4"
-tobj = { version = "3.2", features = ["async"]}
+tobj = { version = "3.2", default-features = false, features = ["async"]}
 wgpu = "22.0"
 winit = { version = "0.29", features = ["rwh_05"] }
 

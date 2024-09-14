@@ -6,6 +6,7 @@ target/
 /image.png
 /output*.*
 output/
+debug-target.json
 
 /trace
 *trace.zip

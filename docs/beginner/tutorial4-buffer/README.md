@@ -425,6 +425,7 @@ render_pass.draw_indexed(0..self.num_indices, 0, 0..1); // 2.
 ```
 
 A couple of things to note:
+
 1. The method name is `set_index_buffer`, not `set_index_buffers`. You can only have one index buffer set at a time.
 2. When using an index buffer, you need to use `draw_indexed`. The `draw` method ignores the index buffer. Also, make sure you use the number of indices (`num_indices`), not vertices, as your model will either draw wrong or the method will `panic` because there are not enough indices.
 
