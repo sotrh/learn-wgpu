@@ -155,7 +155,7 @@ You can view a full list of features [here](https://docs.rs/wgpu/latest/wgpu/str
 
 The `limits` field describes the limit of certain types of resources that we can create. We'll use the defaults for this tutorial so we can support most devices. You can view a list of limits [here](https://docs.rs/wgpu/latest/wgpu/struct.Limits.html).
 
-The `memory_hints` field provides the adapter with a preferred memory allocation strategy, if supproted. You can view the available options [here](https://wgpu.rs/doc/wgpu/enum.MemoryHints.html).
+The `memory_hints` field provides the adapter with a preferred memory allocation strategy, if supported. You can view the available options [here](https://wgpu.rs/doc/wgpu/enum.MemoryHints.html).
 
 ```rust
         let surface_caps = surface.get_capabilities(&adapter);
