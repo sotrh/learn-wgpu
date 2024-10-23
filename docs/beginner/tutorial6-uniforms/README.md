@@ -395,10 +395,10 @@ impl CameraController {
         }
 
         if self.is_right_pressed {
-            camera.rotation.y += self.speed;
+            camera.rotation.y -= self.speed;
         }
         if self.is_left_pressed {
-            camera.rotation.y -= self.speed;
+            camera.rotation.y += self.speed;
         }
         if self.is_down_pressed {
             camera.rotation.x += self.speed;
