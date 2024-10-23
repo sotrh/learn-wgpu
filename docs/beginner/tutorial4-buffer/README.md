@@ -110,6 +110,7 @@ Self {
     queue,
     config,
     size,
+    window,
     render_pipeline,
     vertex_buffer,
 }
@@ -261,6 +262,8 @@ impl<'a> State<'a> {
             device,
             queue,
             config,
+            size,
+            window,
             render_pipeline,
             vertex_buffer,
             num_vertices,
@@ -389,6 +392,7 @@ struct State<'a> {
     queue: wgpu::Queue,
     config: wgpu::SurfaceConfiguration,
     size: winit::dpi::PhysicalSize<u32>,
+    window: &'a Window,
     render_pipeline: wgpu::RenderPipeline,
     vertex_buffer: wgpu::Buffer,
     // NEW!
@@ -406,6 +410,7 @@ Self {
     queue,
     config,
     size,
+    window,
     render_pipeline,
     vertex_buffer,
     // NEW!

@@ -49,12 +49,12 @@ Now, let's create the `Texture`:
 let texture_size = wgpu::Extent3d {
     width: dimensions.0,
     height: dimensions.1,
+    // All textures are stored as 3D, we represent our 2D texture
+    // by setting depth to 1.
     depth_or_array_layers: 1,
 };
 let diffuse_texture = device.create_texture(
     &wgpu::TextureDescriptor {
-        // All textures are stored as 3D, we represent our 2D texture
-        // by setting depth to 1.
         size: texture_size,
         mip_level_count: 1, // We'll talk about this a little later
         sample_count: 1,
@@ -248,6 +248,7 @@ struct State<'a> {
     queue: wgpu::Queue,
     config: wgpu::SurfaceConfiguration,
     size: winit::dpi::PhysicalSize<u32>,
+    window: &'a wgpu::Window,
     render_pipeline: wgpu::RenderPipeline,
     vertex_buffer: wgpu::Buffer,
     index_buffer: wgpu::Buffer,
@@ -268,6 +269,7 @@ impl<'a> State<'a> {
             queue,
             config,
             size,
+            window,
             render_pipeline,
             vertex_buffer,
             index_buffer,
@@ -534,7 +536,7 @@ impl Texture {
                 ..Default::default()
             }
         );
-        
+
         Ok(Self { texture, view, sampler })
     }
 }

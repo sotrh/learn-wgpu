@@ -167,6 +167,7 @@ struct State<'a> {
     queue: wgpu::Queue,
     config: wgpu::SurfaceConfiguration,
     size: winit::dpi::PhysicalSize<u32>,
+    window: &'a Window,
     // NEW!
     render_pipeline: wgpu::RenderPipeline,
 }
@@ -288,6 +289,7 @@ Self {
     queue,
     config,
     size,
+    window,
     // NEW!
     render_pipeline,
 }
