@@ -13,9 +13,6 @@ struct State<'a> {
     queue: wgpu::Queue,
     config: wgpu::SurfaceConfiguration,
     size: winit::dpi::PhysicalSize<u32>,
-    // The window must be declared after the surface so
-    // it gets dropped after it as the surface contains
-    // unsafe references to the window's resources.
     window: &'a Window,
 }
 
@@ -67,7 +64,7 @@ impl<'a> State<'a> {
             backends: wgpu::Backends::GL,
             ..Default::default()
         });
-        
+
         let surface = instance.create_surface(window).unwrap();
 
         let adapter = instance.request_adapter(
@@ -523,7 +520,7 @@ A `RenderPassDescriptor` only has three fields: `label`, `color_attachments` and
 
 <div class="note">
 
-The `color_attachments` field is a "sparse" array. This allows you to use a pipeline that expects multiple render targets and only supplies the ones you care about. 
+The `color_attachments` field is a "sparse" array. This allows you to use a pipeline that expects multiple render targets and only supplies the ones you care about.
 
 </div>
 
