@@ -212,12 +212,12 @@ Now that we've configured our surface properly, we can add these new fields at t
         // ...
 
         Self {
-            window,
             surface,
             device,
             queue,
             config,
             size,
+            window,
         }
     }
 ```
