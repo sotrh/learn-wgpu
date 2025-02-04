@@ -27,10 +27,19 @@ Decoding jpegs in WASM isn't very performant. If you want to speed up image load
 
 </div>
 
-In `State`'s `new()` method, add the following just after configuring the `surface`:
+In `State`'s `new()` method, add the following just after declaring the `config`:
 
 ```rust
-surface.configure(&device, &config);
+let config = wgpu::SurfaceConfiguration {
+    usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+    format: surface_format,
+    width: size.width,
+    height: size.height,
+    present_mode: surface_caps.present_modes[0],
+    alpha_mode: surface_caps.alpha_modes[0],
+    view_formats: vec![],
+    desired_maximum_frame_latency: 2,
+};
 // NEW!
 
 let diffuse_bytes = include_bytes!("happy-tree.png");
