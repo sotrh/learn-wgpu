@@ -12,7 +12,7 @@ members = [
     # showcase
     "code/showcase/*",
 
-    "run-wasm",
+    "run-wasm", "demo_server",
 ]
 exclude = [
     "code/showcase/imgui-demo",
