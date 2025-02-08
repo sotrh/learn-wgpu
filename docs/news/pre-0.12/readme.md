@@ -99,9 +99,9 @@ The `wgpu_glyph`, and `imgui-wgpu` crates currently depend on `wgpu` 0.7, which 
 * `adapter.get_preferred_format()` now returns an `Option<wgpu::TextureFormat>`
 * `wgpu::RenderPassColorAttachmentDescriptor` has been renamed `wgpu::RenderPassColorAttachement` and the `attachment` field has been renamed to `view`
 * `wgpu::RenderPassDepthStencialAttachmentDescriptor` also loses the `Descriptor` part of it's name. `attachment` gets renamed to `view` as well.
-* `wgpu::TextureCopyView` has been renamed to `wgpu::ImageCopyTexture`. This is a typedef for `wgpu::ImageCopyTextureBase<T>`
-* `wgpu::TextureDataLayout` is now `wgpu::ImageDataLayout` and it's `bytes_per_row` and `rows_per_image` now take `NonZeroU32`.
-* `wgpu::ImageCopyBuffer` is now `wgpu::ImageCopyBuffer`.
+* `wgpu::TextureCopyView` has been renamed to `wgpu::TexelCopyTextureInfo`. This is a typedef for `wgpu::TexelCopyTextureInfoBase<T>`
+* `wgpu::TextureDataLayout` is now `wgpu::TexelCopyBufferLayout` and it's `bytes_per_row` and `rows_per_image` now take `NonZeroU32`.
+* `wgpu::TexelCopyBufferInfo` is now `wgpu::TexelCopyBufferInfo`.
 
 ## 0.7
 

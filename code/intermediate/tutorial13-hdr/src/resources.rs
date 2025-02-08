@@ -266,7 +266,7 @@ impl HdrLoader {
                 label: Some("equirect_to_cubemap"),
                 layout: Some(&pipeline_layout),
                 module: &module,
-                entry_point: "compute_equirect_to_cubemap",
+                entry_point: Some("compute_equirect_to_cubemap"),
                 compilation_options: Default::default(),
                 cache: None,
             });
@@ -322,14 +322,14 @@ impl HdrLoader {
         );
 
         queue.write_texture(
-            wgpu::ImageCopyTexture {
+            wgpu::TexelCopyTextureInfo {
                 texture: &src.texture,
                 mip_level: 0,
                 origin: wgpu::Origin3d::ZERO,
                 aspect: wgpu::TextureAspect::All,
             },
             &bytemuck::cast_slice(&pixels),
-            wgpu::ImageDataLayout {
+            wgpu::TexelCopyBufferLayout {
                 offset: 0,
                 bytes_per_row: Some(src.size.width * std::mem::size_of::<[f32; 4]>() as u32),
                 rows_per_image: Some(src.size.height),

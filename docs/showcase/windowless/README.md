@@ -100,7 +100,7 @@ Update dependencies to support SPIR-V module.
 [dependencies]
 image = "0.23"
 shaderc = "0.7"
-wgpu = { version = "22.0", features = ["spirv"] }
+wgpu = { version = "24.0", features = ["spirv"] }
 pollster = "0.3"
 ```
 
@@ -152,12 +152,12 @@ let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescrip
     layout: Some(&render_pipeline_layout),
     vertex: wgpu::VertexState {
         module: &vs_module,
-        entry_point: "main",
+        entry_point: Some("main"),
         buffers: &[],
     },
     fragment: Some(wgpu::FragmentState {
         module: &fs_module,
-        entry_point: "main",
+        entry_point: Some("main"),
         targets: &[Some(wgpu::ColorTargetState {
             format: texture_desc.format,
             alpha_blend: wgpu::BlendState::REPLACE,
@@ -224,15 +224,15 @@ There's not much we can do with the data when it's stuck in a `Texture`, so let'
 
 ```rust
 encoder.copy_texture_to_buffer(
-    wgpu::ImageCopyTexture {
+    wgpu::TexelCopyTextureInfo {
         aspect: wgpu::TextureAspect::All,
                 texture: &texture,
         mip_level: 0,
         origin: wgpu::Origin3d::ZERO,
     },
-    wgpu::ImageCopyBuffer {
+    wgpu::TexelCopyBufferInfo {
         buffer: &output_buffer,
-        layout: wgpu::ImageDataLayout {
+        layout: wgpu::TexelCopyBufferLayout {
             offset: 0,
             bytes_per_row: u32_size * texture_size,
             rows_per_image: texture_size,

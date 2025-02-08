@@ -35,7 +35,7 @@ pub struct Display<'a> {
 impl<'a> Display<'a> {
     pub async fn new(window: &'a Window) -> Result<Display<'a>, Error> {
         let size = window.inner_size();
-        let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
+        let instance = wgpu::Instance::new(&wgpu::InstanceDescriptor {
             #[cfg(not(target_arch = "wasm32"))]
             backends: wgpu::Backends::PRIMARY,
             #[cfg(target_arch = "wasm32")]

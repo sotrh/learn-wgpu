@@ -1,5 +1,5 @@
 async fn run() {
-    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
+    let instance = wgpu::Instance::new(&wgpu::InstanceDescriptor {
         backends: wgpu::Backends::all(),
         ..Default::default()
     });
@@ -91,13 +91,13 @@ async fn run() {
         layout: Some(&render_pipeline_layout),
         vertex: wgpu::VertexState {
             module: &vs_module,
-            entry_point: "main",
+            entry_point: Some("main"),
             buffers: &[],
             compilation_options: Default::default(),
         },
         fragment: Some(wgpu::FragmentState {
             module: &fs_module,
-            entry_point: "main",
+            entry_point: Some("main"),
             targets: &[Some(wgpu::ColorTargetState {
                 format: texture_desc.format,
                 blend: Some(wgpu::BlendState {
@@ -162,15 +162,15 @@ async fn run() {
     }
 
     encoder.copy_texture_to_buffer(
-        wgpu::ImageCopyTexture {
+        wgpu::TexelCopyTextureInfo {
             aspect: wgpu::TextureAspect::All,
             texture: &texture,
             mip_level: 0,
             origin: wgpu::Origin3d::ZERO,
         },
-        wgpu::ImageCopyBuffer {
+        wgpu::TexelCopyBufferInfo {
             buffer: &output_buffer,
-            layout: wgpu::ImageDataLayout {
+            layout: wgpu::TexelCopyBufferLayout {
                 offset: 0,
                 bytes_per_row: Some(u32_size * texture_size),
                 rows_per_image: Some(texture_size),

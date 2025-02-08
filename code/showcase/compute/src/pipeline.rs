@@ -53,13 +53,13 @@ pub fn create_render_pipeline(
         layout: Some(layout),
         vertex: wgpu::VertexState {
             module: &vs_module,
-            entry_point: "main",
+            entry_point: Some("main"),
             buffers: vertex_layouts,
             compilation_options: Default::default(),
         },
         fragment: Some(wgpu::FragmentState {
             module: &fs_module,
-            entry_point: "main",
+            entry_point: Some("main"),
             targets: &[Some(wgpu::ColorTargetState {
                 format: color_format,
                 blend: None,
@@ -111,7 +111,7 @@ pub fn create_compute_pipeline(
         label,
         layout: Some(&layout),
         module: &device.create_shader_module(shader_src),
-        entry_point: "main",
+        entry_point: Some("main"),
         cache: None,
         compilation_options: Default::default(),
     });

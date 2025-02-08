@@ -208,13 +208,13 @@ impl<'a> ShaderCanvasBuilder<'a> {
             label: self.label,
             layout: Some(&pipeline_layout),
             vertex: wgpu::VertexState {
-                entry_point: "main",
+                entry_point: Some("main"),
                 module: &vert_module,
                 buffers: &[],
                 compilation_options: Default::default(),
             },
             fragment: Some(wgpu::FragmentState {
-                entry_point: "main",
+                entry_point: Some("main"),
                 module: &frag_module,
                 targets: &[Some(wgpu::ColorTargetState {
                     format: display_format,

@@ -128,7 +128,7 @@ impl TerrainPipeline {
             label: Some("TerrainPipeline::ComputePipeline"),
             layout: Some(&pipeline_layout),
             module: &shader,
-            entry_point: "gen_terrain_compute",
+            entry_point: Some("gen_terrain_compute"),
             compilation_options: Default::default(),
             cache: None,
         });

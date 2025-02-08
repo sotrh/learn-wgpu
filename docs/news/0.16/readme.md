@@ -4,14 +4,14 @@ Very few changes here! We no longer need to use `NonZeroU32` and the like, inste
 
 ```rust
 queue.write_texture(
-    wgpu::ImageCopyTexture {
+    wgpu::TexelCopyTextureInfo {
         aspect: wgpu::TextureAspect::All,
         texture: &texture,
         mip_level: 0,
         origin: wgpu::Origin3d::ZERO,
     },
     &rgba,
-    wgpu::ImageDataLayout {
+    wgpu::TexelCopyBufferLayout {
         offset: 0,
         // bytes_per_row: NonZeroU32::new(4 * dimensions.0),
         bytes_per_row: Some(4 * dimensions.0),
@@ -29,7 +29,7 @@ In other news WebGPU has been added to Chrome 113 and up! Currently the Linux ve
 reqwest = { version = "0.11" }
 console_error_panic_hook = "0.1"
 console_log = "1.0"
-# wgpu = { version = "22.0", features = ["webgl"]}
+# wgpu = { version = "24.0", features = ["webgl"]}
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
 web-sys = { version = "0.3", features = [

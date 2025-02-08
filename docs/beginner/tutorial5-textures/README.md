@@ -84,7 +84,7 @@ The `Texture` struct has no methods to interact with the data directly. However,
 ```rust
 queue.write_texture(
     // Tells wgpu where to copy the pixel data
-    wgpu::ImageCopyTexture {
+    wgpu::TexelCopyTextureInfo {
         texture: &diffuse_texture,
         mip_level: 0,
         origin: wgpu::Origin3d::ZERO,
@@ -93,7 +93,7 @@ queue.write_texture(
     // The actual pixel data
     &diffuse_rgba,
     // The layout of the texture
-    wgpu::ImageDataLayout {
+    wgpu::TexelCopyBufferLayout {
         offset: 0,
         bytes_per_row: Some(4 * dimensions.0),
         rows_per_image: Some(dimensions.1),
@@ -120,13 +120,13 @@ let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor 
 });
 
 encoder.copy_buffer_to_texture(
-    wgpu::ImageCopyBuffer {
+    wgpu::TexelCopyBufferInfo {
         buffer: &buffer,
         offset: 0,
         bytes_per_row: 4 * dimensions.0,
         rows_per_image: dimensions.1,
     },
-    wgpu::ImageCopyTexture {
+    wgpu::TexelCopyTextureInfo {
         texture: &diffuse_texture,
         mip_level: 0,
         array_layer: 0,
@@ -452,7 +452,7 @@ winit = { version = "0.29", features = ["rwh_05"] }
 env_logger = "0.10"
 log = "0.4"
 pollster = "0.3"
-wgpu = "22.0"
+wgpu = "24.0"
 bytemuck = { version = "1.16", features = [ "derive" ] }
 anyhow = "1.0" # NEW!
 ```
@@ -509,14 +509,14 @@ impl Texture {
         );
 
         queue.write_texture(
-            wgpu::ImageCopyTexture {
+            wgpu::TexelCopyTextureInfo {
                 aspect: wgpu::TextureAspect::All,
                 texture: &texture,
                 mip_level: 0,
                 origin: wgpu::Origin3d::ZERO,
             },
             &rgba,
-            wgpu::ImageDataLayout {
+            wgpu::TexelCopyBufferLayout {
                 offset: 0,
                 bytes_per_row: Some(4 * dimensions.0),
                 rows_per_image: Some(dimensions.1),

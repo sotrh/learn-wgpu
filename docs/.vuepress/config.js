@@ -60,6 +60,7 @@ module.exports = {
                 title: 'News',
                 collapsable: true,
                 children: [
+                    '/news/24.0/',
                     '/news/22.0/',
                     '/news/0.18 and hdr/',
                     '/news/0.17/',

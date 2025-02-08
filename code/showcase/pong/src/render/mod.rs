@@ -40,7 +40,7 @@ impl<'a> Render<'a> {
         log::warn!("size: {:?}", size);
         // The instance is a handle to our GPU
         // BackendBit::PRIMARY => Vulkan + Metal + DX12 + Browser WebGPU
-        let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
+        let instance = wgpu::Instance::new(&wgpu::InstanceDescriptor {
             #[cfg(not(target_arch = "wasm32"))]
             backends: wgpu::Backends::PRIMARY,
             #[cfg(target_arch = "wasm32")]
@@ -274,13 +274,13 @@ fn create_render_pipeline(
         layout: Some(layout),
         vertex: wgpu::VertexState {
             module: &vs_module,
-            entry_point: "main",
+            entry_point: Some("main"),
             buffers: &vertex_layouts,
             compilation_options: Default::default(),
         },
         fragment: Some(wgpu::FragmentState {
             module: &fs_module,
-            entry_point: "main",
+            entry_point: Some("main"),
             targets: &[Some(wgpu::ColorTargetState {
                 format: color_format,
                 blend: Some(wgpu::BlendState {

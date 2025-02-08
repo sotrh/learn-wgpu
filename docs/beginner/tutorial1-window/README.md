@@ -13,7 +13,7 @@ For the beginner stuff, we're going to keep things very simple. We'll add things
 winit = { version = "0.29", features = ["rwh_05"] }
 env_logger = "0.10"
 log = "0.4"
-wgpu = "22.0"
+wgpu = "24.0"
 ```
 
 <div class="warning">
@@ -120,6 +120,10 @@ Web Assembly, i.e. WASM, is a binary format supported by most modern browsers th
 Now, all we need are some more dependencies that are specific to running in WASM:
 
 ```toml
+# This should go in the Cargo.toml in the root directory
+[profile.release]
+strip = true
+
 [dependencies]
 cfg-if = "1"
 # the other regular dependencies...
@@ -127,7 +131,7 @@ cfg-if = "1"
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 console_error_panic_hook = "0.1.6"
 console_log = "1.0"
-wgpu = { version = "22.0", features = ["webgl"]}
+wgpu = { version = "24.0", features = ["webgl"]}
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4.30"
 web-sys = { version = "0.3", features = [

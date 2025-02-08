@@ -295,13 +295,13 @@ fn create_render_pipeline(
         layout: Some(layout),
         vertex: wgpu::VertexState {
             module: &shader,
-            entry_point: "vs_main",
+            entry_point: Some("vs_main"),
             buffers: vertex_layouts,
             compilation_options: Default::default(),
         },
         fragment: Some(wgpu::FragmentState {
             module: &shader,
-            entry_point: "fs_main",
+            entry_point: Some("fs_main"),
             targets: &[Some(wgpu::ColorTargetState {
                 format: color_format,
                 blend: Some(wgpu::BlendState {
@@ -349,7 +349,7 @@ impl<'a> State<'a> {
 
         // The instance is a handle to our GPU
         // BackendBit::PRIMARY => Vulkan + Metal + DX12 + Browser WebGPU
-        let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
+        let instance = wgpu::Instance::new(&wgpu::InstanceDescriptor {
             #[cfg(not(target_arch = "wasm32"))]
             backends: wgpu::Backends::PRIMARY,
             #[cfg(target_arch = "wasm32")]
@@ -856,7 +856,7 @@ pub async fn run() {
                                         wgpu::SurfaceError::Lost | wgpu::SurfaceError::Outdated,
                                     ) => state.resize(state.size),
                                     // The system is out of memory, we should probably quit
-                                    Err(wgpu::SurfaceError::OutOfMemory) => {
+                                    Err(wgpu::SurfaceError::OutOfMemory | wgpu::SurfaceError::Other) => {
                                         log::error!("OutOfMemory");
                                         control_flow.exit();
                                     }

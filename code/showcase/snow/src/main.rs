@@ -152,7 +152,7 @@ impl framework::Demo for Snow {
                     label: None,
                     layout: Some(&move_pipeline_layout),
                     module: &shader,
-                    entry_point: "move_particles",
+                    entry_point: Some("move_particles"),
                     compilation_options: Default::default(),
                     cache: None,
                 });
@@ -221,7 +221,7 @@ impl framework::Demo for Snow {
                     layout: Some(&draw_particles_layout),
                     vertex: wgpu::VertexState {
                         module: &shader,
-                        entry_point: "vs_main",
+                        entry_point: Some("vs_main"),
                         buffers: &[PARTICLE_LAYOUT],
                         compilation_options: Default::default(),
                     },
@@ -233,7 +233,7 @@ impl framework::Demo for Snow {
                     multisample: Default::default(),
                     fragment: Some(wgpu::FragmentState {
                         module: &shader,
-                        entry_point: "fs_main",
+                        entry_point: Some("fs_main"),
                         targets: &[Some(wgpu::ColorTargetState {
                             format: display.config.format,
                             blend: Some(wgpu::BlendState::REPLACE),
