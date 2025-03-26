@@ -3450,32 +3450,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "tutorial13-terrain"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "bytemuck",
- "cfg-if",
- "cgmath",
- "console_error_panic_hook",
- "console_log",
- "env_logger 0.10.0",
- "fs_extra",
- "glob",
- "image",
- "instant",
- "log 0.4.22",
- "pollster",
- "reqwest",
- "tobj 3.2.3",
- "wasm-bindgen",
- "wasm-bindgen-futures",
- "web-sys",
- "wgpu",
- "winit",
-]
-
-[[package]]
 name = "tutorial2-surface"
 version = "0.1.0"
 dependencies = [
@@ -4672,6 +4646,32 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "80d0f4e272c85def139476380b12f9ac60926689dd2e01d4923222f40580869d"
 dependencies = [
  "winapi",
+]
+
+[[package]]
+name = "wip-terrain"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bytemuck",
+ "cfg-if",
+ "cgmath",
+ "console_error_panic_hook",
+ "console_log",
+ "env_logger 0.10.0",
+ "fs_extra",
+ "glob",
+ "image",
+ "instant",
+ "log 0.4.22",
+ "pollster",
+ "reqwest",
+ "tobj 3.2.3",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
+ "wgpu",
+ "winit",
 ]
 
 [[package]]

@@ -1,5 +1,5 @@
 [package]
-name = "tutorial13-terrain"
+name = "wip-terrain"
 version = "0.1.0"
 authors = ["Ben Hansen <https://github.com/sotrh>"]
 edition = "2018"
