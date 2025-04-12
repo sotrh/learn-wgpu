@@ -133,8 +133,8 @@ Let's use the `adapter` to create the device and queue.
                 },
                 label: None,
                 memory_hints: Default::default(),
+                trace: wgpu::Trace::Off,
             },
-            None, // Trace path
         ).await.unwrap();
 ```
 
