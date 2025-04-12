@@ -284,9 +284,8 @@ impl<'a> State<'a> {
                         wgpu::Limits::default()
                     },
                     memory_hints: Default::default(),
-                },
-                // Some(&std::path::Path::new("trace")), // Trace path
-                None, // Trace path
+                    trace: wgpu::Trace::Off,
+                }
             )
             .await
             .unwrap();

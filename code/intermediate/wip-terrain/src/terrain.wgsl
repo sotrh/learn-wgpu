@@ -131,6 +131,22 @@ fn gen_terrain_compute(
     indices.data[start_index + 5u] = v10;
 }
 
+// fn ray_march(dir: vec3<f32>, ) -> f32 {
+//     let steps = 0;
+//     let d = 0.0;
+//     let cell = vec2<i32>(p.xz);
+//     while (steps < 100 && d < 1000.0) {
+
+//     }
+// }
+
+@compute @workgroup_size(64)
+fn gen_shadow_map(
+    @builtin(global_invocation_id) gid: vec3<u32>
+) {
+    
+}
+
 // ============================
 // Terrain Gen (Fragment Shader)
 // ============================

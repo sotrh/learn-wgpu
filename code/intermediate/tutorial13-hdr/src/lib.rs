@@ -276,8 +276,8 @@ impl<'a> State<'a> {
                     // UPDATED!
                     required_limits: wgpu::Limits::downlevel_defaults(),
                     memory_hints: Default::default(),
+                    trace: wgpu::Trace::Off, // Trace path
                 },
-                None, // Trace path
             )
             .await
             .unwrap();

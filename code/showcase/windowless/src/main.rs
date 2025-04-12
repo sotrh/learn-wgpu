@@ -12,7 +12,7 @@ async fn run() {
         .await
         .unwrap();
     let (device, queue) = adapter
-        .request_device(&Default::default(), None)
+        .request_device(&Default::default())
         .await
         .unwrap();
 
@@ -192,7 +192,7 @@ async fn run() {
         buffer_slice.map_async(wgpu::MapMode::Read, move |result| {
             tx.send(result).unwrap();
         });
-        device.poll(wgpu::Maintain::Wait);
+        device.poll(wgpu::PollType::Wait).unwrap();
         rx.receive().await.unwrap().unwrap();
 
         let data = buffer_slice.get_mapped_range();

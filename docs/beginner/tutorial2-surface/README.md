@@ -133,8 +133,8 @@ Let's use the `adapter` to create the device and queue.
                 },
                 label: None,
                 memory_hints: Default::default(),
+                trace: wgpu::Trace::Off,
             },
-            None, // Trace path
         ).await.unwrap();
 ```
 
@@ -284,16 +284,16 @@ If we try to build WASM now, it will fail because `wasm-bindgen` doesn't support
 ```toml
 [dependencies]
 cfg-if = "1"
-winit = { version = "0.29", features = ["rwh_05"] }
+winit = { version = "0.29", features = ["android-native-activity"] }
 env_logger = "0.10"
 log = "0.4"
-wgpu = "24.0"
+wgpu = "25.0"
 pollster = "0.3"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 console_error_panic_hook = "0.1.6"
 console_log = "1.0"
-wgpu = { version = "24.0", features = ["webgl"]}
+wgpu = { version = "25.0", features = ["webgl"]}
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
 web-sys = { version = "0.3", features = [

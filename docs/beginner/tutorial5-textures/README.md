@@ -448,11 +448,11 @@ For convenience, let's pull our texture code into its own module. We'll first ne
 [dependencies]
 image = "0.23"
 cgmath = "0.18"
-winit = { version = "0.29", features = ["rwh_05"] }
+winit = { version = "0.29", features = ["android-native-activity"] }
 env_logger = "0.10"
 log = "0.4"
 pollster = "0.3"
-wgpu = "24.0"
+wgpu = "25.0"
 bytemuck = { version = "1.16", features = [ "derive" ] }
 anyhow = "1.0" # NEW!
 ```

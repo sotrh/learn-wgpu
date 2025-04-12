@@ -261,8 +261,8 @@ impl<'a> State<'a> {
                         wgpu::Limits::default()
                     },
                     memory_hints: Default::default(),
+                    trace: wgpu::Trace::Off, // Trace path
                 },
-                None, // Trace path
             )
             .await
             .unwrap();
@@ -284,7 +284,7 @@ impl<'a> State<'a> {
             height: size.height,
             present_mode: surface_caps.present_modes[0],
             alpha_mode: surface_caps.alpha_modes[0],
-            view_formats: vec![],
+            view_formats: vec![surface_format.add_srgb_suffix()],
             desired_maximum_frame_latency: 2,
         };
 
@@ -659,9 +659,10 @@ impl<'a> State<'a> {
 
     fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
         let output = self.surface.get_current_texture()?;
-        let view = output
-            .texture
-            .create_view(&wgpu::TextureViewDescriptor::default());
+        let view = output.texture.create_view(&wgpu::TextureViewDescriptor {
+            format: Some(self.config.format.add_srgb_suffix()),
+            ..Default::default()
+        });
 
         let mut encoder = self
             .device
@@ -743,7 +744,6 @@ pub async fn run() {
     let title = env!("CARGO_PKG_NAME");
     let window = winit::window::WindowBuilder::new()
         .with_title(title)
-        .with_visible(false)
         .build(&event_loop)
         .unwrap();
 
@@ -767,7 +767,6 @@ pub async fn run() {
     }
 
     let mut state = State::new(&window).await; // NEW!
-    state.window().set_visible(true);
     let mut last_render_time = instant::Instant::now();
     event_loop.run(move |event, control_flow| {
         match event {
@@ -800,6 +799,7 @@ pub async fn run() {
                     }
                     // UPDATED!
                     WindowEvent::RedrawRequested => {
+                        state.window().request_redraw();
                         let now = instant::Instant::now();
                         let dt = now - last_render_time;
                         last_render_time = now;

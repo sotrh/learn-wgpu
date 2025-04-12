@@ -64,8 +64,8 @@ impl<'a> Display<'a> {
                         wgpu::Limits::default()
                     },
                     memory_hints: Default::default(),
+                    trace: wgpu::Trace::Off,
                 },
-                None,
             )
             .await
             .unwrap();
