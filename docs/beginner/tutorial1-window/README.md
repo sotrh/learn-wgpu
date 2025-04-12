@@ -10,10 +10,10 @@ For the beginner stuff, we're going to keep things very simple. We'll add things
 
 ```toml
 [dependencies]
-winit = { version = "0.29", features = ["rwh_05"] }
+winit = { version = "0.29" }
 env_logger = "0.10"
 log = "0.4"
-wgpu = "24.0"
+wgpu = "25.0"
 ```
 
 <div class="warning">
@@ -131,7 +131,7 @@ cfg-if = "1"
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 console_error_panic_hook = "0.1.6"
 console_log = "1.0"
-wgpu = { version = "24.0", features = ["webgl"]}
+wgpu = { version = "25.0", features = ["webgl"]}
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4.30"
 web-sys = { version = "0.3", features = [

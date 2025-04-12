@@ -2,6 +2,7 @@ use std::mem::size_of_val;
 
 use crate::{create_render_pipeline, model};
 
+
 #[repr(C)]
 #[derive(Debug, Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
 struct ChunkData {
@@ -49,7 +50,7 @@ impl Terrain {
 
 pub struct Chunk {
     corner: cgmath::Vector2<i32>,
-    mesh: model::Mesh,
+    mesh: model::Mesh, // could be a texture, or simple buffer
 }
 
 pub trait GenerateChunk {

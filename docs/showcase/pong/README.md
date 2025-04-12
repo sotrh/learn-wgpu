@@ -4,7 +4,7 @@
 
 <div class="warning">
 
-This example is not working as of `wgpu = "24.0"`. If the crate updates to
+This example is not working as of `wgpu = "25.0"`. If the crate updates to
 the latest version I'll switch it over, but given that the crate maintainer
 is directing users to use [glypon](https://github.com/grovesNL/glyphon?tab=readme-ov-file)
 I'm considering either switching to using that, or writing my own text code.
@@ -272,12 +272,12 @@ In order for wasm-pack to work properly I first needed to add some dependencies:
 ```toml[dependencies]
 cfg-if = "1"
 env_logger = "0.10"
-winit = { version = "0.29", features = ["rwh_05"] }
+winit = { version = "0.29" }
 anyhow = "1.0"
 bytemuck = { version = "1.16", features = [ "derive" ] }
 cgmath = "0.18"
 pollster = "0.3"
-wgpu = { version = "24.0", features = ["spirv"]}
+wgpu = { version = "25.0", features = ["spirv"]}
 wgpu_glyph = "0.19"
 rand = "0.8"
 rodio = { version = "0.15", default-features = false, features = ["wav"] }
@@ -296,7 +296,7 @@ web-sys = { version = "0.3", features = [
     "Window",
     "Element",
 ]}
-wgpu = { version = "24.0", features = ["spirv", "webgl"]}
+wgpu = { version = "25.0", features = ["spirv", "webgl"]}
 
 [build-dependencies]
 anyhow = "1.0"

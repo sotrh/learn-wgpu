@@ -11,5 +11,5 @@ bytemuck = { version = "1.13.1", features = ["derive"] }
 framework = { version = "0.1", path = "../framework"}
 glam = { version = "0.24.1", features = ["bytemuck"] }
 pollster = "0.3.0"
-wgpu = "24.0"
-winit = { version = "0.29", features = ["rwh_05"] }
+wgpu = "25.0"
+winit = { version = "0.29" }

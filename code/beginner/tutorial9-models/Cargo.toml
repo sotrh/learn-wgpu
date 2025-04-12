@@ -16,8 +16,8 @@ env_logger = "0.10"
 pollster = "0.3"
 log = "0.4"
 tobj = { version = "3.2", default-features = false, features = ["async"]}
-wgpu = "24.0"
-winit = { version = "0.29", features = ["rwh_05"] }
+wgpu = "25.0"
+winit = { version = "0.29" }
 
 [dependencies.image]
 version = "0.24"
@@ -28,7 +28,7 @@ features = ["png", "jpeg"]
 reqwest = { version = "0.11" }
 console_error_panic_hook = "0.1"
 console_log = "1.0"
-wgpu = { version = "24.0", features = ["webgl"]}
+wgpu = { version = "25.0", features = ["webgl"]}
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
 web-sys = { version = "0.3", features = [

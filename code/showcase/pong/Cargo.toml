@@ -10,12 +10,12 @@ crate-type = ["cdylib", "rlib"]
 [dependencies]
 cfg-if = "1"
 env_logger = "0.10"
-winit = { version = "0.29", features = ["rwh_05"] }
+winit = { version = "0.29" }
 anyhow = "1.0"
 bytemuck = { version = "1.16", features = [ "derive" ] }
 cgmath = "0.18"
 pollster = "0.3"
-wgpu = { version = "24.0", features = ["spirv"]}
+wgpu = { version = "25.0", features = ["spirv"]}
 wgpu_glyph = { version = "0.22", git = "https://github.com/hecrj/wgpu_glyph.git" }
 rand = "0.8"
 rodio = { version = "0.16", default-features = false, features = ["wav"] }
@@ -34,7 +34,7 @@ web-sys = { version = "0.3", features = [
     "Window",
     "Element",
 ]}
-wgpu = { version = "24.0", features = ["spirv", "webgl"]}
+wgpu = { version = "25.0", features = ["spirv", "webgl"]}
 
 [build-dependencies]
 anyhow = "1.0"
