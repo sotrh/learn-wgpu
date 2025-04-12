@@ -264,7 +264,7 @@ In order to get the data out of the buffer, we need to first map it, then we can
     buffer_slice.map_async(wgpu::MapMode::Read, move |result| {
         tx.send(result).unwrap();
     });
-    device.poll(wgpu::Maintain::Wait);
+    device.poll(wgpu::PollType::Wait)?;
     rx.receive().await.unwrap().unwrap();
 
     let data = buffer_slice.get_mapped_range();

@@ -275,7 +275,7 @@ pub async fn load_model(
 
 //             output.extend(data_t.iter().map(f));
 //         });
-//         device.poll(wgpu::Maintain::Wait);
+//         device.poll(wgpu::PollType::Wait)?;
 
 //     }
 //     buffer.unmap();

@@ -284,7 +284,7 @@ If we try to build WASM now, it will fail because `wasm-bindgen` doesn't support
 ```toml
 [dependencies]
 cfg-if = "1"
-winit = { version = "0.29" }
+winit = { version = "0.29", features = ["android-native-activity"] }
 env_logger = "0.10"
 log = "0.4"
 wgpu = "25.0"

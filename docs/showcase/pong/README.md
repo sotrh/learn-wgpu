@@ -272,7 +272,7 @@ In order for wasm-pack to work properly I first needed to add some dependencies:
 ```toml[dependencies]
 cfg-if = "1"
 env_logger = "0.10"
-winit = { version = "0.29" }
+winit = { version = "0.29", features = ["android-native-activity"] }
 anyhow = "1.0"
 bytemuck = { version = "1.16", features = [ "derive" ] }
 cgmath = "0.18"

@@ -288,7 +288,7 @@ impl GenerateChunk for TerrainPipeline {
         drop(cpass);
 
         queue.submit(std::iter::once(encoder.finish()));
-        device.poll(wgpu::Maintain::Wait);
+        device.poll(wgpu::PollType::Wait).unwrap();
 
         chunk
     }

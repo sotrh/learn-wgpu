@@ -10,7 +10,7 @@ For the beginner stuff, we're going to keep things very simple. We'll add things
 
 ```toml
 [dependencies]
-winit = { version = "0.29" }
+winit = { version = "0.29", features = ["android-native-activity"] }
 env_logger = "0.10"
 log = "0.4"
 wgpu = "25.0"

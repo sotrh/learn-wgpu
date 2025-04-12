@@ -25,8 +25,8 @@ async fn run() {
                     wgpu::Limits::default()
                 },
                 memory_hints: Default::default(),
-            },
-            None, // Trace path
+                trace: wgpu::Trace::Off,
+            }
         )
         .await
         .unwrap();
@@ -141,7 +141,7 @@ async fn run() {
             tx.send(result).unwrap();
         });
         // wait for the GPU to finish
-        device.poll(wgpu::Maintain::Wait);
+        device.poll(wgpu::PollType::Wait).unwrap();
 
         match rx.receive().await {
             Some(Ok(())) => {

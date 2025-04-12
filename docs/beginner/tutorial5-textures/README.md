@@ -448,7 +448,7 @@ For convenience, let's pull our texture code into its own module. We'll first ne
 [dependencies]
 image = "0.23"
 cgmath = "0.18"
-winit = { version = "0.29" }
+winit = { version = "0.29", features = ["android-native-activity"] }
 env_logger = "0.10"
 log = "0.4"
 pollster = "0.3"
