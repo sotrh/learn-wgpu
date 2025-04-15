@@ -373,7 +373,7 @@ An equirectangular texture is a texture where a sphere is stretched across a rec
 
 ![map of the earth](https://upload.wikimedia.org/wikipedia/commons/thumb/8/83/Equirectangular_projection_SW.jpg/1024px-Equirectangular_projection_SW.jpg)
 
-This projection maps the latitude values of the sphere to the horizontal coordinates of the texture. The longitude values get mapped to the vertical coordinates. This means that the vertical middle of the texture is the equator (0° longitude) of the sphere, the horizontal middle is the prime meridian (0° latitude) of the sphere, the left and right edges of the texture are the anti-meridian (+180°/-180° latitude) the top and bottom edges of the texture are the north pole (90° longitude) and south pole (-90° longitude), respectively.
+This projection maps the longitude values of the sphere to the horizontal coordinates of the texture. The latitude values get mapped to the vertical coordinates. This means that the vertical middle of the texture is the equator (0° latitude) of the sphere, the horizontal middle is the prime meridian (0° longitude) of the sphere, the left and right edges of the texture are the anti-meridian (+180°/-180° longitude) the top and bottom edges of the texture are the north pole (90° latitude) and south pole (-90° latitude), respectively.
 
 ![equirectangular diagram](./equirectangular.svg)
 
