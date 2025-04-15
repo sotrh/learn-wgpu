@@ -232,6 +232,7 @@ pub async fn run() {
     // Window setup...
 
     let mut state = State::new(&window).await;
+    let mut surface_configured = false;
 
     event_loop.run(move |event, control_flow| {
         match event {
@@ -330,6 +331,7 @@ match event {
         match event {
             // ...
             WindowEvent::Resized(physical_size) => {
+                surface_configured = true;
                 state.resize(*physical_size);
             }
             // ...
@@ -373,6 +375,7 @@ event_loop.run(move |event, control_flow| {
                     ..
                 } => control_flow.exit(),
                 WindowEvent::Resized(physical_size) => {
+                    surface_configured = true;
                     state.resize(*physical_size);
                 }
                 _ => {}
