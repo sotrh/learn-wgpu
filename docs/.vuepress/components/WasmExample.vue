@@ -1,9 +1,10 @@
 <template>
   <div id="wasm-example">
+    <canvas id="canvas"></canvas>
     <div class="error" v-if="error">
       {{ error }}
     </div>
-    <button v-if="!exampleStarted && !autoLoad" @click="loadExample()" :disabled="loading">Try {{exampleName}}!</button>
+    <button v-if="!exampleStarted && !autoLoad" @click="loadExample()" :disabled="loading">Click to start {{exampleName}}!</button>
   </div>
 </template>
 
