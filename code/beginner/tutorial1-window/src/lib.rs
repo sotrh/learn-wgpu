@@ -25,7 +25,7 @@ impl State {
         // We'll do stuff here in the next tutorial
     }
     
-    pub fn render(&mut self, _event_loop: &ActiveEventLoop) {
+    pub fn render(&mut self) {
         self.window.request_redraw();
 
         // We'll do more stuff here in the next tutorial
@@ -80,6 +80,8 @@ impl ApplicationHandler<State> for App {
 
         #[cfg(target_arch = "wasm32")]
         {
+            // Run the future asynchronously and use the
+            // proxy to send the results to the event loop
             if let Some(proxy) = self.proxy.take() {
                 wasm_bindgen_futures::spawn_local(async move {
                     assert!(proxy
@@ -122,13 +124,8 @@ impl ApplicationHandler<State> for App {
             WindowEvent::CloseRequested => event_loop.exit(),
             WindowEvent::Resized(size) => state.resize(size.width, size.height),
             WindowEvent::RedrawRequested => {
-                state.render(event_loop);
+                state.render();
             }
-            WindowEvent::MouseInput { state, button, .. } => match (button, state.is_pressed()) {
-                (MouseButton::Left, true) => {}
-                (MouseButton::Left, false) => {}
-                _ => {}
-            },
             WindowEvent::KeyboardInput {
                 event:
                     KeyEvent {
@@ -139,13 +136,13 @@ impl ApplicationHandler<State> for App {
                 ..
             } => match (code, state.is_pressed()) {
                 (KeyCode::Escape, true) => event_loop.exit(),
-                (KeyCode::Space, true) => {}
                 _ => {}
             },
             _ => {}
         }
     }
 }
+
 pub fn run() -> anyhow::Result<()> {
     #[cfg(not(target_arch = "wasm32"))]
     {

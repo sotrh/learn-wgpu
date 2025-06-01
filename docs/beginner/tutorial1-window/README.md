@@ -10,21 +10,11 @@ For the beginner stuff, we're going to keep things very simple. We'll add things
 
 ```toml
 [dependencies]
-winit = { version = "0.29", features = ["android-native-activity"] }
+winit = { version = "0.30", features = ["android-native-activity"] }
 env_logger = "0.10"
 log = "0.4"
 wgpu = "25.0"
 ```
-
-<div class="warning">
-
-Note that we are using version `0.29` of winit. This is not the most recent version.
-The reason for this is version `0.30` and beyond include breaking changes that will
-require a lot of code changes. I've created a local branch to mess around with it, but
-there's a work around on the [tracking issue](https://github.com/sotrh/learn-wgpu/issues/549)
-if you absolutely need the latest version of winit.
-
-</div>
 
 ## Using Rust's new resolver
 
@@ -44,63 +34,226 @@ run ```cargo new project_name``` where project_name is the name of the project.
 
 ## The code
 
-There's not much going on here yet, so I'm just going to post the code in full. Just paste this into your `lib.rs` or equivalent.
+We are going to want somewhere to put all of our state so let's create a `State` struct.
 
 ```rust
+use std::sync::Arc;
+
 use winit::{
-    event::*,
-    event_loop::EventLoop,
-    keyboard::{KeyCode, PhysicalKey},
-    window::WindowBuilder,
+    application::ApplicationHandler, event::*, event_loop::{ActiveEventLoop, EventLoop}, keyboard::{KeyCode, PhysicalKey}, window::Window
 };
 
-pub fn run() {
-    env_logger::init();
-    let event_loop = EventLoop::new().unwrap();
-    let window = WindowBuilder::new().build(&event_loop).unwrap();
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen::prelude::*;
 
-    event_loop.run(move |event, control_flow| match event {
-        Event::WindowEvent {
-            ref event,
-            window_id,
-        } if window_id == window.id() => match event {
-            WindowEvent::CloseRequested
-            | WindowEvent::KeyboardInput {
+// This will store the state of our game
+pub struct State {
+    window: Arc<Window>,
+}
+
+impl State {
+    // We don't need this to be async right now,
+    // but we will in the next tutorial
+    pub async fn new(window: Arc<Window>) -> anyhow::Result<Self> {
+        Ok(Self {
+            window,
+        })
+    }
+
+    pub fn resize(&mut self, _width: u32, _height: u32) {
+        // We'll do stuff here in the next tutorial
+    }
+    
+    pub fn render(&mut self) {
+        self.window.request_redraw();
+
+        // We'll do more stuff here in the next tutorial
+    }
+}
+
+// ...
+```
+
+There's not much going on here, but once we start using WGPU will start filling this up pretty quick. Most of the methods on this struct are place holders, though in `render()` we ask the window to draw another frame as soon as possible as winit only draws one frame unless the window is resized or we request it to draw another one.
+
+Now that we have our `State` struct, we need to tell winit how to use it. We'll create an `App` struct for this.
+
+```rust
+pub struct App {
+    #[cfg(target_arch = "wasm32")]
+    proxy: Option<winit::event_loop::EventLoopProxy<State>>,
+    state: Option<State>,
+}
+
+impl App {
+    pub fn new(#[cfg(target_arch = "wasm32")] event_loop: &EventLoop<State>) -> Self {
+        #[cfg(target_arch = "wasm32")]
+        let proxy = Some(event_loop.create_proxy());
+        Self {
+            state: None,
+            #[cfg(target_arch = "wasm32")]
+            proxy,
+        }
+    }
+}
+```
+
+So the `App` struct has two fields: `state` and `proxy`.
+
+The `state` variable stores our `State` struct as an option.The reason we need an option is that `State::new()` needs a window and we can't create a window until the application gets to the `Resumed` state. We'll get more into that in a bit.
+
+The `proxy` variable is only needed on the web. The reason for this is that creating WGPU resources is an async process. Again we'll get into that in a bit.
+
+Now that we have an `App` struct we need to implement the `ApplicationHandler` trait. This will give us a variety of different functions that we can use to get application events such as key press, mouse movements and various lifecycle events. We'll start by covering the `resumed` and `user_event` methods first.
+
+```rust
+impl ApplicationHandler<State> for App {
+    fn resumed(&mut self, event_loop: &ActiveEventLoop) {
+        #[allow(unused_mut)]
+        let mut window_attributes = Window::default_attributes();
+
+        #[cfg(target_arch = "wasm32")]
+        {
+            use wasm_bindgen::JsCast;
+            use winit::platform::web::WindowAttributesExtWebSys;
+            
+            const CANVAS_ID: &str = "canvas";
+
+            let window = wgpu::web_sys::window().unwrap_throw();
+            let document = window.document().unwrap_throw();
+            let canvas = document.get_element_by_id(CANVAS_ID).unwrap_throw();
+            let html_canvas_element = canvas.unchecked_into();
+            window_attributes = window_attributes.with_canvas(Some(html_canvas_element));
+        }
+
+        let window = Arc::new(event_loop.create_window(window_attributes).unwrap());
+
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            // If we are not on web we can use pollster to
+            // await the 
+            self.state = Some(pollster::block_on(State::new(window)).unwrap());
+        }
+
+        #[cfg(target_arch = "wasm32")]
+        {
+            // Run the future asynchronously and use the
+            // proxy to send the results to the event loop
+            if let Some(proxy) = self.proxy.take() {
+                wasm_bindgen_futures::spawn_local(async move {
+                    assert!(proxy
+                        .send_event(
+                            State::new(window)
+                                .await
+                                .expect("Unable to create canvas!!!")
+                        )
+                        .is_ok())
+                });
+            }
+        }
+    }
+
+    #[allow(unused_mut)]
+    fn user_event(&mut self, _event_loop: &ActiveEventLoop, mut event: State) {
+        // This is where proxy.send_event() ends up
+        #[cfg(target_arch = "wasm32")]
+        {
+            event.window.request_redraw();
+            event.resize(
+                event.window.inner_size().width,
+                event.window.inner_size().height,
+            );
+        }
+        self.state = Some(event);
+    }
+
+    // ...
+}
+```
+
+The `resumed` method seems like it does a lot, but it only does a few things:
+
+- It defines attributes about the window including some web specific stuff.
+- We use those attributes to create the window.
+- We create a future that creates our `State` struct
+- On native we use pollster to get await the future
+- On web we run the future asynchronously which sends the results to the `user_event` function
+
+The `user_event` function just serves as a landing point for our `State` future. `resumed` isn't async so we need to offload the future and send the results somewhere.
+
+Next we'll talk about `window_event`.
+
+```rust
+impl ApplicationHandler<State> for App {
+
+    // ...
+
+    fn window_event(
+        &mut self,
+        event_loop: &ActiveEventLoop,
+        _window_id: winit::window::WindowId,
+        event: WindowEvent,
+    ) {
+        let state = match &mut self.state {
+            Some(canvas) => canvas,
+            None => return,
+        };
+
+        match event {
+            WindowEvent::CloseRequested => event_loop.exit(),
+            WindowEvent::Resized(size) => state.resize(size.width, size.height),
+            WindowEvent::RedrawRequested => {
+                state.render();
+            }
+            WindowEvent::KeyboardInput {
                 event:
                     KeyEvent {
-                        state: ElementState::Pressed,
-                        physical_key: PhysicalKey::Code(KeyCode::Escape),
+                        physical_key: PhysicalKey::Code(code),
+                        state,
                         ..
                     },
                 ..
-            } => control_flow.exit(),
+            } => match (code, state.is_pressed()) {
+                (KeyCode::Escape, true) => event_loop.exit(),
+                _ => {}
+            },
             _ => {}
-        },
-        _ => {}
-    });
+        }
+    }
 }
-
 ```
 
-All this does is create a window and keep it open until the user closes it or presses escape. Next, we'll need a `main.rs` to run the code. It's quite simple. It just imports `run()` and, well, runs it!
+This is where we can process events such as keyboard inputs, and mouse movements, as well as other window events such as when the window wants to draw or is resized. We can call the methods we defined on `State` here.
+
+Next we need to actually run our code. We'll create a `run()` function to do that.
 
 ```rust
-use tutorial1_window::run;
+pub fn run() -> anyhow::Result<()> {
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        env_logger::init();
+    }
+    #[cfg(target_arch = "wasm32")]
+    {
+        console_log::init_with_level(log::Level::Info).unwrap_throw();
+    }
 
-fn main() {
-    run();
+    let event_loop = EventLoop::with_user_event().build()?;
+    let mut app = App::new(
+        #[cfg(target_arch = "wasm32")]
+        &event_loop,
+    );
+    event_loop.run_app(&mut app)?;
+
+    Ok(())
 }
 ```
 
-(Where 'tutorial1_window' is the name of the project you created with Cargo earlier)  
-
-If you only want to support desktops, that's all you have to do! In the next tutorial, we'll start using wgpu!
+This function sets up the logger as well as creates the `event_loop` and our `app` and then runs our `app` to completion.
 
 ## Added support for the web
 
-If I go through this tutorial about WebGPU and never talk about using it on the web, then I'd hardly call this tutorial complete. Fortunately, getting a wgpu application running in a browser is not too difficult once you get things set up.
-
-Let's start with the changes we need to make to our `Cargo.toml`:
+In order to get our app to run on the web we need to make some changes to our `Cargo.toml`:
 
 ```toml
 [lib]
@@ -125,7 +278,6 @@ Now, all we need are some more dependencies that are specific to running in WASM
 strip = true
 
 [dependencies]
-cfg-if = "1"
 # the other regular dependencies...
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
@@ -141,82 +293,33 @@ web-sys = { version = "0.3", features = [
 ]}
 ```
 
-The [cfg-if](https://docs.rs/cfg-if) crate adds a macro that makes using platform-specific code more manageable.
-
 The `[target.'cfg(target_arch = "wasm32")'.dependencies]` line tells Cargo to only include these dependencies if we are targeting the `wasm32` architecture. The next few dependencies just make interfacing with JavaScript a lot easier.
 
-* [console_error_panic_hook](https://docs.rs/console_error_panic_hook) configures the `panic!` macro to send errors to the javascript console. Without this, when you encounter panics, you'll be left in the dark about what caused them.
-* [console_log](https://docs.rs/console_log) implements the [log](https://docs.rs/log) API. It sends all logs to the javascript console. It can be configured to only send logs of a particular log level. This is also great for debugging.
-* We need to enable the WebGL feature on wgpu if we want to run on most current browsers. Support is in the works for using the WebGPU api directly, but that is only possible on experimental versions of browsers such as Firefox Nightly and Chrome Canary.<br>
+- [console_error_panic_hook](https://docs.rs/console_error_panic_hook) configures the `panic!` macro to send errors to the javascript console. Without this, when you encounter panics, you'll be left in the dark about what caused them.
+- [console_log](https://docs.rs/console_log) implements the [log](https://docs.rs/log) API. It sends all logs to the javascript console. It can be configured to only send logs of a particular log level. This is also great for debugging.
+- We need to enable the WebGL feature on wgpu if we want to run on most current browsers. Support is in the works for using the WebGPU api directly, but that is only possible on experimental versions of browsers such as Firefox Nightly and Chrome Canary.<br>
   You're welcome to test this code on these browsers (and the wgpu devs would appreciate it as well), but for the sake of simplicity, I'm going to stick to using the WebGL feature until the WebGPU api gets to a more stable state.<br>
   If you want more details, check out the guide for compiling for the web on [wgpu's repo](https://github.com/gfx-rs/wgpu/wiki/Running-on-the-Web-with-WebGPU-and-WebGL)
-* [wasm-bindgen](https://docs.rs/wasm-bindgen) is the most important dependency in this list. It's responsible for generating the boilerplate code that will tell the browser how to use our crate. It also allows us to expose methods in Rust that can be used in JavaScript and vice-versa.<br>
+- [wasm-bindgen](https://docs.rs/wasm-bindgen) is the most important dependency in this list. It's responsible for generating the boilerplate code that will tell the browser how to use our crate. It also allows us to expose methods in Rust that can be used in JavaScript and vice-versa.<br>
   I won't get into the specifics of wasm-bindgen, so if you need a primer (or just a refresher), check out [this](https://rustwasm.github.io/wasm-bindgen/)
-* [web-sys](https://docs.rs/web-sys) is a crate with many methods and structures available in a normal javascript application: `get_element_by_id`, `append_child`. The features listed are only the bare minimum of what we need currently.
+- [web-sys](https://docs.rs/web-sys) is a crate with many methods and structures available in a normal javascript application: `get_element_by_id`, `append_child`. The features listed are only the bare minimum of what we need currently.
 
 ## More code
 
-First, we need to import `wasm-bindgen` in `lib.rs`:
-
-```rust
-#[cfg(target_arch="wasm32")]
-use wasm_bindgen::prelude::*;
-```
-
-Next, we need to tell wasm-bindgen to run our `run()` function when the WASM is loaded:
-
-```rust
-#[cfg_attr(target_arch="wasm32", wasm_bindgen(start))]
-pub fn run() {
-    // same as above for now...
-}
-```
-
-Then, we need to toggle what logger we are using based on whether we are in WASM land or not. Add the following to the top of the run function, replacing the `env_logger::init()` line:
-
-```rust
-cfg_if::cfg_if! {
-    if #[cfg(target_arch = "wasm32")] {
-        std::panic::set_hook(Box::new(console_error_panic_hook::hook));
-        console_log::init_with_level(log::Level::Warn).expect("Couldn't initialize logger");
-    } else {
-        env_logger::init();
-    }
-}
-```
-
-This will set up `console_log` and `console_error_panic_hook` in a web build and will initialize `env_logger` in a normal build. This is important as `env_logger` doesn't support Web Assembly at the moment.
-
-Next, after we create our event loop and window, we need to add a canvas to the HTML document that we will host our application:
+Let's create a function to run our code on web.
 
 ```rust
 #[cfg(target_arch = "wasm32")]
-{
-    // Winit prevents sizing with CSS, so we have to set
-    // the size manually when on web.
-    use winit::dpi::PhysicalSize;
-    let _ = window.request_inner_size(PhysicalSize::new(450, 400));
-    
-    use winit::platform::web::WindowExtWebSys;
-    web_sys::window()
-        .and_then(|win| win.document())
-        .and_then(|doc| {
-            let dst = doc.get_element_by_id("wasm-example")?;
-            let canvas = web_sys::Element::from(window.canvas()?);
-            dst.append_child(&canvas).ok()?;
-            Some(())
-        })
-        .expect("Couldn't append canvas to document body.");
+#[wasm_bindgen(start)]
+pub fn run_web() -> Result<(), wasm_bindgen::JsValue> {
+    console_error_panic_hook::set_once();
+    run().unwrap_throw();
+
+    Ok(())
 }
 ```
 
-<div class="note">
-
-The `"wasm-example"` id is specific to my project (aka. this tutorial). You can substitute this for whatever id you're using in your HTML. Alternatively, you could add the canvas directly to the `<body>` as they do in the wgpu repo. This part is ultimately up to you.
-
-</div>
-
-That's all the web-specific code we need for now. The next thing we need to do is build the Web Assembly itself.
+This will set up `console_error_panic_hook` so that when our code panics we'll see it in the browser console. It will also call the other `run()` function.
 
 ## Wasm Pack
 
@@ -280,6 +383,8 @@ You'll then need to run the WASM code in an ES6 Module:
 ```
 
 </div>
+
+## Demo
 
 Press the button below, and you will see the code running!
 

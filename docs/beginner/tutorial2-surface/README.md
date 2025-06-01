@@ -2,79 +2,55 @@
 
 ## First, some housekeeping: State
 
-For convenience, we're going to pack all the fields into a struct and create some methods for it.
+We created state in the last tutorial, now let's put stuff
+in it.
 
 ```rust
 // lib.rs
-use winit::window::Window;
 
-struct State<'a> {
-    surface: wgpu::Surface<'a>,
+struct State {
+    surface: wgpu::Surface<'static>,
     device: wgpu::Device,
     queue: wgpu::Queue,
     config: wgpu::SurfaceConfiguration,
-    size: winit::dpi::PhysicalSize<u32>,
-    window: &'a Window,
-}
-
-impl<'a> State<'a> {
-    // Creating some of the wgpu types requires async code
-    async fn new(window: &'a Window) -> State<'a> {
-        todo!()
-    }
-
-    pub fn window(&self) -> &Window {
-        &self.window
-    }
-
-    fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
-        todo!()
-    }
-
-    fn input(&mut self, event: &WindowEvent) -> bool {
-        todo!()
-    }
-
-    fn update(&mut self) {
-        todo!()
-    }
-
-    fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
-        todo!()
-    }
+    is_surface_configured: bool,
+    window: Arc<Window>,
 }
 ```
 
 I'm glossing over `State`s fields, but they'll make more sense as I explain the code behind these methods.
 
 ## State::new()
+
 The code for this is pretty straightforward, but let's break it down a bit.
 
 ```rust
-impl<'a> State<'a> {
+impl State {
     // ...
-    async fn new(window: &'a Window) -> State<'a> {
+    async fn new(window: Arc<Window>) -> anyhow::Result<State> {
         let size = window.inner_size();
 
         // The instance is a handle to our GPU
-        // Backends::all => Vulkan + Metal + DX12 + Browser WebGPU
+        // BackendBit::PRIMARY => Vulkan + Metal + DX12 + Browser WebGPU
         let instance = wgpu::Instance::new(&wgpu::InstanceDescriptor {
-            #[cfg(not(target_arch="wasm32"))]
+            #[cfg(not(target_arch = "wasm32"))]
             backends: wgpu::Backends::PRIMARY,
-            #[cfg(target_arch="wasm32")]
+            #[cfg(target_arch = "wasm32")]
             backends: wgpu::Backends::GL,
             ..Default::default()
         });
 
-        let surface = instance.create_surface(window).unwrap();
+        let surface = instance.create_surface(window.clone()).unwrap();
 
-        let adapter = instance.request_adapter(
-            &wgpu::RequestAdapterOptions {
+        let adapter = instance
+            .request_adapter(&wgpu::RequestAdapterOptions {
                 power_preference: wgpu::PowerPreference::default(),
                 compatible_surface: Some(&surface),
                 force_fallback_adapter: false,
-            },
-        ).await.unwrap();
+            })
+            .await?;
+
+        // ...
     }
 ```
 
@@ -112,7 +88,6 @@ For more fields you can use to refine your search, [check out the docs](https://
 
 </div>
 
-
 ### The Surface
 
 The `surface` is the part of the window that we draw to. We need it to draw directly to the screen. Our `window` needs to implement [raw-window-handle](https://crates.io/crates/raw-window-handle)'s `HasRawWindowHandle` trait to create a surface. Fortunately, winit's `Window` fits the bill. We also need it to request our `adapter`.
@@ -122,21 +97,21 @@ The `surface` is the part of the window that we draw to. We need it to draw dire
 Let's use the `adapter` to create the device and queue.
 
 ```rust
-        let (device, queue) = adapter.request_device(
-            &wgpu::DeviceDescriptor {
+        let (device, queue) = adapter
+            .request_device(&wgpu::DeviceDescriptor {
+                label: None,
                 required_features: wgpu::Features::empty(),
                 // WebGL doesn't support all of wgpu's features, so if
-                // we're building for the web, we'll have to disable some.
+                // we're building for the web we'll have to disable some.
                 required_limits: if cfg!(target_arch = "wasm32") {
                     wgpu::Limits::downlevel_webgl2_defaults()
                 } else {
                     wgpu::Limits::default()
                 },
-                label: None,
                 memory_hints: Default::default(),
                 trace: wgpu::Trace::Off,
-            },
-        ).await.unwrap();
+            })
+            .await?;
 ```
 
 The `features` field on `DeviceDescriptor` allows us to specify what extra features we want. For this simple example, I've decided not to use any extra features.
@@ -185,7 +160,9 @@ The `format` defines how `SurfaceTexture`s will be stored on the GPU. We can get
 `width` and `height` are the width and the height in pixels of a `SurfaceTexture`. This should usually be the width and the height of the window.
 
 <div class="warning">
+
 Make sure that the width and height of the `SurfaceTexture` are not 0, as that can cause your app to crash.
+
 </div>
 
 `present_mode` uses `wgpu::PresentMode` enum, which determines how to sync the surface with the display. For the sake of simplicity, we select the first available option. If you do not want runtime selection, `PresentMode::Fifo` will cap the display rate at the display's framerate. This is essentially VSync. This mode is guaranteed to be supported on all platforms. There are other options, and you can see all of them [in the docs](https://docs.rs/wgpu/latest/wgpu/enum.PresentMode.html)
@@ -206,140 +183,41 @@ Regardless, `PresentMode::Fifo` will always be supported, and `PresentMode::Auto
 
 `view_formats` is a list of `TextureFormat`s that you can use when creating `TextureView`s (we'll cover those briefly later in this tutorial as well as more in depth [in the texture tutorial](../tutorial5-textures)). As of writing, this means that if your surface is sRGB color space, you can create a texture view that uses a linear color space.
 
-Now that we've configured our surface properly, we can add these new fields at the end of the method.
+Now that we've configured our surface properly, we can add these new fields at the end of the method. The `is_surface_configured` field will be used later.
 
 ```rust
-    async fn new(window: &'a Window) -> State<'a> {
+    async fn new(window: Arc<Window>) -> anyhow::Result<State> {
         // ...
 
-        Self {
+        Ok(Self {
             surface,
             device,
             queue,
             config,
             size,
+            is_surface_configured: false,
             window,
-        }
+        })
     }
 ```
 
-Since our `State::new()` method is async, we need to change `run()` to be async as well so that we can await it.
-
-Our `window` has been moved to the State instance, we will need to update our `event_loop` to reflect this.
-
-```rust
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen(start))]
-pub async fn run() {
-    // Window setup...
-
-    let mut state = State::new(&window).await;
-    let mut surface_configured = false;
-
-    event_loop.run(move |event, control_flow| {
-        match event {
-            Event::WindowEvent {
-                ref event,
-                window_id,
-            } if window_id == state.window().id() => match event {
-                WindowEvent::CloseRequested
-                | WindowEvent::KeyboardInput {
-                    event:
-                        KeyEvent {
-                            state: ElementState::Pressed,
-                            physical_key: PhysicalKey::Code(KeyCode::Escape),
-                            ..
-                        },
-                    ..
-                } => control_flow.exit(),
-                _ => {}
-            },
-            _ => {}
-        }
-    });
-}
-```
-
-Now that `run()` is async, `main()` will need some way to await the future. We could use a crate like [tokio](https://docs.rs/tokio), or [async-std](https://docs.rs/async-std), but I'm going to go with the much more lightweight [pollster](https://docs.rs/pollster). Add the following to your `Cargo.toml`:
-
-```toml
-[dependencies]
-# other deps...
-pollster = "0.3"
-```
-
-We then use the `block_on` function provided by pollster to await our future:
-
-```rust
-fn main() {
-    pollster::block_on(run());
-}
-```
-
-<div class="warning">
-
-Don't use `block_on` inside of an async function if you plan to support WASM. Futures have to be run using the browser's executor. If you try to bring your own, your code will crash when you encounter a future that doesn't execute immediately.
-
-</div>
-
-If we try to build WASM now, it will fail because `wasm-bindgen` doesn't support using async functions as `start` methods. You could switch to calling `run` manually in javascript, but for simplicity, we'll add the [wasm-bindgen-futures](https://docs.rs/wasm-bindgen-futures) crate to our WASM dependencies as that doesn't require us to change any code. Your dependencies should look something like this:
-
-```toml
-[dependencies]
-cfg-if = "1"
-winit = { version = "0.29", features = ["android-native-activity"] }
-env_logger = "0.10"
-log = "0.4"
-wgpu = "25.0"
-pollster = "0.3"
-
-[target.'cfg(target_arch = "wasm32")'.dependencies]
-console_error_panic_hook = "0.1.6"
-console_log = "1.0"
-wgpu = { version = "25.0", features = ["webgl"]}
-wasm-bindgen = "0.2"
-wasm-bindgen-futures = "0.4"
-web-sys = { version = "0.3", features = [
-    "Document",
-    "Window",
-    "Element",
-]}
-```
-
 ## resize()
+
 If we want to support resizing in our application, we're going to need to reconfigure the `surface` every time the window's size changes. That's the reason we stored the physical `size` and the `config` used to configure the `surface`. With all of these, the resize method is very simple.
 
 ```rust
 // impl State
-pub fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
-    if new_size.width > 0 && new_size.height > 0 {
-        self.size = new_size;
-        self.config.width = new_size.width;
-        self.config.height = new_size.height;
+pub fn resize(&mut self, width: u32, height: u32) {
+    if width > 0 && height > 0 {
+        self.config.width = width;
+        self.config.height = height;
         self.surface.configure(&self.device, &self.config);
+        self.is_surface_configured = true;
     }
 }
 ```
 
-There's nothing different here from the initial `surface` configuration, so I won't get into it.
-
-We call this method `resize()` in the event loop for the following events.
-
-```rust
-match event {
-    // ...
-
-    } if window_id == state.window().id() => if !state.input(event) {
-        match event {
-            // ...
-            WindowEvent::Resized(physical_size) => {
-                surface_configured = true;
-                state.resize(*physical_size);
-            }
-            // ...
-        }
-    }
-}
-```
+This is where we configure the `surface`. We need the surface to be configured before we can do anything with it. We set the `is_surface_configured` flag to true here and we'll check it in the `render()` function.
 
 ## input()
 
@@ -407,6 +285,13 @@ Here's where the magic happens. First, we need to get a frame to render to.
 // impl State
 
 fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
+    self.window.request_redraw();
+
+    // We can't render unless the surface is configured
+    if !self.is_surface_configured {
+        return Ok(());
+    }
+        
     let output = self.surface.get_current_texture()?;
 ```
 
@@ -527,7 +412,6 @@ A `RenderPassDescriptor` only has three fields: `label`, `color_attachments` and
 The `color_attachments` field is a "sparse" array. This allows you to use a pipeline that expects multiple render targets and only supplies the ones you care about.
 
 </div>
-
 
 We'll use `depth_stencil_attachment` later, but we'll set it to `None` for now.
 
