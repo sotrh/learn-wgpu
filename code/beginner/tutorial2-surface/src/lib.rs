@@ -101,11 +101,6 @@ impl State {
         }
     }
 
-    #[allow(unused_variables)]
-    fn input(&mut self, event: &WindowEvent) -> bool {
-        false
-    }
-
     fn update(&mut self) {}
 
     fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
@@ -280,6 +275,7 @@ impl ApplicationHandler<State> for App {
         }
     }
 }
+
 pub fn run() -> anyhow::Result<()> {
     #[cfg(not(target_arch = "wasm32"))]
     {
