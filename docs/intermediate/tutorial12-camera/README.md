@@ -330,7 +330,7 @@ We also need to change our `projection` in `resize`.
 ```rust
 fn resize(&mut self, width: u32, height: u32) {
     // UPDATED!
-    self.projection.resize(new_size.width, new_size.height);
+    self.projection.resize(width, height);
     // ...
 }
 ```

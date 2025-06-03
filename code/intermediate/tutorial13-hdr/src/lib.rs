@@ -651,7 +651,7 @@ impl State {
     fn resize(&mut self, width: u32, height: u32) {
         // UPDATED!
         if width > 0 && height > 0 {
-            self.projection.resize(new_size.width, new_size.height);
+            self.projection.resize(width, height);
             self.hdr
                 .resize(&self.device, new_size.width, new_size.height);
             self.is_surface_configured = true;
@@ -663,31 +663,26 @@ impl State {
         }
     }
 
-    fn input(&mut self, event: &WindowEvent) -> bool {
-        match event {
-            WindowEvent::KeyboardInput {
-                event:
-                    KeyEvent {
-                        physical_key: PhysicalKey::Code(key),
-                        state,
-                        ..
-                    },
-                ..
-            } => self.camera_controller.process_keyboard(*key, *state),
-            WindowEvent::MouseWheel { delta, .. } => {
-                self.camera_controller.process_scroll(delta);
-                true
+    fn handle_key(&mut self, event_loop: &ActiveEventLoop, key: KeyCode, pressed: bool) {
+        if !self.camera_controller.handle_key(key, pressed) {
+            match (key, pressed) {
+                (KeyCode::Escape, true) => event_loop.exit(),
+                _ => {}
             }
-            WindowEvent::MouseInput {
-                button: MouseButton::Left,
-                state,
-                ..
-            } => {
-                self.mouse_pressed = *state == ElementState::Pressed;
-                true
-            }
-            _ => false,
         }
+    }
+
+    // NEW!
+    fn handle_mouse_button(&mut self, button: MouseButton, pressed: bool) {
+        match button {
+            MouseButton::Left => self.mouse_pressed = pressed,
+            _ => {}
+        }
+    }
+
+    // NEW!
+    fn handle_mouse_scroll(&mut self, delta: &MouseScrollDelta) {
+        self.camera_controller.handle_scroll(delta);
     }
 
     fn update(&mut self, dt: std::time::Duration) {

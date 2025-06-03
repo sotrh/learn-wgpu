@@ -493,7 +493,7 @@ impl State {
 
     fn resize(&mut self, width: u32, height: u32) {
         if width > 0 && height > 0 {
-            self.projection.resize(new_size.width, new_size.height);
+            self.projection.resize(width, height);
             self.is_surface_configured = true;
             self.config.width = width;
             self.config.height = height;

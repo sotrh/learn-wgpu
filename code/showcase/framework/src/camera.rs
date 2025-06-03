@@ -105,8 +105,8 @@ impl CameraController {
         }
     }
 
-    pub fn process_keyboard(&mut self, key: KeyCode, state: ElementState) -> bool {
-        let amount = if state == ElementState::Pressed {
+    pub fn handle_key(&mut self, key: KeyCode, pressed: bool) -> bool {
+        let amount = if pressed {
             1.0
         } else {
             0.0
