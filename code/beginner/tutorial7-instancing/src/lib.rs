@@ -1,12 +1,13 @@
-use std::iter;
+use std::{iter, sync::Arc};
 
 use cgmath::prelude::*;
 use wgpu::util::DeviceExt;
 use winit::{
+    application::ApplicationHandler,
     event::*,
-    event_loop::EventLoop,
+    event_loop::{ActiveEventLoop, EventLoop},
     keyboard::{KeyCode, PhysicalKey},
-    window::{Window, WindowBuilder},
+    window::Window,
 };
 
 #[cfg(target_arch = "wasm32")]
@@ -143,34 +144,34 @@ impl CameraController {
     }
 
     fn handle_key(&mut self, key: KeyCode, is_pressed: bool) -> bool {
-            match keycode {
-                KeyCode::Space => {
-                    self.is_up_pressed = is_pressed;
-                    true
-                }
-                KeyCode::ShiftLeft => {
-                    self.is_down_pressed = is_pressed;
-                    true
-                }
-                KeyCode::KeyW | KeyCode::ArrowUp => {
-                    self.is_forward_pressed = is_pressed;
-                    true
-                }
-                KeyCode::KeyA | KeyCode::ArrowLeft => {
-                    self.is_left_pressed = is_pressed;
-                    true
-                }
-                KeyCode::KeyS | KeyCode::ArrowDown => {
-                    self.is_backward_pressed = is_pressed;
-                    true
-                }
-                KeyCode::KeyD | KeyCode::ArrowRight => {
-                    self.is_right_pressed = is_pressed;
-                    true
-                }
-                _ => false,
+        match key {
+            KeyCode::Space => {
+                self.is_up_pressed = is_pressed;
+                true
             }
+            KeyCode::ShiftLeft => {
+                self.is_down_pressed = is_pressed;
+                true
+            }
+            KeyCode::KeyW | KeyCode::ArrowUp => {
+                self.is_forward_pressed = is_pressed;
+                true
+            }
+            KeyCode::KeyA | KeyCode::ArrowLeft => {
+                self.is_left_pressed = is_pressed;
+                true
+            }
+            KeyCode::KeyS | KeyCode::ArrowDown => {
+                self.is_backward_pressed = is_pressed;
+                true
+            }
+            KeyCode::KeyD | KeyCode::ArrowRight => {
+                self.is_right_pressed = is_pressed;
+                true
+            }
+            _ => false,
         }
+    }
 
     fn update_camera(&self, camera: &mut Camera) {
         let forward = (camera.target - camera.eye).normalize();
@@ -306,21 +307,19 @@ impl State {
             .await
             .unwrap();
         let (device, queue) = adapter
-            .request_device(
-                &wgpu::DeviceDescriptor {
-                    label: None,
-                    required_features: wgpu::Features::empty(),
-                    // WebGL doesn't support all of wgpu's features, so if
-                    // we're building for the web we'll have to disable some.
-                    required_limits: if cfg!(target_arch = "wasm32") {
-                        wgpu::Limits::downlevel_webgl2_defaults()
-                    } else {
-                        wgpu::Limits::default()
-                    },
-                    memory_hints: Default::default(),
-                    trace: wgpu::Trace::Off, // Trace path
+            .request_device(&wgpu::DeviceDescriptor {
+                label: None,
+                required_features: wgpu::Features::empty(),
+                // WebGL doesn't support all of wgpu's features, so if
+                // we're building for the web we'll have to disable some.
+                required_limits: if cfg!(target_arch = "wasm32") {
+                    wgpu::Limits::downlevel_webgl2_defaults()
+                } else {
+                    wgpu::Limits::default()
                 },
-            )
+                memory_hints: Default::default(),
+                trace: wgpu::Trace::Off, // Trace path
+            })
             .await
             .unwrap();
 
@@ -535,7 +534,7 @@ impl State {
         });
         let num_indices = INDICES.len() as u32;
 
-        Self {
+        Ok(Self {
             surface,
             device,
             queue,
@@ -556,11 +555,7 @@ impl State {
             // NEW!
             instances,
             instance_buffer,
-        }
-    }
-
-    pub fn window(&self) -> &Window {
-        &self.window
+        })
     }
 
     fn resize(&mut self, width: u32, height: u32) {
@@ -599,7 +594,7 @@ impl State {
         if !self.is_surface_configured {
             return Ok(());
         }
-        
+
         let output = self.surface.get_current_texture()?;
         let view = output
             .texture

@@ -38,7 +38,7 @@ impl Texture {
         };
         let desc = wgpu::TextureDescriptor {
             label: Some(label),
-            is_surface_configured: false,
+            size,
             mip_level_count: 1,
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
