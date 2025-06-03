@@ -1,12 +1,9 @@
-use std::iter;
+use std::{iter, sync::Arc};
 
 use cgmath::prelude::*;
 use wgpu::util::DeviceExt;
 use winit::{
-    event::*,
-    event_loop::EventLoop,
-    keyboard::{KeyCode, PhysicalKey},
-    window::Window,
+    application::ApplicationHandler, event::*, event_loop::{ActiveEventLoop, EventLoop}, keyboard::{KeyCode, PhysicalKey}, window::Window
 };
 
 #[cfg(target_arch = "wasm32")]
@@ -91,7 +88,7 @@ impl CameraController {
     }
 
     fn handle_key(&mut self, key: KeyCode, is_pressed: bool) -> bool {
-            match keycode {
+            match key {
                 KeyCode::Space => {
                     self.is_up_pressed = is_pressed;
                     true
@@ -631,7 +628,7 @@ impl State {
             )
         };
 
-        Self {
+        Ok(Self {
             window,
             surface,
             device,
@@ -654,11 +651,7 @@ impl State {
             light_render_pipeline,
             #[allow(dead_code)]
             debug_material,
-        }
-    }
-
-    pub fn window(&self) -> &Window {
-        &self.window
+        })
     }
 
     fn resize(&mut self, width: u32, height: u32) {
