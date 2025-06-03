@@ -50,10 +50,10 @@ surface.configure(&device, &config);
 Resizing the surface will use similar code:
 
 ```rust
-if new_size.width > 0 && new_size.height > 0 {
-    self.size = new_size;
-    self.config.width = new_size.width;
-    self.config.height = new_size.height;
+if width > 0 && height > 0 {
+    self.is_surface_configured = true;
+    self.config.width = width;
+    self.config.height = height;
     self.surface.configure(&self.device, &self.config);
 }
 ```

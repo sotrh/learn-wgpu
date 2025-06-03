@@ -290,7 +290,7 @@ struct State {
     hdr: hdr::HdrPipeline,
 }
 
-impl<'a> State<'a> {
+impl State {
     pub fn new(window: Window) -> anyhow::Result<Self> {
         // ...
         // NEW!
@@ -309,9 +309,9 @@ impl<'a> State<'a> {
 Then, when we resize the window, we need to call `resize()` on our `HdrPipeline`:
 
 ```rust
-fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
+fn resize(&mut self, width: u32, height: u32) {
     // UPDATED!
-    if new_size.width > 0 && new_size.height > 0 {
+    if width > 0 && height > 0 {
         // ...
         self.hdr
             .resize(&self.device, new_size.width, new_size.height);
@@ -614,13 +614,13 @@ impl HdrLoader {
                 bytes_per_row: Some(src.size.width * std::mem::size_of::<[f32; 4]>() as u32),
                 rows_per_image: Some(src.size.height),
             },
-            src.size,
+            src.is_surface_configured: false,
         );
 
         let dst = texture::CubeTexture::create_2d(
             device,
-            dst_size,
-            dst_size,
+            dst_is_surface_configured: false,
+            dst_is_surface_configured: false,
             self.texture_format,
             1,
             // We are going to write to `dst` texture so we
@@ -923,7 +923,7 @@ struct State {
 }
 
 // ...
-impl<'a> State<'a> {
+impl State {
     async fn new(window: &'a Window) -> anyhow::Result<State<'a>> {
         // ...
         Ok(Self {

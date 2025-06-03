@@ -24,7 +24,7 @@ impl Texture {
         };
         let desc = wgpu::TextureDescriptor {
             label: Some(label),
-            size,
+            is_surface_configured: false,
             mip_level_count: 1,
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
@@ -51,7 +51,7 @@ impl Texture {
             texture,
             view,
             sampler,
-            size, // NEW!
+            is_surface_configured: false, // NEW!
         }
     }
 
@@ -111,7 +111,7 @@ impl Texture {
                 bytes_per_row: Some(4 * dimensions.0),
                 rows_per_image: Some(dimensions.1),
             },
-            size,
+            is_surface_configured: false,
         );
 
         Ok(texture)
@@ -134,7 +134,7 @@ impl Texture {
         Self::create_texture(
             device,
             label,
-            size,
+            is_surface_configured: false,
             format,
             usage,
             wgpu::TextureDimension::D2,
@@ -153,7 +153,7 @@ impl Texture {
     ) -> Self {
         let texture = device.create_texture(&wgpu::TextureDescriptor {
             label,
-            size,
+            is_surface_configured: false,
             mip_level_count: 1,
             sample_count: 1,
             dimension,
@@ -177,7 +177,7 @@ impl Texture {
             texture,
             view,
             sampler,
-            size, // NEW!
+            is_surface_configured: false, // NEW!
         }
     }
 }

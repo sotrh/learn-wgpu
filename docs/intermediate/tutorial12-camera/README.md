@@ -298,8 +298,8 @@ You'll need to import `winit::dpi::PhysicalPosition` if you haven't already.
 We need to update `new()` as well.
 
 ```rust
-impl<'a> State<'a> {
-    async fn new(window: &'a Window) -> State<'a> {
+impl State {
+    async fn new(window: Arc<Window>) -> anyhow::Result<State> {
         // ...
 
         // UPDATED!
@@ -328,7 +328,7 @@ impl<'a> State<'a> {
 We also need to change our `projection` in `resize`.
 
 ```rust
-fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
+fn resize(&mut self, width: u32, height: u32) {
     // UPDATED!
     self.projection.resize(new_size.width, new_size.height);
     // ...
@@ -404,7 +404,7 @@ fn main() {
                     WindowEvent::Resized(physical_size) => {
                         state.resize(*physical_size);
                     }
-                    WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
+                    WindowEvent::ScaleFactorChanged { new_inner_is_surface_configured: false, .. } => {
                         state.resize(**new_inner_size);
                     }
                     _ => {}

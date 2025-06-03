@@ -91,49 +91,35 @@ impl CameraController {
         }
     }
 
-    fn process_events(&mut self, event: &WindowEvent) -> bool {
-        match event {
-            WindowEvent::KeyboardInput {
-                event:
-                    KeyEvent {
-                        state,
-                        physical_key: PhysicalKey::Code(keycode),
-                        ..
-                    },
-                ..
-            } => {
-                let is_pressed = *state == ElementState::Pressed;
-                match keycode {
-                    KeyCode::Space => {
-                        self.is_up_pressed = is_pressed;
-                        true
-                    }
-                    KeyCode::ShiftLeft => {
-                        self.is_down_pressed = is_pressed;
-                        true
-                    }
-                    KeyCode::KeyW | KeyCode::ArrowUp => {
-                        self.is_forward_pressed = is_pressed;
-                        true
-                    }
-                    KeyCode::KeyA | KeyCode::ArrowLeft => {
-                        self.is_left_pressed = is_pressed;
-                        true
-                    }
-                    KeyCode::KeyS | KeyCode::ArrowDown => {
-                        self.is_backward_pressed = is_pressed;
-                        true
-                    }
-                    KeyCode::KeyD | KeyCode::ArrowRight => {
-                        self.is_right_pressed = is_pressed;
-                        true
-                    }
-                    _ => false,
+    fn handle_key(&mut self, key: KeyCode, is_pressed: bool) -> bool {
+            match keycode {
+                KeyCode::Space => {
+                    self.is_up_pressed = is_pressed;
+                    true
                 }
+                KeyCode::ShiftLeft => {
+                    self.is_down_pressed = is_pressed;
+                    true
+                }
+                KeyCode::KeyW | KeyCode::ArrowUp => {
+                    self.is_forward_pressed = is_pressed;
+                    true
+                }
+                KeyCode::KeyA | KeyCode::ArrowLeft => {
+                    self.is_left_pressed = is_pressed;
+                    true
+                }
+                KeyCode::KeyS | KeyCode::ArrowDown => {
+                    self.is_backward_pressed = is_pressed;
+                    true
+                }
+                KeyCode::KeyD | KeyCode::ArrowRight => {
+                    self.is_right_pressed = is_pressed;
+                    true
+                }
+                _ => false,
             }
-            _ => false,
         }
-    }
 
     fn update_camera(&self, camera: &mut Camera) {
         let forward = camera.target - camera.eye;
@@ -256,9 +242,9 @@ struct LightUniform {
     _padding2: u32,
 }
 
-struct State<'a> {
-    window: &'a Window,
-    surface: wgpu::Surface<'a>,
+struct State {
+    window: Arc<Window>,
+    surface: wgpu::Surface<'static>,
     device: wgpu::Device,
     queue: wgpu::Queue,
     config: wgpu::SurfaceConfiguration,
@@ -273,7 +259,7 @@ struct State<'a> {
     #[allow(dead_code)]
     instance_buffer: wgpu::Buffer,
     depth_texture: texture::Texture,
-    size: winit::dpi::PhysicalSize<u32>,
+    is_surface_configured: bool,
     light_uniform: LightUniform,
     light_buffer: wgpu::Buffer,
     light_bind_group: wgpu::BindGroup,
@@ -343,8 +329,8 @@ fn create_render_pipeline(
     })
 }
 
-impl<'a> State<'a> {
-    async fn new(window: &'a Window) -> State<'a> {
+impl State {
+    async fn new(window: Arc<Window>) -> anyhow::Result<State> {
         let size = window.inner_size();
 
         // The instance is a handle to our GPU
@@ -357,7 +343,7 @@ impl<'a> State<'a> {
             ..Default::default()
         });
 
-        let surface = instance.create_surface(window).unwrap();
+        let surface = instance.create_surface(window.clone()).unwrap();
 
         let adapter = instance
             .request_adapter(&wgpu::RequestAdapterOptions {
@@ -611,7 +597,7 @@ impl<'a> State<'a> {
             instances,
             instance_buffer,
             depth_texture,
-            size,
+            is_surface_configured: false,
             light_uniform,
             light_buffer,
             light_bind_group,
@@ -624,11 +610,11 @@ impl<'a> State<'a> {
         &self.window
     }
 
-    fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
-        if new_size.width > 0 && new_size.height > 0 {
-            self.config.width = new_size.width;
-            self.config.height = new_size.height;
-            self.size = new_size;
+    fn resize(&mut self, width: u32, height: u32) {
+        if width > 0 && height > 0 {
+            self.config.width = width;
+            self.config.height = height;
+            self.is_surface_configured = true;
             self.camera.aspect = self.config.width as f32 / self.config.height as f32;
             self.surface.configure(&self.device, &self.config);
             self.depth_texture =
@@ -636,8 +622,12 @@ impl<'a> State<'a> {
         }
     }
 
-    fn input(&mut self, event: &WindowEvent) -> bool {
-        self.camera_controller.process_events(event)
+    fn handle_key(&mut self, event_loop: &ActiveEventLoop, key: KeyCode, pressed: bool) {
+        if key == KeyCode::Escape && pressed {
+            event_loop.exit();
+        } else {
+            self.camera_controller.handle_key(key, pressed);
+        }
     }
 
     fn update(&mut self) {
@@ -663,6 +653,13 @@ impl<'a> State<'a> {
     }
 
     fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
+        self.window.request_redraw();
+
+        // We can't render unless the surface is configured
+        if !self.is_surface_configured {
+            return Ok(());
+        }
+        
         let output = self.surface.get_current_texture()?;
         let view = output
             .texture

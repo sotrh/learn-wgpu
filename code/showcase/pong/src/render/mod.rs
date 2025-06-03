@@ -13,7 +13,7 @@ use crate::state;
 const FONT_BYTES: &[u8] = include_bytes!("../../res/fonts/PressStart2P-Regular.ttf");
 
 pub struct Render<'a> {
-    surface: wgpu::Surface<'a>,
+    surface: wgpu::Surface<'static>,
     config: wgpu::SurfaceConfiguration,
     #[allow(dead_code)]
     adapter: wgpu::Adapter,
@@ -36,7 +36,7 @@ impl<'a> Render<'a> {
         self.config.height as f32
     }
 
-    pub async fn new(window: &'a Window, size: PhysicalSize<u32>) -> Render<'a> {
+    pub async fn new(window: Arc<Window>, size: PhysicalSize<u32>) -> Render<'a> {
         log::warn!("size: {:?}", size);
         // The instance is a handle to our GPU
         // BackendBit::PRIMARY => Vulkan + Metal + DX12 + Browser WebGPU
@@ -48,7 +48,7 @@ impl<'a> Render<'a> {
             ..Default::default()
         });
 
-        let surface = instance.create_surface(window).unwrap();
+        let surface = instance.create_surface(window.clone()).unwrap();
 
         let adapter = instance
             .request_adapter(&wgpu::RequestAdapterOptions {

@@ -23,7 +23,7 @@ impl Terrain {
     pub fn new(chunk_size: cgmath::Vector2<u32>, min_max_height: cgmath::Vector2<f32>) -> Self {
         Self {
             chunks: Vec::new(),
-            chunk_size,
+            chunk_is_surface_configured: false,
             min_max_height,
         }
     }
@@ -165,7 +165,7 @@ impl TerrainPipeline {
         );
 
         Self {
-            chunk_size,
+            chunk_is_surface_configured: false,
             min_max_height,
             gen_layout,
             gen_pipeline,
@@ -317,7 +317,7 @@ impl GenData {
         min_max_height: cgmath::Vector2<f32>,
     ) -> Self {
         Self {
-            texture_size,
+            texture_is_surface_configured: false,
             _pad0: 0,
             start_index,
             _pad1: 0,

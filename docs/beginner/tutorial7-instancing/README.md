@@ -2,7 +2,7 @@
 
 Our scene right now is very simple: we have one object centered at (0,0,0). What if we wanted more objects? This is where instancing comes in.
 
-Instancing allows us to draw the same object multiple times with different properties (position, orientation, size, color, etc.). There are multiple ways of doing instancing. One way would be to modify the uniform buffer to include these properties and then update it before we draw each instance of our object.
+Instancing allows us to draw the same object multiple times with different properties (position, orientation, is_surface_configured: false, color, etc.). There are multiple ways of doing instancing. One way would be to modify the uniform buffer to include these properties and then update it before we draw each instance of our object.
 
 We don't want to use this method for performance reasons. Updating the uniform buffer for each instance would require multiple buffer copies for each frame. On top of that, our method to update the uniform buffer currently requires us to create a new buffer to store the updated data. That's a lot of time wasted between draw calls.
 
@@ -97,8 +97,8 @@ const INSTANCE_DISPLACEMENT: cgmath::Vector3<f32> = cgmath::Vector3::new(NUM_INS
 Now, we can create the actual instances.
 
 ```rust
-impl<'a> State<'a> {
-    async fn new(window: &'a Window) -> State<'a> {
+impl State {
+    async fn new(window: Arc<Window>) -> anyhow::Result<State> {
         // ...
         let instances = (0..NUM_INSTANCES_PER_ROW).flat_map(|z| {
             (0..NUM_INSTANCES_PER_ROW).map(move |x| {

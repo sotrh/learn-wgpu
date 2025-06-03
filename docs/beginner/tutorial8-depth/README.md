@@ -34,7 +34,7 @@ impl Texture {
         };
         let desc = wgpu::TextureDescriptor {
             label: Some(label),
-            size,
+            is_surface_configured: false,
             mip_level_count: 1,
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
@@ -138,7 +138,7 @@ async fn new(window: Window) -> Self {
 We need to remember to change the `resize()` method to create a new `depth_texture` and `depth_texture_view`.
 
 ```rust
-fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
+fn resize(&mut self, width: u32, height: u32) {
     // ...
 
     self.depth_texture = texture::Texture::create_depth_texture(&self.device, &self.config, "depth_texture");

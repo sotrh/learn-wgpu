@@ -265,8 +265,8 @@ impl InstanceRaw {
     }
 }
 
-struct State<'a> {
-    surface: wgpu::Surface<'a>,
+struct State {
+    surface: wgpu::Surface<'static>,
     device: wgpu::Device,
     queue: wgpu::Queue,
     config: wgpu::SurfaceConfiguration,
@@ -282,14 +282,14 @@ struct State<'a> {
     camera_uniform: CameraUniform,
     camera_buffer: wgpu::Buffer,
     camera_bind_group: wgpu::BindGroup,
-    size: winit::dpi::PhysicalSize<u32>,
+    is_surface_configured: bool,
     instances: Vec<Instance>,
     instance_buffer: wgpu::Buffer,
-    window: &'a Window,
+    window: Arc<Window>,
 }
 
-impl<'a> State<'a> {
-    async fn new(window: &'a Window) -> State<'a> {
+impl State {
+    async fn new(window: Arc<Window>) -> anyhow::Result<State> {
         let size = window.inner_size();
 
         // The instance is a handle to our GPU
@@ -302,7 +302,7 @@ impl<'a> State<'a> {
             ..Default::default()
         });
 
-        let surface = instance.create_surface(window).unwrap();
+        let surface = instance.create_surface(window.clone()).unwrap();
 
         let adapter = instance
             .request_adapter(&wgpu::RequestAdapterOptions {
@@ -558,7 +558,7 @@ impl<'a> State<'a> {
             camera_buffer,
             camera_bind_group,
             camera_uniform,
-            size,
+            is_surface_configured: false,
             instances,
             instance_buffer,
             window,
@@ -569,19 +569,23 @@ impl<'a> State<'a> {
         &self.window
     }
 
-    fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
-        if new_size.width > 0 && new_size.height > 0 {
-            self.size = new_size;
-            self.config.width = new_size.width;
-            self.config.height = new_size.height;
+    fn resize(&mut self, width: u32, height: u32) {
+        if width > 0 && height > 0 {
+            self.is_surface_configured = true;
+            self.config.width = width;
+            self.config.height = height;
             self.surface.configure(&self.device, &self.config);
 
             self.camera.aspect = self.config.width as f32 / self.config.height as f32;
         }
     }
 
-    fn input(&mut self, event: &WindowEvent) -> bool {
-        self.camera_controller.process_events(event)
+    fn handle_key(&mut self, event_loop: &ActiveEventLoop, key: KeyCode, pressed: bool) {
+        if key == KeyCode::Escape && pressed {
+            event_loop.exit();
+        } else {
+            self.camera_controller.handle_key(key, pressed);
+        }
     }
 
     fn update(&mut self) {
@@ -611,6 +615,13 @@ impl<'a> State<'a> {
     }
 
     fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
+        self.window.request_redraw();
+
+        // We can't render unless the surface is configured
+        if !self.is_surface_configured {
+            return Ok(());
+        }
+        
         let output = self.surface.get_current_texture()?;
         let view = output
             .texture
@@ -660,7 +671,7 @@ impl<'a> State<'a> {
 }
 
 fn main() {
-    pollster::block_on(run());
+    run().unwrap();
 }
 
 async fn run() {

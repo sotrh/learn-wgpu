@@ -25,8 +25,8 @@ use winit::keyboard::{KeyCode, PhysicalKey};
 use winit::window::{Window, WindowBuilder};
 
 pub struct Display<'a> {
-    surface: wgpu::Surface<'a>,
-    pub window: &'a Window,
+    surface: wgpu::Surface<'static>,
+    pub window: Arc<Window>,
     pub config: wgpu::SurfaceConfiguration,
     pub device: wgpu::Device,
     pub queue: wgpu::Queue,
@@ -42,7 +42,7 @@ impl<'a> Display<'a> {
             backends: wgpu::Backends::GL,
             ..Default::default()
         });
-        let surface = instance.create_surface(window).unwrap();
+        let surface = instance.create_surface(window.clone()).unwrap();
         let adapter = instance
             .request_adapter(&wgpu::RequestAdapterOptions {
                 power_preference: wgpu::PowerPreference::default(),

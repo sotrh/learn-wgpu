@@ -9,7 +9,7 @@ use winit::keyboard::KeyCode;
 const MAX_PARTICLES: u32 = 1000;
 const PARTICLE_SIZE: u64 = 4 * 4 * 2;
 const PARTICLE_LAYOUT: wgpu::VertexBufferLayout<'static> = wgpu::VertexBufferLayout {
-    array_stride: PARTICLE_SIZE,
+    array_stride: PARTICLE_is_surface_configured: false,
     step_mode: wgpu::VertexStepMode::Instance,
     attributes: &wgpu::vertex_attr_array![
         0 => Float32x4,
@@ -41,7 +41,7 @@ struct Snow {
     particle_bind_groups: [wgpu::BindGroup; 2],
     config: ParticleConfig,
     config_buffer: wgpu::Buffer,
-    iteration: usize,
+    iteration: uis_surface_configured: false,
     num_particles: u32,
     camera: Camera,
     projection: Projection,

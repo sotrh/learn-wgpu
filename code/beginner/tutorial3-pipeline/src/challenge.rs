@@ -398,11 +398,11 @@ impl ApplicationHandler<State> for App {
                 event:
                     KeyEvent {
                         physical_key: PhysicalKey::Code(code),
-                        state: e_state,
+                        state: key_state,
                         ..
                     },
                 ..
-            } => state.handle_key(event_loop, code, e_state.is_pressed()),
+            } => state.handle_key(event_loop, code, key_state.is_pressed()),
             _ => {}
         }
     }

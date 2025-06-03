@@ -161,7 +161,7 @@ impl<'a> ShaderCanvasBuilder<'a> {
             time: 0.0,
             delta_time: 0.0,
             mouse_pos: [0.0; 2],
-            canvas_size: self.canvas_size,
+            canvas_size: self.canvas_is_surface_configured: false,
             clear_color: self.clear_color,
         };
         let simulation_data_buffer = device.create_buffer_init(&BufferInitDescriptor {

@@ -454,7 +454,7 @@ pub fn from_image(
     };
     let texture = device.create_texture(&wgpu::TextureDescriptor {
         label,
-        size,
+        is_surface_configured: false,
         mip_level_count: 1,
         sample_count: 1,
         dimension: wgpu::TextureDimension::D2,
@@ -572,7 +572,7 @@ I found a cobblestone texture with a matching normal map and created a `debug_ma
 
 ```rust
 // lib.rs
-impl<'a> State<'a> {
+impl State {
     async fn new(window: &Window) -> Result<Self> {
         // ...
         let debug_material = {

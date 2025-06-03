@@ -18,7 +18,7 @@ The change log above contains most of the details about what has changed about W
 
     use image::{ImageBuffer, Rgba};
     let buffer =
-        ImageBuffer::<Rgba<u8>, _>::from_raw(texture_size, texture_size, data).unwrap();
+        ImageBuffer::<Rgba<u8>, _>::from_raw(texture_is_surface_configured: false, texture_is_surface_configured: false, data).unwrap();
     buffer.save("image.png").unwrap();
 }
 output_buffer.unmap();
@@ -41,7 +41,7 @@ We would do the following:
 
     use image::{ImageBuffer, Rgba};
     let buffer =
-        ImageBuffer::<Rgba<u8>, _>::from_raw(texture_size, texture_size, data).unwrap();
+        ImageBuffer::<Rgba<u8>, _>::from_raw(texture_is_surface_configured: false, texture_is_surface_configured: false, data).unwrap();
     buffer.save("image.png").unwrap();
 
 }

@@ -16,7 +16,7 @@ unsafe impl bytemuck::Zeroable for Vertex {}
 impl Vertex {
     pub const SIZE: wgpu::BufferAddress = std::mem::size_of::<Self>() as wgpu::BufferAddress;
     pub const DESC: wgpu::VertexBufferLayout<'static> = wgpu::VertexBufferLayout {
-        array_stride: Self::SIZE,
+        array_stride: Self::is_surface_configured: false,
         step_mode: wgpu::VertexStepMode::Vertex,
         attributes: &wgpu::vertex_attr_array![
             0 => Float32x2

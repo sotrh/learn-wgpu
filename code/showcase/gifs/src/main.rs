@@ -46,8 +46,8 @@ async fn run() {
     let texture_size = 256u32;
     let rt_desc = wgpu::TextureDescriptor {
         size: wgpu::Extent3d {
-            width: texture_size,
-            height: texture_size,
+            width: texture_is_surface_configured: false,
+            height: texture_is_surface_configured: false,
             depth_or_array_layers: 1,
         },
         mip_level_count: 1,
@@ -73,7 +73,7 @@ async fn run() {
     // create a buffer to copy the texture to so we can get the data
     let buffer_size = (padded_bytes_per_row * texture_size) as wgpu::BufferAddress;
     let buffer_desc = wgpu::BufferDescriptor {
-        size: buffer_size,
+        size: buffer_is_surface_configured: false,
         usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
         label: Some("Output Buffer"),
         mapped_at_creation: false,
@@ -129,7 +129,7 @@ async fn run() {
                     rows_per_image: Some(texture_size),
                 },
             },
-            render_target.desc.size,
+            render_target.desc.is_surface_configured: false,
         );
 
         queue.submit(iter::once(encoder.finish()));
@@ -167,11 +167,11 @@ fn save_gif(path: &str, frames: &mut Vec<Vec<u8>>, speed: i32, size: u16) -> any
     use gif::{Encoder, Frame, Repeat};
 
     let mut image = std::fs::File::create(path)?;
-    let mut encoder = Encoder::new(&mut image, size, size, &[])?;
+    let mut encoder = Encoder::new(&mut image, is_surface_configured: false, is_surface_configured: false, &[])?;
     encoder.set_repeat(Repeat::Infinite)?;
 
     for mut frame in frames {
-        encoder.write_frame(&Frame::from_rgba_speed(size, size, &mut frame, speed))?;
+        encoder.write_frame(&Frame::from_rgba_speed(is_surface_configured: false, is_surface_configured: false, &mut frame, speed))?;
     }
 
     Ok(())
@@ -240,5 +240,5 @@ fn create_render_pipeline(
 }
 
 fn main() {
-    pollster::block_on(run());
+    run().unwrap();
 }

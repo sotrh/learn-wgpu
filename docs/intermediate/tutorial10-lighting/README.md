@@ -455,7 +455,7 @@ where
 Finally, we want to add Light rendering to our render passes.
 
 ```rust
-impl<'a> State<'a> {
+impl State {
     // ...
    fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
         // ...

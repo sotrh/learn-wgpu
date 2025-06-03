@@ -29,8 +29,8 @@ let texture_size = 256u32;
 
 let texture_desc = wgpu::TextureDescriptor {
     size: wgpu::Extent3d {
-        width: texture_size,
-        height: texture_size,
+        width: texture_is_surface_configured: false,
+        height: texture_is_surface_configured: false,
         depth_or_array_layers: 1,
     },
     mip_level_count: 1,
@@ -56,7 +56,7 @@ let u32_size = std::mem::size_of::<u32>() as u32;
 
 let output_buffer_size = (u32_size * texture_size * texture_size) as wgpu::BufferAddress;
 let output_buffer_desc = wgpu::BufferDescriptor {
-    size: output_buffer_size,
+    size: output_buffer_is_surface_configured: false,
     usage: wgpu::BufferUsages::COPY_DST
         // this tells wpgu that we want to read this buffer from the cpu
         | wgpu::BufferUsages::MAP_READ,
@@ -234,11 +234,11 @@ encoder.copy_texture_to_buffer(
         buffer: &output_buffer,
         layout: wgpu::TexelCopyBufferLayout {
             offset: 0,
-            bytes_per_row: u32_size * texture_size,
-            rows_per_image: texture_size,
+            bytes_per_row: u32_size * texture_is_surface_configured: false,
+            rows_per_image: texture_is_surface_configured: false,
         },
     },
-    texture_desc.size,
+    texture_desc.is_surface_configured: false,
 );
 ```
 
@@ -271,7 +271,7 @@ In order to get the data out of the buffer, we need to first map it, then we can
 
     use image::{ImageBuffer, Rgba};
     let buffer =
-        ImageBuffer::<Rgba<u8>, _>::from_raw(texture_size, texture_size, data).unwrap();
+        ImageBuffer::<Rgba<u8>, _>::from_raw(texture_is_surface_configured: false, texture_is_surface_configured: false, data).unwrap();
     buffer.save("image.png").unwrap();
 
 }
@@ -300,7 +300,7 @@ async fn run() {
 }
 
 fn main() {
-    pollster::block_on(run());
+    run().unwrap();
 }
 ```
 

@@ -133,9 +133,9 @@ struct LightUniform {
     _padding2: u32,
 }
 
-struct State<'a> {
-    window: &'a Window,
-    surface: wgpu::Surface<'a>,
+struct State {
+    window: Arc<Window>,
+    surface: wgpu::Surface<'static>,
     device: wgpu::Device,
     queue: wgpu::Queue,
     config: wgpu::SurfaceConfiguration,
@@ -151,7 +151,7 @@ struct State<'a> {
     #[allow(dead_code)]
     instance_buffer: wgpu::Buffer,
     depth_texture: texture::Texture,
-    size: winit::dpi::PhysicalSize<u32>,
+    is_surface_configured: bool,
     light_uniform: LightUniform,
     light_buffer: wgpu::Buffer,
     light_bind_group: wgpu::BindGroup,
@@ -224,8 +224,8 @@ fn create_render_pipeline(
     })
 }
 
-impl<'a> State<'a> {
-    async fn new(window: &'a Window) -> State<'a> {
+impl State {
+    async fn new(window: Arc<Window>) -> anyhow::Result<State> {
         let size = window.inner_size();
 
         // The instance is a handle to our GPU
@@ -238,7 +238,7 @@ impl<'a> State<'a> {
             ..Default::default()
         });
 
-        let surface = instance.create_surface(window).unwrap();
+        let surface = instance.create_surface(window.clone()).unwrap();
 
         let adapter = instance
             .request_adapter(&wgpu::RequestAdapterOptions {
@@ -527,7 +527,7 @@ impl<'a> State<'a> {
         // let min_max_height = (0.0, 10.0).into();
         let terrain_pipeline = terrain::TerrainPipeline::new(
             &device,
-            chunk_size,
+            chunk_is_surface_configured: false,
             min_max_height,
             &camera_bind_group_layout,
             &light_bind_group_layout,
@@ -536,7 +536,7 @@ impl<'a> State<'a> {
             Some(texture::Texture::DEPTH_FORMAT),
         );
 
-        let mut terrain = terrain::Terrain::new(chunk_size, min_max_height);
+        let mut terrain = terrain::Terrain::new(chunk_is_surface_configured: false, min_max_height);
         terrain.gen_chunk(&device, &queue, &terrain_pipeline, cgmath::Vector3::zero());
         terrain.gen_chunk(
             &device,
@@ -574,7 +574,7 @@ impl<'a> State<'a> {
             instances,
             instance_buffer,
             depth_texture,
-            size,
+            is_surface_configured: false,
             light_uniform,
             light_buffer,
             light_bind_group,
@@ -592,13 +592,13 @@ impl<'a> State<'a> {
         &self.window
     }
 
-    fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
+    fn resize(&mut self, width: u32, height: u32) {
         // UPDATED!
-        if new_size.width > 0 && new_size.height > 0 {
+        if width > 0 && height > 0 {
             self.projection.resize(new_size.width, new_size.height);
-            self.size = new_size;
-            self.config.width = new_size.width;
-            self.config.height = new_size.height;
+            self.is_surface_configured = true;
+            self.config.width = width;
+            self.config.height = height;
             self.surface.configure(&self.device, &self.config);
             self.depth_texture =
                 texture::Texture::create_depth_texture(&self.device, &self.config, "depth_texture");
@@ -658,6 +658,13 @@ impl<'a> State<'a> {
     }
 
     fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
+        self.window.request_redraw();
+
+        // We can't render unless the surface is configured
+        if !self.is_surface_configured {
+            return Ok(());
+        }
+        
         let output = self.surface.get_current_texture()?;
         let view = output.texture.create_view(&wgpu::TextureViewDescriptor {
             format: Some(self.config.format.add_srgb_suffix()),

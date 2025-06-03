@@ -260,15 +260,11 @@ impl ApplicationHandler<State> for App {
                 event:
                     KeyEvent {
                         physical_key: PhysicalKey::Code(code),
-                        state,
+                        state: key_state,
                         ..
                     },
                 ..
-            } => match (code, state.is_pressed()) {
-                (KeyCode::Escape, true) => event_loop.exit(),
-                (KeyCode::Space, true) => {}
-                _ => {}
-            },
+            } => state.handle_key(event_loop, code, key_state.is_pressed()),
             _ => {}
         }
     }

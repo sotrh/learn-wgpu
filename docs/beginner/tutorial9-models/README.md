@@ -260,7 +260,7 @@ pub struct Mesh {
     pub vertex_buffer: wgpu::Buffer,
     pub index_buffer: wgpu::Buffer,
     pub num_elements: u32,
-    pub material: usize,
+    pub material: uis_surface_configured: false,
 }
 ```
 
