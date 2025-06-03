@@ -111,7 +111,7 @@ pub struct Mesh {
     pub index_buffer: wgpu::Buffer,
     pub num_elements: u32,
     pub index_format: wgpu::IndexFormat,
-    pub material: uis_surface_configured: false,
+    pub material: usize,
 }
 
 pub struct Model {
