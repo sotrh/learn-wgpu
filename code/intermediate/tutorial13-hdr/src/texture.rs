@@ -51,7 +51,7 @@ impl Texture {
             texture,
             view,
             sampler,
-            is_surface_configured: false, // NEW!
+            size, // NEW!
         }
     }
 
@@ -111,7 +111,7 @@ impl Texture {
                 bytes_per_row: Some(4 * dimensions.0),
                 rows_per_image: Some(dimensions.1),
             },
-            is_surface_configured: false,
+            size,
         );
 
         Ok(texture)
@@ -134,7 +134,7 @@ impl Texture {
         Self::create_texture(
             device,
             label,
-            is_surface_configured: false,
+            size,
             format,
             usage,
             wgpu::TextureDimension::D2,
@@ -153,7 +153,7 @@ impl Texture {
     ) -> Self {
         let texture = device.create_texture(&wgpu::TextureDescriptor {
             label,
-            is_surface_configured: false,
+            size,
             mip_level_count: 1,
             sample_count: 1,
             dimension,
@@ -177,7 +177,7 @@ impl Texture {
             texture,
             view,
             sampler,
-            is_surface_configured: false, // NEW!
+            size, // NEW!
         }
     }
 }

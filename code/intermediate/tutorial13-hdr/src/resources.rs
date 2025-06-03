@@ -328,13 +328,13 @@ impl HdrLoader {
                 bytes_per_row: Some(src.size.width * std::mem::size_of::<[f32; 4]>() as u32),
                 rows_per_image: Some(src.size.height),
             },
-            src.is_surface_configured: false,
+            src.size,
         );
 
         let dst = texture::CubeTexture::create_2d(
             device,
-            dst_is_surface_configured: false,
-            dst_is_surface_configured: false,
+            dst_size,
+            dst_size,
             self.texture_format,
             1,
             wgpu::TextureUsages::STORAGE_BINDING | wgpu::TextureUsages::TEXTURE_BINDING,
