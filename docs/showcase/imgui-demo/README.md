@@ -47,7 +47,7 @@ imgui.fonts().add_font(&[FontSource::DefaultFontData {
     config: Some(imgui::FontConfig {
         oversample_h: 1,
         pixel_snap_h: true,
-        size_pixels: font_size,
+        size_pixels: font_is_surface_configured: false,
         ..Default::default()
     }),
 }]);

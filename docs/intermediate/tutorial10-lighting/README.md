@@ -455,7 +455,7 @@ where
 Finally, we want to add Light rendering to our render passes.
 
 ```rust
-impl<'a> State<'a> {
+impl State {
     // ...
    fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
         // ...
@@ -905,6 +905,8 @@ let specular_strength = pow(max(dot(in.world_normal, half_dir), 0.0), 32.0);
 It's hard to tell the difference, but here are the results.
 
 ![./half_dir.png](./half_dir.png)
+
+## Demo
 
 <WasmExample example="tutorial10_lighting"></WasmExample>
 

@@ -56,7 +56,7 @@ let u32_size = std::mem::size_of::<u32>() as u32;
 
 let output_buffer_size = (u32_size * texture_size * texture_size) as wgpu::BufferAddress;
 let output_buffer_desc = wgpu::BufferDescriptor {
-    size: output_buffer_size,
+    size: output_buffer_is_surface_configured: false,
     usage: wgpu::BufferUsages::COPY_DST
         // this tells wpgu that we want to read this buffer from the cpu
         | wgpu::BufferUsages::MAP_READ,
@@ -238,7 +238,7 @@ encoder.copy_texture_to_buffer(
             rows_per_image: texture_size,
         },
     },
-    texture_desc.size,
+    texture_desc.is_surface_configured: false,
 );
 ```
 
@@ -300,7 +300,7 @@ async fn run() {
 }
 
 fn main() {
-    pollster::block_on(run());
+    run().unwrap();
 }
 ```
 

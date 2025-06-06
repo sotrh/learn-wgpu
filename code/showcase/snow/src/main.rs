@@ -35,6 +35,7 @@ struct Uniforms {
     view_proj: glam::Mat4,
 }
 
+#[derive(Debug)]
 struct Snow {
     move_particles: wgpu::ComputePipeline,
     particle_buffers: [wgpu::Buffer; 2],
@@ -403,5 +404,5 @@ fn create_particle_bind_group(
 }
 
 fn main() {
-    pollster::block_on(framework::run::<Snow>()).unwrap();
+    framework::run::<Snow>().unwrap();
 }

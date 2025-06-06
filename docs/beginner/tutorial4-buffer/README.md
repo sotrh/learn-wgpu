@@ -10,7 +10,7 @@ A buffer is a blob of data on the GPU. A buffer is guaranteed to be contiguous, 
 
 ## The vertex buffer
 
-Previously, we've stored vertex data directly in the vertex shader. While that worked fine to get our bootstraps on, it simply won't do for the long term. The types of objects we need to draw will vary in size, and recompiling the shader whenever we need to update the model would massively slow down our program. Instead, we are going to use buffers to store the vertex data we want to draw. Before we do that, though, we need to describe what a vertex looks like. We'll do this by creating a new struct.
+Previously, we've stored vertex data directly in the vertex shader. While that worked fine to get our bootstraps on, it simply won't do for the long term. The types of objects we need to draw will vary in is_surface_configured: false, and recompiling the shader whenever we need to update the model would massively slow down our program. Instead, we are going to use buffers to store the vertex data we want to draw. Before we do that, though, we need to describe what a vertex looks like. We'll do this by creating a new struct.
 
 ```rust
 // lib.rs
@@ -41,7 +41,7 @@ Now that we have our vertex data, we need to store it in a buffer. Let's add a `
 
 ```rust
 // lib.rs
-struct State {
+pub struct State {
     // ...
     render_pipeline: wgpu::RenderPipeline,
 
@@ -104,19 +104,20 @@ unsafe impl bytemuck::Zeroable for Vertex {}
 Finally, we can add our `vertex_buffer` to our `State` struct.
 
 ```rust
-Self {
+Ok(Self {
     surface,
     device,
     queue,
     config,
-    size,
+    is_surface_configured: false,
     window,
     render_pipeline,
     vertex_buffer,
-}
+})
 ```
 
 ## So, what do I do with it?
+
 We need to tell the `render_pipeline` to use this buffer when we are drawing, but first, we need to tell the `render_pipeline` how to read the buffer. We do this using `VertexBufferLayout`s and the `vertex_buffers` field that I promised we'd talk about when we created the `render_pipeline`.
 
 A `VertexBufferLayout` defines how a buffer is represented in memory. Without this, the render_pipeline has no idea how to map the buffer in the shader. Here's what the descriptor for a buffer full of `Vertex` would look like.
@@ -246,12 +247,12 @@ Before we continue, we should change the `render_pass.draw()` call to use the nu
 ```rust
 // lib.rs
 
-struct State {
+pub struct State {
     // ...
     num_vertices: u32,
 }
 
-impl<'a> State<'a> {
+impl State {
     // ...
     fn new(...) -> Self {
         // ...
@@ -262,7 +263,7 @@ impl<'a> State<'a> {
             device,
             queue,
             config,
-            size,
+            is_surface_configured: false,
             window,
             render_pipeline,
             vertex_buffer,
@@ -386,13 +387,13 @@ let num_indices = INDICES.len() as u32;
 We don't need to implement `Pod` and `Zeroable` for our indices because `bytemuck` has already implemented them for basic types such as `u16`. That means we can just add `index_buffer` and `num_indices` to the `State` struct.
 
 ```rust
-struct State<'a> {
-    surface: wgpu::Surface<'a>,
+pub struct State {
+    surface: wgpu::Surface<'static>,
     device: wgpu::Device,
     queue: wgpu::Queue,
     config: wgpu::SurfaceConfiguration,
-    size: winit::dpi::PhysicalSize<u32>,
-    window: &'a Window,
+    is_surface_configured: bool,
+    window: Arc<Window>,
     render_pipeline: wgpu::RenderPipeline,
     vertex_buffer: wgpu::Buffer,
     // NEW!
@@ -404,19 +405,19 @@ struct State<'a> {
 And then populate these fields in the constructor:
 
 ```rust
-Self {
+Ok(Self {
     surface,
     device,
     queue,
     config,
-    size,
+    is_surface_configured: false,
     window,
     render_pipeline,
     vertex_buffer,
     // NEW!
     index_buffer,
     num_indices,
-}
+})
 ```
 
 All we have to do now is update the `render()` method to use the `index_buffer`.
@@ -448,10 +449,11 @@ Most software that uses colors stores them in sRGB format (or a similar propriet
 
 You get the correct color using the following formula: `rgb_color = ((srgb_color / 255 + 0.055) / 1.055) ^ 2.4`. Doing this with an sRGB value of (188, 0, 188) will give us (0.5028864580325687, 0.0, 0.5028864580325687). A little off from our (0.5, 0.0, 0.5). Instead of doing a manual color conversion, you'll likely save a lot of time by using textures instead, as if they are store in an sRGB texture, the conversion to linear will happen automatically. We'll cover textures in the next lesson.
 
-## Challenge
-Create a more complex shape than the one we made (aka. more than three triangles) using a vertex buffer and an index buffer. Toggle between the two with the space key.
-
+## Demo
 
 <WasmExample example="tutorial4_buffer"></WasmExample>
 
 <AutoGithubLink/>
+
+## Challenge
+Create a more complex shape than the one we made (aka. more than three triangles) using a vertex buffer and an index buffer. Toggle between the two with the space key.

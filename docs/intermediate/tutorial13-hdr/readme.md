@@ -284,13 +284,13 @@ mod hdr; // NEW!
 
 // ...
 
-struct State {
+pub struct State {
     // ...
     // NEW!
     hdr: hdr::HdrPipeline,
 }
 
-impl<'a> State<'a> {
+impl State {
     pub fn new(window: Window) -> anyhow::Result<Self> {
         // ...
         // NEW!
@@ -309,9 +309,9 @@ impl<'a> State<'a> {
 Then, when we resize the window, we need to call `resize()` on our `HdrPipeline`:
 
 ```rust
-fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
+fn resize(&mut self, width: u32, height: u32) {
     // UPDATED!
-    if new_size.width > 0 && new_size.height > 0 {
+    if width > 0 && height > 0 {
         // ...
         self.hdr
             .resize(&self.device, new_size.width, new_size.height);
@@ -914,7 +914,7 @@ fn create_render_pipeline(
 Don't forget to add the new bindgroup and pipeline to the to `State`.
 
 ```rust
-struct State {
+pub struct State {
     // ...
     // NEW!
     hdr: hdr::HdrPipeline,
@@ -923,8 +923,8 @@ struct State {
 }
 
 // ...
-impl<'a> State<'a> {
-    async fn new(window: &'a Window) -> anyhow::Result<State<'a>> {
+impl State {
+    async fn new(window: Arc<Window>) -> anyhow::Result<State> {
         // ...
         Ok(Self {
             // ...

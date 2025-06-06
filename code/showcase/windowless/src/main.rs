@@ -1,3 +1,5 @@
+use pollster::FutureExt;
+
 async fn run() {
     let instance = wgpu::Instance::new(&wgpu::InstanceDescriptor {
         backends: wgpu::Backends::all(),
@@ -206,5 +208,5 @@ async fn run() {
 }
 
 fn main() {
-    pollster::block_on(run());
+    run().block_on();
 }

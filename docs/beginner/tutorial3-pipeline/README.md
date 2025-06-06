@@ -161,15 +161,15 @@ This is the part where we finally make the thing in the title: the pipeline. Fir
 
 ```rust
 // lib.rs
-struct State<'a> {
-    surface: wgpu::Surface<'a>,
+pub struct State {
+    surface: wgpu::Surface<'static>,
     device: wgpu::Device,
     queue: wgpu::Queue,
     config: wgpu::SurfaceConfiguration,
-    size: winit::dpi::PhysicalSize<u32>,
-    window: &'a Window,
+    is_surface_configured: bool,
     // NEW!
     render_pipeline: wgpu::RenderPipeline,
+    window: Arc<Window>,
 }
 ```
 
@@ -283,16 +283,15 @@ Now, all we have to do is add the `render_pipeline` to `State`, and then we can 
 
 ```rust
 // new()
-Self {
+Ok(Self {
     surface,
     device,
     queue,
     config,
-    size,
-    window,
-    // NEW!
+    is_surface_configured: false,
     render_pipeline,
-}
+    window,
+})
 ```
 
 ## Using a pipeline
@@ -345,10 +344,12 @@ With all that you should be seeing a lovely brown triangle.
 
 ![Said lovely brown triangle](./tutorial3-pipeline-triangle.png)
 
-## Challenge
-
-Create a second pipeline that uses the triangle's position data to create a color that it then sends to the fragment shader. Have the app swap between these when you press the spacebar. *Hint: you'll need to modify* `VertexOutput`
+## Demo
 
 <WasmExample example="tutorial3_pipeline"></WasmExample>
 
 <AutoGithubLink/>
+
+## Challenge
+
+Create a second pipeline that uses the triangle's position data to create a color that it then sends to the fragment shader. Have the app swap between these when you press the spacebar. *Hint: you'll need to modify* `VertexOutput`

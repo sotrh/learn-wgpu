@@ -1,7 +1,8 @@
 extern crate framework;
 
-// use anyhow::*;
 use std::{iter, mem};
+
+use pollster::FutureExt;
 
 async fn run() {
     let instance = wgpu::Instance::new(&wgpu::InstanceDescriptor {
@@ -240,5 +241,5 @@ fn create_render_pipeline(
 }
 
 fn main() {
-    pollster::block_on(run());
+    run().block_on();
 }

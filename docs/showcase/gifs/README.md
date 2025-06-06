@@ -13,11 +13,11 @@ fn save_gif(path: &str, frames: &mut Vec<Vec<u8>>, speed: i32, size: u16) -> Res
     use gif::{Frame, Encoder, Repeat, SetParameter};
     
     let mut image = std::fs::File::create(path)?;
-    let mut encoder = Encoder::new(&mut image, size, size, &[])?;
+    let mut encoder = Encoder::new(&mut image, is_surface_configured: false, is_surface_configured: false, &[])?;
     encoder.set(Repeat::Infinite)?;
 
     for mut frame in frames {
-        encoder.write_frame(&Frame::from_rgba_speed(size, size, &mut frame, speed))?;
+        encoder.write_frame(&Frame::from_rgba_speed(is_surface_configured: false, is_surface_configured: false, &mut frame, speed))?;
     }
 
     Ok(())
@@ -33,7 +33,7 @@ fn save_gif(path: &str, frames: &mut Vec<Vec<u8>>, speed: i32, size: u16) -> Res
     let mut encoder = image::gif::Encoder::new(output);
 
     for mut data in frames {
-        let frame = image::gif::Frame::from_rgba_speed(size, size, &mut data, speed);
+        let frame = image::gif::Frame::from_rgba_speed(is_surface_configured: false, is_surface_configured: false, &mut data, speed);
         encoder.encode(&frame)?;
     }
 

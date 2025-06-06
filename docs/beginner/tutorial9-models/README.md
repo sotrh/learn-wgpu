@@ -138,7 +138,6 @@ By design, you can't access files on a user's filesystem in Web Assembly. Instea
 ```rust
 use std::io::{BufReader, Cursor};
 
-use cfg_if::cfg_if;
 use wgpu::util::DeviceExt;
 
 use crate::{model, texture};
@@ -156,40 +155,35 @@ fn format_url(file_name: &str) -> reqwest::Url {
 }
 
 pub async fn load_string(file_name: &str) -> anyhow::Result<String> {
-    cfg_if! {
-        if #[cfg(target_arch = "wasm32")] {
-            let url = format_url(file_name);
-            let txt = reqwest::get(url)
-                .await?
-                .text()
-                .await?;
-        } else {
-            let path = std::path::Path::new(env!("OUT_DIR"))
-                .join("res")
-                .join(file_name);
-            let txt = std::fs::read_to_string(path)?;
-        }
-    }
+    #[cfg(target_arch = "wasm32")]
+    let txt = {
+        let url = format_url(file_name);
+        reqwest::get(url).await?.text().await?
+    };
+    #[cfg(not(target_arch = "wasm32"))]
+    let txt = {
+        let path = std::path::Path::new(env!("OUT_DIR"))
+            .join("res")
+            .join(file_name);
+        std::fs::read_to_string(path)?
+    };
 
     Ok(txt)
 }
 
 pub async fn load_binary(file_name: &str) -> anyhow::Result<Vec<u8>> {
-    cfg_if! {
-        if #[cfg(target_arch = "wasm32")] {
-            let url = format_url(file_name);
-            let data = reqwest::get(url)
-                .await?
-                .bytes()
-                .await?
-                .to_vec();
-        } else {
-            let path = std::path::Path::new(env!("OUT_DIR"))
-                .join("res")
-                .join(file_name);
-            let data = std::fs::read(path)?;
-        }
-    }
+    #[cfg(target_arch = "wasm32")]
+    let data = {
+        let url = format_url(file_name);
+        reqwest::get(url).await?.bytes().await?.to_vec()
+    };
+    #[cfg(not(target_arch = "wasm32"))]
+    let data = {
+        let path = std::path::Path::new(env!("OUT_DIR"))
+            .join("res")
+            .join(file_name);
+        std::fs::read(path)?
+    };
 
     Ok(data)
 }
@@ -591,6 +585,8 @@ render_pass.set_vertex_buffer(1, self.instance_buffer.slice(..));
 render_pass.set_pipeline(&self.render_pipeline);
 render_pass.draw_model_instanced(&self.obj_model, 0..self.instances.len() as u32, &self.camera_bind_group);
 ```
+
+## Demo
 
 <WasmExample example="tutorial9_models"></WasmExample>
 

@@ -141,7 +141,7 @@ encoder.copy_buffer_to_texture(
         array_layer: 0,
         origin: wgpu::Origin3d::ZERO,
     },
-    size,
+    is_surface_configured: false,
 );
 
 queue.submit(std::iter::once(encoder.finish()));
@@ -251,12 +251,12 @@ Looking at this, you might get a bit of déjà vu! That's because a `BindGroup` 
 Now that we have our `diffuse_bind_group`, let's add it to our `State` struct:
 
 ```rust
-struct State<'a> {
-    surface: wgpu::Surface<'a>,
+pub struct State {
+    surface: wgpu::Surface<'static>,
     device: wgpu::Device,
     queue: wgpu::Queue,
     config: wgpu::SurfaceConfiguration,
-    size: winit::dpi::PhysicalSize<u32>,
+    is_surface_configured: bool,
     window: &'a wgpu::Window,
     render_pipeline: wgpu::RenderPipeline,
     vertex_buffer: wgpu::Buffer,
@@ -269,7 +269,7 @@ struct State<'a> {
 Make sure we return these fields in the `new` method:
 
 ```rust
-impl<'a> State<'a> {
+impl State {
     async fn new() -> Self {
         // ...
         Self {
@@ -277,7 +277,7 @@ impl<'a> State<'a> {
             device,
             queue,
             config,
-            size,
+            is_surface_configured: false,
             window,
             render_pipeline,
             vertex_buffer,
@@ -457,13 +457,11 @@ For convenience, let's pull our texture code into its own module. We'll first ne
 [dependencies]
 image = "0.23"
 cgmath = "0.18"
-winit = { version = "0.29", features = ["android-native-activity"] }
+winit = { version = "0.30", features = ["android-native-activity"] }
 env_logger = "0.10"
 log = "0.4"
 pollster = "0.3"
-wgpu = "25.0"
-bytemuck = { version = "1.16", features = [ "derive" ] }
-anyhow = "1.0" # NEW!
+wgpu = "25.0"bytemuck = { version = "1.16", features = [ "derive" ] } # NEW!
 ```
 
 Then, in a new file called `src/texture.rs`, add the following:
@@ -507,7 +505,7 @@ impl Texture {
         let texture = device.create_texture(
             &wgpu::TextureDescriptor {
                 label,
-                size,
+                is_surface_configured: false,
                 mip_level_count: 1,
                 sample_count: 1,
                 dimension: wgpu::TextureDimension::D2,
@@ -607,7 +605,7 @@ let diffuse_bind_group = device.create_bind_group(
 Finally, let's update our `State` field to use our shiny new `Texture` struct, as we'll need it in future tutorials.
 
 ```rust
-struct State {
+pub struct State {
     // ...
     diffuse_bind_group: wgpu::BindGroup,
     diffuse_texture: texture::Texture, // NEW
@@ -615,7 +613,7 @@ struct State {
 ```
 
 ```rust
-impl<'a> State<'a> {
+impl State {
     async fn new() -> Self {
         // ...
         Self {
@@ -632,10 +630,12 @@ Phew!
 
 With these changes in place, the code should be working the same as before, but we now have a much easier way to create textures.
 
-## Challenge
-
-Create another texture and swap it out when you press the space key.
+## Demo
 
 <WasmExample example="tutorial5_textures"></WasmExample>
 
 <AutoGithubLink/>
+
+## Challenge
+
+Create another texture and swap it out when you press the space key.

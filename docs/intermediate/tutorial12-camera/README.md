@@ -195,12 +195,12 @@ impl CameraController {
         }
     }
 
-    pub fn process_mouse(&mut self, mouse_dx: f64, mouse_dy: f64) {
+    pub fn handle_mouse(&mut self, mouse_dx: f64, mouse_dy: f64) {
         self.rotate_horizontal = mouse_dx as f32;
         self.rotate_vertical = mouse_dy as f32;
     }
 
-    pub fn process_scroll(&mut self, delta: &MouseScrollDelta) {
+    pub fn handle_mouse_scroll(&mut self, delta: &MouseScrollDelta) {
         self.scroll = -match delta {
             // I'm assuming a line is about 100 pixels
             MouseScrollDelta::LineDelta(_, scroll) => scroll * 100.0,
@@ -282,7 +282,7 @@ impl CameraUniform {
 We need to change our `State` to use our `Camera`, `CameraProjection` and `Projection` as well. We'll also add a `mouse_pressed` field to store whether the mouse was pressed.
 
 ```rust
-struct State {
+pub struct State {
     // ...
     camera: camera::Camera, // UPDATED!
     projection: camera::Projection, // NEW!
@@ -298,8 +298,8 @@ You'll need to import `winit::dpi::PhysicalPosition` if you haven't already.
 We need to update `new()` as well.
 
 ```rust
-impl<'a> State<'a> {
-    async fn new(window: &'a Window) -> State<'a> {
+impl State {
+    async fn new(window: Arc<Window>) -> anyhow::Result<State> {
         // ...
 
         // UPDATED!
@@ -328,9 +328,9 @@ impl<'a> State<'a> {
 We also need to change our `projection` in `resize`.
 
 ```rust
-fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
+fn resize(&mut self, width: u32, height: u32) {
     // UPDATED!
-    self.projection.resize(new_size.width, new_size.height);
+    self.projection.resize(width, height);
     // ...
 }
 ```
@@ -404,7 +404,7 @@ fn main() {
                     WindowEvent::Resized(physical_size) => {
                         state.resize(*physical_size);
                     }
-                    WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
+                    WindowEvent::ScaleFactorChanged { new_inner_is_surface_configured: false, .. } => {
                         state.resize(**new_inner_size);
                     }
                     _ => {}
@@ -463,6 +463,8 @@ fn main() {
 With that, we should be able to move our camera wherever we want.
 
 ![./screenshot.png](./screenshot.png)
+
+## Demo
 
 <WasmExample example="tutorial12_camera"></WasmExample>
 

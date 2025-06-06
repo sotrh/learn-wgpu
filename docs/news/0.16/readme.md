@@ -18,7 +18,7 @@ queue.write_texture(
         // rows_per_image: NonZeroU32::new(dimensions.1),
         rows_per_image: Some(dimensions.1),
     },
-    size,
+    is_surface_configured: false,
 );
 ```
 
