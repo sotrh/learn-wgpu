@@ -251,7 +251,7 @@ Looking at this, you might get a bit of déjà vu! That's because a `BindGroup` 
 Now that we have our `diffuse_bind_group`, let's add it to our `State` struct:
 
 ```rust
-struct State {
+pub struct State {
     surface: wgpu::Surface<'static>,
     device: wgpu::Device,
     queue: wgpu::Queue,
@@ -605,7 +605,7 @@ let diffuse_bind_group = device.create_bind_group(
 Finally, let's update our `State` field to use our shiny new `Texture` struct, as we'll need it in future tutorials.
 
 ```rust
-struct State {
+pub struct State {
     // ...
     diffuse_bind_group: wgpu::BindGroup,
     diffuse_texture: texture::Texture, // NEW
@@ -630,10 +630,12 @@ Phew!
 
 With these changes in place, the code should be working the same as before, but we now have a much easier way to create textures.
 
-## Challenge
-
-Create another texture and swap it out when you press the space key.
+## Demo
 
 <WasmExample example="tutorial5_textures"></WasmExample>
 
 <AutoGithubLink/>
+
+## Challenge
+
+Create another texture and swap it out when you press the space key.

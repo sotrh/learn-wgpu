@@ -58,7 +58,7 @@ pub const OPENGL_TO_WGPU_MATRIX: cgmath::Matrix4<f32> = cgmath::Matrix4::from_co
 Now let's add a `camera` field to `State`.
 
 ```rust
-struct State {
+pub struct State {
     // ...
     camera: Camera,
     // ...
@@ -202,7 +202,7 @@ let render_pipeline_layout = device.create_pipeline_layout(
 Now we need to add `camera_buffer` and `camera_bind_group` to `State`
 
 ```rust
-struct State {
+pub struct State {
     // ...
     camera: Camera,
     camera_uniform: CameraUniform,
@@ -373,7 +373,7 @@ This code is not perfect. The camera slowly moves back when you rotate it. It wo
 We still need to plug this into our existing code to make it do anything. Add the controller to `State` and create it in `new()`.
 
 ```rust
-struct State {
+pub struct State {
     // ...
     camera: Camera,
     // NEW!
@@ -421,11 +421,12 @@ fn update(&mut self) {
 
 That's all we need to do. If you run the code now, you should see a pentagon with our tree texture that you can rotate around and zoom into with the wasd/arrow keys.
 
-## Challenge
-
-Have our model rotate on its own independently of the camera. *Hint: you'll need another matrix for this.*
-
+## Demo
 
 <WasmExample example="tutorial6_uniforms"></WasmExample>
 
 <AutoGithubLink/>
+
+## Challenge
+
+Have our model rotate on its own independently of the camera. *Hint: you'll need another matrix for this.*

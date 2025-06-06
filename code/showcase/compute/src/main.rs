@@ -131,7 +131,7 @@ struct LightUniform {
     _padding2: u32,
 }
 
-struct State {
+pub struct State {
     surface: wgpu::Surface<'static>,
     device: wgpu::Device,
     queue: wgpu::Queue,

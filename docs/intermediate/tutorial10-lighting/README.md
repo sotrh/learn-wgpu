@@ -906,6 +906,8 @@ It's hard to tell the difference, but here are the results.
 
 ![./half_dir.png](./half_dir.png)
 
+## Demo
+
 <WasmExample example="tutorial10_lighting"></WasmExample>
 
 <AutoGithubLink/>

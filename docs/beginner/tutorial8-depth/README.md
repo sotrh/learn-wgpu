@@ -118,7 +118,7 @@ pub enum CompareFunction {
 Don't forget to store the `depth_texture` in `State`.
 
 ```rust
-struct State {
+pub struct State {
     // ...
     depth_texture: Texture,
     // ...
@@ -169,10 +169,12 @@ And that's all we have to do! No shader code is needed! If you run the applicati
 
 ![forest_fixed.png](./forest_fixed.png)
 
-## Challenge
-
-Since the depth buffer is a texture, we can sample it in the shader. Because it's a depth texture, we'll have to use the `sampler_comparison` uniform type and the `textureSampleCompare` function instead of `sampler` and `sampler2D` respectively. Create a bind group for the depth texture (or reuse an existing one), and render it to the screen.
+## Demo
 
 <WasmExample example="tutorial8_depth"></WasmExample>
 
 <AutoGithubLink/>
+
+## Challenge
+
+Since the depth buffer is a texture, we can sample it in the shader. Because it's a depth texture, we'll have to use the `sampler_comparison` uniform type and the `textureSampleCompare` function instead of `sampler` and `sampler2D` respectively. Create a bind group for the depth texture (or reuse an existing one), and render it to the screen.

@@ -10,6 +10,9 @@ use winit::{
     window::Window,
 };
 
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen::prelude::*;
+
 mod texture;
 
 #[repr(C)]
@@ -252,7 +255,7 @@ impl InstanceRaw {
     }
 }
 
-struct State {
+pub struct State {
     surface: wgpu::Surface<'static>,
     device: wgpu::Device,
     queue: wgpu::Queue,

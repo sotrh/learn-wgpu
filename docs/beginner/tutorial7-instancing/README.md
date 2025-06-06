@@ -73,7 +73,7 @@ impl Instance {
 Now we need to add two fields to `State`: `instances` and `instance_buffer`.
 
 ```rust
-struct State {
+pub struct State {
     instances: Vec<Instance>,
     instance_buffer: wgpu::Buffer,
 }
@@ -273,11 +273,12 @@ With all that done, we should have a forest of trees!
 
 ![./forest.png](./forest.png)
 
-## Challenge
-
-Modify the position and/or rotation of the instances every frame.
-
+## Demo
 
 <WasmExample example="tutorial7_instancing"></WasmExample>
 
 <AutoGithubLink/>
+
+## Challenge
+
+Modify the position and/or rotation of the instances every frame.

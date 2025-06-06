@@ -282,7 +282,7 @@ impl CameraUniform {
 We need to change our `State` to use our `Camera`, `CameraProjection` and `Projection` as well. We'll also add a `mouse_pressed` field to store whether the mouse was pressed.
 
 ```rust
-struct State {
+pub struct State {
     // ...
     camera: camera::Camera, // UPDATED!
     projection: camera::Projection, // NEW!
@@ -463,6 +463,8 @@ fn main() {
 With that, we should be able to move our camera wherever we want.
 
 ![./screenshot.png](./screenshot.png)
+
+## Demo
 
 <WasmExample example="tutorial12_camera"></WasmExample>
 

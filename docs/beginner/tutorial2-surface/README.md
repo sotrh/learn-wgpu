@@ -8,7 +8,7 @@ in it.
 ```rust
 // lib.rs
 
-struct State {
+pub struct State {
     surface: wgpu::Surface<'static>,
     device: wgpu::Device,
     queue: wgpu::Queue,
@@ -219,50 +219,52 @@ pub fn resize(&mut self, width: u32, height: u32) {
 
 This is where we configure the `surface`. We need the surface to be configured before we can do anything with it. We set the `is_surface_configured` flag to true here and we'll check it in the `render()` function.
 
-## input()
+## handle_key()
 
-`input()` returns a `bool` to indicate whether an event has been fully processed. If the method returns `true`, the main loop won't process the event any further.
-
-We're just going to return false for now because we don't have any events we want to capture.
+This is where we'll handle keyboard events. Currently just want to exit the app when the escape key is pressed. We'll do some other stuff later.
 
 ```rust
 // impl State
-fn input(&mut self, event: &WindowEvent) -> bool {
-    false
+fn handle_key(&self, event_loop: &ActiveEventLoop, code: KeyCode, is_pressed: bool) {
+    match (code, is_pressed) {
+        (KeyCode::Escape, true) => event_loop.exit(),
+        _ => {}
+    }
 }
 ```
 
-We need to do a little more work in the event loop. We want `State` to have priority over `run()`. Doing that (and previous changes) should make your loop look like this.
+We'll need to call our new `handle_key()` function in the `window_event()` function in `App`.
 
 ```rust
-// run()
-event_loop.run(move |event, control_flow| {
-    match event {
-        Event::WindowEvent {
-            ref event,
-            window_id,
-        } if window_id == state.window().id() => if !state.input(event) { // UPDATED!
-            match event {
-                WindowEvent::CloseRequested
-                | WindowEvent::KeyboardInput {
-                    event:
-                        KeyEvent {
-                            state: ElementState::Pressed,
-                            physical_key: PhysicalKey::Code(KeyCode::Escape),
-                            ..
-                        },
-                    ..
-                } => control_flow.exit(),
-                WindowEvent::Resized(physical_size) => {
-                    surface_configured = true;
-                    state.resize(*physical_size);
-                }
-                _ => {}
-            }
+impl ApplicationHandler<State> for App {
+    // ...
+
+    fn window_event(
+        &mut self,
+        event_loop: &ActiveEventLoop,
+        _window_id: winit::window::WindowId,
+        event: WindowEvent,
+    ) {
+        let state = match &mut self.state {
+            Some(canvas) => canvas,
+            None => return,
+        };
+
+        match event {
+            // ...
+            WindowEvent::KeyboardInput {
+                event:
+                    KeyEvent {
+                        physical_key: PhysicalKey::Code(code),
+                        state: key_state,
+                        ..
+                    },
+                ..
+            } => state.handle_key(event_loop, code, key_state.is_pressed()),
+            _ => {}
         }
-        _ => {}
     }
-});
+}
 ```
 
 ## update()
@@ -352,39 +354,35 @@ We need to update the event loop again to call this method. We'll also call `upd
 
 ```rust
 // run()
-event_loop.run(move |event, control_flow| {
-    match event {
-        // ... with the other WindowEvents
-        WindowEvent::RedrawRequested => {
-            // This tells winit that we want another frame after this one
-            state.window().request_redraw();
+    fn window_event(
+        &mut self,
+        event_loop: &ActiveEventLoop,
+        _window_id: winit::window::WindowId,
+        event: WindowEvent,
+    ) {
+        let state = match &mut self.state {
+            Some(canvas) => canvas,
+            None => return,
+        };
 
-            if !surface_configured {
-                return;
-            }
-
-            state.update();
-            match state.render() {
-                Ok(_) => {}
-                // Reconfigure the surface if it's lost or outdated
-                Err(
-                    wgpu::SurfaceError::Lost | wgpu::SurfaceError::Outdated,
-                ) => state.resize(state.size),
-                // The system is out of memory, we should probably quit
-                Err(wgpu::SurfaceError::OutOfMemory | wgpu::SurfaceError::Other) => {
-                    log::error!("OutOfMemory");
-                    control_flow.exit();
-                }
-
-                // This happens when the a frame takes too long to present
-                Err(wgpu::SurfaceError::Timeout) => {
-                    log::warn!("Surface timeout")
+        match event {
+            // ...
+            WindowEvent::RedrawRequested => {
+                match state.render() {
+                    Ok(_) => {}
+                    // Reconfigure the surface if it's lost or outdated
+                    Err(wgpu::SurfaceError::Lost | wgpu::SurfaceError::Outdated) => {
+                        let size = state.window.inner_size();
+                        state.resize(size.width, size.height);
+                    }
+                    Err(e) => {
+                        log::error!("Unable to render {}", e);
+                    }
                 }
             }
+            // ...
         }
-        // ...
     }
-});
 ```
 
 With all that, you should be getting something that looks like this.

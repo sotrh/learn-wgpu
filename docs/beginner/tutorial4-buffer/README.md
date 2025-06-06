@@ -41,7 +41,7 @@ Now that we have our vertex data, we need to store it in a buffer. Let's add a `
 
 ```rust
 // lib.rs
-struct State {
+pub struct State {
     // ...
     render_pipeline: wgpu::RenderPipeline,
 
@@ -104,7 +104,7 @@ unsafe impl bytemuck::Zeroable for Vertex {}
 Finally, we can add our `vertex_buffer` to our `State` struct.
 
 ```rust
-Self {
+Ok(Self {
     surface,
     device,
     queue,
@@ -113,10 +113,11 @@ Self {
     window,
     render_pipeline,
     vertex_buffer,
-}
+})
 ```
 
 ## So, what do I do with it?
+
 We need to tell the `render_pipeline` to use this buffer when we are drawing, but first, we need to tell the `render_pipeline` how to read the buffer. We do this using `VertexBufferLayout`s and the `vertex_buffers` field that I promised we'd talk about when we created the `render_pipeline`.
 
 A `VertexBufferLayout` defines how a buffer is represented in memory. Without this, the render_pipeline has no idea how to map the buffer in the shader. Here's what the descriptor for a buffer full of `Vertex` would look like.
@@ -246,7 +247,7 @@ Before we continue, we should change the `render_pass.draw()` call to use the nu
 ```rust
 // lib.rs
 
-struct State {
+pub struct State {
     // ...
     num_vertices: u32,
 }
@@ -386,7 +387,7 @@ let num_indices = INDICES.len() as u32;
 We don't need to implement `Pod` and `Zeroable` for our indices because `bytemuck` has already implemented them for basic types such as `u16`. That means we can just add `index_buffer` and `num_indices` to the `State` struct.
 
 ```rust
-struct State {
+pub struct State {
     surface: wgpu::Surface<'static>,
     device: wgpu::Device,
     queue: wgpu::Queue,

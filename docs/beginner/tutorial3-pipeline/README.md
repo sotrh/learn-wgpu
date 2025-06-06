@@ -161,7 +161,7 @@ This is the part where we finally make the thing in the title: the pipeline. Fir
 
 ```rust
 // lib.rs
-struct State {
+pub struct State {
     surface: wgpu::Surface<'static>,
     device: wgpu::Device,
     queue: wgpu::Queue,

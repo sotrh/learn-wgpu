@@ -284,7 +284,7 @@ mod hdr; // NEW!
 
 // ...
 
-struct State {
+pub struct State {
     // ...
     // NEW!
     hdr: hdr::HdrPipeline,
@@ -914,7 +914,7 @@ fn create_render_pipeline(
 Don't forget to add the new bindgroup and pipeline to the to `State`.
 
 ```rust
-struct State {
+pub struct State {
     // ...
     // NEW!
     hdr: hdr::HdrPipeline,

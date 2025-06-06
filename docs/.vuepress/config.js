@@ -71,6 +71,7 @@ module.exports = {
                     '/news/0.13/',
                     '/news/0.12/',
                     '/news/pre-0.12/',
+                    '/news/update-to-winit-0.30/',
                 ]
             }
         ]
