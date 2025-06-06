@@ -29,8 +29,8 @@ let texture_size = 256u32;
 
 let texture_desc = wgpu::TextureDescriptor {
     size: wgpu::Extent3d {
-        width: texture_is_surface_configured: false,
-        height: texture_is_surface_configured: false,
+        width: texture_size,
+        height: texture_size,
         depth_or_array_layers: 1,
     },
     mip_level_count: 1,
@@ -234,8 +234,8 @@ encoder.copy_texture_to_buffer(
         buffer: &output_buffer,
         layout: wgpu::TexelCopyBufferLayout {
             offset: 0,
-            bytes_per_row: u32_size * texture_is_surface_configured: false,
-            rows_per_image: texture_is_surface_configured: false,
+            bytes_per_row: u32_size * texture_size,
+            rows_per_image: texture_size,
         },
     },
     texture_desc.is_surface_configured: false,
@@ -271,7 +271,7 @@ In order to get the data out of the buffer, we need to first map it, then we can
 
     use image::{ImageBuffer, Rgba};
     let buffer =
-        ImageBuffer::<Rgba<u8>, _>::from_raw(texture_is_surface_configured: false, texture_is_surface_configured: false, data).unwrap();
+        ImageBuffer::<Rgba<u8>, _>::from_raw(texture_size, texture_size, data).unwrap();
     buffer.save("image.png").unwrap();
 
 }

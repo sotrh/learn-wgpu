@@ -9,7 +9,7 @@ use winit::keyboard::KeyCode;
 const MAX_PARTICLES: u32 = 1000;
 const PARTICLE_SIZE: u64 = 4 * 4 * 2;
 const PARTICLE_LAYOUT: wgpu::VertexBufferLayout<'static> = wgpu::VertexBufferLayout {
-    array_stride: PARTICLE_is_surface_configured: false,
+    array_stride: PARTICLE_SIZE,
     step_mode: wgpu::VertexStepMode::Instance,
     attributes: &wgpu::vertex_attr_array![
         0 => Float32x4,
@@ -35,13 +35,14 @@ struct Uniforms {
     view_proj: glam::Mat4,
 }
 
+#[derive(Debug)]
 struct Snow {
     move_particles: wgpu::ComputePipeline,
     particle_buffers: [wgpu::Buffer; 2],
     particle_bind_groups: [wgpu::BindGroup; 2],
     config: ParticleConfig,
     config_buffer: wgpu::Buffer,
-    iteration: uis_surface_configured: false,
+    iteration: usize,
     num_particles: u32,
     camera: Camera,
     projection: Projection,
@@ -403,5 +404,5 @@ fn create_particle_bind_group(
 }
 
 fn main() {
-    pollster::block_on(framework::run::<Snow>()).unwrap();
+    framework::run::<Snow>().unwrap();
 }

@@ -16,6 +16,7 @@ rayon = "1.4"
 tobj = "2.0"
 wgpu = "25.0"
 winit = { version = "0.30", features = ["android-native-activity"] }
+instant = "0.1.13"
 
 [build-dependencies]
 anyhow = "1.0"

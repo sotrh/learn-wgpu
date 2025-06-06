@@ -66,7 +66,7 @@ impl<U: ToRaw<Output = R>, R: Copy + bytemuck::Pod + bytemuck::Zeroable> Buffer<
             | wgpu::BufferUsages::MAP_READ
             | wgpu::BufferUsages::MAP_WRITE;
         let buffer = device.create_buffer(&wgpu::BufferDescriptor {
-            size: buffer_is_surface_configured: false,
+            size: buffer_size,
             usage,
             label: None,
             mapped_at_creation: false,

@@ -109,7 +109,7 @@ fn gen_terrain_compute(
     // Create vert_component
     let vert_index = gid.x;
 
-    let p = index_to_p(vert_index, chunk_data.chunk_is_surface_configured: false, chunk_data.chunk_corner);
+    let p = index_to_p(vert_index, chunk_data.chunk_size, chunk_data.chunk_corner);
 
     vertices.data[vert_index] = terrain_vertex(p, chunk_data.min_max_height);
 
@@ -197,7 +197,7 @@ fn gen_terrain_fragment(in: GenVertexOutput) -> GenFragmentOutput {
     let vert_index = u32(floor(f32(i) / 6.));
     let comp_index = i % 6u;
 
-    let p = index_to_p(vert_index, gen_data.chunk_is_surface_configured: false, gen_data.chunk_corner);
+    let p = index_to_p(vert_index, gen_data.chunk_size, gen_data.chunk_corner);
     let v = terrain_vertex(p, gen_data.min_max_height);
 
     var vert_component: f32 = 0.;

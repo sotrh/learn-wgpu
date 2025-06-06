@@ -52,8 +52,8 @@ If you checked out the [windowless showcase](../windowless/#a-triangle-without-a
 let texture_size = 256u32;
 let rt_desc = wgpu::TextureDescriptor {
     size: wgpu::Extent3d {
-        width: texture_is_surface_configured: false,
-        height: texture_is_surface_configured: false,
+        width: texture_size,
+        height: texture_size,
         depth_or_array_layers: 1,
     },
     mip_level_count: 1,
@@ -79,7 +79,7 @@ let padded_bytes_per_row = unpadded_bytes_per_row + padding;
 // create a buffer to copy the texture to so we can get the data
 let buffer_size = (padded_bytes_per_row * texture_size) as wgpu::BufferAddress;
 let buffer_desc = wgpu::BufferDescriptor {
-    size: buffer_is_surface_configured: false,
+    size: buffer_size,
     usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
     label: Some("Output Buffer"),
     mapped_at_creation: false,
@@ -135,7 +135,7 @@ for c in &colors {
             layout: wgpu::TexelCopyBufferLayout {
                 offset: 0,
                 bytes_per_row: padded_bytes_per_row,
-                rows_per_image: texture_is_surface_configured: false,
+                rows_per_image: texture_size,
             }
         },
         render_target.desc.size

@@ -18,6 +18,7 @@ tobj = { version = "3.2", default-features = false, features = ["async"]}
 wgpu = { version = "25.0"}
 winit = { version = "0.30", features = ["android-native-activity"] }
 instant = "0.1"
+framework = { version = "0.1.0", path = "../framework" }
 
 [dependencies.image]
 version = "0.24"

@@ -64,7 +64,7 @@ let texture_size = wgpu::Extent3d {
 };
 let diffuse_texture = device.create_texture(
     &wgpu::TextureDescriptor {
-        size: texture_is_surface_configured: false,
+        size: texture_size,
         mip_level_count: 1, // We'll talk about this a little later
         sample_count: 1,
         dimension: wgpu::TextureDimension::D2,
@@ -107,7 +107,7 @@ queue.write_texture(
         bytes_per_row: Some(4 * dimensions.0),
         rows_per_image: Some(dimensions.1),
     },
-    texture_is_surface_configured: false,
+    texture_size,
 );
 ```
 

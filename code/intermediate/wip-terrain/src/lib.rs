@@ -1,12 +1,9 @@
-use std::iter;
+use std::{iter, sync::Arc};
 
 use cgmath::prelude::*;
 use wgpu::util::DeviceExt;
 use winit::{
-    event::*,
-    event_loop::EventLoop,
-    keyboard::{KeyCode, PhysicalKey},
-    window::Window,
+    application::ApplicationHandler, event::*, event_loop::{ActiveEventLoop, EventLoop}, keyboard::{KeyCode, PhysicalKey}, window::Window
 };
 
 #[cfg(target_arch = "wasm32")]
@@ -527,7 +524,7 @@ impl State {
         // let min_max_height = (0.0, 10.0).into();
         let terrain_pipeline = terrain::TerrainPipeline::new(
             &device,
-            chunk_is_surface_configured: false,
+            chunk_size,
             min_max_height,
             &camera_bind_group_layout,
             &light_bind_group_layout,
@@ -536,7 +533,7 @@ impl State {
             Some(texture::Texture::DEPTH_FORMAT),
         );
 
-        let mut terrain = terrain::Terrain::new(chunk_is_surface_configured: false, min_max_height);
+        let mut terrain = terrain::Terrain::new(chunk_size, min_max_height);
         terrain.gen_chunk(&device, &queue, &terrain_pipeline, cgmath::Vector3::zero());
         terrain.gen_chunk(
             &device,
@@ -557,7 +554,7 @@ impl State {
             (-(chunk_size.x as f32), 0.0, 0.0).into(),
         );
 
-        Self {
+        Ok(Self {
             window,
             surface,
             device,
@@ -585,7 +582,7 @@ impl State {
             // NEW!
             terrain,
             terrain_pipeline,
-        }
+        })
     }
 
     pub fn window(&self) -> &Window {
@@ -625,7 +622,7 @@ impl State {
 
     // NEW!
     fn handle_mouse_scroll(&mut self, delta: &MouseScrollDelta) {
-        self.camera_controller.handle_scroll(delta);
+        self.camera_controller.handle_mouse_scroll(delta);
     }
 
     fn update(&mut self, dt: std::time::Duration) {
@@ -857,11 +854,8 @@ impl ApplicationHandler<State> for App {
                     }
                 }
             }
-            WindowEvent::MouseInput { state, button, .. } => match (button, state.is_pressed()) {
-                (MouseButton::Left, true) => {}
-                (MouseButton::Left, false) => {}
-                _ => {}
-            },
+            WindowEvent::MouseInput { state: btn_state, button, .. } => state.handle_mouse_button(button, btn_state.is_pressed()),
+            WindowEvent::MouseWheel { delta, .. } => state.handle_mouse_scroll(&delta),
             WindowEvent::KeyboardInput {
                 event:
                     KeyEvent {

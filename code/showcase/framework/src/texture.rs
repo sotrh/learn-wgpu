@@ -84,7 +84,7 @@ impl<'a> Texture<'a> {
             wgpu::TextureFormat::Rgba8UnormSrgb
         };
         let desc = wgpu::TextureDescriptor {
-            is_surface_configured: false,
+            size,
             mip_level_count: 1,
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
