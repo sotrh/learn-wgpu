@@ -32,6 +32,7 @@ use winit::{
 #[derive(Debug)]
 pub struct Display {
     surface: wgpu::Surface<'static>,
+    is_surface_configured: bool,
     pub window: Arc<Window>,
     pub config: wgpu::SurfaceConfiguration,
     pub device: wgpu::Device,
@@ -93,6 +94,7 @@ impl Display {
         };
 
         Ok(Self {
+            is_surface_configured: false,
             surface,
             window,
             config,
@@ -106,13 +108,25 @@ impl Display {
     }
 
     pub fn resize(&mut self, width: u32, height: u32) {
-        self.config.width = width;
-        self.config.height = height;
-        self.surface.configure(&self.device, &self.config);
+        if width != 0 && height != 0 {
+            self.config.width = width;
+            self.config.height = height;
+            self.surface.configure(&self.device, &self.config);
+            self.is_surface_configured = true;
+        }
+    }
+
+    pub fn configure(&mut self) {
+        let size = self.window.inner_size();
+        self.resize(size.width, size.height);
     }
 
     pub fn surface(&self) -> &wgpu::Surface {
         &self.surface
+    }
+
+    pub fn is_surface_configured(&self) -> bool {
+        self.is_surface_configured
     }
 }
 
@@ -336,11 +350,18 @@ impl<D: Demo + 'static> ApplicationHandler<(Display, D)> for App<D> {
                 }
                 WindowEvent::RedrawRequested => {
                     display.window.request_redraw();
+
                     let dt = self.last_time.elapsed();
                     self.last_time = Instant::now();
 
                     demo.update(display, dt);
-                    demo.render(display);
+
+                    if display.is_surface_configured() {
+                        demo.render(display);
+                    } else {
+                        display.configure();
+                        demo.resize(display);
+                    }
                 }
                 _ => {}
             }

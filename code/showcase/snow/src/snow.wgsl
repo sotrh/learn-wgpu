@@ -3,12 +3,14 @@ struct Particle {
     position_rotation: vec4<f32>,
     @location(1)
     velocity_life: vec4<f32>,
+    @location(2)
+    debug: vec4<f32>,
 }
 
 struct ParticleConfig {
-    emitter_position: vec3<f32>,
-    particle_spread: vec3<f32>,
-    forces: vec3<f32>,
+    emitter_position: vec4<f32>,
+    particle_spread: vec4<f32>,
+    forces: vec4<f32>,
     life_spread_time_and_dt: vec4<f32>,
 }
 
@@ -39,12 +41,14 @@ fn move_particles(
 
     var seed = vec2(t, f32(global_id.x));
 
+    // dst_p.debug = vec4(vec3(fract(f32(global_id.x) / 64.0)), 1.0);
+
     if src_p.velocity_life.w <= 0.0 {
         dst_p.velocity_life = vec4(vec3(0.0, 0.0, 0.0), mix(life_spread.x, life_spread.y, rand(&seed)));
-        dst_p.position_rotation = vec4(config.emitter_position + config.particle_spread * rand3(&seed), TAU * rand(&seed));
+        dst_p.position_rotation = vec4(config.emitter_position.xyz + config.particle_spread.xyz * rand3(&seed), TAU * rand(&seed));
     } else {
-        dst_p.position_rotation += vec4(src_p.velocity_life.xyz * dt, dt);
-        dst_p.velocity_life += vec4(config.forces * dt, -dt);
+        dst_p.position_rotation = src_p.position_rotation + vec4(src_p.velocity_life.xyz * dt, dt);
+        dst_p.velocity_life = src_p.velocity_life + vec4(config.forces.xyz * dt, -dt);
     }
 
     dst_particles[global_id.x] = dst_p;
@@ -69,15 +73,18 @@ var<uniform> uniforms: Uniforms;
 fn vs_main(
     particle: Particle,
 ) -> VsOut {
-    let frag_position = uniforms.view_proj * vec4(particle.position_rotation.xyz, 1.0);
-    return VsOut(frag_position, frag_position.xy * 2.0 - 1.0);
+    let frag_position = vec4(particle.position_rotation.xyz, 1.0);
+    // let frag_position = uniforms.view_proj * vec4(particle.position_rotation.xyz, 1.0);
+    // let frag_position = vec4(0.5, 0.5, 0.5, 1.0);
+    return VsOut(frag_position, vec2(1.0));
+    // return VsOut(frag_position, frag_position.xy * 2.0 - 1.0);
 }
 
 @fragment
 fn fs_main(
     vs: VsOut,
 ) -> @location(0) vec4<f32> {
-    return vec4(1.0);
+    return vec4(vs.texcoord, 1.0, 1.0);
 }
 
 fn rand(seed: ptr<function, vec2<f32>>) -> f32 {

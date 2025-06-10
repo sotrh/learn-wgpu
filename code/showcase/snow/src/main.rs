@@ -7,13 +7,14 @@ use wgpu::util::{BufferInitDescriptor, DeviceExt};
 use winit::keyboard::KeyCode;
 
 const MAX_PARTICLES: u32 = 1000;
-const PARTICLE_SIZE: u64 = 4 * 4 * 2;
+const PARTICLE_SIZE: u64 = 4 * 4 * 3;
 const PARTICLE_LAYOUT: wgpu::VertexBufferLayout<'static> = wgpu::VertexBufferLayout {
     array_stride: PARTICLE_SIZE,
     step_mode: wgpu::VertexStepMode::Instance,
     attributes: &wgpu::vertex_attr_array![
         0 => Float32x4,
         1 => Float32x4,
+        2 => Float32x4,
     ],
 };
 
@@ -98,10 +99,10 @@ impl framework::Demo for Snow {
                 });
 
         let config = ParticleConfig {
-            emitter_position: glam::Vec4::new(0.0, 10.0, 0.0, 0.0),
-            particle_spread: glam::Vec4::new(10.0, 0.0, 10.0, 0.0),
-            forces: glam::Vec4::new(0.0, 0.0, 0.0, 0.0),
-            life_spread: glam::Vec2 { x: 1.0, y: 5.0 },
+            emitter_position: glam::Vec4::new(0.0, 1.0, 0.5, 0.0),
+            particle_spread: glam::Vec4::new(1.0, 0.0, 1.0, 0.0),
+            forces: glam::Vec4::new(0.0, -0.5, 0.0, 0.0),
+            life_spread: glam::Vec2 { x: 3.0, y: 5.0 },
             time_and_dt: glam::Vec2::ZERO,
         };
 
@@ -168,6 +169,7 @@ impl framework::Demo for Snow {
             100.0,
         );
 
+        println!("projection: {projection:?}");
         let uniforms = Uniforms {
             view_proj: projection.calc_matrix() * camera.calc_matrix(),
         };
@@ -241,7 +243,6 @@ impl framework::Demo for Snow {
                             write_mask: wgpu::ColorWrites::ALL,
                         })],
                         compilation_options: Default::default(),
-
                     }),
                     multiview: None,
                     cache: None,
@@ -269,8 +270,8 @@ impl framework::Demo for Snow {
     }
 
     fn process_mouse(&mut self, dx: f64, dy: f64) {
-        self.camera_controller.process_mouse(dx, dy);
-        self.uniforms_dirty = true;
+        // self.camera_controller.process_mouse(dx, dy);
+        // self.uniforms_dirty = true;
     }
 
     fn process_keyboard(&mut self, key: KeyCode, pressed: bool) {
@@ -282,15 +283,24 @@ impl framework::Demo for Snow {
         self.projection
             .resize(display.config.width, display.config.height);
         self.uniforms_dirty = true;
-        self.uniforms_dirty = true;
     }
 
     fn update(&mut self, display: &framework::Display, dt: std::time::Duration) {
         // Update uniforms
         if self.uniforms_dirty {
+            println!("uniforms dirty");
+            println!("({}, {})", display.config.width, display.config.height);
             self.uniforms_dirty = false;
             self.camera_controller.update_camera(&mut self.camera, dt);
-            self.uniforms.view_proj = self.projection.calc_matrix() * self.camera.calc_matrix();
+            let proj = self.projection.calc_matrix();
+            let view = self.camera.calc_matrix();
+
+            println!("view: {view:?}");
+            println!("proj: {proj:?}");
+
+            // self.uniforms.view_proj = proj * view;
+            self.uniforms.view_proj = proj;
+            println!("self.uniforms.view_proj: {:?}", self.uniforms.view_proj);
             display
                 .queue
                 .write_buffer(&self.uniform_buffer, 0, bytemuck::bytes_of(&self.uniforms));
@@ -321,7 +331,10 @@ impl framework::Demo for Snow {
         });
         move_pass.set_pipeline(&self.move_particles);
         move_pass.set_bind_group(0, &self.particle_bind_groups[self.iteration % 2], &[]);
-        move_pass.dispatch_workgroups(self.num_particles, 1, 1);
+
+        let num_workgroups = self.num_particles / 64 + (self.num_particles % 64 != 0) as u32;
+        move_pass.dispatch_workgroups(num_workgroups, 1, 1);
+
         drop(move_pass);
         display.queue.submit([encoder.finish()]);
 
@@ -369,7 +382,7 @@ impl framework::Demo for Snow {
 
 fn create_particle_buffer(device: &wgpu::Device) -> wgpu::Buffer {
     device.create_buffer(&wgpu::BufferDescriptor {
-        label: None,
+        label: Some("Particle Buffer"),
         size: PARTICLE_SIZE * MAX_PARTICLES as u64,
         usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::VERTEX,
         mapped_at_creation: false,
