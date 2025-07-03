@@ -505,7 +505,7 @@ impl Texture {
         let texture = device.create_texture(
             &wgpu::TextureDescriptor {
                 label,
-                is_surface_configured: false,
+                size,
                 mip_level_count: 1,
                 sample_count: 1,
                 dimension: wgpu::TextureDimension::D2,

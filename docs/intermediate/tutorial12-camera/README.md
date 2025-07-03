@@ -404,7 +404,7 @@ fn main() {
                     WindowEvent::Resized(physical_size) => {
                         state.resize(*physical_size);
                     }
-                    WindowEvent::ScaleFactorChanged { new_inner_is_surface_configured: false, .. } => {
+                    WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
                         state.resize(**new_inner_size);
                     }
                     _ => {}
