@@ -195,7 +195,6 @@ Now that we've configured our surface properly, we can add these new fields at t
             queue,
             config,
             is_surface_configured: false,
-            is_surface_configured: false,
             window,
         })
     }
