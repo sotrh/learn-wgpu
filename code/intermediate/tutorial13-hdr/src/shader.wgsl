@@ -105,7 +105,7 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     // This makes sure that they are perpedicular to each other and the
     // normal of the surface.
     let world_tangent = normalize(in.world_tangent - dot(in.world_tangent, in.world_normal) * in.world_normal);
-    let world_bitangent = cross(world_tangent, in.world_normal);
+    let world_bitangent = cross(in.world_normal, world_tangent);
 
     // Convert the normal sample to world space
     let TBN = mat3x3(
