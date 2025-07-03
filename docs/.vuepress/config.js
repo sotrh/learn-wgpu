@@ -60,6 +60,7 @@ module.exports = {
                 title: 'News',
                 collapsable: true,
                 children: [
+                    '/news/update-to-winit-0.30/',
                     '/news/25.0/',
                     '/news/24.0/',
                     '/news/22.0/',
@@ -71,7 +72,6 @@ module.exports = {
                     '/news/0.13/',
                     '/news/0.12/',
                     '/news/pre-0.12/',
-                    '/news/update-to-winit-0.30/',
                 ]
             }
         ]
