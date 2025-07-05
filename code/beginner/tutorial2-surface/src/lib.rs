@@ -105,7 +105,7 @@ impl State {
 
     fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
         self.window.request_redraw();
-        
+
         // We can't render unless the surface is configured
         if !self.is_surface_configured {
             return Ok(());
@@ -149,7 +149,7 @@ impl State {
 
         Ok(())
     }
-    
+
     fn handle_key(&mut self, event_loop: &ActiveEventLoop, code: KeyCode, is_pressed: bool) {
         match (code, is_pressed) {
             (KeyCode::Escape, true) => event_loop.exit(),
@@ -248,6 +248,7 @@ impl ApplicationHandler<State> for App {
             WindowEvent::CloseRequested => event_loop.exit(),
             WindowEvent::Resized(size) => state.resize(size.width, size.height),
             WindowEvent::RedrawRequested => {
+                state.update();
                 match state.render() {
                     Ok(_) => {}
                     // Reconfigure the surface if it's lost or outdated
