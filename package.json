@@ -8,11 +8,11 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "NODE_OPTIONS=--openssl-legacy-provider; ./build-wasm.sh && vuepress dev docs",
-    "build": "NODE_OPTIONS=--openssl-legacy-provider; ./build-wasm.sh && vuepress build docs",
+    "dev": "cross-env NODE_OPTIONS=--openssl-legacy-provider; ./build-wasm.sh && vuepress dev docs",
+    "build": "cross-env NODE_OPTIONS=--openssl-legacy-provider; ./build-wasm.sh && vuepress build docs",
     "deploy": "sh deploy.sh",
-    "just-build": "NODE_OPTIONS=--openssl-legacy-provider; vuepress build docs",
-    "just-dev": "NODE_OPTIONS=--openssl-legacy-provider; vuepress dev docs"
+    "just-build": "cross-env NODE_OPTIONS=--openssl-legacy-provider; vuepress build docs",
+    "just-dev": "cross-env NODE_OPTIONS=--openssl-legacy-provider; vuepress dev docs"
   },
   "author": "",
   "license": "ISC",
@@ -22,5 +22,8 @@
     "vuepress-plugin-code-copy": "^1.0.6",
     "vuepress-plugin-seo": "^0.2.0",
     "vuepress-theme-thindark": "^1.0.1"
+  },
+  "dependencies": {
+    "cross-env": "^7.0.3"
   }
 }

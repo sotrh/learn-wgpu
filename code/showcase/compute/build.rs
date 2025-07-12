@@ -4,7 +4,7 @@ use fs_extra::dir::CopyOptions;
 use glob::glob;
 use naga::back::wgsl;
 use naga::front::glsl::Options;
-use naga::front::glsl::Parser;
+use naga::front::glsl::Frontend;
 use rayon::prelude::*;
 use std::env;
 use std::result::Result::Ok;
@@ -27,7 +27,7 @@ pub fn load_shader(src_path: PathBuf) -> Result<()> {
     // let spv_path = src_path.with_extension(format!("{}.spv", extension));
     let wgsl_path = src_path.with_extension(format!("{}.wgsl", extension));
 
-    let mut parser = Parser::default();
+    let mut parser = Frontend::default();
     let options = Options::from(kind);
     let module = match parser.parse(&options, &src) {
         Ok(it) => it,

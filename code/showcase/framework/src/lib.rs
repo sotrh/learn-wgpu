@@ -179,7 +179,7 @@ impl CameraUniform {
             0,
             &self.buffer,
             0,
-            std::mem::size_of::<UniformData>() as _,
+            std::mem::size_of::<UniformData>() as wgpu::BufferAddress,
         );
     }
 }
