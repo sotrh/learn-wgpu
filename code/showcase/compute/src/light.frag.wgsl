@@ -7,7 +7,7 @@ var<private> f_color: vec4<f32>;
 
 fn main_1() {
     let _e2 = v_color_1;
-    f_color = vec4<f32>(_e2.x, _e2.y, _e2.z, 1.0);
+    f_color = vec4<f32>(_e2.x, _e2.y, _e2.z, 1f);
     return;
 }
 
