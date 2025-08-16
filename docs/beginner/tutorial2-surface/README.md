@@ -367,6 +367,7 @@ We need to update the event loop again to call this method. We'll also call `upd
         match event {
             // ...
             WindowEvent::RedrawRequested => {
+                state.update();
                 match state.render() {
                     Ok(_) => {}
                     // Reconfigure the surface if it's lost or outdated
