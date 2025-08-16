@@ -14,7 +14,7 @@ image = "0.24"
 log = "0.4"
 rayon = "1.4"
 tobj = "2.0"
-wgpu = "26.0"
+wgpu = "26.0.1"
 winit = { version = "0.30", features = ["android-native-activity"] }
 instant = "0.1.13"
 

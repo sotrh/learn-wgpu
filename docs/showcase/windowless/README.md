@@ -100,7 +100,7 @@ Update dependencies to support SPIR-V module.
 [dependencies]
 image = "0.23"
 shaderc = "0.7"
-wgpu = { version = "26.0", features = ["spirv"] }
+wgpu = { version = "26.0.1", features = ["spirv"] }
 pollster = "0.3"
 ```
 

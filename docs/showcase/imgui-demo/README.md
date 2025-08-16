@@ -14,7 +14,7 @@ This is not an in-depth guide on how to use Imgui. But here are some of the basi
 
 ```toml
 imgui = "0.7"
-imgui-wgpu = "26.0"
+imgui-wgpu = "26.0.1"
 imgui-winit-support = "0.7"
 ```
 
