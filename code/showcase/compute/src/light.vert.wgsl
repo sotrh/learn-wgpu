@@ -10,7 +10,7 @@ struct Light {
 
 struct VertexOutput {
     @location(0) v_color: vec3<f32>,
-    @builtin(position) member: vec4<f32>,
+    @builtin(position) gl_Position: vec4<f32>,
 }
 
 var<private> a_position_1: vec3<f32>;
@@ -19,20 +19,19 @@ var<private> v_color: vec3<f32>;
 var<uniform> global: Camera;
 @group(1) @binding(0) 
 var<uniform> global_1: Light;
-var<private> scale: f32 = 0.25;
+var<private> scale: f32 = 0.25f;
 var<private> gl_Position: vec4<f32>;
 
 fn main_1() {
     var v_position: vec3<f32>;
 
-    _ = (&global.u_view_position);
     let _e11 = a_position_1;
     let _e12 = scale;
     let _e14 = global_1.u_position;
     v_position = ((_e11 * _e12) + _e14);
     let _e18 = global.u_view_proj;
     let _e19 = v_position;
-    gl_Position = (_e18 * vec4<f32>(_e19.x, _e19.y, _e19.z, f32(1)));
+    gl_Position = (_e18 * vec4<f32>(_e19.x, _e19.y, _e19.z, 1f));
     let _e27 = global_1.u_color;
     v_color = _e27;
     return;
@@ -41,10 +40,6 @@ fn main_1() {
 @vertex 
 fn main(@location(0) a_position: vec3<f32>) -> VertexOutput {
     a_position_1 = a_position;
-    _ = (&global.u_view_position);
-    _ = (&global.u_view_proj);
-    _ = (&global_1.u_position);
-    _ = (&global_1.u_color);
     main_1();
     let _e18 = v_color;
     let _e20 = gl_Position;

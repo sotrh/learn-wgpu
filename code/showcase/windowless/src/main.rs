@@ -13,10 +13,7 @@ async fn run() {
         })
         .await
         .unwrap();
-    let (device, queue) = adapter
-        .request_device(&Default::default())
-        .await
-        .unwrap();
+    let (device, queue) = adapter.request_device(&Default::default()).await.unwrap();
 
     let texture_size = 256u32;
     let texture_desc = wgpu::TextureDescriptor {
@@ -50,37 +47,7 @@ async fn run() {
     };
     let output_buffer = device.create_buffer(&output_buffer_desc);
 
-    let vs_src = include_str!("shader.vert");
-    let fs_src = include_str!("shader.frag");
-    let compiler = shaderc::Compiler::new().unwrap();
-    let vs_spirv = compiler
-        .compile_into_spirv(
-            vs_src,
-            shaderc::ShaderKind::Vertex,
-            "shader.vert",
-            "main",
-            None,
-        )
-        .unwrap();
-    let fs_spirv = compiler
-        .compile_into_spirv(
-            fs_src,
-            shaderc::ShaderKind::Fragment,
-            "shader.frag",
-            "main",
-            None,
-        )
-        .unwrap();
-    let vs_data = wgpu::util::make_spirv(vs_spirv.as_binary_u8());
-    let fs_data = wgpu::util::make_spirv(fs_spirv.as_binary_u8());
-    let vs_module = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-        label: Some("Vertex Shader"),
-        source: vs_data,
-    });
-    let fs_module = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-        label: Some("Fragment Shader"),
-        source: fs_data,
-    });
+    let shader = device.create_shader_module(wgpu::include_wgsl!("shader.wgsl"));
 
     let render_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
         label: Some("Render Pipeline Layout"),
@@ -92,14 +59,14 @@ async fn run() {
         label: Some("Render Pipeline"),
         layout: Some(&render_pipeline_layout),
         vertex: wgpu::VertexState {
-            module: &vs_module,
-            entry_point: Some("main"),
+            module: &shader,
+            entry_point: None,
             buffers: &[],
             compilation_options: Default::default(),
         },
         fragment: Some(wgpu::FragmentState {
-            module: &fs_module,
-            entry_point: Some("main"),
+            module: &shader,
+            entry_point: None,
             targets: &[Some(wgpu::ColorTargetState {
                 format: texture_desc.format,
                 blend: Some(wgpu::BlendState {
@@ -152,6 +119,7 @@ async fn run() {
                     }),
                     store: wgpu::StoreOp::Store,
                 },
+                depth_slice: None,
             })],
             depth_stencil_attachment: None,
             occlusion_query_set: None,
