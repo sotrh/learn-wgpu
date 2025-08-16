@@ -27,7 +27,7 @@ The vertices are then converted into fragments. Every pixel in the result image 
 [WebGPU Shading Language](https://www.w3.org/TR/WGSL/) (WGSL) is the shader language for WebGPU.
 WGSL's development focuses on getting it to easily convert into the shader language corresponding to the backend; for example, SPIR-V for Vulkan, MSL for Metal, HLSL for DX12, and GLSL for OpenGL.
 The conversion is done internally, and we usually don't need to care about the details.
-In the case of wgpu, it's done by the library called [naga](https://github.com/gfx-rs/naga).
+In the case of wgpu, it's done by the library called [naga](https://github.com/gfx-rs/wgpu/tree/trunk/naga).
 
 Note that, at the time of writing this, some WebGPU implementations also support SPIR-V, but it's just a temporary measure during the transition period to WGSL and will be removed (If you are curious about the drama behind SPIR-V and WGSL, please refer to [this blog post](https://kvark.github.io/spirv/2021/05/01/spirv-horrors.html)).
 
