@@ -1,0 +1,15 @@
+[package]
+name = "compute-examples"
+version = "0.1.0"
+authors = ["Ben Hansen <https://github.com/sotrh>"]
+edition = "2018"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+anyhow = "1.0.99"
+bytemuck = "1.23.2"
+glam = "0.30.5"
+pollster = "0.4.0"
+wgpu = "26.0.1"

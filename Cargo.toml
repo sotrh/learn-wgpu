@@ -12,6 +12,9 @@ members = [
     # intermediate tutorials
     "code/intermediate/*",
 
+    # compute tutorials
+    "code/compute",
+
     # showcase
     "code/showcase/*",
 

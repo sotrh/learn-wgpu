@@ -45,6 +45,13 @@ module.exports = {
                 ],
             },
             {
+                title: 'Compute Pipelines',
+                collapsable: true,
+                children: [
+                    '/compute/introduction/',
+                ]
+            },
+            {
                 title: 'Showcase',
                 collapsable: true,
                 children: [

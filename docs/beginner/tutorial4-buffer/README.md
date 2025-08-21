@@ -369,6 +369,7 @@ There are a couple of things we need to change in order to use indexing. The fir
 let vertex_buffer = device.create_buffer_init(
     &wgpu::util::BufferInitDescriptor {
         label: Some("Vertex Buffer"),
+This part of the guide is 
         contents: bytemuck::cast_slice(VERTICES),
         usage: wgpu::BufferUsages::VERTEX,
     }
