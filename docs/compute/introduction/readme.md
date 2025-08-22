@@ -383,3 +383,5 @@ we know how to use a compute pipeline we can actually start to do more interesti
 This guide can't possible cover all the ways to use compute shaders, but I plan to cover
 some of the core building blocks you need to build most algorithms. After that you can take
 the concepts and apply them to your own projects!
+
+<AutoGithubLink path="/compute/src/"/>
