@@ -455,4 +455,4 @@ If wgpu is using Vulkan on your machine, you may run into validation errors if y
 
 ## Challenge
 
-Modify the `input()` method to capture mouse events, and update the clear color using that. *Hint: you'll probably need to use `WindowEvent::CursorMoved`*.
+Create a `handle_mouse_moved()` method to capture mouse events, and update the clear color using that. *Hint: you'll probably need to use `WindowEvent::CursorMoved`*.
