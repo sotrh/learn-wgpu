@@ -327,9 +327,9 @@ This will set up `console_error_panic_hook` so that when our code panics we'll s
 
 Now you can build a wgpu application with just wasm-bindgen, but I ran into some issues doing that. For one, you need to install wasm-bindgen on your computer as well as include it as a dependency. The version you install as a dependency **needs** to exactly match the version you installed. Otherwise, your build will fail.
 
-To get around this shortcoming and to make the lives of everyone reading this easier, I opted to add [wasm-pack](https://rustwasm.github.io/docs/wasm-pack/) to the mix. Wasm-pack handles installing the correct version of wasm-bindgen for you, and it supports building for different types of web targets as well: browser, NodeJS, and bundlers such as webpack.
+To get around this shortcoming and to make the lives of everyone reading this easier, I opted to add [wasm-pack](https://drager.github.io/wasm-pack/) to the mix. Wasm-pack handles installing the correct version of wasm-bindgen for you, and it supports building for different types of web targets as well: browser, NodeJS, and bundlers such as webpack.
 
-To use wasm-pack, first, you need to [install it](https://rustwasm.github.io/wasm-pack/installer/).
+To use wasm-pack, first, you need to [install it](https://drager.github.io/wasm-pack/).
 
 Once you've done that, we can use it to build our crate. If you only have one crate in your project, you can just use `wasm-pack build`. If you're using a workspace, you'll have to specify what crate you want to build. Imagine your crate is a directory called `game`. You would then use:
 
