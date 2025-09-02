@@ -368,6 +368,8 @@ You'll then need to run the WASM code in an ES6 Module:
     <style>
         canvas {
             background-color: black;
+            width: 100%;
+            height: 100%;
         }
     </style>
 </head>
