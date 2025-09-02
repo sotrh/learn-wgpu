@@ -226,6 +226,7 @@ impl State {
         }
     }
 
+    #[allow(dead_code)]
     fn update(&mut self) {}
 
     fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
