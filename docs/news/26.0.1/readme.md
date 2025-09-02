@@ -63,7 +63,7 @@ Check it out [here](../../compute/introduction/)!
 
 ## Thanks to my patrons!
 
-If you like what I do, and want to support me check out my [patreon](patreon.com/sotrh)!
+If you like what I do, and want to support me check out my [patreon](https://patreon.com/sotrh)!
 A special shoutout to this members!
 
 - Filip
