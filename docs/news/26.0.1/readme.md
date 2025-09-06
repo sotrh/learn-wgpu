@@ -9,7 +9,7 @@ flicker. This has since been fixed in version 26.0.1
 loop where on systems where the [devicePixelRatio](https://developer.mozilla.org/en-US/docs/Web/API/Window/devicePixelRatio)
 is greater than `1` which means when wgpu resizes the canvas with `surface.configure()`,
 winit emits and event and reports it as bigger than what wgpu is using. This causes
-the demo code to call `surface.confiure()` again. This loop goes on until the surface
+the demo code to call `surface.configure()` again. This loop goes on until the surface
 size exceeds the maximum values that wgpu supports causing wgpu to panic. Here's the
 [tracking issue](https://github.com/gfx-rs/wgpu/issues/7938#issuecomment-3079523549)
 in case you're interested. In the mean time users have found a work around

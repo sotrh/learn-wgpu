@@ -50,5 +50,9 @@
     {
         "package": "tutorial13-hdr",
         "out": "docs/.vuepress/components/wasm/tutorial13_hdr"
+    },
+    {
+        "package": "compute",
+        "out": "docs/.vuepress/components/wasm/compute"
     }
 ]

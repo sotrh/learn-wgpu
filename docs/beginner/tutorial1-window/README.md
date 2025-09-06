@@ -303,7 +303,7 @@ The `[target.'cfg(target_arch = "wasm32")'.dependencies]` line tells Cargo to on
   You're welcome to test this code on these browsers (and the wgpu devs would appreciate it as well), but for the sake of simplicity, I'm going to stick to using the WebGL feature until the WebGPU api gets to a more stable state.<br>
   If you want more details, check out the guide for compiling for the web on [wgpu's repo](https://github.com/gfx-rs/wgpu/wiki/Running-on-the-Web-with-WebGPU-and-WebGL)
 - [wasm-bindgen](https://docs.rs/wasm-bindgen) is the most important dependency in this list. It's responsible for generating the boilerplate code that will tell the browser how to use our crate. It also allows us to expose methods in Rust that can be used in JavaScript and vice-versa.<br>
-  I won't get into the specifics of wasm-bindgen, so if you need a primer (or just a refresher), check out [this](https://rustwasm.github.io/wasm-bindgen/)
+  I won't get into the specifics of wasm-bindgen, so if you need a primer (or just a refresher), check out [this](https://wasm-bindgen.github.io/wasm-bindgen/)
 - [web-sys](https://docs.rs/web-sys) is a crate with many methods and structures available in a normal javascript application: `get_element_by_id`, `append_child`. The features listed are only the bare minimum of what we need currently.
 
 ## More code

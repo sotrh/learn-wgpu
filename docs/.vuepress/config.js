@@ -49,6 +49,7 @@ module.exports = {
                 collapsable: true,
                 children: [
                     '/compute/introduction/',
+                    '/compute/sorting/',
                 ]
             },
             {

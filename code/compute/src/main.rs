@@ -1,6 +1,7 @@
-
-
 fn main() {
-    // compute_examples::introduction::run().unwrap();
-    compute_examples::sort::run().unwrap();
+    env_logger::init();
+    #[cfg(feature="introduction")]
+    compute::introduction::run().unwrap();
+    #[cfg(feature="sort")]
+    compute::sort::run().unwrap();
 }

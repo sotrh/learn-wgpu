@@ -384,4 +384,8 @@ This guide can't possible cover all the ways to use compute shaders, but I plan 
 some of the core building blocks you need to build most algorithms. After that you can take
 the concepts and apply them to your own projects!
 
+<!-- ## Demo -->
+
+<!-- <WasmExample example="compute" noCanvas="true" autoLoad="true"></WasmExample> -->
+
 <AutoGithubLink path="/compute/src/"/>

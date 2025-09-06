@@ -78,7 +78,7 @@ dependencies = [
  "jni",
  "jni-sys",
  "libc",
- "log 0.4.27",
+ "log 0.4.28",
  "ndk",
  "ndk-context",
  "ndk-sys",
@@ -306,7 +306,7 @@ dependencies = [
  "futures-lite",
  "gloo-timers",
  "kv-log-macro",
- "log 0.4.27",
+ "log 0.4.28",
  "memchr",
  "once_cell",
  "pin-project-lite",
@@ -494,7 +494,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b99da2f8558ca23c71f4fd15dc57c906239752dd27ff3c00a1d56b685b7cbfec"
 dependencies = [
  "bitflags 2.9.2",
- "log 0.4.27",
+ "log 0.4.28",
  "polling",
  "rustix 0.38.44",
  "slab",
@@ -614,30 +614,37 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bytemuck",
+ "console_error_panic_hook",
+ "console_log",
+ "env_logger 0.11.8",
+ "glam 0.30.5",
+ "log 0.4.28",
+ "pollster 0.4.0",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
+ "wgpu",
+]
+
+[[package]]
+name = "compute-old"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bytemuck",
  "cgmath",
  "env_logger 0.10.2",
  "fs_extra",
  "glob",
  "image",
  "instant",
- "log 0.4.27",
+ "log 0.4.28",
  "naga 26.0.0",
  "pollster 0.3.0",
  "rayon",
  "tobj 2.0.4",
  "wgpu",
  "winit",
-]
-
-[[package]]
-name = "compute-examples"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "bytemuck",
- "glam 0.30.5",
- "pollster 0.4.0",
- "wgpu",
 ]
 
 [[package]]
@@ -665,7 +672,7 @@ version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "be8aed40e4edbf4d3b4431ab260b63fdc40f5780a4766824329ea0f1eefe3c0f"
 dependencies = [
- "log 0.4.27",
+ "log 0.4.28",
  "web-sys",
 ]
 
@@ -782,7 +789,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "env_logger 0.11.8",
- "log 0.4.27",
+ "log 0.4.28",
  "simple-server",
 ]
 
@@ -860,7 +867,7 @@ version = "0.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "186e05a59d4c50738528153b83b0b0194d3a29507dfec16eccd4b342903397d0"
 dependencies = [
- "log 0.4.27",
+ "log 0.4.28",
  "regex",
 ]
 
@@ -872,7 +879,7 @@ checksum = "4cd405aab171cb85d6735e5c8d9db038c17d3ca007a4d2c25f337935c3d90580"
 dependencies = [
  "humantime",
  "is-terminal",
- "log 0.4.27",
+ "log 0.4.28",
  "regex",
  "termcolor",
 ]
@@ -887,7 +894,7 @@ dependencies = [
  "anstyle",
  "env_filter",
  "jiff",
- "log 0.4.27",
+ "log 0.4.28",
 ]
 
 [[package]]
@@ -1059,7 +1066,7 @@ dependencies = [
  "fs_extra",
  "glob",
  "image",
- "log 0.4.27",
+ "log 0.4.28",
  "naga 0.9.0",
  "pollster 0.3.0",
  "rayon",
@@ -1199,7 +1206,7 @@ dependencies = [
  "futures-intrusive",
  "gif 0.11.4",
  "image",
- "log 0.4.27",
+ "log 0.4.28",
  "pollster 0.3.0",
  "tobj 3.2.5",
  "wgpu",
@@ -1230,7 +1237,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1a95dfc23a2b4a9a2f5ab41d194f8bfda3cabec42af4e39f08c339eb2a0c124d"
 dependencies = [
  "khronos_api",
- "log 0.4.27",
+ "log 0.4.28",
  "xml-rs",
 ]
 
@@ -1313,7 +1320,7 @@ version = "0.27.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c151a2a5ef800297b4e79efa4f4bec035c5f51d5ae587287c9b952bdf734cacd"
 dependencies = [
- "log 0.4.27",
+ "log 0.4.28",
  "presser",
  "thiserror 1.0.69",
  "windows",
@@ -1512,7 +1519,7 @@ dependencies = [
  "core-foundation-sys",
  "iana-time-zone-haiku",
  "js-sys",
- "log 0.4.27",
+ "log 0.4.28",
  "wasm-bindgen",
  "windows-core 0.61.2",
 ]
@@ -1755,7 +1762,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "be1f93b8b1eb69c77f24bbb0afdf66f54b632ee39af40ca21c4365a1d7347e49"
 dependencies = [
  "jiff-static",
- "log 0.4.27",
+ "log 0.4.28",
  "portable-atomic",
  "portable-atomic-util",
  "serde",
@@ -1782,7 +1789,7 @@ dependencies = [
  "cfg-if",
  "combine",
  "jni-sys",
- "log 0.4.27",
+ "log 0.4.28",
  "thiserror 1.0.69",
  "walkdir",
  "windows-sys 0.45.0",
@@ -1846,7 +1853,7 @@ version = "1.0.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0de8b303297635ad57c9f5059fd9cee7a47f8e8daa09df0fcd07dd39fb22977f"
 dependencies = [
- "log 0.4.27",
+ "log 0.4.28",
 ]
 
 [[package]]
@@ -1940,14 +1947,14 @@ version = "0.3.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e19e8d5c34a3e0e2223db8e060f9e8264aeeb5c5fc64a4ee9965c062211c024b"
 dependencies = [
- "log 0.4.27",
+ "log 0.4.28",
 ]
 
 [[package]]
 name = "log"
-version = "0.4.27"
+version = "0.4.28"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "13dc2df351e3202783a1fe0d44375f7295ffb4049267b0f3018346dc122a1d94"
+checksum = "34080505efa8e45a4b816c349525ebe327ceaa8559756f0356cba97ef3bf7432"
 dependencies = [
  "value-bag",
 ]
@@ -1995,7 +2002,7 @@ dependencies = [
  "block",
  "core-graphics-types 0.2.0",
  "foreign-types 0.5.0",
- "log 0.4.27",
+ "log 0.4.28",
  "objc",
  "paste",
 ]
@@ -2036,7 +2043,7 @@ dependencies = [
  "bit-set 0.5.3",
  "bitflags 1.3.2",
  "indexmap 1.9.3",
- "log 0.4.27",
+ "log 0.4.28",
  "num-traits",
  "pp-rs",
  "rustc-hash",
@@ -2062,7 +2069,7 @@ dependencies = [
  "hexf-parse",
  "indexmap 2.10.0",
  "libm",
- "log 0.4.27",
+ "log 0.4.28",
  "num-traits",
  "once_cell",
  "petgraph",
@@ -2080,7 +2087,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "87de3442987e9dbec73158d5c715e7ad9072fda936bb03d19d7fa10e00520f0e"
 dependencies = [
  "libc",
- "log 0.4.27",
+ "log 0.4.28",
  "openssl",
  "openssl-probe",
  "openssl-sys",
@@ -2098,7 +2105,7 @@ checksum = "c3f42e7bbe13d351b6bead8286a43aac9534b82bd3cc43e47037f012ebfd62d4"
 dependencies = [
  "bitflags 2.9.2",
  "jni-sys",
- "log 0.4.27",
+ "log 0.4.28",
  "ndk-sys",
  "num_enum",
  "raw-window-handle",
@@ -2866,7 +2873,7 @@ dependencies = [
  "hyper-tls",
  "ipnet",
  "js-sys",
- "log 0.4.27",
+ "log 0.4.28",
  "mime",
  "native-tls",
  "once_cell",
@@ -2997,7 +3004,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b6277f0217056f77f1d8f49f2950ac6c278c0d607c45f5ee99328d792ede24ec"
 dependencies = [
  "ab_glyph",
- "log 0.4.27",
+ "log 0.4.28",
  "memmap2",
  "smithay-client-toolkit",
  "tiny-skia",
@@ -3143,7 +3150,7 @@ dependencies = [
  "calloop-wayland-source",
  "cursor-icon",
  "libc",
- "log 0.4.27",
+ "log 0.4.28",
  "memmap2",
  "rustix 0.38.44",
  "thiserror 1.0.69",
@@ -3382,7 +3389,7 @@ dependencies = [
  "glob",
  "image",
  "instant",
- "log 0.4.27",
+ "log 0.4.28",
  "pollster 0.3.0",
  "rayon",
  "reqwest",
@@ -3426,7 +3433,7 @@ dependencies = [
  "arrayvec",
  "bytemuck",
  "cfg-if",
- "log 0.4.27",
+ "log 0.4.28",
  "tiny-skia-path",
 ]
 
@@ -3552,7 +3559,7 @@ version = "0.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f751112709b4e791d8ce53e32c4ed2d353565a795ce84da2285393f41557bdf2"
 dependencies = [
- "log 0.4.27",
+ "log 0.4.28",
  "once_cell",
  "tracing-core",
 ]
@@ -3609,7 +3616,7 @@ dependencies = [
  "console_error_panic_hook",
  "console_log",
  "env_logger 0.10.2",
- "log 0.4.27",
+ "log 0.4.28",
  "pollster 0.3.0",
  "wasm-bindgen",
  "wasm-bindgen-futures",
@@ -3631,7 +3638,7 @@ dependencies = [
  "fs_extra",
  "glob",
  "image",
- "log 0.4.27",
+ "log 0.4.28",
  "pollster 0.3.0",
  "reqwest",
  "tobj 3.2.5",
@@ -3655,7 +3662,7 @@ dependencies = [
  "fs_extra",
  "glob",
  "image",
- "log 0.4.27",
+ "log 0.4.28",
  "pollster 0.3.0",
  "reqwest",
  "tobj 3.2.5",
@@ -3680,7 +3687,7 @@ dependencies = [
  "glob",
  "image",
  "instant",
- "log 0.4.27",
+ "log 0.4.28",
  "pollster 0.3.0",
  "reqwest",
  "tobj 3.2.5",
@@ -3705,7 +3712,7 @@ dependencies = [
  "glob",
  "image",
  "instant",
- "log 0.4.27",
+ "log 0.4.28",
  "pollster 0.3.0",
  "reqwest",
  "tobj 3.2.5",
@@ -3724,7 +3731,7 @@ dependencies = [
  "console_error_panic_hook",
  "console_log",
  "env_logger 0.10.2",
- "log 0.4.27",
+ "log 0.4.28",
  "pollster 0.3.0",
  "wasm-bindgen",
  "wasm-bindgen-futures",
@@ -3741,7 +3748,7 @@ dependencies = [
  "console_error_panic_hook",
  "console_log",
  "env_logger 0.10.2",
- "log 0.4.27",
+ "log 0.4.28",
  "pollster 0.3.0",
  "wasm-bindgen",
  "wasm-bindgen-futures",
@@ -3761,7 +3768,7 @@ dependencies = [
  "env_logger 0.10.2",
  "fs_extra",
  "glob",
- "log 0.4.27",
+ "log 0.4.28",
  "pollster 0.3.0",
  "wasm-bindgen",
  "wasm-bindgen-futures",
@@ -3782,7 +3789,7 @@ dependencies = [
  "fs_extra",
  "glob",
  "image",
- "log 0.4.27",
+ "log 0.4.28",
  "pollster 0.3.0",
  "wasm-bindgen",
  "wasm-bindgen-futures",
@@ -3804,7 +3811,7 @@ dependencies = [
  "fs_extra",
  "glob",
  "image",
- "log 0.4.27",
+ "log 0.4.28",
  "pollster 0.3.0",
  "wasm-bindgen",
  "wasm-bindgen-futures",
@@ -3826,7 +3833,7 @@ dependencies = [
  "fs_extra",
  "glob",
  "image",
- "log 0.4.27",
+ "log 0.4.28",
  "pollster 0.3.0",
  "wasm-bindgen",
  "wasm-bindgen-futures",
@@ -3848,7 +3855,7 @@ dependencies = [
  "fs_extra",
  "glob",
  "image",
- "log 0.4.27",
+ "log 0.4.28",
  "pollster 0.3.0",
  "wasm-bindgen",
  "wasm-bindgen-futures",
@@ -3870,7 +3877,7 @@ dependencies = [
  "fs_extra",
  "glob",
  "image",
- "log 0.4.27",
+ "log 0.4.28",
  "pollster 0.3.0",
  "reqwest",
  "tobj 3.2.5",
@@ -3972,7 +3979,7 @@ dependencies = [
  "gimli 0.26.2",
  "id-arena",
  "leb128",
- "log 0.4.27",
+ "log 0.4.28",
  "rayon",
  "walrus-macro",
  "wasm-encoder",
@@ -4040,7 +4047,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2f0a0651a5c2bc21487bde11ee802ccaf4c51935d0d3d42a6101f98161700bc6"
 dependencies = [
  "bumpalo",
- "log 0.4.27",
+ "log 0.4.28",
  "proc-macro2",
  "quote",
  "syn",
@@ -4055,7 +4062,7 @@ checksum = "21e1a4a49abe9cd6f762fc65fac2ef5732afeeb66be369d2f71a85b165a533cf"
 dependencies = [
  "anyhow",
  "base64 0.22.1",
- "log 0.4.27",
+ "log 0.4.28",
  "rustc-demangle",
  "serde",
  "serde_json",
@@ -4155,7 +4162,7 @@ checksum = "b1c24fcaa34d2d84407122cfb1d3f37c3586756cf462be18e049b49245a16c08"
 dependencies = [
  "anyhow",
  "leb128",
- "log 0.4.27",
+ "log 0.4.28",
  "walrus",
  "wasmparser",
 ]
@@ -4167,7 +4174,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "33f24921401faadd6944206f9d6837d07bbb5ff766ed51ad34528089f66550e0"
 dependencies = [
  "anyhow",
- "log 0.4.27",
+ "log 0.4.28",
  "walrus",
  "wasm-bindgen-wasm-conventions",
 ]
@@ -4178,7 +4185,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "env_logger 0.10.2",
- "log 0.4.27",
+ "log 0.4.28",
  "rayon",
  "serde",
  "serde_json",
@@ -4312,7 +4319,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "34949b42822155826b41db8e5d0c1be3a2bd296c747577a43a3e6daefc296142"
 dependencies = [
  "dlib",
- "log 0.4.27",
+ "log 0.4.28",
  "once_cell",
  "pkg-config",
 ]
@@ -4356,7 +4363,7 @@ dependencies = [
  "document-features",
  "hashbrown 0.15.5",
  "js-sys",
- "log 0.4.27",
+ "log 0.4.28",
  "naga 26.0.0",
  "parking_lot 0.12.4",
  "portable-atomic",
@@ -4387,7 +4394,7 @@ dependencies = [
  "document-features",
  "hashbrown 0.15.5",
  "indexmap 2.10.0",
- "log 0.4.27",
+ "log 0.4.28",
  "naga 26.0.0",
  "once_cell",
  "parking_lot 0.12.4",
@@ -4467,7 +4474,7 @@ dependencies = [
  "khronos-egl",
  "libc",
  "libloading",
- "log 0.4.27",
+ "log 0.4.28",
  "metal",
  "naga 26.0.0",
  "ndk-sys",
@@ -4511,7 +4518,7 @@ dependencies = [
  "bitflags 2.9.2",
  "bytemuck",
  "js-sys",
- "log 0.4.27",
+ "log 0.4.28",
  "thiserror 2.0.15",
  "web-sys",
 ]
@@ -5053,7 +5060,7 @@ dependencies = [
  "glob",
  "image",
  "instant",
- "log 0.4.27",
+ "log 0.4.28",
  "pollster 0.3.0",
  "reqwest",
  "tobj 3.2.5",
@@ -5125,7 +5132,7 @@ checksum = "d039de8032a9a8856a6be89cea3e5d12fdd82306ab7c94d74e6deab2460651c5"
 dependencies = [
  "bitflags 2.9.2",
  "dlib",
- "log 0.4.27",
+ "log 0.4.28",
  "once_cell",
  "xkeysym",
 ]
