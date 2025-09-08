@@ -113,23 +113,16 @@ of `odd_even_sort`.
 ```wgsl
     let num_items = arrayLength(&data);
     let pair_index = gid.x;
-
-    if pair_index >= num_items / 2u {
-        return;
-    }
 ```
 
-First we get the index of the pair the current thread is working on. Then given
-that workgroups take a fixed size, we could get threads that have no real
-data to work on. To prevent possible data corruption we just have those threads
-return early.
+First we get the index of the pair the current thread is working on.
 
 ```wgsl
     // odd
     var a = pair_index * 2u + 1;
-    var b = (a + 1u) % num_items; // Should wrap around to the first
+    var b = a + 1u;
 
-    if a < b && data[a] > data[b] {
+    if a < num_items && b < num_items && data[a] > data[b] {
         let temp = data[a];
         data[a] = data[b];
         data[b] = temp;
@@ -137,16 +130,15 @@ return early.
 ```
 
 For this part of the code, first we get the indices of the items we want to compare.
-Then if we aren't at the end of the array and value of the lower index is greater
-than the data in the higher index we swap the values. We'll do the even pass as well
-so we can halve the number of times we call this shader. 
+If the indices are in bounds and the values are out of order, swap the values. We can
+do the even pass as well so that we can halve the number of times we call this shader.
 
 ```wgsl
     // even
     a = pair_index * 2u;
-    b = (a + 1u) % num_items; // Should wrap around to the first
+    b = a + 1u;
 
-    if a < b && data[a] > data[b] {
+    if a < num_items && b < num_items && data[a] > data[b] {
         let temp = data[a];
         data[a] = data[b];
         data[b] = temp;
@@ -206,15 +198,11 @@ fn odd_even_sort(
     let num_items = arrayLength(&data);
     let pair_index = gid.x;
 
-    if pair_index >= num_items / 2u {
-        return;
-    }
-
     // odd
     var a = pair_index * 2u + 1;
-    var b = (a + 1u) % num_items; // Should wrap around to the first
+    var b = a + 1u;
 
-    if a < b && data[a] > data[b] {
+    if a < num_items && b < num_items && data[a] > data[b] {
         let temp = data[a];
         data[a] = data[b];
         data[b] = temp;
@@ -224,9 +212,9 @@ fn odd_even_sort(
 
     // even
     a = pair_index * 2u;
-    b = (a + 1u) % num_items; // Should wrap around to the first
+    b = a + 1u;
 
-    if a < b && data[a] > data[b] {
+    if a < num_items && b < num_items && data[a] > data[b] {
         let temp = data[a];
         data[a] = data[b];
         data[b] = temp;
@@ -282,5 +270,7 @@ Thanks for reading this, and a special thanks to these patrons!
 * Bernard Llanos
 * David Laban
 * IC
+
+<WasmExample example="compute" noCanvas="true" autoLoad="true"></WasmExample>
 
 <AutoGithubLink path="/compute/src/"/>

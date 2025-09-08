@@ -1,12 +1,13 @@
-use std::sync::mpsc::channel;
-
-use pollster::FutureExt;
+use flume::bounded;
 use wgpu::util::{BufferInitDescriptor, DeviceExt};
 
-pub fn run() -> anyhow::Result<()> {
-    let instance = wgpu::Instance::new(&Default::default());
-    let adapter = instance.request_adapter(&Default::default()).block_on()?;
-    let (device, queue) = adapter.request_device(&Default::default()).block_on()?;
+pub async fn run() -> anyhow::Result<()> {
+    let instance = wgpu::Instance::default();
+    let adapter = instance
+        .request_adapter(&wgpu::RequestAdapterOptions::default())
+        .await
+        .unwrap();
+    let (device, queue) = adapter.request_device(&Default::default()).await.unwrap();
 
     let shader = device.create_shader_module(wgpu::include_wgsl!("introduction.wgsl"));
 
@@ -76,17 +77,19 @@ pub fn run() -> anyhow::Result<()> {
     {
         // The mapping process is async, so we'll need to create a channel to get
         // the success flag for our mapping
-        let (tx, rx) = channel();
+        let (tx, rx) = bounded(1);
 
         // We send the success or failure of our mapping via a callback
-        temp_buffer.map_async(wgpu::MapMode::Read, .., move |result| tx.send(result).unwrap());
+        temp_buffer.map_async(wgpu::MapMode::Read, .., move |result| {
+            tx.send(result).unwrap()
+        });
 
         // The callback we submitted to map async will only get called after the
         // device is polled or the queue submitted
         device.poll(wgpu::PollType::Wait)?;
 
         // We check if the mapping was successful here
-        rx.recv()??;
+        rx.recv_async().await??;
 
         // We then get the bytes that were stored in the buffer
         let output_data = temp_buffer.get_mapped_range(..);
@@ -98,7 +101,7 @@ pub fn run() -> anyhow::Result<()> {
     // We need to unmap the buffer to be able to use it again
     temp_buffer.unmap();
 
-    println!("Success!");
+    log::info!("Success!");
 
     Ok(())
 }

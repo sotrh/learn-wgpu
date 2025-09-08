@@ -1,7 +1,9 @@
+use pollster::FutureExt;
+
 fn main() {
     env_logger::init();
     #[cfg(feature="introduction")]
-    compute::introduction::run().unwrap();
+    compute::introduction::run().block_on().unwrap();
     #[cfg(feature="sort")]
-    compute::sort::run().unwrap();
+    compute::sort::run().block_on().unwrap();
 }

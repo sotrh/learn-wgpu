@@ -7,8 +7,17 @@ pub mod sort;
 
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen]
-pub fn run_introduction() -> Result<(), wasm_bindgen::JsValue> {
-    introduction::run().unwrap_throw();
+pub async fn run_introduction() -> Result<(), wasm_bindgen::JsValue> {
+    log::info!("Starting introduction");
+    introduction::run().await.unwrap_throw();
+    Ok(())
+}
+
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen]
+pub async fn run_sorting() -> Result<(), wasm_bindgen::JsValue> {
+    log::info!("Starting sorting");
+    sort::run().await.unwrap_throw();
     Ok(())
 }
 

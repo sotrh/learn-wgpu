@@ -64,15 +64,16 @@ a device and queue with this simple code:
 
 ```rust
     let instance = wgpu::Instance::new(&Default::default());
-    let adapter = instance.request_adapter(&Default::default()).block_on()?;
-    let (device, queue) = adapter.request_device(&Default::default()).block_on()?;
+    let adapter = instance.request_adapter(&Default::default()).await.unwrap();
+    let (device, queue) = adapter.request_device(&Default::default()).await.unwrap();
 ```
 
 <div class="note">
 
-I'm using [pollster](https://docs.rs/pollster) to handle `async` code in these examples. You can use whatever
-`async` implementation you like though. I'm also using [anyhow](https://docs.rs/anyhow)
-for error handling.
+I'm using [pollster](https://docs.rs/pollster) to handle `async` in the native code in
+these examples. You can use whatever `async` implementation you like though. I'm also
+using [anyhow](https://docs.rs/anyhow) for error handling, and [flume](https://docs.rs/flume)
+for it's `async` channel implementation.
 
 </div>
 
@@ -384,8 +385,8 @@ This guide can't possible cover all the ways to use compute shaders, but I plan 
 some of the core building blocks you need to build most algorithms. After that you can take
 the concepts and apply them to your own projects!
 
-<!-- ## Demo -->
+## Demo
 
-<!-- <WasmExample example="compute" noCanvas="true" autoLoad="true"></WasmExample> -->
+<WasmExample example="compute" noCanvas="true" autoLoad="true"></WasmExample>
 
 <AutoGithubLink path="/compute/src/"/>

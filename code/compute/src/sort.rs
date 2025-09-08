@@ -1,12 +1,11 @@
-use std::sync::mpsc::channel;
-
+use flume::bounded;
 use pollster::FutureExt;
 use wgpu::util::{BufferInitDescriptor, DeviceExt};
 
-pub fn run() -> anyhow::Result<()> {
+pub async fn run() -> anyhow::Result<()> {
     let instance = wgpu::Instance::new(&Default::default());
-    let adapter = instance.request_adapter(&Default::default()).block_on()?;
-    let (device, queue) = adapter.request_device(&Default::default()).block_on()?;
+    let adapter = instance.request_adapter(&Default::default()).await.unwrap();
+    let (device, queue) = adapter.request_device(&Default::default()).await.unwrap();
 
     let shader = device.create_shader_module(wgpu::include_wgsl!("sort.wgsl"));
 
@@ -66,16 +65,17 @@ pub fn run() -> anyhow::Result<()> {
     queue.submit([encoder.finish()]);
 
     {
-        let (tx, rx) = channel();
+        let (tx, rx) = bounded(1);
         temp_buffer.map_async(wgpu::MapMode::Read, .., move |result| {
             tx.send(result).unwrap()
         });
         device.poll(wgpu::PollType::Wait)?;
-        rx.recv()??;
+        rx.recv_async().await??;
 
         let output_data = temp_buffer.get_mapped_range(..);
         let u32_data = bytemuck::cast_slice::<_, u32>(&output_data);
 
+        log::info!("{:?}", &u32_data[..]);
 
         // Confirm that the list is sorted
         for i in 1..u32_data.len() {
