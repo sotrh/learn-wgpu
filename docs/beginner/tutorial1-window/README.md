@@ -359,30 +359,33 @@ You'll then need to run the WASM code in an ES6 Module:
 ```html
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Learn WGPU</title>
     <style>
-        canvas {
-            background-color: black;
-            width: 100%;
-            height: 100%;
-        }
+      * {
+        padding: 0;
+        margin: 0;
+      }
+      canvas {
+        background-color: black;
+        width: 100%;
+        height: 100%;
+      }
     </style>
-</head>
+  </head>
 
-<body id="wasm-example">
-  <script type="module">
-      import init from "./pkg/pong.js";
+  <body id="wasm-example">
+    <canvas id="canvas"></canvas>
+    <script type="module">
+      import init from "./pkg/tutorial2_surface.js";
       init().then(() => {
-          console.log("WASM Loaded");
+        console.log("WASM Loaded");
       });
-  </script>
-</body>
-
+    </script>
+  </body>
 </html>
 ```
 

@@ -75,8 +75,6 @@ pub async fn run() -> anyhow::Result<()> {
         let output_data = temp_buffer.get_mapped_range(..);
         let u32_data = bytemuck::cast_slice::<_, u32>(&output_data);
 
-        log::info!("{:?}", &u32_data[..]);
-
         // Confirm that the list is sorted
         for i in 1..u32_data.len() {
             assert!(
