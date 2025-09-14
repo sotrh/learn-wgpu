@@ -233,7 +233,7 @@ code to call the shader:
     let num_dispatches = (input_data.len() / num_items_per_workgroup) as u32
         + (input_data.len() % num_items_per_workgroup > 0) as u32;
     // We do 2 passes in the shader so we only need to do half the passes
-    let num_passes = input_data.len() / 2 + input_data.len() % 2;
+    let num_passes = input_data.len().div_ceil(2);
 
     {
         let mut pass = encoder.begin_compute_pass(&Default::default());

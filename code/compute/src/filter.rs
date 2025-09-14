@@ -59,7 +59,7 @@ pub fn run() -> anyhow::Result<()> {
     let mut encoder = device.create_command_encoder(&Default::default());
 
     {
-        let num_dispatches = input_data.len() as u32 / 64 + (input_data.len() % 64 > 0) as u32;
+        let num_dispatches = input_data.len().div_ceil(64) as u32;
 
         let mut pass = encoder.begin_compute_pass(&Default::default());
         pass.set_pipeline(&pipeline);

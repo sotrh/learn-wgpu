@@ -332,7 +332,7 @@ impl framework::Demo for Snow {
         move_pass.set_pipeline(&self.move_particles);
         move_pass.set_bind_group(0, &self.particle_bind_groups[self.iteration % 2], &[]);
 
-        let num_workgroups = self.num_particles / 64 + (self.num_particles % 64 != 0) as u32;
+        let num_workgroups = self.num_particles.div_ceil(64) as u32;
         move_pass.dispatch_workgroups(num_workgroups, 1, 1);
 
         drop(move_pass);
