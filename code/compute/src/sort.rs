@@ -1,5 +1,4 @@
 use flume::bounded;
-use pollster::FutureExt;
 use wgpu::util::{BufferInitDescriptor, DeviceExt};
 
 pub async fn run() -> anyhow::Result<()> {
@@ -7,12 +6,22 @@ pub async fn run() -> anyhow::Result<()> {
     let adapter = instance.request_adapter(&Default::default()).await.unwrap();
     let (device, queue) = adapter.request_device(&Default::default()).await.unwrap();
 
-    let shader = device.create_shader_module(wgpu::include_wgsl!("sort.wgsl"));
+    let odd_shader = device.create_shader_module(wgpu::include_wgsl!("sort_odd.wgsl"));
+    let even_shader = device.create_shader_module(wgpu::include_wgsl!("sort_even.wgsl"));
 
-    let pipeline = device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
-        label: Some("Compute Pipeline"),
+    let odd_pipeline = device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
+        label: Some("Compute Pipeline Odd"),
         layout: None,
-        module: &shader,
+        module: &odd_shader,
+        entry_point: None,
+        compilation_options: Default::default(),
+        cache: Default::default(),
+    });
+    
+    let even_pipeline = device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
+        label: Some("Compute Pipeline Even"),
+        layout: None,
+        module: &even_shader,
         entry_point: None,
         compilation_options: Default::default(),
         cache: Default::default(),
@@ -33,9 +42,18 @@ pub async fn run() -> anyhow::Result<()> {
         mapped_at_creation: false,
     });
 
-    let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+    let odd_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
         label: None,
-        layout: &pipeline.get_bind_group_layout(0),
+        layout: &odd_pipeline.get_bind_group_layout(0),
+        entries: &[wgpu::BindGroupEntry {
+            binding: 0,
+            resource: data_buffer.as_entire_binding(),
+        }],
+    });
+
+    let even_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+        label: None,
+        layout: &even_pipeline.get_bind_group_layout(0),
         entries: &[wgpu::BindGroupEntry {
             binding: 0,
             resource: data_buffer.as_entire_binding(),
@@ -52,10 +70,13 @@ pub async fn run() -> anyhow::Result<()> {
 
     {
         let mut pass = encoder.begin_compute_pass(&Default::default());
-        pass.set_pipeline(&pipeline);
-        pass.set_bind_group(0, &bind_group, &[]);
 
         for _ in 0..num_passes {
+            pass.set_pipeline(&odd_pipeline);
+            pass.set_bind_group(0, &odd_bind_group, &[]);
+            pass.dispatch_workgroups(num_dispatches, 1, 1);
+            pass.set_pipeline(&even_pipeline);
+            pass.set_bind_group(0, &even_bind_group, &[]);
             pass.dispatch_workgroups(num_dispatches, 1, 1);
         }
     }

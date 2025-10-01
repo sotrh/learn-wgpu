@@ -11,21 +11,9 @@ fn odd_even_sort(
     let num_items = arrayLength(&data);
     let pair_index = gid.x;
 
-    // odd
-    var a = pair_index * 2u + 1;
-    var b = a + 1u;
-
-    if a < num_items && b < num_items && data[a] > data[b] {
-        let temp = data[a];
-        data[a] = data[b];
-        data[b] = temp;
-    }
-
-    storageBarrier();
-
     // even
-    a = pair_index * 2u;
-    b = a + 1u;
+    let a = pair_index * 2u;
+    let b = a + 1u;
 
     if a < num_items && b < num_items && data[a] > data[b] {
         let temp = data[a];
