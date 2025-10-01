@@ -62,10 +62,10 @@ pub async fn run() -> anyhow::Result<()> {
 
     let mut encoder = device.create_command_encoder(&Default::default());
 
-    let num_items_per_workgroup = 64; // 64 threads, 2 items per thread
+    let num_items_per_workgroup = 64;
     let num_dispatches = (input_data.len() / num_items_per_workgroup) as u32
         + (input_data.len() % num_items_per_workgroup > 0) as u32;
-    // We do 2 passes in the shader so we only need to do half the passes
+    // We do 2 dispatches so we only need to do half the passes
     let num_passes = input_data.len() / 2 + input_data.len() % 2;
 
     {
