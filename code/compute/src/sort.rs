@@ -83,6 +83,7 @@ pub async fn run() -> anyhow::Result<()> {
     // We do 2 dispatches so we only need to do half the passes
     let num_passes = input_data.len() / 2 + input_data.len() % 2;
 
+
     {
         let mut pass = encoder.begin_compute_pass(&Default::default());
 

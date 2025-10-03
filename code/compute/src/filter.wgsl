@@ -1,26 +1,55 @@
-@group(0) @binding(0) var<storage, read> input: array<u32>;
-@group(0) @binding(1) var<storage, read_write> output: array<u32>;
+struct FilterData {
+    index: u32,
+    order: u32,
+}
 
-var<workgroup> buffer: array<u32>;
-var<workgroup> count: atomic<u32>;
+struct FilterParameters {
+    // These get padded to vec4
+    min: vec3<f32>,
+    max: vec3<f32>,
+}
+
+@group(0) @binding(0) var<uniform> parameters: FilterParameters;
+@group(0) @binding(1) var<storage, read_write> spheres: array<vec4<f32>>;
+@group(0) @binding(2) var<storage, read_write> indices: array<FilterData>;
 
 @compute
-@workgroup_size(64)
-fn main(
+@workgroup_size(256)
+fn categorize(
     @builtin(global_invocation_id) global_invocation_id: vec3<u32>
 ) {
-    let index = global_invocation_id.x;
-    let total = arrayLength(&input);
-
-    // workgroup_size may not be a multiple of the array size so
-    // we need to exit out a thread would index out of bounds.
-    if (index >= total) {
-        return;
-    }
-
-    if (input[index] % 2 == 0) {
-        return;
-    }
-
     
+}
+
+
+@compute
+@workgroup_size(256)
+fn odd_even_sort(
+    @builtin(global_invocation_id)
+    gid: vec3<u32>,
+) {
+    let num_items = arrayLength(&indices);
+    let pair_index = gid.x;
+
+    // odd
+    var a = pair_index * 2u + 1;
+    var b = a + 1u;
+
+    if a < num_items && b < num_items && indices[a] > indices[b] {
+        let temp = indices[a];
+        indices[a] = indices[b];
+        indices[b] = temp;
+    }
+
+    storageBarrier();
+
+    // even
+    a = pair_index * 2u;
+    b = a + 1u;
+
+    if a < num_items && b < num_items && indices[a] > indices[b] {
+        let temp = indices[a];
+        indices[a] = indices[b];
+        indices[b] = temp;
+    }
 }
