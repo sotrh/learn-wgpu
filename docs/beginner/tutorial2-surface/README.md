@@ -115,7 +115,7 @@ Let's use the `adapter` to create the device and queue.
             .await?;
 ```
 
-The `features` field on `DeviceDescriptor` allows us to specify what extra features we want. For this simple example, I've decided not to use any extra features.
+The `required_features` field on `DeviceDescriptor` allows us to specify what extra features we want. For this simple example, I've decided not to use any extra features.
 
 <div class="note">
 
@@ -127,7 +127,10 @@ You can view a full list of features [here](https://docs.rs/wgpu/latest/wgpu/str
 
 </div>
 
-The `limits` field describes the limit of certain types of resources that we can create. We'll use the defaults for this tutorial so we can support most devices. You can view a list of limits [here](https://docs.rs/wgpu/latest/wgpu/struct.Limits.html).
+The `experimental_features` field specifies whether we intend to use features that
+are not stable yet. We'll leave this as disabled for now.
+
+The `required_limits` field describes the limit of certain types of resources that we can create. We'll use the defaults for this tutorial so we can support most devices. You can view a list of limits [here](https://docs.rs/wgpu/latest/wgpu/struct.Limits.html).
 
 The `memory_hints` field provides the adapter with a preferred memory allocation strategy, if supported. You can view the available options [here](https://wgpu.rs/doc/wgpu/enum.MemoryHints.html).
 
