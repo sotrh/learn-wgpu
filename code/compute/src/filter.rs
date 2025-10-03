@@ -1,14 +1,12 @@
-use std::sync::mpsc::channel;
-
-use pollster::FutureExt;
+use flume::bounded;
 use wgpu::util::{BufferInitDescriptor, DeviceExt};
 
-pub fn run() -> anyhow::Result<()> {
+pub async fn run() -> anyhow::Result<()> {
     let instance = wgpu::Instance::new(&Default::default());
-    let adapter = instance.request_adapter(&Default::default()).block_on()?;
-    let (device, queue) = adapter.request_device(&Default::default()).block_on()?;
+    let adapter = instance.request_adapter(&Default::default()).await.unwrap();
+    let (device, queue) = adapter.request_device(&Default::default()).await.unwrap();
 
-    let shader = device.create_shader_module(wgpu::include_wgsl!("filter.wgsl"));
+    let shader = device.create_shader_module(wgpu::include_wgsl!("sort.wgsl"));
 
     let pipeline = device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
         label: Some("Compute Pipeline"),
@@ -19,24 +17,17 @@ pub fn run() -> anyhow::Result<()> {
         cache: Default::default(),
     });
 
-    let input_data = (0..10_000u32).collect::<Vec<_>>();
+    let input_data = (0u32..128 * 9).rev().collect::<Vec<_>>();
 
-    let input_buffer = device.create_buffer_init(&BufferInitDescriptor {
-        label: Some("input"),
+    let data_buffer = device.create_buffer_init(&BufferInitDescriptor {
+        label: Some("data"),
         contents: bytemuck::cast_slice(&input_data),
-        usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::STORAGE,
-    });
-
-    let output_buffer = device.create_buffer(&wgpu::BufferDescriptor {
-        label: Some("output"),
-        size: input_buffer.size(),
         usage: wgpu::BufferUsages::COPY_SRC | wgpu::BufferUsages::STORAGE,
-        mapped_at_creation: false,
     });
 
     let temp_buffer = device.create_buffer(&wgpu::BufferDescriptor {
         label: Some("temp"),
-        size: input_buffer.size(),
+        size: data_buffer.size(),
         usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
         mapped_at_creation: false,
     });
@@ -44,42 +35,53 @@ pub fn run() -> anyhow::Result<()> {
     let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
         label: None,
         layout: &pipeline.get_bind_group_layout(0),
-        entries: &[
-            wgpu::BindGroupEntry {
-                binding: 0,
-                resource: input_buffer.as_entire_binding(),
-            },
-            wgpu::BindGroupEntry {
-                binding: 1,
-                resource: output_buffer.as_entire_binding(),
-            },
-        ],
+        entries: &[wgpu::BindGroupEntry {
+            binding: 0,
+            resource: data_buffer.as_entire_binding(),
+        }],
     });
 
     let mut encoder = device.create_command_encoder(&Default::default());
 
-    {
-        let num_dispatches = input_data.len().div_ceil(64) as u32;
+    let num_items_per_workgroup = 128; // 64 threads, 2 items per thread
+    let num_dispatches = input_data.len().div_ceil(num_items_per_workgroup) as u32;
+    // We do 2 passes in the shader so we only need to do half the passes
+    let num_passes = input_data.len().div_ceil(2);
 
+    {
         let mut pass = encoder.begin_compute_pass(&Default::default());
         pass.set_pipeline(&pipeline);
         pass.set_bind_group(0, &bind_group, &[]);
-        pass.dispatch_workgroups(num_dispatches, 1, 1);
+
+        for _ in 0..num_passes {
+            pass.dispatch_workgroups(num_dispatches, 1, 1);
+        }
     }
 
-    encoder.copy_buffer_to_buffer(&output_buffer, 0, &temp_buffer, 0, output_buffer.size());
+    encoder.copy_buffer_to_buffer(&data_buffer, 0, &temp_buffer, 0, data_buffer.size());
 
     queue.submit([encoder.finish()]);
 
     {
-        let (tx, rx) = channel();
-        temp_buffer.map_async(wgpu::MapMode::Read, .., move |result| tx.send(result).unwrap());
+        let (tx, rx) = bounded(1);
+        temp_buffer.map_async(wgpu::MapMode::Read, .., move |result| {
+            tx.send(result).unwrap()
+        });
         device.poll(wgpu::PollType::Wait)?;
-        rx.recv()??;
+        rx.recv_async().await??;
 
         let output_data = temp_buffer.get_mapped_range(..);
+        let u32_data = bytemuck::cast_slice::<_, u32>(&output_data);
 
-        assert_eq!(&input_data, bytemuck::cast_slice(&output_data));
+        // Confirm that the list is sorted
+        for i in 1..u32_data.len() {
+            assert!(
+                u32_data[i] > u32_data[i - 1],
+                "{}, {}",
+                u32_data[i - 1],
+                u32_data[i]
+            );
+        }
     }
 
     temp_buffer.unmap();
