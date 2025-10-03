@@ -76,7 +76,7 @@ use wgpu::util::DeviceExt;
 You'll note that we're using [bytemuck](https://docs.rs/bytemuck/latest/bytemuck/) to cast our `VERTICES` as a `&[u8]`. The `create_buffer_init()` method expects a `&[u8]`, and `bytemuck::cast_slice` does that for us. Add the following to your `Cargo.toml`.
 
 ```toml
-bytemuck = { version = "1.16", features = [ "derive" ] }
+bytemuck = { version = "1.24", features = [ "derive" ] }
 ```
 
 We're also going to need to implement two traits to get `bytemuck` to work. These are [bytemuck::Pod](https://docs.rs/bytemuck/latest/bytemuck/trait.Pod.html) and [bytemuck::Zeroable](https://docs.rs/bytemuck/latest/bytemuck/trait.Zeroable.html). `Pod` indicates that our `Vertex` is "Plain Old Data", and thus can be interpreted as a `&[u8]`. `Zeroable` indicates that we can use `std::mem::zeroed()`. We can modify our `Vertex` struct to derive these methods.

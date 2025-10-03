@@ -492,7 +492,7 @@ You may have noted that we have switched from `downlevel_webgl2_defaults()` to `
 Consequently, we are going to remove the WebGL feature from `Cargo.toml`. This line in particular:
 
 ```toml
-wgpu = { version = "26.0.1", features = ["webgl"]}
+wgpu = { version = "27.0.0", features = ["webgl"]}
 ```
 
 </div>

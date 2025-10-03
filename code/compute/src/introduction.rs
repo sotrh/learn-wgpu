@@ -86,7 +86,7 @@ pub async fn run() -> anyhow::Result<()> {
 
         // The callback we submitted to map async will only get called after the
         // device is polled or the queue submitted
-        device.poll(wgpu::PollType::Wait)?;
+        device.poll(wgpu::PollType::wait_indefinitely())?;
 
         // We check if the mapping was successful here
         rx.recv_async().await??;

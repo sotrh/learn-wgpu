@@ -26,43 +26,45 @@ I'm using this project to learn wgpu myself, so I might miss some important deta
 
 ## Special thanks to these patrons
 
-* Filip
-* Lions Heart
-* Jani Turkia
-* Julius Liu
-* 折登 樹
-* Aron Granberg
-* Ian Gowen
-* Bernard Llanos
 * David Laban
-* Feng Liang
+* Bernard Llanos
+* Ian Gowen
+* Aron Granberg
+* 折登 樹
+* Julius Liu
+* Jani Turkia
+* Lions Heart
+* Filip
+* IC
 * papyDoctor
-* dadofboi
-* Davide Prati
-* Andrea Postal
-* 大典 加藤
-* Tema
-* Felix
+* Feng Liang
+* Jan Šipr
+* Joris Willems
 * Mattia Samiolo
-* Ken K
-* Ryan
-* Zeh Fernando
-* Craft Links
-* Ben Anderson
-* Thunk
-* Eliot Bolduc
-* yutani
+* Lennart
+* Paul E Hansen
+* Gunstein Vatnar
+* Nico Arbogast
+* Dude
+* Youngsuk Kim
+* Alexander Kabirov
 * charlesk
 * Danny McGee
-* Alexander Kabirov
-* Youngsuk Kim
-* Dude
-* Nico Arbogast
-* Gunstein Vatnar
-* Paul E Hansen
-* Joris Willems
-* Jan Šipr
-* Lennart
+* yutani
+* Eliot Bolduc
+* Ben Anderson
+* Thunk
+* Craft Links
+* Zeh Fernando
+* Ken K
+* Ryan
+* Felix
+* Tema
+* 大典 加藤
+* Andrea Postal
+* Davide Prati
+* dadofboi
+* Beryesa
 * Dzianis Sheka
 * George Offley
 * Imbris

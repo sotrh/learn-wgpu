@@ -1,8 +1,7 @@
 use anyhow::Context;
 use glob::glob;
-use naga::back::wgsl;
+use naga::{back::wgsl, front::glsl::Frontend};
 use naga::front::glsl::Options;
-use naga::front::glsl::Parser;
 use rayon::prelude::*;
 use std::{fs::read_to_string, path::PathBuf};
 
@@ -23,7 +22,7 @@ pub fn load_shader(src_path: PathBuf) -> anyhow::Result<()> {
     // let spv_path = src_path.with_extension(format!("{}.spv", extension));
     let wgsl_path = src_path.with_extension(format!("{}.wgsl", extension));
 
-    let mut parser = Parser::default();
+    let mut parser = Frontend::default();
     let options = Options::from(kind);
     let module = match parser.parse(&options, &src) {
         Ok(it) => it,
@@ -43,17 +42,6 @@ pub fn load_shader(src_path: PathBuf) -> anyhow::Result<()> {
     .validate(&module)?;
     let flags = wgsl::WriterFlags::empty();
     std::fs::write(wgsl_path, wgsl::write_string(&module, &info, flags)?)?;
-
-    // let flags = spv::WriterFlags::DEBUG | spv::WriterFlags::ADJUST_COORDINATE_SPACE;
-    // let options = spv::Options {
-    //     flags,
-    //     ..Default::default()
-    // };
-    // let spv = spv::write_vec(&module, &info, &options)?;
-    // let dis = rspirv::dr::load_words(spv)
-    //     .expect("Unable to disassemble shader")
-    //     .disassemble();
-    // std::fs::write(spv_path, &spv)?;
 
     Ok(())
 }

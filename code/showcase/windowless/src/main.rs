@@ -162,7 +162,7 @@ async fn run() {
         buffer_slice.map_async(wgpu::MapMode::Read, move |result| {
             tx.send(result).unwrap();
         });
-        device.poll(wgpu::PollType::Wait).unwrap();
+        device.poll(wgpu::PollType::wait_indefinitely()).unwrap();
         rx.receive().await.unwrap().unwrap();
 
         let data = buffer_slice.get_mapped_range();

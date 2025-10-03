@@ -269,7 +269,7 @@ pub async fn load_model(
 
 //             output.extend(data_t.iter().map(f));
 //         });
-//         device.poll(wgpu::PollType::Wait)?;
+//         device.poll(wgpu::PollType::wait_indefinitely())?;
 
 //     }
 //     buffer.unmap();

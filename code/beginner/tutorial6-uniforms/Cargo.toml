@@ -9,12 +9,12 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 anyhow = "1.0"
-bytemuck = { version = "1.16", features = [ "derive" ] }
+bytemuck = { version = "1.24", features = [ "derive" ] }
 cgmath = "0.18"
 env_logger = "0.10"
 log = "0.4"
 pollster = "0.3"
-wgpu = "26.0.1"
+wgpu = "27.0.0"
 winit = { version = "0.30", features = ["android-native-activity"] }
 
 [dependencies.image]
@@ -25,7 +25,7 @@ features = ["png", "jpeg"]
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 console_error_panic_hook = "0.1"
 console_log = "1.0"
-wgpu = { version = "26.0.1", features = ["webgl"]}
+wgpu = { version = "27.0.0", features = ["webgl"]}
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
 web-sys = { version = "0.3", features = [

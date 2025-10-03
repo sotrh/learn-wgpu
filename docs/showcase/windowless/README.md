@@ -100,7 +100,7 @@ Update dependencies to support SPIR-V module.
 [dependencies]
 image = "0.23"
 shaderc = "0.7"
-wgpu = { version = "26.0.1", features = ["spirv"] }
+wgpu = { version = "27.0.0", features = ["spirv"] }
 pollster = "0.3"
 ```
 
@@ -264,7 +264,7 @@ In order to get the data out of the buffer, we need to first map it, then we can
     buffer_slice.map_async(wgpu::MapMode::Read, move |result| {
         tx.send(result).unwrap();
     });
-    device.poll(wgpu::PollType::Wait)?;
+    device.poll(wgpu::PollType::wait_indefinitely())?;
     rx.receive().await.unwrap().unwrap();
 
     let data = buffer_slice.get_mapped_range();

@@ -269,6 +269,7 @@ impl State {
                 label: None,
                 // UPDATED!
                 required_features: wgpu::Features::empty(),
+                experimental_features: wgpu::ExperimentalFeatures::disabled(),
                 // UPDATED!
                 required_limits: wgpu::Limits::downlevel_defaults(),
                 memory_hints: Default::default(),
