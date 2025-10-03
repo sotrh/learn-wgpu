@@ -376,7 +376,7 @@ impl ModelLoader {
                     pass.dispatch_workgroups(binding.compute_info.num_vertices as u32, 1, 1);
                 }
                 queue.submit(std::iter::once(encoder.finish()));
-                device.poll(wgpu::PollType::Wait)?;
+                device.poll(wgpu::PollType::wait_indefinitely())?;
 
                 Ok(Mesh {
                     name: m.name.clone(),

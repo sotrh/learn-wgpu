@@ -30,7 +30,7 @@ let (device, queue) = adapter.request_device(
 2. `Device::poll()` takes `PollType` instead of `Maintain`:
 
 ```
-device.poll(wgpu::PollType::Wait).unwrap();
+device.poll(wgpu::PollType::wait_indefinitely()).unwrap();
 ```
 
 That's pretty much it! As always feel free to create a issue/PR

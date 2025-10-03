@@ -18,6 +18,7 @@ async fn run() {
             &wgpu::DeviceDescriptor {
                 label: Some("Device"),
                 required_features: wgpu::Features::empty(),
+                experimental_features: wgpu::ExperimentalFeatures::disabled(),
                 // WebGL doesn't support all of wgpu's features, so if
                 // we're building for the web we'll have to disable some.
                 required_limits: if cfg!(target_arch = "wasm32") {
@@ -143,7 +144,7 @@ async fn run() {
             tx.send(result).unwrap();
         });
         // wait for the GPU to finish
-        device.poll(wgpu::PollType::Wait).unwrap();
+        device.poll(wgpu::PollType::wait_indefinitely()).unwrap();
 
         match rx.receive().await {
             Some(Ok(())) => {

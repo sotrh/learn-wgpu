@@ -155,6 +155,7 @@ pub struct State {
     light_render_pipeline: wgpu::RenderPipeline,
     #[allow(dead_code)]
     debug_material: model::Material,
+    #[allow(dead_code)]
     last_mouse_pos: PhysicalPosition<f64>,
     mouse_pressed: bool,
     window: Arc<Window>,
@@ -188,6 +189,7 @@ impl State {
             .request_device(&wgpu::DeviceDescriptor {
                 label: None,
                 required_features: wgpu::Features::empty(),
+                experimental_features: wgpu::ExperimentalFeatures::disabled(),
                 // WebGL doesn't support all of wgpu's features, so if
                 // we're building for the web we'll have to disable some.
                 required_limits: if cfg!(target_arch = "wasm32") {
@@ -212,7 +214,6 @@ impl State {
             .find(|f| f.is_srgb())
             .unwrap_or(surface_caps.formats[0]);
         
-        let surface_format = wgpu::TextureFormat::Bgra8UnormSrgb;
         let config = wgpu::SurfaceConfiguration {
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
             format: surface_format,

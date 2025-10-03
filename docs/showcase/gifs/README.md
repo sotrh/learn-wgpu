@@ -147,7 +147,7 @@ for c in &colors {
     let buffer_slice = output_buffer.slice(..);
     let request = buffer_slice.map_async(wgpu::MapMode::Read);
     // wait for the GPU to finish
-    device.poll(wgpu::PollType::Wait)?;
+    device.poll(wgpu::PollType::wait_indefinitely())?;
     let result = request.await;
     
     match result {

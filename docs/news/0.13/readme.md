@@ -11,7 +11,7 @@ The change log above contains most of the details about what has changed about W
     let buffer_slice = output_buffer.slice(..);
 
     let mapping = buffer_slice.map_async(wgpu::MapMode::Read);
-    device.poll(wgpu::PollType::Wait)?;
+    device.poll(wgpu::PollType::wait_indefinitely())?;
     mapping.await.unwrap();
 
     let data = buffer_slice.get_mapped_range();
@@ -34,7 +34,7 @@ We would do the following:
     buffer_slice.map_async(wgpu::MapMode::Read, move |result| {
         tx.send(result).unwrap();
     });
-    device.poll(wgpu::PollType::Wait)?;
+    device.poll(wgpu::PollType::wait_indefinitely())?;
     rx.receive().await.unwrap().unwrap();
 
     let data = buffer_slice.get_mapped_range();

@@ -461,8 +461,8 @@ winit = { version = "0.30", features = ["android-native-activity"] }
 env_logger = "0.10"
 log = "0.4"
 pollster = "0.3"
-wgpu = "26.0.1"
-bytemuck = { version = "1.16", features = [ "derive" ] } # NEW!
+wgpu = "27.0.0"
+bytemuck = { version = "1.24", features = [ "derive" ] } # NEW!
 ```
 
 Then, in a new file called `src/texture.rs`, add the following:

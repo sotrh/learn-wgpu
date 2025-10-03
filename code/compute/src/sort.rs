@@ -1,5 +1,4 @@
 use flume::bounded;
-use pollster::FutureExt;
 use wgpu::util::{BufferInitDescriptor, DeviceExt};
 
 pub async fn run() -> anyhow::Result<()> {
@@ -69,7 +68,7 @@ pub async fn run() -> anyhow::Result<()> {
         temp_buffer.map_async(wgpu::MapMode::Read, .., move |result| {
             tx.send(result).unwrap()
         });
-        device.poll(wgpu::PollType::Wait)?;
+        device.poll(wgpu::PollType::wait_indefinitely())?;
         rx.recv_async().await??;
 
         let output_data = temp_buffer.get_mapped_range(..);
