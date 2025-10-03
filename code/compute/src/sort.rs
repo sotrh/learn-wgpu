@@ -6,22 +6,12 @@ pub async fn run() -> anyhow::Result<()> {
     let adapter = instance.request_adapter(&Default::default()).await.unwrap();
     let (device, queue) = adapter.request_device(&Default::default()).await.unwrap();
 
-    let odd_shader = device.create_shader_module(wgpu::include_wgsl!("sort_odd.wgsl"));
-    let even_shader = device.create_shader_module(wgpu::include_wgsl!("sort_even.wgsl"));
+    let shader = device.create_shader_module(wgpu::include_wgsl!("sort.wgsl"));
 
-    let odd_pipeline = device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
-        label: Some("Compute Pipeline Odd"),
+    let pipeline = device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
+        label: Some("Compute Pipeline"),
         layout: None,
-        module: &odd_shader,
-        entry_point: None,
-        compilation_options: Default::default(),
-        cache: Default::default(),
-    });
-    
-    let even_pipeline = device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
-        label: Some("Compute Pipeline Even"),
-        layout: None,
-        module: &even_shader,
+        module: &shader,
         entry_point: None,
         compilation_options: Default::default(),
         cache: Default::default(),
@@ -29,10 +19,25 @@ pub async fn run() -> anyhow::Result<()> {
 
     let input_data = (0u32..128 * 9).rev().collect::<Vec<_>>();
 
+    let odd_data = [1u32]; 
+    let even_data = [0u32]; 
+
     let data_buffer = device.create_buffer_init(&BufferInitDescriptor {
         label: Some("data"),
         contents: bytemuck::cast_slice(&input_data),
         usage: wgpu::BufferUsages::COPY_SRC | wgpu::BufferUsages::STORAGE,
+    });
+
+    let odd_buffer = device.create_buffer_init(&BufferInitDescriptor {
+        label: Some("odd flag"),
+        contents: bytemuck::cast_slice(&odd_data),
+        usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+    });
+
+    let even_buffer = device.create_buffer_init(&BufferInitDescriptor {
+        label: Some("even flag"),
+        contents: bytemuck::cast_slice(&even_data),
+        usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
     });
 
     let temp_buffer = device.create_buffer(&wgpu::BufferDescriptor {
@@ -44,19 +49,29 @@ pub async fn run() -> anyhow::Result<()> {
 
     let odd_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
         label: None,
-        layout: &odd_pipeline.get_bind_group_layout(0),
-        entries: &[wgpu::BindGroupEntry {
+        layout: &pipeline.get_bind_group_layout(0),
+        entries: &[
+            wgpu::BindGroupEntry {
             binding: 0,
             resource: data_buffer.as_entire_binding(),
+        },
+        wgpu::BindGroupEntry {
+            binding: 1,
+            resource: odd_buffer.as_entire_binding()
         }],
     });
 
     let even_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
         label: None,
-        layout: &even_pipeline.get_bind_group_layout(0),
-        entries: &[wgpu::BindGroupEntry {
+        layout: &pipeline.get_bind_group_layout(0),
+        entries: &[
+            wgpu::BindGroupEntry {
             binding: 0,
             resource: data_buffer.as_entire_binding(),
+        },
+        wgpu::BindGroupEntry {
+            binding: 1,
+            resource: even_buffer.as_entire_binding()
         }],
     });
 
@@ -72,10 +87,9 @@ pub async fn run() -> anyhow::Result<()> {
         let mut pass = encoder.begin_compute_pass(&Default::default());
 
         for _ in 0..num_passes {
-            pass.set_pipeline(&odd_pipeline);
+            pass.set_pipeline(&pipeline);
             pass.set_bind_group(0, &odd_bind_group, &[]);
             pass.dispatch_workgroups(num_dispatches, 1, 1);
-            pass.set_pipeline(&even_pipeline);
             pass.set_bind_group(0, &even_bind_group, &[]);
             pass.dispatch_workgroups(num_dispatches, 1, 1);
         }
