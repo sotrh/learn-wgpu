@@ -68,6 +68,7 @@ module.exports = {
                 title: 'News',
                 collapsable: true,
                 children: [
+                    '/news/27.0',
                     '/news/26.0.1/',
                     '/news/update-to-winit-0.30/',
                     '/news/25.0/',
