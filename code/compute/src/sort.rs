@@ -77,7 +77,7 @@ pub async fn run() -> anyhow::Result<()> {
         // Confirm that the list is sorted
         for i in 1..u32_data.len() {
             assert!(
-                u32_data[i] > u32_data[i - 1],
+                u32_data[i] >= u32_data[i - 1],
                 "{}, {}",
                 u32_data[i - 1],
                 u32_data[i]
