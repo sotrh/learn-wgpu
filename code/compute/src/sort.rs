@@ -19,10 +19,25 @@ pub async fn run() -> anyhow::Result<()> {
 
     let input_data = (0u32..128 * 9).rev().collect::<Vec<_>>();
 
+    let odd_data = [1u32]; 
+    let even_data = [0u32]; 
+
     let data_buffer = device.create_buffer_init(&BufferInitDescriptor {
         label: Some("data"),
         contents: bytemuck::cast_slice(&input_data),
         usage: wgpu::BufferUsages::COPY_SRC | wgpu::BufferUsages::STORAGE,
+    });
+
+    let odd_buffer = device.create_buffer_init(&BufferInitDescriptor {
+        label: Some("odd flag"),
+        contents: bytemuck::cast_slice(&odd_data),
+        usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+    });
+
+    let even_buffer = device.create_buffer_init(&BufferInitDescriptor {
+        label: Some("even flag"),
+        contents: bytemuck::cast_slice(&even_data),
+        usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
     });
 
     let temp_buffer = device.create_buffer(&wgpu::BufferDescriptor {
@@ -32,29 +47,51 @@ pub async fn run() -> anyhow::Result<()> {
         mapped_at_creation: false,
     });
 
-    let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+    let odd_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
         label: None,
         layout: &pipeline.get_bind_group_layout(0),
-        entries: &[wgpu::BindGroupEntry {
+        entries: &[
+            wgpu::BindGroupEntry {
             binding: 0,
             resource: data_buffer.as_entire_binding(),
+        },
+        wgpu::BindGroupEntry {
+            binding: 1,
+            resource: odd_buffer.as_entire_binding()
+        }],
+    });
+
+    let even_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+        label: None,
+        layout: &pipeline.get_bind_group_layout(0),
+        entries: &[
+            wgpu::BindGroupEntry {
+            binding: 0,
+            resource: data_buffer.as_entire_binding(),
+        },
+        wgpu::BindGroupEntry {
+            binding: 1,
+            resource: even_buffer.as_entire_binding()
         }],
     });
 
     let mut encoder = device.create_command_encoder(&Default::default());
 
-    let num_items_per_workgroup = 128; // 64 threads, 2 items per thread
+    let num_items_per_workgroup = 64;
     let num_dispatches = (input_data.len() / num_items_per_workgroup) as u32
         + (input_data.len() % num_items_per_workgroup > 0) as u32;
-    // We do 2 passes in the shader so we only need to do half the passes
-    let num_passes = input_data.len().div_ceil(2);
+    // We do 2 dispatches so we only need to do half the passes
+    let num_passes = input_data.len() / 2 + input_data.len() % 2;
+
 
     {
         let mut pass = encoder.begin_compute_pass(&Default::default());
-        pass.set_pipeline(&pipeline);
-        pass.set_bind_group(0, &bind_group, &[]);
 
         for _ in 0..num_passes {
+            pass.set_pipeline(&pipeline);
+            pass.set_bind_group(0, &odd_bind_group, &[]);
+            pass.dispatch_workgroups(num_dispatches, 1, 1);
+            pass.set_bind_group(0, &even_bind_group, &[]);
             pass.dispatch_workgroups(num_dispatches, 1, 1);
         }
     }
