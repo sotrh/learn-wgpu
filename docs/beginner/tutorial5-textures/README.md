@@ -188,7 +188,7 @@ There are two options:
 
 Mipmaps are a complex topic and will require their own section in the future. For now, we can say that `mipmap_filter` functions are similar to `(mag/min)_filter` as it tells the sampler how to blend between mipmaps.
 
-I'm using some defaults for the other fields. If you want to see what they are, check [the wgpu docs](https://docs.rs/wgpu/latest/wgpu/struct.SamplerDescriptor.html).
+I'm using some defaults for the other fields. If you want to see what they are, check [the wgpu docs](https://docs.rs/wgpu/latest/wgpu/type.SamplerDescriptor.html).
 
 All these different resources are nice and all, but they don't do us much good if we can't plug them in anywhere. This is where `BindGroup`s and `PipelineLayout`s come in.
 
