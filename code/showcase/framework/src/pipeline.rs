@@ -177,11 +177,7 @@ impl<'a> RenderPipelineBuilder<'a> {
     }
 
     pub fn build(&mut self, device: &wgpu::Device) -> Result<wgpu::RenderPipeline> {
-        // We need a layout
-        if self.layout.is_none() {
-            bail!("No pipeline layout supplied!");
-        }
-        let layout = self.layout.unwrap();
+        let layout = self.layout.clone();
 
         // Render pipelines always have a vertex shader, but due
         // to the way the builder pattern works, we can't
@@ -201,31 +197,29 @@ impl<'a> RenderPipelineBuilder<'a> {
                 .context("Please include a vertex shader")?,
         );
 
-        // The fragment shader is optional (IDK why, but it is).
-        // Having the shader be optional is giving me issues with
-        // the borrow checker so I'm going to use a default shader
-        // if the user doesn't supply one.
-        let fs_spv = self
+        let frag_module = self
             .fragment_shader
-            .take()
-            .context("Please include a fragment shader")?;
-        let fs = create_shader_module(device, fs_spv);
+            .clone()
+            .map(|src| create_shader_module(device, src));
+        let frag_state = frag_module.as_ref().map(|module| {
+            wgpu::FragmentState {
+                module,
+                entry_point: None,
+                compilation_options: Default::default(),
+                targets: &self.color_states,
+            }
+        });
 
         let pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
             label: Some("Render Pipeline"),
-            layout: Some(layout),
+            layout,
             vertex: wgpu::VertexState {
                 module: &vs,
-                entry_point: Some("main"),
+                entry_point: None,
                 buffers: &self.vertex_buffers,
                 compilation_options: Default::default(),
             },
-            fragment: Some(wgpu::FragmentState {
-                module: &fs,
-                entry_point: Some("main"),
-                targets: &self.color_states,
-                compilation_options: Default::default(),
-            }),
+            fragment: frag_state,
             primitive: wgpu::PrimitiveState {
                 topology: self.primitive_topology,
                 front_face: self.front_face,

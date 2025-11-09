@@ -57,23 +57,62 @@ impl Vertex for ModelVertex {
     }
 }
 
-pub struct Material<'a> {
-    pub name: String,
-    pub diffuse_texture: texture::Texture<'a>,
-    pub normal_texture: texture::Texture<'a>,
-    pub bind_group: wgpu::BindGroup,
+pub struct MaterialBinder {
+    layout: wgpu::BindGroupLayout,
 }
 
-impl<'a> Material<'a> {
-    pub fn new(
+impl MaterialBinder {
+    pub fn new(device: &wgpu::Device) -> Self {
+        let layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+            label: Some("MaterialBinder"),
+            entries: &[
+                wgpu::BindGroupLayoutEntry {
+                    binding: 0,
+                    visibility: wgpu::ShaderStages::FRAGMENT,
+                    ty: wgpu::BindingType::Texture {
+                        sample_type: wgpu::TextureSampleType::Float { filterable: true },
+                        view_dimension: wgpu::TextureViewDimension::D2,
+                        multisampled: false,
+                    },
+                    count: None,
+                },
+                wgpu::BindGroupLayoutEntry {
+                    binding: 1,
+                    visibility: wgpu::ShaderStages::FRAGMENT,
+                    ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
+                    count: None,
+                },
+                wgpu::BindGroupLayoutEntry {
+                    binding: 2,
+                    visibility: wgpu::ShaderStages::FRAGMENT,
+                    ty: wgpu::BindingType::Texture {
+                        sample_type: wgpu::TextureSampleType::Float { filterable: true },
+                        view_dimension: wgpu::TextureViewDimension::D2,
+                        multisampled: false,
+                    },
+                    count: None,
+                },
+                wgpu::BindGroupLayoutEntry {
+                    binding: 3,
+                    visibility: wgpu::ShaderStages::FRAGMENT,
+                    ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
+                    count: None,
+                },
+            ],
+        });
+
+        Self { layout }
+    }
+
+    pub fn bind(
+        &self,
         device: &wgpu::Device,
-        name: &str,
-        diffuse_texture: texture::Texture<'a>,
-        normal_texture: texture::Texture<'a>,
-        layout: &wgpu::BindGroupLayout,
-    ) -> Self {
+        diffuse_texture: &texture::Texture,
+        normal_texture: &texture::Texture,
+    ) -> MaterialBinding {
         let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
-            layout,
+            label: Some("MaterialBinding"),
+            layout: &self.layout,
             entries: &[
                 wgpu::BindGroupEntry {
                     binding: 0,
@@ -92,8 +131,37 @@ impl<'a> Material<'a> {
                     resource: wgpu::BindingResource::Sampler(&normal_texture.sampler),
                 },
             ],
-            label: Some(name),
         });
+        MaterialBinding { bind_group }
+    }
+    
+    pub fn layout(&self) -> &wgpu::BindGroupLayout {
+        &self.layout
+    }
+}
+
+pub struct MaterialBinding {
+    bind_group: wgpu::BindGroup,
+}
+
+pub struct Material {
+    pub name: String,
+    pub diffuse_texture: texture::Texture,
+    pub normal_texture: texture::Texture,
+    pub bind_group: wgpu::BindGroup,
+}
+
+impl Material {
+    pub fn new(
+        device: &wgpu::Device,
+        name: &str,
+        diffuse_texture: texture::Texture,
+        normal_texture: texture::Texture,
+        binder: &MaterialBinder,
+    ) -> Self {
+        let bind_group = binder
+            .bind(device, &diffuse_texture, &normal_texture)
+            .bind_group;
 
         Self {
             name: String::from(name),
@@ -112,16 +180,16 @@ pub struct Mesh {
     pub material: usize,
 }
 
-pub struct Model<'a> {
+pub struct Model {
     pub meshes: Vec<Mesh>,
-    pub materials: Vec<Material<'a>>,
+    pub materials: Vec<Material>,
 }
 
-impl<'a> Model<'a> {
+impl Model {
     pub fn load_obj<P: AsRef<Path>>(
         device: &wgpu::Device,
         queue: &wgpu::Queue,
-        layout: &wgpu::BindGroupLayout,
+        binder: &MaterialBinder,
         path: P,
     ) -> Result<Self> {
         let (obj_models, obj_materials) = tobj::load_obj(path.as_ref(), true)?;
@@ -133,7 +201,7 @@ impl<'a> Model<'a> {
         for mat in obj_materials {
             let diffuse_path = mat.diffuse_texture;
             let diffuse_texture =
-                texture::Texture::load(device, queue, containing_folder.join(diffuse_path), false)?;
+                texture::Texture::load(device, queue, dbg!(containing_folder.join(diffuse_path)), false)?;
 
             let normal_path = mat.normal_texture;
             let normal_texture =
@@ -144,7 +212,7 @@ impl<'a> Model<'a> {
                 &mat.name,
                 diffuse_texture,
                 normal_texture,
-                layout,
+                binder,
             ));
         }
 

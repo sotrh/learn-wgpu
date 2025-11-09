@@ -6,10 +6,10 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-anyhow = "1.0"
-bytemuck = { version = "1.13.1", features = ["derive"] }
-framework = { version = "0.1", path = "../framework"}
-glam = { version = "0.24.1", features = ["bytemuck"] }
-pollster = "0.3.0"
-wgpu = "27.0.0"
-winit = { version = "0.30", features = ["android-native-activity"] }
+framework = { path = "../framework" }
+anyhow.workspace = true
+bytemuck.workspace = true
+glam.workspace = true
+pollster.workspace = true
+wgpu.workspace = true
+winit.workspace = true

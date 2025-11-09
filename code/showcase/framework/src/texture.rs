@@ -5,14 +5,13 @@ use std::path::Path;
 
 use crate::buffer;
 
-pub struct Texture<'a> {
+pub struct Texture {
     pub texture: wgpu::Texture,
     pub view: wgpu::TextureView,
     pub sampler: wgpu::Sampler,
-    pub desc: wgpu::TextureDescriptor<'a>,
 }
 
-impl<'a> Texture<'a> {
+impl Texture {
     pub const DEPTH_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Depth32Float;
 
     pub fn load<P: AsRef<Path>>(
@@ -21,13 +20,13 @@ impl<'a> Texture<'a> {
         path: P,
         is_normal_map: bool,
     ) -> Result<Self> {
-        let path_copy = path.as_ref().to_path_buf();
-        let label = path_copy.to_str().unwrap();
-        let img = image::open(path)?;
+        // let path_copy = path.as_ref().to_path_buf();
+        let img = image::open(&path)?;
+        let label = path.as_ref().to_str().unwrap();
         Self::from_image(device, queue, &img, Some(label), is_normal_map)
     }
 
-    pub fn from_descriptor(device: &wgpu::Device, desc: wgpu::TextureDescriptor<'a>) -> Self {
+    pub fn from_descriptor(device: &wgpu::Device, desc: wgpu::TextureDescriptor<'_>) -> Self {
         let texture = device.create_texture(&desc);
 
         let view = texture.create_view(&wgpu::TextureViewDescriptor::default());
@@ -40,7 +39,11 @@ impl<'a> Texture<'a> {
             mipmap_filter: wgpu::FilterMode::Nearest,
             lod_min_clamp: 0.0,
             lod_max_clamp: 100.0,
-            compare: Some(wgpu::CompareFunction::LessEqual),
+            compare: if desc.format.is_depth_stencil_format() {
+                Some(wgpu::CompareFunction::LessEqual)
+            } else {
+                None
+            },
             ..Default::default()
         });
 
@@ -48,7 +51,6 @@ impl<'a> Texture<'a> {
             texture,
             view,
             sampler,
-            desc,
         }
     }
 
@@ -121,7 +123,7 @@ impl<'a> Texture<'a> {
             mipmap_filter: wgpu::FilterMode::Nearest,
             lod_min_clamp: 0.0,
             lod_max_clamp: 100.0,
-            compare: Some(wgpu::CompareFunction::Always),
+            compare: None,
             ..Default::default()
         });
 
@@ -129,7 +131,6 @@ impl<'a> Texture<'a> {
             texture,
             view,
             sampler,
-            desc,
         })
     }
 
@@ -155,8 +156,9 @@ impl<'a> Texture<'a> {
     }
 
     pub fn prepare_buffer_rgba(&self, device: &wgpu::Device) -> buffer::RawBuffer<[f32; 4]> {
-        let num_pixels =
-            self.desc.size.width * self.desc.size.height * self.desc.size.depth_or_array_layers;
+        let num_pixels = self.texture.size().width
+            * self.texture.size().height
+            * self.texture.size().depth_or_array_layers;
 
         let buffer_size = num_pixels * mem::size_of::<[f32; 4]>() as u32;
         let buffer_usage = wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ;

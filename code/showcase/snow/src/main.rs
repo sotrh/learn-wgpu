@@ -1,8 +1,6 @@
-mod camera;
-
 use std::f32::consts::PI;
 
-use camera::{Camera, CameraController, Projection};
+use framework::{Camera, CameraController, Projection};
 use wgpu::util::{BufferInitDescriptor, DeviceExt};
 use winit::keyboard::KeyCode;
 
@@ -169,7 +167,6 @@ impl framework::Demo for Snow {
             100.0,
         );
 
-        println!("projection: {projection:?}");
         let uniforms = Uniforms {
             view_proj: projection.calc_matrix() * camera.calc_matrix(),
         };
@@ -269,7 +266,7 @@ impl framework::Demo for Snow {
         })
     }
 
-    fn process_mouse(&mut self, dx: f64, dy: f64) {
+    fn process_mouse_move(&mut self, dx: f64, dy: f64) {
         // self.camera_controller.process_mouse(dx, dy);
         // self.uniforms_dirty = true;
     }

@@ -1,5 +1,6 @@
 mod buffer;
 mod camera;
+mod camera_old;
 mod light;
 mod model;
 mod pipeline;
@@ -16,7 +17,8 @@ use pollster::FutureExt;
 pub use shader_canvas::*;
 pub use texture::*;
 
-use cgmath::*;
+// use cgmath::*;
+use std::ops::Deref;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 use wgpu::util::{BufferInitDescriptor, DeviceExt};
@@ -129,6 +131,28 @@ impl Display {
     pub fn is_surface_configured(&self) -> bool {
         self.is_surface_configured
     }
+
+    pub fn width(&self) -> u32 {
+        self.window.inner_size().width
+    }
+
+    pub fn height(&self) -> u32 {
+        self.window.inner_size().height
+    }
+}
+
+impl Deref for Display {
+    type Target = wgpu::Device;
+
+    fn deref(&self) -> &Self::Target {
+        &self.device
+    }
+}
+
+impl AsRef<wgpu::Device> for Display {
+    fn as_ref(&self) -> &wgpu::Device {
+        &self.device
+    }
 }
 
 /**
@@ -137,8 +161,8 @@ impl Display {
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct UniformData {
-    view_position: cgmath::Vector4<f32>,
-    view_proj: cgmath::Matrix4<f32>,
+    view_position: glam::Vec4,
+    view_proj: glam::Mat4,
 }
 
 unsafe impl bytemuck::Zeroable for UniformData {}
@@ -146,14 +170,14 @@ unsafe impl bytemuck::Pod for UniformData {}
 
 pub struct CameraUniform {
     data: UniformData,
-    buffer: wgpu::Buffer,
+    pub buffer: wgpu::Buffer,
 }
 
 impl CameraUniform {
     pub fn new(device: &wgpu::Device) -> Self {
         let data = UniformData {
-            view_position: Zero::zero(),
-            view_proj: cgmath::Matrix4::identity(),
+            view_position: glam::Vec4::ZERO,
+            view_proj: glam::Mat4::IDENTITY,
         };
         let buffer = device.create_buffer_init(&BufferInitDescriptor {
             label: Some("Camera Buffer"),
@@ -165,7 +189,7 @@ impl CameraUniform {
     }
 
     pub fn update_view_proj(&mut self, camera: &camera::Camera, projection: &camera::Projection) {
-        self.data.view_position = camera.position.to_homogeneous();
+        self.data.view_position = camera.position.extend(1.0);
         self.data.view_proj = projection.calc_matrix() * camera.calc_matrix()
     }
 
@@ -235,7 +259,8 @@ impl UniformBinding {
 
 pub trait Demo: 'static + Sized + Send + std::fmt::Debug {
     fn init(display: &Display) -> anyhow::Result<Self>;
-    fn process_mouse(&mut self, dx: f64, dy: f64);
+    fn process_mouse_button(&mut self, button: u32, pressed: bool);
+    fn process_mouse_move(&mut self, dx: f64, dy: f64);
     fn process_keyboard(&mut self, key: KeyCode, pressed: bool);
     fn resize(&mut self, display: &Display);
     fn update(&mut self, display: &Display, dt: Duration);
@@ -244,12 +269,12 @@ pub trait Demo: 'static + Sized + Send + std::fmt::Debug {
 
 pub struct App<D: Demo> {
     demo: Option<(Display, D)>,
-    proxy: Option<EventLoopProxy<(Display, D)>>,
+    proxy: Option<EventLoopProxy<anyhow::Result<(Display, D)>>>,
     last_time: Instant,
 }
 
 impl<D: Demo + 'static> App<D> {
-    pub fn new(event_loop: &EventLoop<(Display, D)>) -> Self {
+    pub fn new(event_loop: &EventLoop<anyhow::Result<(Display, D)>>) -> Self {
         Self {
             demo: None,
             proxy: Some(event_loop.create_proxy()),
@@ -258,7 +283,7 @@ impl<D: Demo + 'static> App<D> {
     }
 }
 
-impl<D: Demo + 'static> ApplicationHandler<(Display, D)> for App<D> {
+impl<D: Demo + 'static> ApplicationHandler<anyhow::Result<(Display, D)>> for App<D> {
     fn resumed(&mut self, event_loop: &winit::event_loop::ActiveEventLoop) {
         #[allow(unused_mut)]
         let mut window_attributes = Window::default_attributes();
@@ -282,14 +307,16 @@ impl<D: Demo + 'static> ApplicationHandler<(Display, D)> for App<D> {
         if let Some(proxy) = self.proxy.take() {
             let display_future = Display::new(window.clone());
             std::thread::spawn(move || {
-                let display = display_future.block_on()?;
-                let demo = D::init(&display)?;
+                let result = (move || {
+                    let display = display_future.block_on()?;
+                    let demo = D::init(&display)?;
+
+                    anyhow::Ok((display, demo))
+                })();
 
                 proxy
-                    .send_event((display, demo))
+                    .send_event(result)
                     .expect("Unable to send (display, demo)");
-
-                anyhow::Ok(())
             });
         }
     }
@@ -297,8 +324,9 @@ impl<D: Demo + 'static> ApplicationHandler<(Display, D)> for App<D> {
     fn user_event(
         &mut self,
         _event_loop: &winit::event_loop::ActiveEventLoop,
-        event: (Display, D),
+        event: anyhow::Result<(Display, D)>,
     ) {
+        let event = event.unwrap();
         event.0.window.request_redraw();
         self.demo = Some(event);
         self.last_time = Instant::now();
@@ -317,8 +345,11 @@ impl<D: Demo + 'static> ApplicationHandler<(Display, D)> for App<D> {
         };
 
         match event {
+            DeviceEvent::Button { button, state } => {
+                demo.process_mouse_button(button, state.is_pressed());
+            }
             DeviceEvent::MouseMotion { delta: (dx, dy) } => {
-                demo.process_mouse(dx, dy);
+                demo.process_mouse_move(dx, dy);
             }
             _ => {}
         }

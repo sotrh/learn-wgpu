@@ -18,10 +18,24 @@ members = [
     # showcase
     "code/showcase/*",
 
-    "run-wasm", "demo_server",
+    "run-wasm",
+    "demo_server",
 ]
 exclude = [
     "code/showcase/imgui-demo",
     "code/showcase/pong",
     "code/showcase/mouse-picking",
 ]
+
+[workspace.dependencies]
+wgpu = "27.0.0"
+anyhow = "1"
+rand = "0.8"
+glam = { version = "0.30.9", features = ["bytemuck"] }
+bytemuck = { version = "1.13.1", features = ["derive"] }
+winit = { version = "0.30", features = ["android-native-activity"] }
+env_logger = "0.10"
+pollster = "0.3"
+image = "0.24.2"
+log = "0.4"
+tobj = "2.0"

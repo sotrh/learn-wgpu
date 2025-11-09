@@ -132,7 +132,7 @@ async fn run() {
                     rows_per_image: Some(texture_size),
                 },
             },
-            render_target.desc.size,
+            render_target.texture.size(),
         );
 
         queue.submit(iter::once(encoder.finish()));
@@ -209,7 +209,7 @@ fn create_render_pipeline(
             module: &shader,
             entry_point: Some("fs_main"),
             targets: &[Some(wgpu::ColorTargetState {
-                format: target.desc.format,
+                format: target.texture.format(),
                 blend: Some(wgpu::BlendState::REPLACE),
                 write_mask: wgpu::ColorWrites::ALL,
             })],

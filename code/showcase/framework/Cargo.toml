@@ -5,18 +5,20 @@ authors = ["Ben Hansen <https://github.com/sotrh>"]
 edition = "2018"
 
 [dependencies]
-anyhow = "1.0"
 thiserror = "1.0"
 bytemuck = { version = "1.24", features = [ "derive" ] }
 cgmath = "0.18"
-env_logger = "0.10"
-pollster = "0.3"
-image = "0.24.2"
-log = "0.4"
-tobj = "2.0"
-wgpu = "27.0.0"
 wgpu-subscriber = "0.1"
-winit = { version = "0.30", features = ["android-native-activity"] }
+
+env_logger.workspace = true
+pollster.workspace = true
+image.workspace = true
+log.workspace = true
+tobj.workspace = true
+wgpu.workspace = true
+anyhow.workspace = true
+glam.workspace = true
+winit.workspace = true
 
 [build-dependencies]
 anyhow = "1.0"
