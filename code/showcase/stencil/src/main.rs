@@ -214,6 +214,12 @@ impl Demo for Stencil {
         let mask_pipeline = framework::RenderPipelineBuilder::new()
             .vertex_shader(mask_shader.clone())
             .fragment_shader(mask_shader.clone())
+            .color_state(wgpu::ColorTargetState {
+                format: display.config.format,
+                blend: None,
+                write_mask: wgpu::ColorWrites::empty(),
+            })
+            .cull_mode(Some(wgpu::Face::Back))
             .depth_stencil(wgpu::DepthStencilState {
                 format: depth_stencil_format,
                 depth_write_enabled: false,
@@ -223,11 +229,10 @@ impl Demo for Stencil {
                     read_mask: 0xFF,
                     front: wgpu::StencilFaceState {
                         compare: wgpu::CompareFunction::Always,
-                        fail_op: wgpu::StencilOperation::Replace,
-                        depth_fail_op: wgpu::StencilOperation::Replace,
                         pass_op: wgpu::StencilOperation::Replace,
+                        ..Default::default()
                     },
-                    ..Default::default()
+                    back: wgpu::StencilFaceState::IGNORE,
                 },
                 bias: wgpu::DepthBiasState::default(),
             })
@@ -286,14 +291,12 @@ impl Demo for Stencil {
                 depth_compare: wgpu::CompareFunction::Less,
                 stencil: wgpu::StencilState {
                     front: wgpu::StencilFaceState {
-                        compare: wgpu::CompareFunction::Equal,
-                        fail_op: wgpu::StencilOperation::Keep,
-                        depth_fail_op: wgpu::StencilOperation::Keep,
-                        pass_op: wgpu::StencilOperation::Keep,
+                        compare: wgpu::CompareFunction::Greater,
+                        ..Default::default()
                     },
                     back: wgpu::StencilFaceState::IGNORE,
-                    read_mask: 1,
-                    write_mask: 0,
+                    read_mask: 0xFF,
+                    write_mask: 0xFF,
                 },
                 bias: wgpu::DepthBiasState::default(),
             })
@@ -381,12 +384,20 @@ impl Demo for Stencil {
         {
             let mut draw_mask_stencil = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: Some("draw_mask"),
-                color_attachments: &[],
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                    view: &view,
+                    resolve_target: None,
+                    ops: wgpu::Operations {
+                        load: wgpu::LoadOp::Load,
+                        store: wgpu::StoreOp::Store,
+                    },
+                    depth_slice: None,
+                })],
                 depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
                     view: &self.depth_stencil_view,
                     depth_ops: None,
                     stencil_ops: Some(wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(0),
+                        load: wgpu::LoadOp::Clear(0xFF),
                         store: wgpu::StoreOp::Store,
                     }),
                 }),
@@ -394,7 +405,7 @@ impl Demo for Stencil {
                 occlusion_query_set: None,
             });
 
-            draw_mask_stencil.set_stencil_reference(1);
+            draw_mask_stencil.set_stencil_reference(0);
             draw_mask_stencil.set_pipeline(&self.mask_pipeline);
             draw_mask_stencil.set_bind_group(0, &self.mask_bind_group, &[]);
             draw_mask_stencil.draw(0..3, 0..1);
