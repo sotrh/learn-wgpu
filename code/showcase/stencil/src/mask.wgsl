@@ -26,7 +26,7 @@ fn vs_main(
 @fragment
 fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     let sample = textureSample(mask_texture, mask_sampler, in.uv);
-    if (sample.a < 0.25) {
+    if (sample.a < 0.1) {
         discard;
     }
     return sample;

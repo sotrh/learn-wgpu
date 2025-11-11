@@ -34,7 +34,8 @@ fn random_position_scale(min: Vec3, max: Vec3) -> Vec4 {
         rng.gen_range(min.x..=max.x),
         rng.gen_range(min.y..=max.y),
         rng.gen_range(min.z..=max.z),
-        rng.gen_range(0.25..=0.75),
+        // rng.gen_range(0.25..=0.75),
+        0.5,
     )
 }
 
@@ -67,10 +68,12 @@ impl std::fmt::Debug for Stencil {
 
 impl Demo for Stencil {
     fn init(display: &framework::Display) -> anyhow::Result<Self> {
-        let instances = (0..100)
-            .map(|_| InstanceVertex {
+        let num_instances = 64;
+        let half_instanes = num_instances / 2;
+        let instances = (0..num_instances)
+            .map(|i| InstanceVertex {
                 position: random_position_scale(Vec3::splat(-5.0), Vec3::splat(5.0)),
-                color: random_color(),
+                color: Vec4::new((i < half_instanes) as u32 as f32, 0.0, (i >= half_instanes) as u32 as f32, 1.0),
             })
             .collect::<Vec<_>>();
 
@@ -101,7 +104,7 @@ impl Demo for Stencil {
                     label: None,
                     entries: &[wgpu::BindGroupLayoutEntry {
                         binding: 0,
-                        visibility: wgpu::ShaderStages::VERTEX,
+                        visibility: wgpu::ShaderStages::VERTEX_FRAGMENT,
                         ty: wgpu::BindingType::Buffer {
                             ty: wgpu::BufferBindingType::Uniform,
                             has_dynamic_offset: false,
@@ -261,6 +264,7 @@ impl Demo for Stencil {
             .layout(&model_pipeline_layout)
             .vertex_shader(model_shader.clone())
             .fragment_shader(model_shader.clone())
+            .cull_mode(Some(wgpu::Face::Back))
             .color_state(wgpu::ColorTargetState {
                 format: display.config.format,
                 blend: None,
@@ -276,10 +280,12 @@ impl Demo for Stencil {
             .vertex_buffer_desc(ModelVertex::desc())
             .vertex_buffer_desc(InstanceVertex::DESC)
             .build(&display.device)?;
+
         let invisible_pipeline = framework::RenderPipelineBuilder::new()
             .layout(&model_pipeline_layout)
             .vertex_shader(model_shader.clone())
             .fragment_shader(model_shader.clone())
+            .cull_mode(Some(wgpu::Face::Back))
             .color_state(wgpu::ColorTargetState {
                 format: display.config.format,
                 blend: None,
@@ -290,13 +296,14 @@ impl Demo for Stencil {
                 depth_write_enabled: true,
                 depth_compare: wgpu::CompareFunction::Less,
                 stencil: wgpu::StencilState {
+                    read_mask: 0xFF,
+                    write_mask: 0xFF,
                     front: wgpu::StencilFaceState {
-                        compare: wgpu::CompareFunction::Greater,
+                        compare: wgpu::CompareFunction::Equal,
+                        depth_fail_op: wgpu::StencilOperation::Keep,
                         ..Default::default()
                     },
                     back: wgpu::StencilFaceState::IGNORE,
-                    read_mask: 0xFF,
-                    write_mask: 0xFF,
                 },
                 bias: wgpu::DepthBiasState::default(),
             })
@@ -414,43 +421,44 @@ impl Demo for Stencil {
         let num_instances = self.instance_buffer.data.len() as u32;
         let instance_split = num_instances / 2;
 
-        // {
-        //     let mut draw_visible = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-        //         label: Some("draw_visible"),
-        //         color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-        //             view: &view,
-        //             resolve_target: None,
-        //             ops: wgpu::Operations {
-        //                 load: wgpu::LoadOp::Clear(wgpu::Color::BLACK),
-        //                 store: wgpu::StoreOp::Store,
-        //             },
-        //             depth_slice: None,
-        //         })],
-        //         depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-        //             view: &self.depth_stencil_view,
-        //             depth_ops: Some(wgpu::Operations {
-        //                 load: wgpu::LoadOp::Clear(1.0),
-        //                 store: wgpu::StoreOp::Store,
-        //             }),
-        //             stencil_ops: None,
-        //         }),
-        //         occlusion_query_set: None,
-        //         timestamp_writes: None,
-        //     });
+        {
+            let mut draw_visible = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                label: Some("draw_visible"),
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                    view: &view,
+                    resolve_target: None,
+                    ops: wgpu::Operations {
+                        load: wgpu::LoadOp::Clear(wgpu::Color::BLACK),
+                        store: wgpu::StoreOp::Store,
+                    },
+                    depth_slice: None,
+                })],
+                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                    view: &self.depth_stencil_view,
+                    depth_ops: Some(wgpu::Operations {
+                        load: wgpu::LoadOp::Clear(1.0),
+                        store: wgpu::StoreOp::Store,
+                    }),
+                    stencil_ops: None,
+                }),
+                occlusion_query_set: None,
+                timestamp_writes: None,
+            });
 
-        //     draw_visible.set_pipeline(&self.visible_pipeline);
-        //     draw_visible.set_bind_group(0, &self.camera_bind_group, &[]);
-        //     draw_visible.set_vertex_buffer(1, self.instance_buffer.buffer.slice(..));
-        //     for mesh in &self.model.meshes {
-        //         if let Some(material) = self.model.materials.get(mesh.material) {
-        //             draw_visible.set_bind_group(1, &material.bind_group, &[]);
-        //             draw_visible
-        //                 .set_index_buffer(mesh.index_buffer.slice(..), wgpu::IndexFormat::Uint32);
-        //             draw_visible.set_vertex_buffer(0, mesh.vertex_buffer.slice(..));
-        //             draw_visible.draw_indexed(0..mesh.num_elements, 0, 0..instance_split);
-        //         }
-        //     }
-        // } //*/
+            draw_visible.set_pipeline(&self.visible_pipeline);
+            draw_visible.set_bind_group(0, &self.camera_bind_group, &[]);
+            draw_visible.set_vertex_buffer(1, self.instance_buffer.buffer.slice(..));
+            for mesh in &self.model.meshes {
+                if let Some(material) = self.model.materials.get(mesh.material) {
+                    draw_visible.set_bind_group(1, &material.bind_group, &[]);
+                    draw_visible
+                        .set_index_buffer(mesh.index_buffer.slice(..), wgpu::IndexFormat::Uint32);
+                    draw_visible.set_vertex_buffer(0, mesh.vertex_buffer.slice(..));
+                    draw_visible.draw_indexed(0..mesh.num_elements, 0, 0..instance_split);
+                }
+            }
+        }
+
         {
             let mut draw_invisible = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: Some("draw_invisible"),
@@ -478,7 +486,7 @@ impl Demo for Stencil {
                 timestamp_writes: None,
             });
 
-            draw_invisible.set_stencil_reference(1);
+            draw_invisible.set_stencil_reference(0xFF);
             draw_invisible.set_pipeline(&self.invisible_pipeline);
             draw_invisible.set_bind_group(0, &self.camera_bind_group, &[]);
             draw_invisible.set_vertex_buffer(1, self.instance_buffer.buffer.slice(..));
@@ -497,28 +505,27 @@ impl Demo for Stencil {
             }
         }
 
-        let mut draw_mask_color = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-            label: Some("draw_mask_color"),
-            color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                view: &view,
-                resolve_target: None,
-                ops: wgpu::Operations {
-                    load: wgpu::LoadOp::Load,
-                    store: wgpu::StoreOp::Store,
-                },
-                depth_slice: None,
-            })],
-            depth_stencil_attachment: None,
-            timestamp_writes: None,
-            occlusion_query_set: None,
-        });
+        {
+            let mut draw_mask_color = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                label: Some("draw_mask_color"),
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                    view: &view,
+                    resolve_target: None,
+                    ops: wgpu::Operations {
+                        load: wgpu::LoadOp::Load,
+                        store: wgpu::StoreOp::Store,
+                    },
+                    depth_slice: None,
+                })],
+                depth_stencil_attachment: None,
+                timestamp_writes: None,
+                occlusion_query_set: None,
+            });
 
-        log::info!("HERE");
-        draw_mask_color.set_pipeline(&self.mask_color_pipeline);
-        draw_mask_color.set_bind_group(0, &self.mask_bind_group, &[]);
-        draw_mask_color.draw(0..3, 0..1);
-
-        drop(draw_mask_color);
+            draw_mask_color.set_pipeline(&self.mask_color_pipeline);
+            draw_mask_color.set_bind_group(0, &self.mask_bind_group, &[]);
+            draw_mask_color.draw(0..3, 0..1);
+        }
 
         display.queue.submit([encoder.finish()]);
         frame.present();
