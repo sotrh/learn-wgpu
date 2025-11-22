@@ -21,6 +21,8 @@ pub struct RenderPipelineBuilder<'a> {
     sample_mask: u64,
     alpha_to_coverage_enabled: bool,
     multiview: Option<NonZeroU32>,
+    maybe_fragment_entry_point: Option<&'a str>,
+    maybe_vertex_entry_point: Option<&'a str>,
 }
 
 impl<'a> RenderPipelineBuilder<'a> {
@@ -43,6 +45,8 @@ impl<'a> RenderPipelineBuilder<'a> {
             sample_mask: !0,
             alpha_to_coverage_enabled: false,
             multiview: None,
+            maybe_vertex_entry_point: None,
+            maybe_fragment_entry_point: None,
         }
     }
 
@@ -56,8 +60,18 @@ impl<'a> RenderPipelineBuilder<'a> {
         self
     }
 
+    pub fn vertex_entry_point(&mut self, entry_point: &'a str) -> &mut Self {
+        self.maybe_vertex_entry_point = Some(entry_point);
+        self
+    }
+
     pub fn fragment_shader(&mut self, src: wgpu::ShaderModuleDescriptor<'a>) -> &mut Self {
         self.fragment_shader = Some(src);
+        self
+    }
+
+    pub fn fragment_entry_point(&mut self, entry_point: &'a str) -> &mut Self {
+        self.maybe_fragment_entry_point = Some(entry_point);
         self
     }
 
@@ -204,7 +218,7 @@ impl<'a> RenderPipelineBuilder<'a> {
         let frag_state = frag_module.as_ref().map(|module| {
             wgpu::FragmentState {
                 module,
-                entry_point: None,
+                entry_point: self.maybe_fragment_entry_point,
                 compilation_options: Default::default(),
                 targets: &self.color_states,
             }
@@ -215,7 +229,7 @@ impl<'a> RenderPipelineBuilder<'a> {
             layout,
             vertex: wgpu::VertexState {
                 module: &vs,
-                entry_point: None,
+                entry_point: self.maybe_vertex_entry_point,
                 buffers: &self.vertex_buffers,
                 compilation_options: Default::default(),
             },

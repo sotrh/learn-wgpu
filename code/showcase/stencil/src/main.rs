@@ -217,6 +217,7 @@ impl Demo for Stencil {
         let mask_pipeline = framework::RenderPipelineBuilder::new()
             .vertex_shader(mask_shader.clone())
             .fragment_shader(mask_shader.clone())
+            .fragment_entry_point("fs_mask")
             .color_state(wgpu::ColorTargetState {
                 format: display.config.format,
                 blend: None,
@@ -245,6 +246,7 @@ impl Demo for Stencil {
         let mask_color_pipeline = framework::RenderPipelineBuilder::new()
             .vertex_shader(mask_shader.clone())
             .fragment_shader(mask_shader)
+            .fragment_entry_point("fs_color")
             .color_state(wgpu::ColorTargetState {
                 format: display.config.format,
                 blend: Some(wgpu::BlendState::ALPHA_BLENDING),
@@ -332,19 +334,19 @@ impl Demo for Stencil {
         })
     }
 
-    fn process_mouse_button(&mut self, button: u32, pressed: bool) {
+    fn handle_mouse_button(&mut self, button: u32, pressed: bool) {
         if button == 1 {
             self.lmb_presssed = pressed;
         }
     }
 
-    fn process_mouse_move(&mut self, dx: f64, dy: f64) {
+    fn handle_mouse_move(&mut self, dx: f64, dy: f64) {
         if self.lmb_presssed {
             self.camera_controller.process_mouse(dx, dy);
         }
     }
 
-    fn process_keyboard(&mut self, key: KeyCode, pressed: bool) {
+    fn handle_keyboard(&mut self, key: KeyCode, pressed: bool) {
         self.camera_controller.process_keyboard(key, pressed);
     }
 

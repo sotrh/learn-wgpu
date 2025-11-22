@@ -24,10 +24,15 @@ fn vs_main(
 }
 
 @fragment
-fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
+fn fs_mask(in: VertexOutput) {
     let sample = textureSample(mask_texture, mask_sampler, in.uv);
     if (sample.a < 0.1) {
         discard;
     }
+}
+
+@fragment
+fn fs_color(in: VertexOutput) -> @location(0) vec4<f32> {
+    let sample = textureSample(mask_texture, mask_sampler, in.uv);
     return sample;
 }

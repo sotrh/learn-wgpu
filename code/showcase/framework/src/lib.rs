@@ -259,12 +259,15 @@ impl UniformBinding {
 
 pub trait Demo: 'static + Sized + Send + std::fmt::Debug {
     fn init(display: &Display) -> anyhow::Result<Self>;
-    fn process_mouse_button(&mut self, button: u32, pressed: bool);
-    fn process_mouse_move(&mut self, dx: f64, dy: f64);
-    fn process_keyboard(&mut self, key: KeyCode, pressed: bool);
     fn resize(&mut self, display: &Display);
     fn update(&mut self, display: &Display, dt: Duration);
     fn render(&mut self, display: &mut Display);
+    #[allow(unused)]
+    fn handle_keyboard(&mut self, key: KeyCode, pressed: bool) {}
+    #[allow(unused)]
+    fn handle_mouse_move(&mut self, dx: f64, dy: f64) {}
+    #[allow(unused)]
+    fn handle_mouse_button(&mut self, button: u32, pressed: bool) {}
 }
 
 pub struct App<D: Demo> {
@@ -346,10 +349,10 @@ impl<D: Demo + 'static> ApplicationHandler<anyhow::Result<(Display, D)>> for App
 
         match event {
             DeviceEvent::Button { button, state } => {
-                demo.process_mouse_button(button, state.is_pressed());
+                demo.handle_mouse_button(button, state.is_pressed());
             }
             DeviceEvent::MouseMotion { delta: (dx, dy) } => {
-                demo.process_mouse_move(dx, dy);
+                demo.handle_mouse_move(dx, dy);
             }
             _ => {}
         }
@@ -378,7 +381,7 @@ impl<D: Demo + 'static> ApplicationHandler<anyhow::Result<(Display, D)>> for App
                         },
                     ..
                 } => {
-                    demo.process_keyboard(key, state.is_pressed());
+                    demo.handle_keyboard(key, state.is_pressed());
                 }
                 WindowEvent::RedrawRequested => {
                     display.window.request_redraw();

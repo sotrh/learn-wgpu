@@ -266,12 +266,12 @@ impl framework::Demo for Snow {
         })
     }
 
-    fn process_mouse_move(&mut self, dx: f64, dy: f64) {
+    fn handle_mouse_move(&mut self, dx: f64, dy: f64) {
         // self.camera_controller.process_mouse(dx, dy);
         // self.uniforms_dirty = true;
     }
 
-    fn process_keyboard(&mut self, key: KeyCode, pressed: bool) {
+    fn handle_keyboard(&mut self, key: KeyCode, pressed: bool) {
         self.camera_controller.process_keyboard(key, pressed);
         self.uniforms_dirty = true;
     }
