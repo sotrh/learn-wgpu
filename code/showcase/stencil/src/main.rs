@@ -1,7 +1,7 @@
 use core::f32;
-use std::f32::consts::PI;
+use core::f32::consts::PI;
 
-use framework::{Demo, DrawModel, MaterialBinder, ModelVertex, Vertex};
+use framework::{Demo, MaterialBinder, ModelVertex, Vertex};
 use glam::{Vec3, Vec4};
 use rand::Rng;
 use winit::keyboard::KeyCode;
@@ -23,18 +23,12 @@ impl InstanceVertex {
     };
 }
 
-fn random_color() -> Vec4 {
-    let mut rng = rand::thread_rng();
-    Vec4::new(rng.r#gen(), rng.r#gen(), rng.r#gen(), 1.0)
-}
-
 fn random_position_scale(min: Vec3, max: Vec3) -> Vec4 {
     let mut rng = rand::thread_rng();
     Vec4::new(
         rng.gen_range(min.x..=max.x),
         rng.gen_range(min.y..=max.y),
         rng.gen_range(min.z..=max.z),
-        // rng.gen_range(0.25..=0.75),
         0.5,
     )
 }
@@ -218,11 +212,6 @@ impl Demo for Stencil {
             .vertex_shader(mask_shader.clone())
             .fragment_shader(mask_shader.clone())
             .fragment_entry_point("fs_mask")
-            .color_state(wgpu::ColorTargetState {
-                format: display.config.format,
-                blend: None,
-                write_mask: wgpu::ColorWrites::empty(),
-            })
             .cull_mode(Some(wgpu::Face::Back))
             .depth_stencil(wgpu::DepthStencilState {
                 format: depth_stencil_format,
@@ -393,20 +382,12 @@ impl Demo for Stencil {
         {
             let mut draw_mask_stencil = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: Some("draw_mask"),
-                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                    view: &view,
-                    resolve_target: None,
-                    ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Load,
-                        store: wgpu::StoreOp::Store,
-                    },
-                    depth_slice: None,
-                })],
+                color_attachments: &[],
                 depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
                     view: &self.depth_stencil_view,
                     depth_ops: None,
                     stencil_ops: Some(wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(0xFF),
+                        load: wgpu::LoadOp::Clear(0),
                         store: wgpu::StoreOp::Store,
                     }),
                 }),
@@ -414,7 +395,7 @@ impl Demo for Stencil {
                 occlusion_query_set: None,
             });
 
-            draw_mask_stencil.set_stencil_reference(0);
+            draw_mask_stencil.set_stencil_reference(0xFF);
             draw_mask_stencil.set_pipeline(&self.mask_pipeline);
             draw_mask_stencil.set_bind_group(0, &self.mask_bind_group, &[]);
             draw_mask_stencil.draw(0..3, 0..1);
