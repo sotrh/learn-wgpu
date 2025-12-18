@@ -50,7 +50,7 @@ pub struct Stencil {
     mask_bind_group: wgpu::BindGroup,
     model: framework::Model,
     visible_pipeline: wgpu::RenderPipeline,
-    invisible_pipeline: wgpu::RenderPipeline,
+    hidden_pipeline: wgpu::RenderPipeline,
     lmb_presssed: bool,
 }
 
@@ -272,7 +272,7 @@ impl Demo for Stencil {
             .vertex_buffer_desc(InstanceVertex::DESC)
             .build(&display.device)?;
 
-        let invisible_pipeline = framework::RenderPipelineBuilder::new()
+        let hidden_pipeline = framework::RenderPipelineBuilder::new()
             .layout(&model_pipeline_layout)
             .vertex_shader(model_shader.clone())
             .fragment_shader(model_shader.clone())
@@ -318,7 +318,7 @@ impl Demo for Stencil {
             mask_bind_group,
             model,
             visible_pipeline,
-            invisible_pipeline,
+            hidden_pipeline,
             lmb_presssed,
         })
     }
@@ -443,7 +443,7 @@ impl Demo for Stencil {
         }
 
         {
-            let mut draw_invisible = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+            let mut draw_hidden = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: Some("draw_invisible"),
                 color_attachments: &[Some(wgpu::RenderPassColorAttachment {
                     view: &view,
@@ -469,17 +469,17 @@ impl Demo for Stencil {
                 timestamp_writes: None,
             });
 
-            draw_invisible.set_stencil_reference(0xFF);
-            draw_invisible.set_pipeline(&self.invisible_pipeline);
-            draw_invisible.set_bind_group(0, &self.camera_bind_group, &[]);
-            draw_invisible.set_vertex_buffer(1, self.instance_buffer.buffer.slice(..));
+            draw_hidden.set_stencil_reference(0xFF);
+            draw_hidden.set_pipeline(&self.hidden_pipeline);
+            draw_hidden.set_bind_group(0, &self.camera_bind_group, &[]);
+            draw_hidden.set_vertex_buffer(1, self.instance_buffer.buffer.slice(..));
             for mesh in &self.model.meshes {
                 if let Some(material) = self.model.materials.get(mesh.material) {
-                    draw_invisible.set_bind_group(1, &material.bind_group, &[]);
-                    draw_invisible
+                    draw_hidden.set_bind_group(1, &material.bind_group, &[]);
+                    draw_hidden
                         .set_index_buffer(mesh.index_buffer.slice(..), wgpu::IndexFormat::Uint32);
-                    draw_invisible.set_vertex_buffer(0, mesh.vertex_buffer.slice(..));
-                    draw_invisible.draw_indexed(
+                    draw_hidden.set_vertex_buffer(0, mesh.vertex_buffer.slice(..));
+                    draw_hidden.draw_indexed(
                         0..mesh.num_elements,
                         0,
                         instance_split..num_instances,
