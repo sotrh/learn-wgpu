@@ -23,10 +23,13 @@ fn vs_main(
     return out;
 }
 
+
 @fragment
 fn fs_mask(in: VertexOutput) {
     let sample = textureSample(mask_texture, mask_sampler, in.uv);
-    if (sample.a < 0.1) {
+    // We invert this check so that the mask will render objects in
+    // the center
+    if (sample.a > 0.1) {
         discard;
     }
 }

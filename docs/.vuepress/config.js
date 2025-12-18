@@ -59,9 +59,10 @@ module.exports = {
                     '/showcase/',
                     '/showcase/windowless/',
                     '/showcase/gifs/',
+                    '/showcase/stencil/',
                     '/showcase/pong/',
-                    '/showcase/compute/',
                     '/showcase/alignment/',
+                    // '/showcase/compute/',
                 ]
             },
             {

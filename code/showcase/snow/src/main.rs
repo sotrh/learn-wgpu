@@ -266,7 +266,7 @@ impl framework::Demo for Snow {
         })
     }
 
-    fn handle_mouse_move(&mut self, dx: f64, dy: f64) {
+    fn handle_mouse_move(&mut self, _dx: f64, _dy: f64) {
         // self.camera_controller.process_mouse(dx, dy);
         // self.uniforms_dirty = true;
     }
