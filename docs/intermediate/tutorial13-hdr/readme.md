@@ -99,7 +99,7 @@ impl HdrPipeline {
         let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             label: None,
             bind_group_layouts: &[&layout],
-            push_constant_ranges: &[],
+            immediate_size: 0,
         });
 
         let pipeline = create_render_pipeline(
@@ -441,7 +441,7 @@ impl CubeTexture {
             address_mode_w: wgpu::AddressMode::ClampToEdge,
             mag_filter,
             min_filter: wgpu::FilterMode::Nearest,
-            mipmap_filter: wgpu::FilterMode::Nearest,
+            mipmap_filter: wgpu::MipmapFilterMode::Nearest,
             ..Default::default()
         });
 
@@ -492,7 +492,7 @@ You may have noted that we have switched from `downlevel_webgl2_defaults()` to `
 Consequently, we are going to remove the WebGL feature from `Cargo.toml`. This line in particular:
 
 ```toml
-wgpu = { version = "27.0.0", features = ["webgl"]}
+wgpu = { version = "28.0", features = ["webgl"]}
 ```
 
 </div>
@@ -539,7 +539,7 @@ impl HdrLoader {
         let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             label: None,
             bind_group_layouts: &[&equirect_layout],
-            push_constant_ranges: &[],
+            immediate_size: 0,
         });
 
         let equirect_to_cubemap =
@@ -864,7 +864,7 @@ let sky_pipeline = {
     let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
         label: Some("Sky Pipeline Layout"),
         bind_group_layouts: &[&camera_bind_group_layout, &environment_layout],
-        push_constant_ranges: &[],
+        immediate_size: 0,
     });
     let shader = wgpu::include_wgsl!("sky.wgsl");
     create_render_pipeline(

@@ -28,7 +28,7 @@ exclude = [
 ]
 
 [workspace.dependencies]
-wgpu = "27.0.0"
+wgpu = "28.0"
 anyhow = "1"
 rand = "0.8"
 glam = { version = "0.30.9", features = ["bytemuck"] }

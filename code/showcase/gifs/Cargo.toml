@@ -14,7 +14,7 @@ pollster = "0.3"
 image = "0.24.2"
 log = "0.4"
 tobj = { version = "3.2", default-features = false, features = ["async"]}
-wgpu = "27.0.0"
+wgpu = "28.0"
 winit = { version = "0.30", features = ["android-native-activity"] }
 gif = "0.11.4"
 futures-intrusive = "0.4"

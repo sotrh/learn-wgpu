@@ -89,7 +89,7 @@ let mask_pipeline_layout =
         .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             label: Some("mask_pipeline_layout"),
             bind_group_layouts: &[&mask_bind_group_layout],
-            push_constant_ranges: &[],
+            immediate_size: 0,
         });
 
 let mask_shader = wgpu::include_wgsl!("mask.wgsl");
@@ -199,6 +199,7 @@ When we go to render we first need to render the stencil mask.
             }),
         }),
         timestamp_writes: None,
+                multiview_mask: None,
         occlusion_query_set: None,
     });
 
@@ -299,6 +300,7 @@ With that in place we can now draw our hidden objects:
         }),
         occlusion_query_set: None,
         timestamp_writes: None,
+                multiview_mask: None,
     });
 
     draw_hidden.set_stencil_reference(0xFF);
@@ -356,6 +358,7 @@ drawing the mask to the stencil buffer, but I'll list it here.
         })],
         depth_stencil_attachment: None,
         timestamp_writes: None,
+                multiview_mask: None,
         occlusion_query_set: None,
     });
 

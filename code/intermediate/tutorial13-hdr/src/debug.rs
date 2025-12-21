@@ -71,7 +71,7 @@ impl Debug {
         let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             label: None,
             bind_group_layouts: &[camera_layout],
-            push_constant_ranges: &[],
+            immediate_size: 0,
         });
         let color_lines = create_render_pipeline(
             device,

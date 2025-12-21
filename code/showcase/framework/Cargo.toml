@@ -24,5 +24,5 @@ winit.workspace = true
 anyhow = "1.0"
 fs_extra = "1.2"
 glob = "0.3"
-naga = { version = "27.0", features = ["glsl-in", "spv-out", "wgsl-out"]}
+naga = { version = "28.0", features = ["glsl-in", "spv-out", "wgsl-out"]}
 rayon = "1.5"

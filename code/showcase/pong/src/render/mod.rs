@@ -93,7 +93,7 @@ impl<'a> Render<'a> {
 
         let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             bind_group_layouts: &[],
-            push_constant_ranges: &[],
+            immediate_size: 0,
             label: Some("Pipeline Layout"),
         });
         let pipeline = create_render_pipeline(
@@ -175,6 +175,7 @@ impl<'a> Render<'a> {
                     })],
                     depth_stencil_attachment: None,
                     timestamp_writes: None,
+                multiview_mask: None,
                     occlusion_query_set: None,
                 });
 
@@ -310,8 +311,8 @@ fn create_render_pipeline(
             alpha_to_coverage_enabled: false,
         },
         // If the pipeline will be used with a multiview render pass, this
-        // indicates how many array layers the attachments will have.
-        multiview: None,
+        // tells wgpu to render to just specific texture layers.
+        multiview_mask: None,
         cache: None,
     })
 }
