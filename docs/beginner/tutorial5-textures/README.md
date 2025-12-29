@@ -451,7 +451,11 @@ With that in place, we now have our tree right-side up on our pentagon:
 
 ## Cleaning things up
 
-For convenience, let's pull our texture code into its own module. We'll first need to add the [anyhow](https://docs.rs/anyhow/) crate to our `Cargo.toml` file to simplify error handling;
+For convenience, let's pull our texture code into its own module.
+We'll add the [anyhow](https://docs.rs/anyhow/) crate to our
+`Cargo.toml` file to simplify error handling. We'll also add
+the [bytemuck](https://docs.rs/bytemuck) crate to help pass mesh
+data to wgpu.
 
 ```toml
 [dependencies]
