@@ -1,6 +1,5 @@
 mod buffer;
 mod camera;
-mod camera_old;
 mod light;
 mod model;
 mod pipeline;

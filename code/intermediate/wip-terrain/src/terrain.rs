@@ -123,7 +123,7 @@ impl TerrainPipeline {
         let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             label: Some("TerrainPipeline::Gen::PipelineLayout"),
             bind_group_layouts: &[&gen_layout],
-            push_constant_ranges: &[],
+            immediate_size: 0,
         });
         let gen_pipeline = device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
             label: Some("TerrainPipeline::ComputePipeline"),
@@ -138,7 +138,7 @@ impl TerrainPipeline {
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("TerrainPipeline::Render::PipelineLayout"),
                 bind_group_layouts: &[camera_layout, light_layout, material_layout],
-                push_constant_ranges: &[],
+                immediate_size: 0,
             });
         let render_pipeline = create_render_pipeline(
             device,

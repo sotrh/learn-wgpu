@@ -142,7 +142,7 @@ impl framework::Demo for Snow {
                 .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                     label: None,
                     bind_group_layouts: &[&particle_layout],
-                    push_constant_ranges: &[],
+                    immediate_size: 0,
                 });
 
         let move_particles =
@@ -210,7 +210,7 @@ impl framework::Demo for Snow {
                 .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                     label: None,
                     bind_group_layouts: &[&uniforms_bind_group_layout],
-                    push_constant_ranges: &[],
+                    immediate_size: 0,
                 });
 
         let draw_particles =
@@ -241,7 +241,7 @@ impl framework::Demo for Snow {
                         })],
                         compilation_options: Default::default(),
                     }),
-                    multiview: None,
+                    multiview_mask: None,
                     cache: None,
                 });
 
@@ -364,6 +364,7 @@ impl framework::Demo for Snow {
             depth_stencil_attachment: None,
             occlusion_query_set: None,
             timestamp_writes: None,
+                multiview_mask: None,
         });
 
         draw_pass.set_pipeline(&self.draw_particles);

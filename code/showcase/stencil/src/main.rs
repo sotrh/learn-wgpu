@@ -204,7 +204,7 @@ impl Demo for Stencil {
                 .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                     label: Some("mask_pipeline_layout"),
                     bind_group_layouts: &[&mask_bind_group_layout],
-                    push_constant_ranges: &[],
+                    immediate_size: 0,
                 });
 
         let mask_shader = wgpu::include_wgsl!("mask.wgsl");
@@ -248,7 +248,7 @@ impl Demo for Stencil {
             display.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("model_pipeline_layout"),
                 bind_group_layouts: &[&camera_layout, material_binder.layout()],
-                push_constant_ranges: &[],
+                immediate_size: 0,
             });
         let model_shader = wgpu::include_wgsl!("model.wgsl");
         let visible_pipeline = framework::RenderPipelineBuilder::new()
@@ -392,6 +392,7 @@ impl Demo for Stencil {
                     }),
                 }),
                 timestamp_writes: None,
+                multiview_mask: None,
                 occlusion_query_set: None,
             });
 
@@ -426,6 +427,7 @@ impl Demo for Stencil {
                 }),
                 occlusion_query_set: None,
                 timestamp_writes: None,
+                multiview_mask: None,
             });
 
             draw_visible.set_pipeline(&self.visible_pipeline);
@@ -467,6 +469,7 @@ impl Demo for Stencil {
                 }),
                 occlusion_query_set: None,
                 timestamp_writes: None,
+                multiview_mask: None,
             });
 
             draw_hidden.set_stencil_reference(0xFF);
@@ -502,6 +505,7 @@ impl Demo for Stencil {
                 })],
                 depth_stencil_attachment: None,
                 timestamp_writes: None,
+                multiview_mask: None,
                 occlusion_query_set: None,
             });
 

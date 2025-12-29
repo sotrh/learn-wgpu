@@ -194,7 +194,7 @@ let render_pipeline_layout = device.create_pipeline_layout(
             &texture_bind_group_layout,
             &camera_bind_group_layout,
         ],
-        push_constant_ranges: &[],
+        immediate_size: 0,
     }
 );
 ```

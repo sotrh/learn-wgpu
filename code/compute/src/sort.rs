@@ -124,7 +124,7 @@ pub async fn run() -> anyhow::Result<()> {
 
     temp_buffer.unmap();
 
-    println!("Success!");
+    log::info!("Success!");
 
     Ok(())
 }

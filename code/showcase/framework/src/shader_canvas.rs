@@ -92,6 +92,7 @@ impl ShaderCanvas {
             depth_stencil_attachment: None,
             occlusion_query_set: None,
             timestamp_writes: None,
+                multiview_mask: None,
         });
         pass.set_bind_group(0, &self.simulation_bind_group, &[]);
         pass.set_pipeline(&self.pipeline);
@@ -203,7 +204,7 @@ impl<'a> ShaderCanvasBuilder<'a> {
         let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             label: self.label,
             bind_group_layouts: &[&simulation_bind_group_layout],
-            push_constant_ranges: &[],
+            immediate_size: 0,
         });
         let pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
             label: self.label,
@@ -247,8 +248,8 @@ impl<'a> ShaderCanvasBuilder<'a> {
                 alpha_to_coverage_enabled: false,
             },
             // If the pipeline will be used with a multiview render pass, this
-            // indicates how many array layers the attachments will have.
-            multiview: None,
+            // tells wgpu to render to just specific texture layers.
+            multiview_mask: None,
             // Useful for optimizing shader compilation on Android
             cache: None,
         });

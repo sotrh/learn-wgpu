@@ -110,6 +110,7 @@ async fn run() {
             depth_stencil_attachment: None,
             occlusion_query_set: None,
             timestamp_writes: None,
+                multiview_mask: None,
         });
 
         rpass.set_pipeline(&render_pipeline);
@@ -193,7 +194,7 @@ fn create_render_pipeline(
     let render_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
         label: Some("Render Pipeline Layout"),
         bind_group_layouts: &[],
-        push_constant_ranges: &[],
+        immediate_size: 0,
     });
 
     let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
@@ -234,8 +235,8 @@ fn create_render_pipeline(
             alpha_to_coverage_enabled: false,
         },
         // If the pipeline will be used with a multiview render pass, this
-        // indicates how many array layers the attachments will have.
-        multiview: None,
+        // tells wgpu to render to just specific texture layers.
+        multiview_mask: None,
         cache: None,
     });
 

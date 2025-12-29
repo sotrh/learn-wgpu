@@ -94,7 +94,7 @@ impl State {
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("Render Pipeline Layout"),
                 bind_group_layouts: &[],
-                push_constant_ranges: &[],
+                immediate_size: 0,
             });
 
         let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
@@ -139,8 +139,8 @@ impl State {
                 alpha_to_coverage_enabled: false,
             },
             // If the pipeline will be used with a multiview render pass, this
-            // indicates how many array layers the attachments will have.
-            multiview: None,
+            // tells wgpu to render to just specific texture layers.
+            multiview_mask: None,
             // Useful for optimizing shader compilation on Android
             cache: None,
         });
@@ -186,8 +186,8 @@ impl State {
                     alpha_to_coverage_enabled: false,
                 },
                 // If the pipeline will be used with a multiview render pass, this
-                // indicates how many array layers the attachments will have.
-                multiview: None,
+                // tells wgpu to render to just specific texture layers.
+                multiview_mask: None,
                 cache: None,
             });
 
@@ -269,6 +269,7 @@ impl State {
                 depth_stencil_attachment: None,
                 occlusion_query_set: None,
                 timestamp_writes: None,
+                multiview_mask: None,
             });
 
             render_pass.set_pipeline(if self.use_color {
