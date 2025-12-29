@@ -177,4 +177,6 @@ And that's all we have to do! No shader code is needed! If you run the applicati
 
 ## Challenge
 
-Since the depth buffer is a texture, we can sample it in the shader. Because it's a depth texture, we'll have to use the `sampler_comparison` uniform type and the `textureSampleCompare` function instead of `sampler` and `sampler2D` respectively. Create a bind group for the depth texture (or reuse an existing one), and render it to the screen.
+Since the depth buffer is a texture, we can sample it in the shader.
+Create a bind group for the depth texture (or reuse an existing one),
+and render it to the screen.
