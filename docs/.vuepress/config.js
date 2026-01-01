@@ -57,9 +57,10 @@ module.exports = {
                 collapsable: true,
                 children: [
                     '/showcase/',
+                    '/showcase/mipmaps',
+                    '/showcase/stencil/',
                     '/showcase/windowless/',
                     '/showcase/gifs/',
-                    '/showcase/stencil/',
                     '/showcase/pong/',
                     '/showcase/alignment/',
                     // '/showcase/compute/',
