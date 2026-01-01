@@ -5,6 +5,8 @@ use glam::vec3;
 use wgpu::util::{BufferInitDescriptor, DeviceExt};
 use winit::keyboard::KeyCode;
 
+use crate::mipmapper::Mipmapper;
+
 mod mipmapper;
 
 #[derive(Debug, Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
@@ -138,6 +140,8 @@ impl Demo for Mipmaps {
 
         let mip_level_count = diffuse_img.width().min(diffuse_img.height()).ilog2().max(1);
 
+        let mipmapper = Mipmapper::new(&display.device, mip_level_count);
+
         let diffuse_texture = display.device.create_texture(&wgpu::TextureDescriptor {
             label: Some("textures/cobble-diffuse.png"),
             size: wgpu::Extent3d {
@@ -150,7 +154,9 @@ impl Demo for Mipmaps {
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
             format: wgpu::TextureFormat::Rgba8UnormSrgb,
-            usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
+            usage: wgpu::TextureUsages::TEXTURE_BINDING
+                | wgpu::TextureUsages::COPY_DST
+                | wgpu::TextureUsages::COPY_SRC,
             view_formats: &[],
         });
 
@@ -169,6 +175,8 @@ impl Demo for Mipmaps {
             },
             diffuse_texture.size(),
         );
+
+        mipmapper.compute_mipmaps(&display.device, &display.queue, &diffuse_texture);
 
         let normal_texture = display.device.create_texture(&wgpu::TextureDescriptor {
             label: Some("textures/cobble-normal.png"),
@@ -214,7 +222,7 @@ impl Demo for Mipmaps {
             address_mode_v: wgpu::AddressMode::Repeat,
             min_filter: wgpu::FilterMode::Nearest,
             mag_filter: wgpu::FilterMode::Linear,
-            mipmap_filter: wgpu::MipmapFilterMode::Nearest,
+            mipmap_filter: wgpu::MipmapFilterMode::Linear,
             ..Default::default()
         });
 
@@ -252,10 +260,6 @@ impl Demo for Mipmaps {
                         },
                     ],
                 });
-
-        // let mipmapper = Mipmapper::new(&display.device, mip_level_count);
-
-        // mipmapper.compute_mipmaps(&display.device, &display.queue, &diffuse_view);
 
         let ground_vb = framework::RawBuffer::from_vec(
             &display.device,

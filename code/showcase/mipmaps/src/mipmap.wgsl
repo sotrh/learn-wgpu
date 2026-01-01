@@ -10,7 +10,7 @@ var src: texture_storage_2d<rgba8unorm, read>;
 var dst: texture_storage_2d<rgba8unorm, write>;
 
 @compute
-@workgroup_size(64, 64, 1)
+@workgroup_size(16, 16, 1)
 fn compute_mipmap(
     @builtin(global_invocation_id) gid: vec3<u32>,
 ) {

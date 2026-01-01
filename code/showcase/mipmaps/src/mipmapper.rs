@@ -25,16 +25,28 @@ impl Mipmapper {
 
         let texture_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
             label: Some("Mipmapper::texture_layout"),
-            entries: &[wgpu::BindGroupLayoutEntry {
-                binding: 0,
-                visibility: wgpu::ShaderStages::COMPUTE,
-                ty: wgpu::BindingType::StorageTexture {
-                    access: wgpu::StorageTextureAccess::ReadOnly,
-                    format: wgpu::TextureFormat::Rgba8UnormSrgb,
-                    view_dimension: wgpu::TextureViewDimension::D2,
+            entries: &[
+                wgpu::BindGroupLayoutEntry {
+                    binding: 0,
+                    visibility: wgpu::ShaderStages::COMPUTE,
+                    ty: wgpu::BindingType::StorageTexture {
+                        access: wgpu::StorageTextureAccess::ReadOnly,
+                        format: wgpu::TextureFormat::Rgba8Unorm,
+                        view_dimension: wgpu::TextureViewDimension::D2,
+                    },
+                    count: None,
                 },
-                count: None,
-            }],
+                wgpu::BindGroupLayoutEntry {
+                    binding: 1,
+                    visibility: wgpu::ShaderStages::COMPUTE,
+                    ty: wgpu::BindingType::StorageTexture {
+                        access: wgpu::StorageTextureAccess::WriteOnly,
+                        format: wgpu::TextureFormat::Rgba8Unorm,
+                        view_dimension: wgpu::TextureViewDimension::D2,
+                    },
+                    count: None,
+                },
+            ],
         });
 
         let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
@@ -79,22 +91,72 @@ impl Mipmapper {
         &self,
         device: &wgpu::Device,
         queue: &wgpu::Queue,
-        view: &wgpu::TextureView,
+        texture: &wgpu::Texture,
     ) {
+        if texture.mip_level_count() == 1 {
+            return;
+        }
+
         let mut encoder = device.create_command_encoder(&Default::default());
 
-        let dispatch_x = view.texture().width().div_ceil(64);
-        let dispatch_y = view.texture().height().div_ceil(64);
+        // Create temp texture
+        let (mut src_view, maybe_temp) = if texture
+            .usage()
+            .contains(wgpu::TextureUsages::STORAGE_BINDING)
+        {
+            (
+                texture.create_view(&wgpu::TextureViewDescriptor {
+                    mip_level_count: Some(1),
+                    ..Default::default()
+                }),
+                None,
+            )
+        } else {
+            println!("Creating temp texture");
+
+            // create a temp
+            let temp = device.create_texture(&wgpu::TextureDescriptor {
+                label: Some("Mipmapper::compute_mipmaps::temp"),
+                size: texture.size(),
+                mip_level_count: texture.mip_level_count(),
+                sample_count: texture.sample_count(),
+                dimension: texture.dimension(),
+                format: texture.format().remove_srgb_suffix(),
+                usage: wgpu::TextureUsages::STORAGE_BINDING
+                    | wgpu::TextureUsages::COPY_DST
+                    | wgpu::TextureUsages::COPY_SRC,
+                view_formats: &[],
+            });
+
+            encoder.copy_texture_to_texture(
+                texture.as_image_copy(),
+                temp.as_image_copy(),
+                temp.size(),
+            );
+
+            (
+                temp.create_view(&wgpu::TextureViewDescriptor {
+                    mip_level_count: Some(1),
+                    ..Default::default()
+                }),
+                Some(temp),
+            )
+        };
+
+        let dispatch_x = texture.width().div_ceil(16);
+        let dispatch_y = texture.height().div_ceil(16);
+
+        println!("{:?}", texture.format());
 
         {
-            let mut src_view = view.clone();
             let mut pass = encoder.begin_compute_pass(&wgpu::ComputePassDescriptor::default());
             pass.set_pipeline(&self.compute_mipmap);
-            for mip in 1..view.texture().mip_level_count().min(self.max_mips) {
+            for mip in 1..texture.mip_level_count().min(self.max_mips) {
                 let dst_view = src_view
                     .texture()
                     .create_view(&wgpu::TextureViewDescriptor {
                         base_mip_level: mip,
+                        mip_level_count: Some(1),
                         ..Default::default()
                     });
                 let texture_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
@@ -111,15 +173,30 @@ impl Mipmapper {
                         },
                     ],
                 });
-                pass.set_bind_group(
-                    0,
-                    &self.uniform_bind_group,
-                    &[(mip - 1) * std::mem::size_of::<u32>() as u32],
-                );
+                pass.set_bind_group(0, &self.uniform_bind_group, &[0]);
                 pass.set_bind_group(1, &texture_bind_group, &[]);
                 pass.dispatch_workgroups(dispatch_x, dispatch_y, 1);
 
                 src_view = dst_view;
+            }
+        }
+
+        if let Some(temp) = maybe_temp {
+            let mut size = temp.size();
+            for mip_level in 0..temp.mip_level_count() {
+                encoder.copy_texture_to_texture(
+                    wgpu::TexelCopyTextureInfo {
+                        mip_level,
+                        ..temp.as_image_copy()
+                    },
+                    wgpu::TexelCopyTextureInfo {
+                        mip_level,
+                        ..texture.as_image_copy()
+                    },
+                    size,
+                );
+                size.width /= 2;
+                size.height /= 2;
             }
         }
 
