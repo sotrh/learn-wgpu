@@ -1,11 +1,7 @@
 @group(0)
 @binding(0)
-var<uniform> mipLevel: u32;
-
-@group(1)
-@binding(0)
 var src: texture_storage_2d<rgba8unorm, read>;
-@group(1)
+@group(0)
 @binding(1)
 var dst: texture_storage_2d<rgba8unorm, write>;
 
@@ -16,7 +12,6 @@ fn compute_mipmap(
 ) {
     let dstPos = gid.xy;
     let srcPos = gid.xy * 2;
-    let srcMip = mipLevel + 1;
 
     let dim = textureDimensions(src);
 

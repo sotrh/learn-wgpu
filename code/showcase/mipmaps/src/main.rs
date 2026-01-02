@@ -2,7 +2,6 @@ use std::{any::type_name, f32::consts::PI};
 
 use framework::Demo;
 use glam::vec3;
-use wgpu::util::{BufferInitDescriptor, DeviceExt};
 use winit::keyboard::KeyCode;
 
 use crate::mipmapper::Mipmapper;
@@ -44,9 +43,12 @@ struct Mipmaps {
     ground_vb: framework::RawBuffer<Vertex>,
     ground_ib: framework::RawBuffer<u16>,
     draw_ground: wgpu::RenderPipeline,
-    texture_bind_group_normal: wgpu::BindGroup,
+    blit_texture_bind_group_normal: wgpu::BindGroup,
     display_mode: DisplayMode,
-    texture_bind_group_nomips: wgpu::BindGroup,
+    blit_texture_bind_group_nomips: wgpu::BindGroup,
+    compute_texture_bind_group_normal: wgpu::BindGroup,
+    compute_texture_bind_group_nomips: wgpu::BindGroup,
+    use_compute: bool,
 }
 
 impl std::fmt::Debug for Mipmaps {
@@ -135,21 +137,20 @@ impl Demo for Mipmaps {
                     ],
                 });
 
+        let mipmapper = Mipmapper::new(&display.device);
+        
         let diffuse_img = image::open(res_dir.join("textures/cobble-diffuse.png"))?.to_rgba8();
         let normal_img = image::open(res_dir.join("textures/cobble-normal.png"))?.to_rgba8();
 
-        let mip_level_count = diffuse_img.width().min(diffuse_img.height()).ilog2().max(1);
+        let mip_level_count = diffuse_img.width().min(diffuse_img.height()).ilog2() + 1;
 
-        let mipmapper = Mipmapper::new(&display.device, mip_level_count);
-
-        let diffuse_texture = display.device.create_texture(&wgpu::TextureDescriptor {
+        let diffuse_compute_texture = display.device.create_texture(&wgpu::TextureDescriptor {
             label: Some("textures/cobble-diffuse.png"),
             size: wgpu::Extent3d {
                 width: diffuse_img.width(),
                 height: diffuse_img.height(),
                 depth_or_array_layers: 1,
             },
-            // mip_level_count: 1,
             mip_level_count,
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
@@ -162,7 +163,7 @@ impl Demo for Mipmaps {
 
         display.queue.write_texture(
             wgpu::TexelCopyTextureInfo {
-                texture: &diffuse_texture,
+                texture: &diffuse_compute_texture,
                 mip_level: 0,
                 origin: wgpu::Origin3d::ZERO,
                 aspect: wgpu::TextureAspect::All,
@@ -173,10 +174,44 @@ impl Demo for Mipmaps {
                 bytes_per_row: Some(4 * diffuse_img.width()),
                 rows_per_image: Some(diffuse_img.height()),
             },
-            diffuse_texture.size(),
+            diffuse_compute_texture.size(),
         );
 
-        mipmapper.compute_mipmaps(&display.device, &display.queue, &diffuse_texture);
+        let diffuse_blit_texture = display.device.create_texture(&wgpu::TextureDescriptor {
+            label: Some("textures/cobble-diffuse.png"),
+            size: wgpu::Extent3d {
+                width: diffuse_img.width(),
+                height: diffuse_img.height(),
+                depth_or_array_layers: 1,
+            },
+            mip_level_count,
+            sample_count: 1,
+            dimension: wgpu::TextureDimension::D2,
+            format: wgpu::TextureFormat::Rgba8UnormSrgb,
+            usage: wgpu::TextureUsages::TEXTURE_BINDING
+                | wgpu::TextureUsages::COPY_DST
+                | wgpu::TextureUsages::COPY_SRC,
+            view_formats: &[],
+        });
+
+        display.queue.write_texture(
+            wgpu::TexelCopyTextureInfo {
+                texture: &diffuse_blit_texture,
+                mip_level: 0,
+                origin: wgpu::Origin3d::ZERO,
+                aspect: wgpu::TextureAspect::All,
+            },
+            &diffuse_img,
+            wgpu::TexelCopyBufferLayout {
+                offset: 0,
+                bytes_per_row: Some(4 * diffuse_img.width()),
+                rows_per_image: Some(diffuse_img.height()),
+            },
+            diffuse_blit_texture.size(),
+        );
+
+        mipmapper.blit_mipmaps(&display.device, &display.queue, &diffuse_blit_texture)?;
+        mipmapper.compute_mipmaps(&display.device, &display.queue, &diffuse_compute_texture)?;
 
         let normal_texture = display.device.create_texture(&wgpu::TextureDescriptor {
             label: Some("textures/cobble-normal.png"),
@@ -209,11 +244,18 @@ impl Demo for Mipmaps {
             normal_texture.size(),
         );
 
-        let diffuse_view_normal = diffuse_texture.create_view(&Default::default());
-        let diffuse_view_nomips = diffuse_texture.create_view(&wgpu::TextureViewDescriptor {
-            mip_level_count: Some(1),
-            ..Default::default()
-        });
+        let diffuse_blit_view_normal = diffuse_blit_texture.create_view(&Default::default());
+        let diffuse_blit_view_nomips =
+            diffuse_blit_texture.create_view(&wgpu::TextureViewDescriptor {
+                mip_level_count: Some(1),
+                ..Default::default()
+            });
+        let diffuse_compute_view_normal = diffuse_compute_texture.create_view(&Default::default());
+        let diffuse_compute_view_nomips =
+            diffuse_compute_texture.create_view(&wgpu::TextureViewDescriptor {
+                mip_level_count: Some(1),
+                ..Default::default()
+            });
         // let normal_view = normal_texture.create_view(&Default::default());
         // let normal_view = normal_texture.create_view(&Default::default());
 
@@ -226,16 +268,16 @@ impl Demo for Mipmaps {
             ..Default::default()
         });
 
-        let texture_bind_group_normal =
+        let blit_texture_bind_group_normal =
             display
                 .device
                 .create_bind_group(&wgpu::BindGroupDescriptor {
-                    label: Some("texture_bind_group_normal"),
+                    label: Some("blit_texture_bind_group_normal"),
                     layout: &texture_layout,
                     entries: &[
                         wgpu::BindGroupEntry {
                             binding: 0,
-                            resource: wgpu::BindingResource::TextureView(&diffuse_view_normal),
+                            resource: wgpu::BindingResource::TextureView(&diffuse_blit_view_normal),
                         },
                         wgpu::BindGroupEntry {
                             binding: 1,
@@ -243,16 +285,55 @@ impl Demo for Mipmaps {
                         },
                     ],
                 });
-        let texture_bind_group_nomips =
+        let blit_texture_bind_group_nomips =
             display
                 .device
                 .create_bind_group(&wgpu::BindGroupDescriptor {
-                    label: Some("texture_bind_group_normal"),
+                    label: Some("blit_texture_bind_group_nomips"),
                     layout: &texture_layout,
                     entries: &[
                         wgpu::BindGroupEntry {
                             binding: 0,
-                            resource: wgpu::BindingResource::TextureView(&diffuse_view_nomips),
+                            resource: wgpu::BindingResource::TextureView(&diffuse_blit_view_nomips),
+                        },
+                        wgpu::BindGroupEntry {
+                            binding: 1,
+                            resource: wgpu::BindingResource::Sampler(&ground_sampler),
+                        },
+                    ],
+                });
+
+        let compute_texture_bind_group_normal =
+            display
+                .device
+                .create_bind_group(&wgpu::BindGroupDescriptor {
+                    label: Some("compute_texture_bind_group_normal"),
+                    layout: &texture_layout,
+                    entries: &[
+                        wgpu::BindGroupEntry {
+                            binding: 0,
+                            resource: wgpu::BindingResource::TextureView(
+                                &diffuse_compute_view_normal,
+                            ),
+                        },
+                        wgpu::BindGroupEntry {
+                            binding: 1,
+                            resource: wgpu::BindingResource::Sampler(&ground_sampler),
+                        },
+                    ],
+                });
+        let compute_texture_bind_group_nomips =
+            display
+                .device
+                .create_bind_group(&wgpu::BindGroupDescriptor {
+                    label: Some("compute_texture_bind_group_nomips"),
+                    layout: &texture_layout,
+                    entries: &[
+                        wgpu::BindGroupEntry {
+                            binding: 0,
+                            resource: wgpu::BindingResource::TextureView(
+                                &diffuse_compute_view_nomips,
+                            ),
                         },
                         wgpu::BindGroupEntry {
                             binding: 1,
@@ -309,9 +390,12 @@ impl Demo for Mipmaps {
             ground_vb,
             ground_ib,
             draw_ground,
-            texture_bind_group_normal,
-            texture_bind_group_nomips,
+            blit_texture_bind_group_normal,
+            blit_texture_bind_group_nomips,
+            compute_texture_bind_group_normal,
+            compute_texture_bind_group_nomips,
             display_mode: DisplayMode::Normal,
+            use_compute: false,
         })
     }
 
@@ -335,6 +419,8 @@ impl Demo for Mipmaps {
         match (key, pressed) {
             (KeyCode::Numpad1 | KeyCode::Digit1, true) => self.display_mode = DisplayMode::Normal,
             (KeyCode::Numpad2 | KeyCode::Digit2, true) => self.display_mode = DisplayMode::NoMips,
+            (KeyCode::Numpad3 | KeyCode::Digit3, true) => self.use_compute = false,
+            (KeyCode::Numpad4 | KeyCode::Digit4, true) => self.use_compute = true,
             _ => {}
         }
     }
@@ -411,9 +497,21 @@ impl Demo for Mipmaps {
 
             pass.set_pipeline(&self.draw_ground);
             pass.set_bind_group(0, &self.camera_bind_group, &[]);
+
+            let textures = if self.use_compute {
+                [
+                    &self.blit_texture_bind_group_normal,
+                    &self.blit_texture_bind_group_nomips,
+                ]
+            } else {
+                [
+                    &self.compute_texture_bind_group_normal,
+                    &self.compute_texture_bind_group_nomips,
+                ]
+            };
             match self.display_mode {
-                DisplayMode::Normal => pass.set_bind_group(1, &self.texture_bind_group_normal, &[]),
-                DisplayMode::NoMips => pass.set_bind_group(1, &self.texture_bind_group_nomips, &[]),
+                DisplayMode::Normal => pass.set_bind_group(1, textures[0], &[]),
+                DisplayMode::NoMips => pass.set_bind_group(1, textures[1], &[]),
             }
             pass.set_vertex_buffer(0, self.ground_vb.buffer.slice(..));
             pass.set_index_buffer(self.ground_ib.buffer.slice(..), wgpu::IndexFormat::Uint16);
