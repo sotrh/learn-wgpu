@@ -102,7 +102,7 @@ impl App {
 
 So the `App` struct has two fields: `state` and `proxy`.
 
-The `state` variable stores our `State` struct as an option.The reason we need an option is that `State::new()` needs a window and we can't create a window until the application gets to the `Resumed` state. We'll get more into that in a bit.
+The `state` variable stores our `State` struct as an option. The reason we need an option is that `State::new()` needs a window and we can't create a window until the application gets to the `Resumed` state. We'll get more into that in a bit.
 
 The `proxy` variable is only needed on the web. The reason for this is that creating WGPU resources is an async process. Again we'll get into that in a bit.
 
