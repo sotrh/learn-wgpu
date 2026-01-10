@@ -325,6 +325,7 @@ Now we can get to clearing the screen (a long time coming). We need to use the `
             color_attachments: &[Some(wgpu::RenderPassColorAttachment {
                 view: &view,
                 resolve_target: None,
+                depth_slice: None,
                 ops: wgpu::Operations {
                     load: wgpu::LoadOp::Clear(wgpu::Color {
                         r: 0.1,
@@ -338,7 +339,7 @@ Now we can get to clearing the screen (a long time coming). We need to use the `
             depth_stencil_attachment: None,
             occlusion_query_set: None,
             timestamp_writes: None,
-                multiview_mask: None,
+            multiview_mask: None,
         });
     }
 

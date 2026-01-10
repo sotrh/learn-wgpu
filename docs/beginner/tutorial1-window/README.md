@@ -380,7 +380,7 @@ You'll then need to run the WASM code in an ES6 Module:
   <body id="wasm-example">
     <canvas id="canvas"></canvas>
     <script type="module">
-      import init from "./pkg/tutorial2_surface.js";
+      import init from "./pkg/tutorial1_window.js";
       init().then(() => {
         console.log("WASM Loaded");
       });
