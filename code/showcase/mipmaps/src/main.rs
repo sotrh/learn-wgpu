@@ -134,11 +134,27 @@ impl Demo for Mipmaps {
                             ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
                             count: None,
                         },
+                        wgpu::BindGroupLayoutEntry {
+                            binding: 2,
+                            visibility: wgpu::ShaderStages::FRAGMENT,
+                            ty: wgpu::BindingType::Texture {
+                                sample_type: wgpu::TextureSampleType::Float { filterable: true },
+                                view_dimension: wgpu::TextureViewDimension::D2,
+                                multisampled: false,
+                            },
+                            count: None,
+                        },
+                        wgpu::BindGroupLayoutEntry {
+                            binding: 3,
+                            visibility: wgpu::ShaderStages::FRAGMENT,
+                            ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
+                            count: None,
+                        },
                     ],
                 });
 
         let mipmapper = Mipmapper::new(&display.device);
-        
+
         let diffuse_img = image::open(res_dir.join("textures/cobble-diffuse.png"))?.to_rgba8();
         let normal_img = image::open(res_dir.join("textures/cobble-normal.png"))?.to_rgba8();
 
@@ -224,9 +240,10 @@ impl Demo for Mipmaps {
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
             format: wgpu::TextureFormat::Rgba8Unorm,
-            usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
+            usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST | wgpu::TextureUsages::COPY_SRC,
             view_formats: &[],
         });
+        let normal_view = normal_texture.create_view(&Default::default());
 
         display.queue.write_texture(
             wgpu::TexelCopyTextureInfo {
@@ -243,6 +260,8 @@ impl Demo for Mipmaps {
             },
             normal_texture.size(),
         );
+
+        mipmapper.blit_mipmaps(&display.device, &display.queue, &normal_texture)?;
 
         let diffuse_blit_view_normal = diffuse_blit_texture.create_view(&Default::default());
         let diffuse_blit_view_nomips =
@@ -283,6 +302,14 @@ impl Demo for Mipmaps {
                             binding: 1,
                             resource: wgpu::BindingResource::Sampler(&ground_sampler),
                         },
+                        wgpu::BindGroupEntry {
+                            binding: 2,
+                            resource: wgpu::BindingResource::TextureView(&normal_view),
+                        },
+                        wgpu::BindGroupEntry {
+                            binding: 3,
+                            resource: wgpu::BindingResource::Sampler(&ground_sampler),
+                        },
                     ],
                 });
         let blit_texture_bind_group_nomips =
@@ -298,6 +325,14 @@ impl Demo for Mipmaps {
                         },
                         wgpu::BindGroupEntry {
                             binding: 1,
+                            resource: wgpu::BindingResource::Sampler(&ground_sampler),
+                        },
+                        wgpu::BindGroupEntry {
+                            binding: 2,
+                            resource: wgpu::BindingResource::TextureView(&normal_view),
+                        },
+                        wgpu::BindGroupEntry {
+                            binding: 3,
                             resource: wgpu::BindingResource::Sampler(&ground_sampler),
                         },
                     ],
@@ -320,6 +355,14 @@ impl Demo for Mipmaps {
                             binding: 1,
                             resource: wgpu::BindingResource::Sampler(&ground_sampler),
                         },
+                        wgpu::BindGroupEntry {
+                            binding: 2,
+                            resource: wgpu::BindingResource::TextureView(&normal_view),
+                        },
+                        wgpu::BindGroupEntry {
+                            binding: 3,
+                            resource: wgpu::BindingResource::Sampler(&ground_sampler),
+                        },
                     ],
                 });
         let compute_texture_bind_group_nomips =
@@ -337,6 +380,14 @@ impl Demo for Mipmaps {
                         },
                         wgpu::BindGroupEntry {
                             binding: 1,
+                            resource: wgpu::BindingResource::Sampler(&ground_sampler),
+                        },
+                        wgpu::BindGroupEntry {
+                            binding: 2,
+                            resource: wgpu::BindingResource::TextureView(&normal_view),
+                        },
+                        wgpu::BindGroupEntry {
+                            binding: 3,
                             resource: wgpu::BindingResource::Sampler(&ground_sampler),
                         },
                     ],

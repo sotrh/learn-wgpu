@@ -384,6 +384,309 @@ let mipmapper = Mipmapper::new(&display.device);
 mipmapper.blit_mipmaps(&display.device, &display.queue, &diffuse_blit_texture)?;
 ```
 
+With that our texture looks great even at far distances.
+![ground-with-mips.png](./ground-with-mips.png)
+
+<div class="note">
+
+You may have noticed that when we created the render pipeline we used the
+texture format `RgbaUnorm`, if we wanted to support a different format
+we'd need to create a separate pipeline to render to that format. All of
+the textures in this guide are either `RgbaUnorm` or `RgbaUnormSrgb`, so
+I only added support for the one.
+
+It's important that you pick a texture format that you can render to, as
+this method will not work otherwise. You can check out the
+[WebGPU specification](https://www.w3.org/TR/webgpu/#renderable)
+for how to tell if a format is renderable or not.
+
+</div>
+
 ## Generating mipmaps with a compute shader
 
-## Possible improvements
+While drawing to mips directly using a render pipeline works just fine,
+there are times where we want to store data in the mip chain of a texture
+in a compute shader. It's going to be a little more work than the
+the rendering example so lets get started with the shader.
+
+```wgsl
+@group(0)
+@binding(0)
+var src: texture_storage_2d<rgba8unorm, read>;
+@group(0)
+@binding(1)
+var dst: texture_storage_2d<rgba8unorm, write>;
+
+@compute
+@workgroup_size(16, 16, 1)
+fn compute_mipmap(
+    @builtin(global_invocation_id) gid: vec3<u32>,
+) {
+    let dstPos = gid.xy;
+    let srcPos = gid.xy * 2;
+
+    let dim = textureDimensions(src);
+
+    if (dstPos.x >= dim.x || dstPos.y >= dim.y) {
+        return;
+    }
+
+    let t00 = textureLoad(src, srcPos);
+    let t01 = textureLoad(src, srcPos + vec2(0, 1));
+    let t10 = textureLoad(src, srcPos + vec2(1, 0));
+    let t11 = textureLoad(src, srcPos + vec2(1, 1));
+
+    // A simple linear average of 4 adjacent pixels
+    let t = (t00 + t01 + t10 + t11) * 0.25;
+
+    textureStore(dst, dstPos, t);
+}
+```
+
+So what this shader does is take in to texture views, `src` will be
+a mip from the texture and `dst` will be the mip directly below that.
+We will that grab 4 pixels from the `src` texture, compute there
+average and store that into `dst` texture.
+
+<div class="note">
+
+Similar to the render pipeline, this compute pipeline only works
+with `Rgba8Unorm` textures. Supporting other textures requires we
+modify both the shader and the bind group setup (that we'll cover
+next). We are also limited to textures that can be used as a
+storage texture.
+
+</div>
+
+With that done we can move on to setting up the compute pipeline.
+
+```rust
+impl Mipmapper {
+    pub fn new(device: &wgpu::Device) -> Self {
+        let storage_texture_layout =
+            device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+                label: Some("Mipmapper::texture_layout"),
+                entries: &[
+                    wgpu::BindGroupLayoutEntry {
+                        binding: 0,
+                        visibility: wgpu::ShaderStages::COMPUTE,
+                        ty: wgpu::BindingType::StorageTexture {
+                            access: wgpu::StorageTextureAccess::ReadOnly,
+                            format: wgpu::TextureFormat::Rgba8Unorm,
+                            view_dimension: wgpu::TextureViewDimension::D2,
+                        },
+                        count: None,
+                    },
+                    wgpu::BindGroupLayoutEntry {
+                        binding: 1,
+                        visibility: wgpu::ShaderStages::COMPUTE,
+                        ty: wgpu::BindingType::StorageTexture {
+                            access: wgpu::StorageTextureAccess::WriteOnly,
+                            format: wgpu::TextureFormat::Rgba8Unorm,
+                            view_dimension: wgpu::TextureViewDimension::D2,
+                        },
+                        count: None,
+                    },
+                ],
+            });
+
+        let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+            label: None,
+            bind_group_layouts: &[&storage_texture_layout],
+            immediate_size: 0,
+        });
+        let compute_module = device.create_shader_module(wgpu::include_wgsl!("mipmap.wgsl"));
+        let compute_mipmap = device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
+            label: Some("Mipmapper"),
+            layout: Some(&pipeline_layout),
+            module: &compute_module,
+            entry_point: Some("compute_mipmap"),
+            compilation_options: Default::default(),
+            cache: None,
+        });
+    }
+
+    // ...
+}
+```
+
+With that in place we can create a function to use the compute
+pipeline.
+
+```rust
+impl Mipmapper {
+    pub(crate) fn compute_mipmaps(
+        &self,
+        device: &wgpu::Device,
+        queue: &wgpu::Queue,
+        texture: &wgpu::Texture,
+    ) -> anyhow::Result<()> {
+        // We would need to change the shader to support different texture types
+        match texture.format() {
+            wgpu::TextureFormat::Rgba8Unorm | wgpu::TextureFormat::Rgba8UnormSrgb => {}
+            _ => bail!("Unsupported format {:?}", texture.format()),
+        }
+
+        if texture.mip_level_count() == 1 {
+            return Ok(());
+        }
+
+        let mut encoder = device.create_command_encoder(&Default::default());
+
+        // Create temp texture if supplied texture isn't setup for use
+        // as a storage texture
+        let (mut src_view, maybe_temp) = if texture
+            .usage()
+            .contains(wgpu::TextureUsages::STORAGE_BINDING)
+        {
+            (
+                texture.create_view(&wgpu::TextureViewDescriptor {
+                    mip_level_count: Some(1),
+                    ..Default::default()
+                }),
+                None,
+            )
+        } else {
+            let temp = device.create_texture(&wgpu::TextureDescriptor {
+                label: Some("Mipmapper::compute_mipmaps::temp"),
+                size: texture.size(),
+                mip_level_count: texture.mip_level_count(),
+                sample_count: texture.sample_count(),
+                dimension: texture.dimension(),
+                format: texture.format().remove_srgb_suffix(),
+                usage: wgpu::TextureUsages::STORAGE_BINDING
+                    | wgpu::TextureUsages::COPY_DST
+                    | wgpu::TextureUsages::COPY_SRC,
+                view_formats: &[],
+            });
+
+            encoder.copy_texture_to_texture(
+                texture.as_image_copy(),
+                temp.as_image_copy(),
+                temp.size(),
+            );
+
+            (
+                temp.create_view(&wgpu::TextureViewDescriptor {
+                    mip_level_count: Some(1),
+                    ..Default::default()
+                }),
+                Some(temp),
+            )
+        };
+
+        let dispatch_x = texture.width().div_ceil(16);
+        let dispatch_y = texture.height().div_ceil(16);
+
+        {
+            let mut pass = encoder.begin_compute_pass(&wgpu::ComputePassDescriptor::default());
+            pass.set_pipeline(&self.compute_mipmap);
+            for mip in 1..texture.mip_level_count() {
+                let dst_view = src_view
+                    .texture()
+                    .create_view(&wgpu::TextureViewDescriptor {
+                        base_mip_level: mip,
+                        mip_level_count: Some(1),
+                        ..Default::default()
+                    });
+                let texture_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+                    label: None,
+                    layout: &self.storage_texture_layout,
+                    entries: &[
+                        wgpu::BindGroupEntry {
+                            binding: 0,
+                            resource: wgpu::BindingResource::TextureView(&src_view),
+                        },
+                        wgpu::BindGroupEntry {
+                            binding: 1,
+                            resource: wgpu::BindingResource::TextureView(&dst_view),
+                        },
+                    ],
+                });
+                pass.set_bind_group(0, &texture_bind_group, &[]);
+                pass.dispatch_workgroups(dispatch_x, dispatch_y, 1);
+
+                src_view = dst_view;
+            }
+        }
+
+        if let Some(temp) = maybe_temp {
+            let mut size = temp.size();
+            for mip_level in 0..temp.mip_level_count() {
+                encoder.copy_texture_to_texture(
+                    wgpu::TexelCopyTextureInfo {
+                        mip_level,
+                        ..temp.as_image_copy()
+                    },
+                    wgpu::TexelCopyTextureInfo {
+                        mip_level,
+                        ..texture.as_image_copy()
+                    },
+                    size,
+                );
+
+                // Each mipmap is half the size of the original
+                size.width /= 2;
+                size.height /= 2;
+            }
+        }
+
+        queue.submit([encoder.finish()]);
+
+        Ok(())
+    }
+}
+```
+
+And that's it. With that we can use mipmaps with our textures!
+
+## Conclusion
+
+We've only scratched the surface with mip maps. We will cover other
+ways to use them later. With that being said you can check out
+the code at the link below!
+
+<AutoGithubLink/>
+
+## Supporters
+
+Thanks to these supporters from [patreon](https://patreon.com/sotrh) and [ko-fi](https://ko-fi.com/sotrh)!
+
+- David Laban
+- Bernard Llanos
+- Ian Gowen
+- Aron Granberg
+- 折登 樹
+- Julius Liu
+- Lennart
+- Jani Turkia
+- Feng Liang
+- Lions Heart
+- Paul E Hansen
+- Gunstein Vatnar
+- Nico Arbogast
+- Dude
+- Youngsuk Kim
+- Alexander Kabirov
+- Danny McGee
+- charlesk
+- yutani
+- Filip
+- Eliot Bolduc
+- Ben Anderson
+- Thunk
+- IC
+- Craft Links
+- Zeh Fernando
+- Ken
+- Ryan
+- Felix
+- Tema
+- 大典 加藤
+- Andrea Postal
+- Davide Prati
+- dadofboi
+- ツナマヨ
+- Andrea Postal
+- Davide Prati
+- dadofboi

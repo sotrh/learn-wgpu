@@ -23,6 +23,13 @@ var d_texture: texture_2d<f32>;
 @binding(1)
 var d_sampler: sampler;
 
+@group(1)
+@binding(2)
+var n_texture: texture_2d<f32>;
+@group(1)
+@binding(3)
+var n_sampler: sampler;
+
 @vertex
 fn vs_main(vertex: Vertex) -> VertexOutput {
     let world_position = vertex.position;
@@ -37,23 +44,17 @@ fn vs_main(vertex: Vertex) -> VertexOutput {
 fn fs_main(vs: VertexOutput) -> @location(0) vec4<f32> {
     let albedo = textureSample(d_texture, d_sampler, vs.world_position.xz);
 
-    // let tbn = mat3x3(
-    //     normalize(vs.tangent),
-    //     normalize(vs.bitangent),
-    //     normalize(vs.normal),
-    // );
+    let normal_sample = textureSample(n_texture, n_sampler, vs.world_position.xz).xyz * 2.0 - 1.0;
 
-    // let normal_sample = textureSample(n_texture, n_sampler, vs.uv).xyz * 2.0 - 1.0;
-    // let N = tbn * normal_sample;
+    let N = normalize(normal_sample.xzy);
+    let V = normalize(camera.view_pos.xyz - vs.world_position);
+    let L = vec3(0.0, 1.0, 0.0);
+    let H = normalize(V + L);
 
-    // let L = tbn * normalize(camera.view_pos.xyz - vs.world_position);
+    let diffuse = max(0.0, dot(N, L));
+    let specular = pow(max(dot(N, H), 0.0), 32.0);
 
-    // let diffuse = max(0.0, dot(N, L));
-    let diffuse = 1.0;
-
-    var color = albedo.rgb * diffuse;
-    // color = fract(vs.world_position);
-    // color = vec3(fract(vs.world_position.xz), 0.0);
+    var color = albedo.rgb * (diffuse + specular);
 
     return vec4(color, albedo.a);
 }

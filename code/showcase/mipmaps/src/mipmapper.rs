@@ -248,7 +248,8 @@ impl Mipmapper {
 
         let mut encoder = device.create_command_encoder(&Default::default());
 
-        // Create temp texture
+        // Create temp texture if supplied texture isn't setup for use
+        // as a storage texture
         let (mut src_view, maybe_temp) = if texture
             .usage()
             .contains(wgpu::TextureUsages::STORAGE_BINDING)
@@ -261,9 +262,6 @@ impl Mipmapper {
                 None,
             )
         } else {
-            println!("Creating temp texture");
-
-            // create a temp
             let temp = device.create_texture(&wgpu::TextureDescriptor {
                 label: Some("Mipmapper::compute_mipmaps::temp"),
                 size: texture.size(),
