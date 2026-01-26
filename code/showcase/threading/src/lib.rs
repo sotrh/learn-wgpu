@@ -3,7 +3,11 @@ use rayon::prelude::*;
 use std::{iter, sync::Arc};
 use wgpu::util::DeviceExt;
 use winit::{
-    application::ApplicationHandler, event::*, event_loop::{ActiveEventLoop, EventLoop}, keyboard::{KeyCode, PhysicalKey}, window::Window
+    application::ApplicationHandler,
+    event::*,
+    event_loop::{ActiveEventLoop, EventLoop},
+    keyboard::{KeyCode, PhysicalKey},
+    window::Window,
 };
 
 #[cfg(target_arch = "wasm32")]
@@ -765,9 +769,11 @@ impl ApplicationHandler<State> for App {
             return;
         };
         match event {
-            DeviceEvent::MouseMotion { delta: (dx, dy) } => if state.mouse_pressed {
-                state.camera_controller.handle_mouse(dx, dy);
-            } 
+            DeviceEvent::MouseMotion { delta: (dx, dy) } => {
+                if state.mouse_pressed {
+                    state.camera_controller.handle_mouse(dx, dy);
+                }
+            }
             _ => {}
         }
     }
@@ -802,7 +808,11 @@ impl ApplicationHandler<State> for App {
                     }
                 }
             }
-            WindowEvent::MouseInput { state: btn_state, button, .. } => state.handle_mouse_button(button, btn_state.is_pressed()),
+            WindowEvent::MouseInput {
+                state: btn_state,
+                button,
+                ..
+            } => state.handle_mouse_button(button, btn_state.is_pressed()),
             WindowEvent::MouseWheel { delta, .. } => state.handle_mouse_scroll(&delta),
             WindowEvent::KeyboardInput {
                 event:

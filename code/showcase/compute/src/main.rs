@@ -213,7 +213,7 @@ impl State {
             .copied()
             .find(|f| f.is_srgb())
             .unwrap_or(surface_caps.formats[0]);
-        
+
         let config = wgpu::SurfaceConfiguration {
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
             format: surface_format,
@@ -611,7 +611,7 @@ impl State {
             _ => {}
         }
     }
-    
+
     fn handle_mouse_scroll(&mut self, delta: &MouseScrollDelta) {
         self.camera_controller.handle_mouse_scroll(&delta);
     }

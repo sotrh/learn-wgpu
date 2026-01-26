@@ -19,8 +19,8 @@ pub async fn run() -> anyhow::Result<()> {
 
     let input_data = (0u32..128 * 9).rev().collect::<Vec<_>>();
 
-    let odd_data = [1u32]; 
-    let even_data = [0u32]; 
+    let odd_data = [1u32];
+    let even_data = [0u32];
 
     let data_buffer = device.create_buffer_init(&BufferInitDescriptor {
         label: Some("data"),
@@ -52,13 +52,14 @@ pub async fn run() -> anyhow::Result<()> {
         layout: &pipeline.get_bind_group_layout(0),
         entries: &[
             wgpu::BindGroupEntry {
-            binding: 0,
-            resource: data_buffer.as_entire_binding(),
-        },
-        wgpu::BindGroupEntry {
-            binding: 1,
-            resource: odd_buffer.as_entire_binding()
-        }],
+                binding: 0,
+                resource: data_buffer.as_entire_binding(),
+            },
+            wgpu::BindGroupEntry {
+                binding: 1,
+                resource: odd_buffer.as_entire_binding(),
+            },
+        ],
     });
 
     let even_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
@@ -66,13 +67,14 @@ pub async fn run() -> anyhow::Result<()> {
         layout: &pipeline.get_bind_group_layout(0),
         entries: &[
             wgpu::BindGroupEntry {
-            binding: 0,
-            resource: data_buffer.as_entire_binding(),
-        },
-        wgpu::BindGroupEntry {
-            binding: 1,
-            resource: even_buffer.as_entire_binding()
-        }],
+                binding: 0,
+                resource: data_buffer.as_entire_binding(),
+            },
+            wgpu::BindGroupEntry {
+                binding: 1,
+                resource: even_buffer.as_entire_binding(),
+            },
+        ],
     });
 
     let mut encoder = device.create_command_encoder(&Default::default());
@@ -82,7 +84,6 @@ pub async fn run() -> anyhow::Result<()> {
         + (input_data.len() % num_items_per_workgroup > 0) as u32;
     // We do 2 dispatches so we only need to do half the passes
     let num_passes = input_data.len() / 2 + input_data.len() % 2;
-
 
     {
         let mut pass = encoder.begin_compute_pass(&Default::default());

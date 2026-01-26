@@ -56,7 +56,7 @@ struct Snow {
 }
 
 impl framework::Demo for Snow {
-    fn init(display: &framework::Display) -> anyhow::Result<Self> {
+    async fn init(display: &framework::Display) -> anyhow::Result<Self> {
         let particle_layout =
             display
                 .device
@@ -364,7 +364,7 @@ impl framework::Demo for Snow {
             depth_stencil_attachment: None,
             occlusion_query_set: None,
             timestamp_writes: None,
-                multiview_mask: None,
+            multiview_mask: None,
         });
 
         draw_pass.set_pipeline(&self.draw_particles);

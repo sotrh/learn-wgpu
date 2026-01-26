@@ -153,7 +153,7 @@ impl HdrPipeline {
             depth_stencil_attachment: None,
             occlusion_query_set: None,
             timestamp_writes: None,
-                multiview_mask: None,
+            multiview_mask: None,
         });
         pass.set_pipeline(&self.pipeline);
         pass.set_bind_group(0, &self.bind_group, &[]);

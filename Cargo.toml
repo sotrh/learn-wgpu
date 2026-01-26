@@ -38,4 +38,4 @@ env_logger = "0.10"
 pollster = "0.3"
 image = "0.24.2"
 log = "0.4"
-tobj = "2.0"
+tobj = { version = "3.2", default-features = false, features = ["async"]}

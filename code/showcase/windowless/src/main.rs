@@ -124,7 +124,7 @@ async fn run() {
             depth_stencil_attachment: None,
             occlusion_query_set: None,
             timestamp_writes: None,
-                multiview_mask: None,
+            multiview_mask: None,
         };
         let mut render_pass = encoder.begin_render_pass(&render_pass_desc);
 

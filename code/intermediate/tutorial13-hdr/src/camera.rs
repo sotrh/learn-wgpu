@@ -99,11 +99,7 @@ impl CameraController {
     }
 
     pub fn handle_key(&mut self, key: KeyCode, pressed: bool) -> bool {
-        let amount = if pressed {
-            1.0
-        } else {
-            0.0
-        };
+        let amount = if pressed { 1.0 } else { 0.0 };
         match key {
             KeyCode::KeyW | KeyCode::ArrowUp => {
                 self.amount_forward = amount;

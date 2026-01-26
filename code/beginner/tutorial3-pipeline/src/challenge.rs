@@ -8,7 +8,7 @@ use winit::{
     window::Window,
 };
 
-#[cfg(target_arch="wasm32")]
+#[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
 
 pub struct State {
@@ -232,7 +232,7 @@ impl State {
 
     fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
         self.window.request_redraw();
-        
+
         // We can't render unless the surface is configured
         if !self.is_surface_configured {
             return Ok(());

@@ -1,6 +1,6 @@
 use std::num::NonZeroU32;
 
-use crate::model::Vertex;
+use crate::resources::model::Vertex;
 use anyhow::*;
 
 pub struct RenderPipelineBuilder<'a> {
@@ -215,13 +215,11 @@ impl<'a> RenderPipelineBuilder<'a> {
             .fragment_shader
             .clone()
             .map(|src| create_shader_module(device, src));
-        let frag_state = frag_module.as_ref().map(|module| {
-            wgpu::FragmentState {
-                module,
-                entry_point: self.maybe_fragment_entry_point,
-                compilation_options: Default::default(),
-                targets: &self.color_states,
-            }
+        let frag_state = frag_module.as_ref().map(|module| wgpu::FragmentState {
+            module,
+            entry_point: self.maybe_fragment_entry_point,
+            compilation_options: Default::default(),
+            targets: &self.color_states,
         });
 
         let pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {

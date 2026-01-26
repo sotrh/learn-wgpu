@@ -147,12 +147,12 @@ impl State {
 
         Ok(())
     }
-    
+
     fn handle_mouse_moved(&mut self, x: f64, y: f64) {
         self.clear_color.r = x / self.config.width as f64;
         self.clear_color.g = y / self.config.height as f64;
     }
-    
+
     fn handle_key(&self, event_loop: &ActiveEventLoop, code: KeyCode, is_pressed: bool) {
         match (code, is_pressed) {
             (KeyCode::Escape, true) => event_loop.exit(),

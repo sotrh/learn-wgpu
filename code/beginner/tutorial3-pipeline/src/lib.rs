@@ -3,7 +3,7 @@ use std::{iter, sync::Arc};
 use winit::{
     application::ApplicationHandler,
     event::*,
-    event_loop::{EventLoop, ActiveEventLoop},
+    event_loop::{ActiveEventLoop, EventLoop},
     keyboard::{KeyCode, PhysicalKey},
     window::Window,
 };

@@ -1,20 +1,19 @@
 mod buffer;
 mod camera;
 mod light;
-mod model;
 mod pipeline;
 pub mod prelude;
+pub mod resources;
 mod shader_canvas;
-mod texture;
 
 pub use buffer::*;
 pub use camera::*;
 pub use light::*;
-pub use model::*;
 pub use pipeline::*;
 use pollster::FutureExt;
+pub use resources::model::*;
+pub use resources::texture::*;
 pub use shader_canvas::*;
-pub use texture::*;
 
 // use cgmath::*;
 use std::ops::Deref;
@@ -257,7 +256,7 @@ impl UniformBinding {
 }
 
 pub trait Demo: 'static + Sized + Send + std::fmt::Debug {
-    fn init(display: &Display) -> anyhow::Result<Self>;
+    fn init(display: &Display) -> impl std::future::Future<Output = anyhow::Result<Self>> + Send;
     fn resize(&mut self, display: &Display);
     fn update(&mut self, display: &Display, dt: Duration);
     fn render(&mut self, display: &mut Display);
@@ -307,14 +306,25 @@ impl<D: Demo + 'static> ApplicationHandler<anyhow::Result<(Display, D)>> for App
         let window = Arc::new(event_loop.create_window(window_attributes).unwrap());
 
         if let Some(proxy) = self.proxy.take() {
-            let display_future = Display::new(window.clone());
-            std::thread::spawn(move || {
-                let result = (move || {
-                    let display = display_future.block_on()?;
-                    let demo = D::init(&display)?;
+            let window = window.clone();
+            let setup_future = async move {
+                let display = Display::new(window).await?;
+                let demo = D::init(&display).await?;
+                anyhow::Ok((display, demo))
+            };
 
-                    anyhow::Ok((display, demo))
-                })();
+            #[cfg(target_arch = "wasm32")]
+            wasm_bindgen_futures::spawn_local(async move {
+                let result = setup_future.await;
+
+                proxy
+                    .send_event(result)
+                    .expect("Unable to send (display, demo)");
+            });
+
+            #[cfg(not(target_arch = "wasm32"))]
+            std::thread::spawn(move || {
+                let result = setup_future.block_on();
 
                 proxy
                     .send_event(result)

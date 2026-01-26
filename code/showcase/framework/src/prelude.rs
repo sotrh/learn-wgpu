@@ -1,1 +1,1 @@
-pub use crate::model::{DrawLight, DrawModel};
+pub use crate::resources::model::{DrawLight, DrawModel};

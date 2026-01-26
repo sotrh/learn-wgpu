@@ -61,13 +61,18 @@ impl std::fmt::Debug for Stencil {
 }
 
 impl Demo for Stencil {
-    fn init(display: &framework::Display) -> anyhow::Result<Self> {
+    async fn init(display: &framework::Display) -> anyhow::Result<Self> {
         let num_instances = 64;
         let half_instanes = num_instances / 2;
         let instances = (0..num_instances)
             .map(|i| InstanceVertex {
                 position: random_position_scale(Vec3::splat(-5.0), Vec3::splat(5.0)),
-                color: Vec4::new((i < half_instanes) as u32 as f32, 0.0, (i >= half_instanes) as u32 as f32, 1.0),
+                color: Vec4::new(
+                    (i < half_instanes) as u32 as f32,
+                    0.0,
+                    (i >= half_instanes) as u32 as f32,
+                    1.0,
+                ),
             })
             .collect::<Vec<_>>();
 
@@ -149,12 +154,13 @@ impl Demo for Stencil {
         let material_binder = MaterialBinder::new(&display.device);
 
         println!("Model");
-        let model = framework::Model::load_obj(
+        let model = framework::resources::load_obj(
+            res_dir.join("models/cube.obj"), // Fix for web
             &display.device,
             &display.queue,
             &material_binder,
-            res_dir.join("models/cube.obj"), // Fix for web
-        )?;
+        )
+        .await?;
 
         let mask_bind_group_layout =
             display

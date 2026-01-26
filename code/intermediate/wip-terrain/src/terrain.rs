@@ -2,7 +2,6 @@ use std::mem::size_of_val;
 
 use crate::{create_render_pipeline, model};
 
-
 #[repr(C)]
 #[derive(Debug, Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
 struct ChunkData {
