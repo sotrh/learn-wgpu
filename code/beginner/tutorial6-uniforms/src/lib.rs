@@ -2,7 +2,11 @@ use std::{iter, sync::Arc};
 
 use wgpu::util::DeviceExt;
 use winit::{
-    application::ApplicationHandler, event::*, event_loop::{ActiveEventLoop, EventLoop}, keyboard::{KeyCode, PhysicalKey}, window::Window
+    application::ApplicationHandler,
+    event::*,
+    event_loop::{ActiveEventLoop, EventLoop},
+    keyboard::{KeyCode, PhysicalKey},
+    window::Window,
 };
 
 #[cfg(target_arch = "wasm32")]
@@ -479,6 +483,7 @@ impl State {
             event_loop.exit();
         } else {
             self.camera_controller.handle_key(key, pressed);
+            self.update();
         }
     }
 
