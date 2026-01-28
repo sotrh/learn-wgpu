@@ -167,7 +167,7 @@ let diffuse_sampler = device.create_sampler(&wgpu::SamplerDescriptor {
     address_mode_w: wgpu::AddressMode::ClampToEdge,
     mag_filter: wgpu::FilterMode::Linear,
     min_filter: wgpu::FilterMode::Nearest,
-    mipmap_filter: wgpu::FilterMode::Nearest,
+    mipmap_filter: wgpu::MipmapFilterMode::Nearest,
     ..Default::default()
 });
 ```
@@ -314,7 +314,7 @@ async fn new(...) {
         &wgpu::PipelineLayoutDescriptor {
             label: Some("Render Pipeline Layout"),
             bind_group_layouts: &[&texture_bind_group_layout], // NEW!
-            push_constant_ranges: &[],
+            immediate_size: 0,
         }
     );
     // ...
@@ -451,7 +451,11 @@ With that in place, we now have our tree right-side up on our pentagon:
 
 ## Cleaning things up
 
-For convenience, let's pull our texture code into its own module. We'll first need to add the [anyhow](https://docs.rs/anyhow/) crate to our `Cargo.toml` file to simplify error handling;
+For convenience, let's pull our texture code into its own module.
+We'll add the [anyhow](https://docs.rs/anyhow/) crate to our
+`Cargo.toml` file to simplify error handling. We'll also add
+the [bytemuck](https://docs.rs/bytemuck) crate to help pass mesh
+data to wgpu.
 
 ```toml
 [dependencies]
@@ -461,7 +465,7 @@ winit = { version = "0.30", features = ["android-native-activity"] }
 env_logger = "0.10"
 log = "0.4"
 pollster = "0.3"
-wgpu = "27.0.0"
+wgpu = "28.0"
 bytemuck = { version = "1.24", features = [ "derive" ] } # NEW!
 ```
 
@@ -540,7 +544,7 @@ impl Texture {
                 address_mode_w: wgpu::AddressMode::ClampToEdge,
                 mag_filter: wgpu::FilterMode::Linear,
                 min_filter: wgpu::FilterMode::Nearest,
-                mipmap_filter: wgpu::FilterMode::Nearest,
+                mipmap_filter: wgpu::MipmapFilterMode::Nearest,
                 ..Default::default()
             }
         );

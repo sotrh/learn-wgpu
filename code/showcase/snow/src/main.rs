@@ -56,7 +56,7 @@ struct Snow {
 }
 
 impl framework::Demo for Snow {
-    fn init(display: &framework::Display) -> anyhow::Result<Self> {
+    async fn init(display: &framework::Display) -> anyhow::Result<Self> {
         let particle_layout =
             display
                 .device
@@ -142,7 +142,7 @@ impl framework::Demo for Snow {
                 .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                     label: None,
                     bind_group_layouts: &[&particle_layout],
-                    push_constant_ranges: &[],
+                    immediate_size: 0,
                 });
 
         let move_particles =
@@ -210,7 +210,7 @@ impl framework::Demo for Snow {
                 .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                     label: None,
                     bind_group_layouts: &[&uniforms_bind_group_layout],
-                    push_constant_ranges: &[],
+                    immediate_size: 0,
                 });
 
         let draw_particles =
@@ -241,7 +241,7 @@ impl framework::Demo for Snow {
                         })],
                         compilation_options: Default::default(),
                     }),
-                    multiview: None,
+                    multiview_mask: None,
                     cache: None,
                 });
 
@@ -266,7 +266,7 @@ impl framework::Demo for Snow {
         })
     }
 
-    fn handle_mouse_move(&mut self, dx: f64, dy: f64) {
+    fn handle_mouse_move(&mut self, _dx: f64, _dy: f64) {
         // self.camera_controller.process_mouse(dx, dy);
         // self.uniforms_dirty = true;
     }
@@ -364,6 +364,7 @@ impl framework::Demo for Snow {
             depth_stencil_attachment: None,
             occlusion_query_set: None,
             timestamp_writes: None,
+            multiview_mask: None,
         });
 
         draw_pass.set_pipeline(&self.draw_particles);

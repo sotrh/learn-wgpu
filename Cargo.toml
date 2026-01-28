@@ -28,7 +28,7 @@ exclude = [
 ]
 
 [workspace.dependencies]
-wgpu = "27.0.0"
+wgpu = "28.0"
 anyhow = "1"
 rand = "0.8"
 glam = { version = "0.30.9", features = ["bytemuck"] }
@@ -38,4 +38,4 @@ env_logger = "0.10"
 pollster = "0.3"
 image = "0.24.2"
 log = "0.4"
-tobj = "2.0"
+tobj = { version = "3.2", default-features = false, features = ["async"]}

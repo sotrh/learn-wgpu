@@ -1,5 +1,8 @@
 use std::{
-    env, fs, io::{BufRead, BufReader, Write}, net::{TcpListener, TcpStream}, path::{Path, PathBuf}
+    env, fs,
+    io::{BufRead, BufReader, Write},
+    net::{TcpListener, TcpStream},
+    path::{Path, PathBuf},
 };
 
 fn main() -> anyhow::Result<()> {

@@ -213,7 +213,7 @@ impl State {
             .copied()
             .find(|f| f.is_srgb())
             .unwrap_or(surface_caps.formats[0]);
-        
+
         let config = wgpu::SurfaceConfiguration {
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
             format: surface_format,
@@ -397,7 +397,7 @@ impl State {
                     &camera_bind_group_layout,
                     &light_bind_group_layout,
                 ],
-                push_constant_ranges: &[],
+                immediate_size: 0,
             });
 
         println!("Creating RENDER pipeline");
@@ -416,7 +416,7 @@ impl State {
             let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("Light Pipeline Layout"),
                 bind_group_layouts: &[&camera_bind_group_layout, &light_bind_group_layout],
-                push_constant_ranges: &[],
+                immediate_size: 0,
             });
 
             create_render_pipeline(
@@ -569,6 +569,7 @@ impl State {
                 }),
                 occlusion_query_set: None,
                 timestamp_writes: None,
+                multiview_mask: None,
             });
 
             render_pass.set_vertex_buffer(1, self.instance_buffer.slice(..));
@@ -610,7 +611,7 @@ impl State {
             _ => {}
         }
     }
-    
+
     fn handle_mouse_scroll(&mut self, delta: &MouseScrollDelta) {
         self.camera_controller.handle_mouse_scroll(&delta);
     }

@@ -1,6 +1,6 @@
 use std::num::NonZeroU32;
 
-use crate::model::Vertex;
+use crate::resources::model::Vertex;
 use anyhow::*;
 
 pub struct RenderPipelineBuilder<'a> {
@@ -20,7 +20,7 @@ pub struct RenderPipelineBuilder<'a> {
     sample_count: u32,
     sample_mask: u64,
     alpha_to_coverage_enabled: bool,
-    multiview: Option<NonZeroU32>,
+    multiview_mask: Option<NonZeroU32>,
     maybe_fragment_entry_point: Option<&'a str>,
     maybe_vertex_entry_point: Option<&'a str>,
 }
@@ -44,7 +44,7 @@ impl<'a> RenderPipelineBuilder<'a> {
             sample_count: 1,
             sample_mask: !0,
             alpha_to_coverage_enabled: false,
-            multiview: None,
+            multiview_mask: None,
             maybe_vertex_entry_point: None,
             maybe_fragment_entry_point: None,
         }
@@ -186,7 +186,7 @@ impl<'a> RenderPipelineBuilder<'a> {
     }
 
     pub fn multiview(&mut self, value: Option<NonZeroU32>) -> &mut Self {
-        self.multiview = value;
+        self.multiview_mask = value;
         self
     }
 
@@ -215,13 +215,11 @@ impl<'a> RenderPipelineBuilder<'a> {
             .fragment_shader
             .clone()
             .map(|src| create_shader_module(device, src));
-        let frag_state = frag_module.as_ref().map(|module| {
-            wgpu::FragmentState {
-                module,
-                entry_point: self.maybe_fragment_entry_point,
-                compilation_options: Default::default(),
-                targets: &self.color_states,
-            }
+        let frag_state = frag_module.as_ref().map(|module| wgpu::FragmentState {
+            module,
+            entry_point: self.maybe_fragment_entry_point,
+            compilation_options: Default::default(),
+            targets: &self.color_states,
         });
 
         let pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
@@ -248,7 +246,7 @@ impl<'a> RenderPipelineBuilder<'a> {
                 mask: self.sample_mask,
                 alpha_to_coverage_enabled: self.alpha_to_coverage_enabled,
             },
-            multiview: self.multiview,
+            multiview_mask: self.multiview_mask,
             cache: None,
         });
         Ok(pipeline)

@@ -3,7 +3,11 @@ use std::{iter, sync::Arc};
 use cgmath::prelude::*;
 use wgpu::util::DeviceExt;
 use winit::{
-    application::ApplicationHandler, event::*, event_loop::{ActiveEventLoop, EventLoop}, keyboard::{KeyCode, PhysicalKey}, window::Window
+    application::ApplicationHandler,
+    event::*,
+    event_loop::{ActiveEventLoop, EventLoop},
+    keyboard::{KeyCode, PhysicalKey},
+    window::Window,
 };
 
 #[cfg(target_arch = "wasm32")]
@@ -215,8 +219,8 @@ fn create_render_pipeline(
             alpha_to_coverage_enabled: false,
         },
         // If the pipeline will be used with a multiview render pass, this
-        // indicates how many array layers the attachments will have.
-        multiview: None,
+        // tells wgpu to render to just specific texture layers.
+        multiview_mask: None,
         cache: None,
     })
 }
@@ -246,22 +250,20 @@ impl State {
             .await
             .unwrap();
         let (device, queue) = adapter
-            .request_device(
-                &wgpu::DeviceDescriptor {
-                    label: None,
-                    required_features: wgpu::Features::empty(),
-                    experimental_features: wgpu::ExperimentalFeatures::disabled(),
-                    // WebGL doesn't support all of wgpu's features, so if
-                    // we're building for the web we'll have to disable some.
-                    required_limits: if cfg!(target_arch = "wasm32") {
-                        wgpu::Limits::downlevel_webgl2_defaults()
-                    } else {
-                        wgpu::Limits::default()
-                    },
-                    memory_hints: Default::default(),
-                    trace: wgpu::Trace::Off, // Trace path
+            .request_device(&wgpu::DeviceDescriptor {
+                label: None,
+                required_features: wgpu::Features::empty(),
+                experimental_features: wgpu::ExperimentalFeatures::disabled(),
+                // WebGL doesn't support all of wgpu's features, so if
+                // we're building for the web we'll have to disable some.
+                required_limits: if cfg!(target_arch = "wasm32") {
+                    wgpu::Limits::downlevel_webgl2_defaults()
+                } else {
+                    wgpu::Limits::default()
                 },
-            )
+                memory_hints: Default::default(),
+                trace: wgpu::Trace::Off, // Trace path
+            })
             .await
             .unwrap();
 
@@ -448,7 +450,7 @@ impl State {
                     &camera_bind_group_layout,
                     &light_bind_group_layout,
                 ],
-                push_constant_ranges: &[],
+                immediate_size: 0,
             });
 
         let render_pipeline = {
@@ -471,7 +473,7 @@ impl State {
             let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("Light Pipeline Layout"),
                 bind_group_layouts: &[&camera_bind_group_layout, &light_bind_group_layout],
-                push_constant_ranges: &[],
+                immediate_size: 0,
             });
             let desc = wgpu::ShaderModuleDescriptor {
                 label: Some("Light Shader"),
@@ -657,7 +659,7 @@ impl State {
         if !self.is_surface_configured {
             return Ok(());
         }
-        
+
         let output = self.surface.get_current_texture()?;
         let view = output.texture.create_view(&wgpu::TextureViewDescriptor {
             format: Some(self.config.format.add_srgb_suffix()),
@@ -697,6 +699,7 @@ impl State {
                 }),
                 occlusion_query_set: None,
                 timestamp_writes: None,
+                multiview_mask: None,
             });
 
             render_pass.set_vertex_buffer(1, self.instance_buffer.slice(..));
@@ -819,9 +822,11 @@ impl ApplicationHandler<State> for App {
             return;
         };
         match event {
-            DeviceEvent::MouseMotion { delta: (dx, dy) } => if state.mouse_pressed {
-                state.camera_controller.handle_mouse(dx, dy);
-            } 
+            DeviceEvent::MouseMotion { delta: (dx, dy) } => {
+                if state.mouse_pressed {
+                    state.camera_controller.handle_mouse(dx, dy);
+                }
+            }
             _ => {}
         }
     }
@@ -856,7 +861,11 @@ impl ApplicationHandler<State> for App {
                     }
                 }
             }
-            WindowEvent::MouseInput { state: btn_state, button, .. } => state.handle_mouse_button(button, btn_state.is_pressed()),
+            WindowEvent::MouseInput {
+                state: btn_state,
+                button,
+                ..
+            } => state.handle_mouse_button(button, btn_state.is_pressed()),
             WindowEvent::MouseWheel { delta, .. } => state.handle_mouse_scroll(&delta),
             WindowEvent::KeyboardInput {
                 event:

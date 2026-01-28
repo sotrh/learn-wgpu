@@ -14,7 +14,7 @@ anyhow = "1.0"
 winit = { version = "0.30", features = ["android-native-activity"] }
 env_logger = "0.10"
 log = "0.4"
-wgpu = "27.0.0"
+wgpu = "28.0"
 pollster = "0.3"
 ```
 
@@ -102,7 +102,7 @@ impl App {
 
 So the `App` struct has two fields: `state` and `proxy`.
 
-The `state` variable stores our `State` struct as an option.The reason we need an option is that `State::new()` needs a window and we can't create a window until the application gets to the `Resumed` state. We'll get more into that in a bit.
+The `state` variable stores our `State` struct as an option. The reason we need an option is that `State::new()` needs a window and we can't create a window until the application gets to the `Resumed` state. We'll get more into that in a bit.
 
 The `proxy` variable is only needed on the web. The reason for this is that creating WGPU resources is an async process. Again we'll get into that in a bit.
 
@@ -285,7 +285,7 @@ strip = true
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 console_error_panic_hook = "0.1.6"
 console_log = "1.0"
-wgpu = { version = "27.0.0", features = ["webgl"]}
+wgpu = { version = "28.0", features = ["webgl"]}
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4.30"
 web-sys = { version = "0.3", features = [
@@ -380,7 +380,7 @@ You'll then need to run the WASM code in an ES6 Module:
   <body id="wasm-example">
     <canvas id="canvas"></canvas>
     <script type="module">
-      import init from "./pkg/tutorial2_surface.js";
+      import init from "./pkg/tutorial1_window.js";
       init().then(() => {
         console.log("WASM Loaded");
       });

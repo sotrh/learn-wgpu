@@ -1,7 +1,7 @@
 use core::f32;
-use std::f32::consts::PI;
+use core::f32::consts::PI;
 
-use framework::{Demo, DrawModel, MaterialBinder, ModelVertex, Vertex};
+use framework::{Demo, MaterialBinder, ModelVertex, Vertex};
 use glam::{Vec3, Vec4};
 use rand::Rng;
 use winit::keyboard::KeyCode;
@@ -23,18 +23,12 @@ impl InstanceVertex {
     };
 }
 
-fn random_color() -> Vec4 {
-    let mut rng = rand::thread_rng();
-    Vec4::new(rng.r#gen(), rng.r#gen(), rng.r#gen(), 1.0)
-}
-
 fn random_position_scale(min: Vec3, max: Vec3) -> Vec4 {
     let mut rng = rand::thread_rng();
     Vec4::new(
         rng.gen_range(min.x..=max.x),
         rng.gen_range(min.y..=max.y),
         rng.gen_range(min.z..=max.z),
-        // rng.gen_range(0.25..=0.75),
         0.5,
     )
 }
@@ -56,7 +50,7 @@ pub struct Stencil {
     mask_bind_group: wgpu::BindGroup,
     model: framework::Model,
     visible_pipeline: wgpu::RenderPipeline,
-    invisible_pipeline: wgpu::RenderPipeline,
+    hidden_pipeline: wgpu::RenderPipeline,
     lmb_presssed: bool,
 }
 
@@ -67,13 +61,18 @@ impl std::fmt::Debug for Stencil {
 }
 
 impl Demo for Stencil {
-    fn init(display: &framework::Display) -> anyhow::Result<Self> {
+    async fn init(display: &framework::Display) -> anyhow::Result<Self> {
         let num_instances = 64;
         let half_instanes = num_instances / 2;
         let instances = (0..num_instances)
             .map(|i| InstanceVertex {
                 position: random_position_scale(Vec3::splat(-5.0), Vec3::splat(5.0)),
-                color: Vec4::new((i < half_instanes) as u32 as f32, 0.0, (i >= half_instanes) as u32 as f32, 1.0),
+                color: Vec4::new(
+                    (i < half_instanes) as u32 as f32,
+                    0.0,
+                    (i >= half_instanes) as u32 as f32,
+                    1.0,
+                ),
             })
             .collect::<Vec<_>>();
 
@@ -155,12 +154,13 @@ impl Demo for Stencil {
         let material_binder = MaterialBinder::new(&display.device);
 
         println!("Model");
-        let model = framework::Model::load_obj(
+        let model = framework::resources::load_obj(
+            res_dir.join("models/cube.obj"), // Fix for web
             &display.device,
             &display.queue,
             &material_binder,
-            res_dir.join("models/cube.obj"), // Fix for web
-        )?;
+        )
+        .await?;
 
         let mask_bind_group_layout =
             display
@@ -210,7 +210,7 @@ impl Demo for Stencil {
                 .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                     label: Some("mask_pipeline_layout"),
                     bind_group_layouts: &[&mask_bind_group_layout],
-                    push_constant_ranges: &[],
+                    immediate_size: 0,
                 });
 
         let mask_shader = wgpu::include_wgsl!("mask.wgsl");
@@ -218,11 +218,6 @@ impl Demo for Stencil {
             .vertex_shader(mask_shader.clone())
             .fragment_shader(mask_shader.clone())
             .fragment_entry_point("fs_mask")
-            .color_state(wgpu::ColorTargetState {
-                format: display.config.format,
-                blend: None,
-                write_mask: wgpu::ColorWrites::empty(),
-            })
             .cull_mode(Some(wgpu::Face::Back))
             .depth_stencil(wgpu::DepthStencilState {
                 format: depth_stencil_format,
@@ -259,7 +254,7 @@ impl Demo for Stencil {
             display.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("model_pipeline_layout"),
                 bind_group_layouts: &[&camera_layout, material_binder.layout()],
-                push_constant_ranges: &[],
+                immediate_size: 0,
             });
         let model_shader = wgpu::include_wgsl!("model.wgsl");
         let visible_pipeline = framework::RenderPipelineBuilder::new()
@@ -283,7 +278,7 @@ impl Demo for Stencil {
             .vertex_buffer_desc(InstanceVertex::DESC)
             .build(&display.device)?;
 
-        let invisible_pipeline = framework::RenderPipelineBuilder::new()
+        let hidden_pipeline = framework::RenderPipelineBuilder::new()
             .layout(&model_pipeline_layout)
             .vertex_shader(model_shader.clone())
             .fragment_shader(model_shader.clone())
@@ -329,7 +324,7 @@ impl Demo for Stencil {
             mask_bind_group,
             model,
             visible_pipeline,
-            invisible_pipeline,
+            hidden_pipeline,
             lmb_presssed,
         })
     }
@@ -393,28 +388,21 @@ impl Demo for Stencil {
         {
             let mut draw_mask_stencil = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: Some("draw_mask"),
-                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                    view: &view,
-                    resolve_target: None,
-                    ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Load,
-                        store: wgpu::StoreOp::Store,
-                    },
-                    depth_slice: None,
-                })],
+                color_attachments: &[],
                 depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
                     view: &self.depth_stencil_view,
                     depth_ops: None,
                     stencil_ops: Some(wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(0xFF),
+                        load: wgpu::LoadOp::Clear(0),
                         store: wgpu::StoreOp::Store,
                     }),
                 }),
                 timestamp_writes: None,
+                multiview_mask: None,
                 occlusion_query_set: None,
             });
 
-            draw_mask_stencil.set_stencil_reference(0);
+            draw_mask_stencil.set_stencil_reference(0xFF);
             draw_mask_stencil.set_pipeline(&self.mask_pipeline);
             draw_mask_stencil.set_bind_group(0, &self.mask_bind_group, &[]);
             draw_mask_stencil.draw(0..3, 0..1);
@@ -445,6 +433,7 @@ impl Demo for Stencil {
                 }),
                 occlusion_query_set: None,
                 timestamp_writes: None,
+                multiview_mask: None,
             });
 
             draw_visible.set_pipeline(&self.visible_pipeline);
@@ -462,7 +451,7 @@ impl Demo for Stencil {
         }
 
         {
-            let mut draw_invisible = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+            let mut draw_hidden = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: Some("draw_invisible"),
                 color_attachments: &[Some(wgpu::RenderPassColorAttachment {
                     view: &view,
@@ -486,19 +475,20 @@ impl Demo for Stencil {
                 }),
                 occlusion_query_set: None,
                 timestamp_writes: None,
+                multiview_mask: None,
             });
 
-            draw_invisible.set_stencil_reference(0xFF);
-            draw_invisible.set_pipeline(&self.invisible_pipeline);
-            draw_invisible.set_bind_group(0, &self.camera_bind_group, &[]);
-            draw_invisible.set_vertex_buffer(1, self.instance_buffer.buffer.slice(..));
+            draw_hidden.set_stencil_reference(0xFF);
+            draw_hidden.set_pipeline(&self.hidden_pipeline);
+            draw_hidden.set_bind_group(0, &self.camera_bind_group, &[]);
+            draw_hidden.set_vertex_buffer(1, self.instance_buffer.buffer.slice(..));
             for mesh in &self.model.meshes {
                 if let Some(material) = self.model.materials.get(mesh.material) {
-                    draw_invisible.set_bind_group(1, &material.bind_group, &[]);
-                    draw_invisible
+                    draw_hidden.set_bind_group(1, &material.bind_group, &[]);
+                    draw_hidden
                         .set_index_buffer(mesh.index_buffer.slice(..), wgpu::IndexFormat::Uint32);
-                    draw_invisible.set_vertex_buffer(0, mesh.vertex_buffer.slice(..));
-                    draw_invisible.draw_indexed(
+                    draw_hidden.set_vertex_buffer(0, mesh.vertex_buffer.slice(..));
+                    draw_hidden.draw_indexed(
                         0..mesh.num_elements,
                         0,
                         instance_split..num_instances,
@@ -521,6 +511,7 @@ impl Demo for Stencil {
                 })],
                 depth_stencil_attachment: None,
                 timestamp_writes: None,
+                multiview_mask: None,
                 occlusion_query_set: None,
             });
 

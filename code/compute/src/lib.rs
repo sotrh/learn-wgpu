@@ -1,8 +1,8 @@
-#[cfg(target_arch="wasm32")]
+#[cfg(target_arch = "wasm32")]
 use wasm_bindgen::{prelude::*, UnwrapThrowExt};
 
-pub mod introduction;
 pub mod filter;
+pub mod introduction;
 pub mod sort;
 
 #[cfg(target_arch = "wasm32")]

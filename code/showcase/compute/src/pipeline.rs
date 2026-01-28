@@ -1,6 +1,6 @@
 pub trait Bindable {
     fn layout_entries() -> Vec<wgpu::BindGroupLayoutEntry>;
-    fn bind_group_entries(&self) -> Vec<wgpu::BindGroupEntry>;
+    fn bind_group_entries(&self) -> Vec<wgpu::BindGroupEntry<'_>>;
 }
 
 pub struct Binder<T: Bindable> {
@@ -90,8 +90,8 @@ pub fn create_render_pipeline(
             alpha_to_coverage_enabled: false,
         },
         // If the pipeline will be used with a multiview render pass, this
-        // indicates how many array layers the attachments will have.
-        multiview: None,
+        // tells wgpu to render to just specific texture layers.
+        multiview_mask: None,
         cache: None,
     })
 }
@@ -105,7 +105,7 @@ pub fn create_compute_pipeline(
     let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
         label,
         bind_group_layouts,
-        push_constant_ranges: &[],
+        immediate_size: 0,
     });
     let pipeline = device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
         label,

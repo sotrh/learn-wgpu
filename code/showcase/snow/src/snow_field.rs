@@ -60,6 +60,7 @@ impl SnowField {
             })],
             depth_stencil_attachment: None,
             timestamp_writes: None,
+                multiview_mask: None,
             occlusion_query_set: None,
         });
 
@@ -154,7 +155,7 @@ impl SnowFieldPipeline {
         let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             label: Some("SnowFieldPipeline::<pipeline_layout>"),
             bind_group_layouts: &[&uniform_layout, &snow_field_layout],
-            push_constant_ranges: &[],
+            immediate_size: 0,
         });
         let pipeline = RenderPipelineBuilder::new()
             .pipeline_layout(&pipeline_layout)

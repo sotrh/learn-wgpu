@@ -1,7 +1,7 @@
 use anyhow::Context;
 use glob::glob;
-use naga::{back::wgsl, front::glsl::Frontend};
 use naga::front::glsl::Options;
+use naga::{back::wgsl, front::glsl::Frontend};
 use rayon::prelude::*;
 use std::{fs::read_to_string, path::PathBuf};
 

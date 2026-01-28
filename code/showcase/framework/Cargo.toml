@@ -5,11 +5,6 @@ authors = ["Ben Hansen <https://github.com/sotrh>"]
 edition = "2018"
 
 [dependencies]
-thiserror = "1.0"
-bytemuck = { version = "1.24", features = [ "derive" ] }
-cgmath = "0.18"
-wgpu-subscriber = "0.1"
-
 env_logger.workspace = true
 pollster.workspace = true
 image.workspace = true
@@ -20,9 +15,18 @@ anyhow.workspace = true
 glam.workspace = true
 winit.workspace = true
 
+thiserror = "1.0"
+bytemuck = { version = "1.24", features = [ "derive" ] }
+cgmath = "0.18"
+wgpu-subscriber = "0.1"
+slotmap = "1.1.1"
+reqwest = "0.13.1"
+async-fs = "2.2.0"
+wasm-bindgen-futures = "0.4.58"
+
 [build-dependencies]
 anyhow = "1.0"
 fs_extra = "1.2"
 glob = "0.3"
-naga = { version = "27.0", features = ["glsl-in", "spv-out", "wgsl-out"]}
+naga = { version = "28.0", features = ["glsl-in", "spv-out", "wgsl-out"]}
 rayon = "1.5"

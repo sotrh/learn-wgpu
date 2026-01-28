@@ -57,17 +57,20 @@ module.exports = {
                 collapsable: true,
                 children: [
                     '/showcase/',
+                    '/showcase/mipmaps/',
+                    '/showcase/stencil/',
                     '/showcase/windowless/',
                     '/showcase/gifs/',
                     '/showcase/pong/',
-                    '/showcase/compute/',
                     '/showcase/alignment/',
+                    // '/showcase/compute/',
                 ]
             },
             {
                 title: 'News',
                 collapsable: true,
                 children: [
+                    '/news/28.0/',
                     '/news/27.0/',
                     '/news/26.0.1/',
                     '/news/update-to-winit-0.30/',

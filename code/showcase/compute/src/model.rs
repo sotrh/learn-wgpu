@@ -196,7 +196,7 @@ impl pipeline::Bindable for BitangentComputeBinding {
         ]
     }
 
-    fn bind_group_entries(&self) -> Vec<wgpu::BindGroupEntry> {
+    fn bind_group_entries(&self) -> Vec<wgpu::BindGroupEntry<'_>> {
         vec![
             // Src Vertices
             wgpu::BindGroupEntry {

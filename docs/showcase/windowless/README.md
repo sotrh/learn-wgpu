@@ -100,7 +100,7 @@ Update dependencies to support SPIR-V module.
 [dependencies]
 image = "0.23"
 shaderc = "0.7"
-wgpu = { version = "27.0.0", features = ["spirv"] }
+wgpu = { version = "28.0", features = ["spirv"] }
 pollster = "0.3"
 ```
 
@@ -144,7 +144,7 @@ let fs_module = device.create_shader_module(wgpu::ShaderModuleDescriptor {
 let render_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
     label: Some("Render Pipeline Layout"),
     bind_group_layouts: &[],
-    push_constant_ranges: &[],
+    immediate_size: 0,
 });
 
 let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
