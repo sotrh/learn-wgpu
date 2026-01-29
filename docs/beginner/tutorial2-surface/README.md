@@ -72,15 +72,16 @@ The options I've passed to `request_adapter` aren't guaranteed to work for all d
 ```rust
 let adapter = instance
     .enumerate_adapters(wgpu::Backends::all())
-    .filter(|adapter| {
+    .await
+    .into_iter()
+    .find(|adapter| {
         // Check if this adapter supports our surface
         adapter.is_surface_supported(&surface)
     })
-    .next()
-    .unwrap()
+    .unwrap();
 ```
 
-One thing to note is that `enumerate_adapters` isn't available on WASM, so you have to use `request_adapter`.
+One thing to note is that when targeting WASM, `enumerate_adapters` will return at most one `Adapter`, since browsers expose only a single logical adapter through WebGPU.
 
 Another thing to note is that `Adapter`s are locked to a specific backend. If you are on Windows and have two graphics cards, you'll have at least four adapters available to use: 2 Vulkan and 2 DirectX.
 
