@@ -9,7 +9,6 @@ framework = { version = "0.1.0", path = "../framework" }
 anyhow.workspace = true
 bytemuck.workspace = true
 glam.workspace = true
-rand.workspace = true
 wgpu.workspace = true
 winit.workspace = true
 log.workspace = true

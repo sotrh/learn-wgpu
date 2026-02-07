@@ -15,6 +15,8 @@ pub use resources::model::*;
 pub use resources::texture::*;
 pub use shader_canvas::*;
 
+pub use rand;
+
 // use cgmath::*;
 use std::ops::Deref;
 use std::sync::Arc;
@@ -293,6 +295,7 @@ impl<D: Demo + 'static> ApplicationHandler<anyhow::Result<(Display, D)>> for App
         {
             use wasm_bindgen::JsCast;
             use winit::platform::web::WindowAttributesExtWebSys;
+            use wasm_bindgen_futures::wasm_bindgen::UnwrapThrowExt;
 
             const CANVAS_ID: &str = "canvas";
 
@@ -416,7 +419,7 @@ impl<D: Demo + 'static> ApplicationHandler<anyhow::Result<(Display, D)>> for App
 }
 
 pub fn run<D: Demo>() -> anyhow::Result<()> {
-    wgpu_subscriber::initialize_default_subscriber(None);
+    // wgpu_subscriber::initialize_default_subscriber(None);
 
     let event_loop = EventLoop::with_user_event().build()?;
     let mut app = App::<D>::new(&event_loop);

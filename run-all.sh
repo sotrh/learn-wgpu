@@ -23,6 +23,8 @@ cargo run --bin tutorial12-camera &
 cargo run --bin tutorial13-hdr &
 cargo run --bin windowless &
 cargo run --bin gifs &
-cargo run --bin compute
+cargo run --bin compute &
+cargo r -p stencil
+cargo r -p mipmaps
 # cargo run --bin pong
 )

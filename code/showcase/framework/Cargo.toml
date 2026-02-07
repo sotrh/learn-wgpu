@@ -18,11 +18,27 @@ winit.workspace = true
 thiserror = "1.0"
 bytemuck = { version = "1.24", features = [ "derive" ] }
 cgmath = "0.18"
-wgpu-subscriber = "0.1"
+# wgpu-subscriber = "0.1"
 slotmap = "1.1.1"
-reqwest = "0.13.1"
+rand = "0.8"
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 async-fs = "2.2.0"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+getrandom = { version = "*", features = ["js"] }
+reqwest = "0.13.1"
 wasm-bindgen-futures = "0.4.58"
+console_error_panic_hook = "0.1"
+console_log = "1.0"
+wasm-bindgen = "0.2"
+web-sys = { version = "0.3", features = [
+    "Document",
+    "Window",
+    "Element",
+    "Location",
+]}
+instant = { version = "0.1", features = [ "wasm-bindgen" ] }
 
 [build-dependencies]
 anyhow = "1.0"

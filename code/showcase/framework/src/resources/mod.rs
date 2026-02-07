@@ -11,15 +11,14 @@ pub mod model;
 pub mod texture;
 
 #[cfg(target_arch = "wasm32")]
-fn format_url(file_name: impl AsRef<Path>) -> reqwest::Url {
+fn format_url(path: impl AsRef<Path>) -> reqwest::Url {
     let window = web_sys::window().unwrap();
     let location = window.location();
     let mut origin = location.origin().unwrap();
     if !origin.ends_with("learn-wgpu") {
         origin = format!("{}/learn-wgpu", origin);
     }
-    let base = reqwest::Url::parse(&format!("{}/", origin,)).unwrap();
-    base.join(file_name).unwrap()
+    reqwest::Url::parse(&format!("{}/{}", origin, path.as_ref().display())).unwrap()
 }
 
 pub async fn load_string(path: impl AsRef<Path>) -> anyhow::Result<String> {
@@ -28,6 +27,7 @@ pub async fn load_string(path: impl AsRef<Path>) -> anyhow::Result<String> {
         let url = format_url(path);
         reqwest::get(url).await?.text().await?
     };
+    
     #[cfg(not(target_arch = "wasm32"))]
     let txt = std::fs::read_to_string(path)?;
 

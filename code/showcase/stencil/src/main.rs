@@ -3,7 +3,7 @@ use core::f32::consts::PI;
 
 use framework::{Demo, MaterialBinder, ModelVertex, Vertex};
 use glam::{Vec3, Vec4};
-use rand::Rng;
+use framework::rand::{self, Rng};
 use winit::keyboard::KeyCode;
 
 #[derive(Debug, Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
