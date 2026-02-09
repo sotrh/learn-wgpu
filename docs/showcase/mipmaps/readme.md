@@ -1,6 +1,6 @@
 # Mipmapping
 
-I games and other graphics applications it's often convenient to
+In games and other graphics applications it's often convenient to
 use a single texture that gets tiled across the surface. If you
 use a texture with some complexity, and your scene is large you'll
 get a lot of noise in the distances.
@@ -92,7 +92,7 @@ display.queue.write_texture(
 );
 ```
 
-No if you were to sample this texture as is, you would see a lot
+Now if you were to sample this texture as is, you would see a lot
 of black pixels far away, and the regular texture up close.
 
 ![texture with ungenerated mips](./texture-with-ungenerated-mips.png)
