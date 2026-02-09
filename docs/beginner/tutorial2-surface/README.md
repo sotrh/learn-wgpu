@@ -358,7 +358,7 @@ The last lines of the code tell `wgpu` to finish the command buffer and submit i
 We need to update the event loop again to call this method. We'll also call `update()` before it, too.
 
 ```rust
-// run()
+// in ApplicationHandler<State> for App
     fn window_event(
         &mut self,
         event_loop: &ActiveEventLoop,
