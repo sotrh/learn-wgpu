@@ -10,11 +10,12 @@ pub use buffer::*;
 pub use camera::*;
 pub use light::*;
 pub use pipeline::*;
-use pollster::FutureExt;
 pub use resources::model::*;
 pub use resources::texture::*;
 pub use shader_canvas::*;
 
+#[cfg(not(target_arch = "wasm32"))]
+use pollster::FutureExt;
 pub use rand;
 
 // use cgmath::*;
@@ -257,8 +258,8 @@ impl UniformBinding {
     }
 }
 
-pub trait Demo: 'static + Sized + Send + std::fmt::Debug {
-    fn init(display: &Display) -> impl std::future::Future<Output = anyhow::Result<Self>> + Send;
+pub trait Demo: 'static + Sized + wgpu::WasmNotSend + std::fmt::Debug {
+    fn init(display: &Display) -> impl std::future::Future<Output = anyhow::Result<Self>> + wgpu::WasmNotSend;
     fn resize(&mut self, display: &Display);
     fn update(&mut self, display: &Display, dt: Duration);
     fn render(&mut self, display: &mut Display);
