@@ -2,6 +2,7 @@ module.exports = {
     base: '/learn-wgpu/',
     title: 'Learn Wgpu',
     theme: 'thindark',
+    public: 'res',
     plugins: {
         'vuepress-plugin-code-copy': true,
         '@vuepress/back-to-top': true,

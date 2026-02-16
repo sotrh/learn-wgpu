@@ -1,5 +1,6 @@
 use core::f32;
 use core::f32::consts::PI;
+use std::path::Path;
 
 use framework::{Demo, MaterialBinder, ModelVertex, Vertex};
 use glam::{Vec3, Vec4};
@@ -61,7 +62,8 @@ impl std::fmt::Debug for Stencil {
 }
 
 impl Demo for Stencil {
-    async fn init(display: &framework::Display) -> anyhow::Result<Self> {
+    async fn init(display: &framework::Display, res_dir: &Path) -> anyhow::Result<Self> {
+        log::info!("instances");
         let num_instances = 64;
         let half_instanes = num_instances / 2;
         let instances = (0..num_instances)
@@ -124,12 +126,13 @@ impl Demo for Stencil {
                 }],
             });
 
+        log::info!("depth_stencil");
         let depth_stencil_format = wgpu::TextureFormat::Depth24PlusStencil8;
         let depth_stencil = display.device.create_texture(&wgpu::TextureDescriptor {
             label: Some("depth_stencil"),
             size: wgpu::Extent3d {
-                width: display.width(),
-                height: display.height(),
+                width: display.config.width.max(1),
+                height: display.config.height.max(1),
                 depth_or_array_layers: 1,
             },
             mip_level_count: 1,
@@ -141,19 +144,17 @@ impl Demo for Stencil {
         });
         let depth_stencil_view = depth_stencil.create_view(&Default::default());
 
-        let res_dir = std::env::current_dir()?.join("res");
-
-        println!("Mask");
-        let mask_texture = framework::Texture::load(
+        log::info!("Mask");
+        let mask_texture = framework::resources::load_texture(
+            res_dir.join("textures/mask.png"),
+            false,
             &display.device,
             &display.queue,
-            res_dir.join("textures/mask.png"), // Fix for web
-            false,
-        )?;
+        ).await?;
 
         let material_binder = MaterialBinder::new(&display.device);
 
-        println!("Model");
+        log::info!("Model");
         let model = framework::resources::load_obj(
             res_dir.join("models/cube.obj"), // Fix for web
             &display.device,

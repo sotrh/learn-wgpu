@@ -18,12 +18,12 @@ winit.workspace = true
 thiserror = "1.0"
 bytemuck = { version = "1.24", features = [ "derive" ] }
 cgmath = "0.18"
-# wgpu-subscriber = "0.1"
 slotmap = "1.1.1"
 rand = "0.8"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 async-fs = "2.2.0"
+env_logger = "0.10"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 getrandom = { version = "*", features = ["js"] }

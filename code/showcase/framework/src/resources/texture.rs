@@ -20,7 +20,6 @@ impl Texture {
         path: P,
         is_normal_map: bool,
     ) -> Result<Self> {
-        // let path_copy = path.as_ref().to_path_buf();
         let img = image::open(&path)?;
         let label = path.as_ref().to_str().unwrap();
         Self::from_image(device, queue, &img, Some(label), is_normal_map)

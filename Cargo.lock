@@ -3634,9 +3634,14 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bytemuck",
+ "console_error_panic_hook",
+ "console_log",
+ "env_logger 0.10.2",
  "framework",
  "glam",
  "log 0.4.29",
+ "reqwest 0.11.27",
+ "web-time",
  "wgpu",
  "winit",
 ]

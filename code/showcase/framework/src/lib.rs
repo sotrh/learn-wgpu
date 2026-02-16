@@ -1,9 +1,9 @@
+pub mod prelude;
+pub mod resources;
 mod buffer;
 mod camera;
 mod light;
 mod pipeline;
-pub mod prelude;
-pub mod resources;
 mod shader_canvas;
 
 pub use buffer::*;
@@ -16,12 +16,15 @@ pub use shader_canvas::*;
 
 #[cfg(not(target_arch = "wasm32"))]
 use pollster::FutureExt;
+
+use std::ops::Deref;
+use std::path::Path;
+use std::path::PathBuf;
+use std::sync::Arc;
+
 pub use rand;
 
-// use cgmath::*;
-use std::ops::Deref;
-use std::sync::Arc;
-use std::time::{Duration, Instant};
+use instant::{Duration, Instant};
 use wgpu::util::{BufferInitDescriptor, DeviceExt};
 use winit::application::ApplicationHandler;
 use winit::event_loop::EventLoopProxy;
@@ -89,8 +92,8 @@ impl Display {
         let config = wgpu::SurfaceConfiguration {
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
             format: surface_format,
-            width: size.width,
-            height: size.height,
+            width: size.width.max(1),
+            height: size.height.max(1),
             present_mode: surface_caps.present_modes[0],
             alpha_mode: surface_caps.alpha_modes[0],
             view_formats: vec![],
@@ -259,7 +262,7 @@ impl UniformBinding {
 }
 
 pub trait Demo: 'static + Sized + wgpu::WasmNotSend + std::fmt::Debug {
-    fn init(display: &Display) -> impl std::future::Future<Output = anyhow::Result<Self>> + wgpu::WasmNotSend;
+    fn init(display: &Display, path: &Path) -> impl std::future::Future<Output = anyhow::Result<Self>> + wgpu::WasmNotSend;
     fn resize(&mut self, display: &Display);
     fn update(&mut self, display: &Display, dt: Duration);
     fn render(&mut self, display: &mut Display);
@@ -312,15 +315,22 @@ impl<D: Demo + 'static> ApplicationHandler<anyhow::Result<(Display, D)>> for App
         if let Some(proxy) = self.proxy.take() {
             let window = window.clone();
             let setup_future = async move {
+                #[cfg(not(target_arch = "wasm32"))]
+                let res_dir = std::env::current_dir()?.join("res");
+                #[cfg(target_arch = "wasm32")]
+                let res_dir = PathBuf::new();
+
                 let display = Display::new(window).await?;
-                let demo = D::init(&display).await?;
+                let demo = D::init(&display, &res_dir).await?;
                 anyhow::Ok((display, demo))
             };
 
             #[cfg(target_arch = "wasm32")]
             wasm_bindgen_futures::spawn_local(async move {
+                log::info!("1");
                 let result = setup_future.await;
 
+                log::info!("2");
                 proxy
                     .send_event(result)
                     .expect("Unable to send (display, demo)");
@@ -420,7 +430,18 @@ impl<D: Demo + 'static> ApplicationHandler<anyhow::Result<(Display, D)>> for App
 }
 
 pub fn run<D: Demo>() -> anyhow::Result<()> {
-    // wgpu_subscriber::initialize_default_subscriber(None);
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        env_logger::init();
+    }
+    #[cfg(target_arch = "wasm32")]
+    {
+        use wgpu::web_sys::wasm_bindgen::UnwrapThrowExt;
+        console_error_panic_hook::set_once();
+        console_log::init_with_level(log::Level::Info).unwrap_throw();
+    }
+
+    log::info!("run");
 
     let event_loop = EventLoop::with_user_event().build()?;
     let mut app = App::<D>::new(&event_loop);

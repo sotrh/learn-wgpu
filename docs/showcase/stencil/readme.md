@@ -382,6 +382,10 @@ lighting techniques such as spot lights all use a stencil buffer.
 I may cover some of these at a later date, but this should
 give you all the tools you need to try some of these yourself.
 
+## Demo
+
+<WasmExample example="stencil"></WasmExample>
+
 ## Thanks to these supporters!
 
 - David Laban

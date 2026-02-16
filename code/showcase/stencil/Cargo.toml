@@ -12,3 +12,12 @@ glam.workspace = true
 wgpu.workspace = true
 winit.workspace = true
 log.workspace = true
+web-time.workspace = true
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+env_logger = "0.10"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+reqwest = { version = "0.11" }
+console_error_panic_hook = "0.1"
+console_log = "1.0"
