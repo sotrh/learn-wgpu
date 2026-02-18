@@ -483,6 +483,7 @@ impl State {
             event_loop.exit();
         } else {
             self.camera_controller.handle_key(key, pressed);
+            self.update();
         }
     }
 
