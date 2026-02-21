@@ -1,11 +1,6 @@
 {
   "name": "learn-wgpu",
-  "version": "1.0.0",
-  "description": "Learning wgpu with Rust",
-  "main": "index.js",
-  "directories": {
-    "doc": "docs"
-  },
+  "packageManager": "yarn@4.9.2",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "cross-env NODE_OPTIONS=--openssl-legacy-provider; ./build-wasm.sh && vuepress dev docs",
@@ -14,17 +9,11 @@
     "just-build": "cross-env NODE_OPTIONS=--openssl-legacy-provider; vuepress build docs",
     "just-dev": "cross-env NODE_OPTIONS=--openssl-legacy-provider; vuepress dev docs"
   },
-  "author": "",
-  "license": "ISC",
   "devDependencies": {
-    "@vuepress/plugin-back-to-top": "^1.9.5",
-    "vue-template-compiler": "^2.7.16",
-    "vuepress": "^1.9.5",
-    "vuepress-plugin-code-copy": "^1.0.6",
-    "vuepress-plugin-seo": "^0.2.0",
-    "vuepress-theme-thindark": "^1.0.1"
-  },
-  "dependencies": {
-    "cross-env": "^7.0.3"
+    "@vitejs/plugin-vue": "^6.0.4",
+    "@vuepress/bundler-vite": "^2.0.0-rc.26",
+    "@vuepress/theme-default": "^2.0.0-rc.123",
+    "sass-embedded": "^1.97.3",
+    "vuepress": "^2.0.0-rc.26"
   }
 }
