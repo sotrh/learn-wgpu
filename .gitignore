@@ -19,3 +19,6 @@ Chunk*
 !.yarn/releases
 !.yarn/plugins
 .pnp.*
+
+docs/.vuepress/.cache/
+docs/.vuepress/.temp/

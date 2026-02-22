@@ -2,8 +2,6 @@ import { defineUserConfig } from "vuepress";
 import { viteBundler } from "@vuepress/bundler-vite";
 import { defaultTheme } from "@vuepress/theme-default";
 
-import WasmExample from "./components/WasmExample.vue"
-
 export default defineUserConfig({
   base: "/learn-wgpu/",
   title: "Learn Wgpu",
@@ -11,9 +9,6 @@ export default defineUserConfig({
   bundler: viteBundler({
     vuePluginOptions: {}
   }),
-  enhance: ({ app, router, siteData }) => {
-    app.component("WasmExample", WasmExample)
-  },
   theme: defaultTheme({
     navbar: [
       {
