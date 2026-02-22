@@ -2,12 +2,17 @@ import { defineUserConfig } from "vuepress";
 import { viteBundler } from "@vuepress/bundler-vite";
 import { defaultTheme } from "@vuepress/theme-default";
 
+import wasm from "vite-plugin-wasm";
+import topLevelAwait from "vite-plugin-top-level-await";
+
 export default defineUserConfig({
   base: "/learn-wgpu/",
   title: "Learn Wgpu",
   public: "res",
   bundler: viteBundler({
-    vuePluginOptions: {}
+    viteOptions: {
+      plugins: [wasm(), topLevelAwait()],
+    },
   }),
   theme: defaultTheme({
     navbar: [

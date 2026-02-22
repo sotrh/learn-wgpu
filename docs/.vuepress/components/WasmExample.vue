@@ -53,7 +53,12 @@ export default {
     async loadExample() {
       this.loading = true;
       try {
-        this.module = await import(`./wasm/${this.example}/demo.js`);
+        const modules = import.meta.glob('./wasm/*/demo.js');
+        const loader = modules[`./wasm/${this.example}/demo.js`];
+        if (!loader) {
+          throw new Error(`No wasm module found for example "${this.example}"`);
+        }
+        this.module = await loader();
         if (window) {
           window.wasm = this.module;
         }
