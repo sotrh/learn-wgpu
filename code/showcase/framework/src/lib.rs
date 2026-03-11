@@ -444,8 +444,17 @@ pub fn run<D: Demo>() -> anyhow::Result<()> {
     log::info!("run");
 
     let event_loop = EventLoop::with_user_event().build()?;
-    let mut app = App::<D>::new(&event_loop);
-    event_loop.run_app(&mut app)?;
+
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        let mut app = App::<D>::new(&event_loop);
+        event_loop.run_app(&mut app)?;
+    }
+    #[cfg(target_arch = "wasm32")]
+    {
+        let app = App::<D>::new(&event_loop);
+        event_loop.spawn_app(app);
+    }
 
     Ok(())
 }
