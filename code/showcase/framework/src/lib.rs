@@ -1,9 +1,9 @@
-pub mod prelude;
-pub mod resources;
 mod buffer;
 mod camera;
 mod light;
 mod pipeline;
+pub mod prelude;
+pub mod resources;
 mod shader_canvas;
 
 pub use buffer::*;
@@ -262,7 +262,10 @@ impl UniformBinding {
 }
 
 pub trait Demo: 'static + Sized + wgpu::WasmNotSend + std::fmt::Debug {
-    fn init(display: &Display, path: &Path) -> impl std::future::Future<Output = anyhow::Result<Self>> + wgpu::WasmNotSend;
+    fn init(
+        display: &Display,
+        path: &Path,
+    ) -> impl std::future::Future<Output = anyhow::Result<Self>> + wgpu::WasmNotSend;
     fn resize(&mut self, display: &Display);
     fn update(&mut self, display: &Display, dt: Duration);
     fn render(&mut self, display: &mut Display);
@@ -298,8 +301,8 @@ impl<D: Demo + 'static> ApplicationHandler<anyhow::Result<(Display, D)>> for App
         #[cfg(target_arch = "wasm32")]
         {
             use wasm_bindgen::JsCast;
-            use winit::platform::web::WindowAttributesExtWebSys;
             use wasm_bindgen_futures::wasm_bindgen::UnwrapThrowExt;
+            use winit::platform::web::WindowAttributesExtWebSys;
 
             const CANVAS_ID: &str = "canvas";
 

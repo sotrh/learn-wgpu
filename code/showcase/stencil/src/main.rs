@@ -2,9 +2,9 @@ use core::f32;
 use core::f32::consts::PI;
 use std::path::Path;
 
+use framework::rand::{self, Rng};
 use framework::{Demo, MaterialBinder, ModelVertex, Vertex};
 use glam::{Vec3, Vec4};
-use framework::rand::{self, Rng};
 use winit::keyboard::KeyCode;
 
 #[derive(Debug, Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
@@ -150,7 +150,8 @@ impl Demo for Stencil {
             false,
             &display.device,
             &display.queue,
-        ).await?;
+        )
+        .await?;
 
         let material_binder = MaterialBinder::new(&display.device);
 

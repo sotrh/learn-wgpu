@@ -27,7 +27,7 @@ pub async fn load_string(path: impl AsRef<Path>) -> anyhow::Result<String> {
         let url = format_url(path);
         reqwest::get(url).await?.text().await?
     };
-    
+
     #[cfg(not(target_arch = "wasm32"))]
     let txt = std::fs::read_to_string(path)?;
 
