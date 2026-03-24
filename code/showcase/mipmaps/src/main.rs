@@ -1,4 +1,4 @@
-use std::{any::type_name, f32::consts::PI};
+use std::{any::type_name, f32::consts::PI, path::Path};
 
 use framework::Demo;
 use glam::vec3;
@@ -58,7 +58,7 @@ impl std::fmt::Debug for Mipmaps {
 }
 
 impl Demo for Mipmaps {
-    async fn init(display: &framework::Display) -> anyhow::Result<Self> {
+    async fn init(display: &framework::Display, _res_dir: &Path) -> anyhow::Result<Self> {
         let projection =
             framework::Projection::new(display.width(), display.height(), PI * 0.25, 0.1, 100.0);
 

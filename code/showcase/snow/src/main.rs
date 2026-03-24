@@ -1,4 +1,4 @@
-use std::f32::consts::PI;
+use std::{f32::consts::PI, path::Path};
 
 use framework::{Camera, CameraController, Projection};
 use wgpu::util::{BufferInitDescriptor, DeviceExt};
@@ -56,7 +56,7 @@ struct Snow {
 }
 
 impl framework::Demo for Snow {
-    async fn init(display: &framework::Display) -> anyhow::Result<Self> {
+    async fn init(display: &framework::Display, _res_dir: &Path) -> anyhow::Result<Self> {
         let particle_layout =
             display
                 .device
