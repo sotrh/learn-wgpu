@@ -2,7 +2,7 @@ use flume::bounded;
 use wgpu::util::{BufferInitDescriptor, DeviceExt};
 
 pub async fn run() -> anyhow::Result<()> {
-    let instance = wgpu::Instance::new(&Default::default());
+    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor::new_without_display_handle());
     let adapter = instance.request_adapter(&Default::default()).await.unwrap();
     let (device, queue) = adapter.request_device(&Default::default()).await.unwrap();
 

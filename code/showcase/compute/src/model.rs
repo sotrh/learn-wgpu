@@ -241,7 +241,7 @@ impl ModelLoader {
         let shader_src = wgpu::include_wgsl!("model_load.comp.wgsl");
         let pipeline = pipeline::create_compute_pipeline(
             device,
-            &[&binder.layout],
+            &[Some(&binder.layout)],
             shader_src,
             Some("ModelLoader ComputePipeline"),
         );

@@ -211,7 +211,7 @@ impl Demo for Stencil {
                 .device
                 .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                     label: Some("mask_pipeline_layout"),
-                    bind_group_layouts: &[&mask_bind_group_layout],
+                    bind_group_layouts: &[Some(&mask_bind_group_layout)],
                     immediate_size: 0,
                 });
 
@@ -223,8 +223,8 @@ impl Demo for Stencil {
             .cull_mode(Some(wgpu::Face::Back))
             .depth_stencil(wgpu::DepthStencilState {
                 format: depth_stencil_format,
-                depth_write_enabled: false,
-                depth_compare: wgpu::CompareFunction::Always,
+                depth_write_enabled: Some(false),
+                depth_compare: Some(wgpu::CompareFunction::Always),
                 stencil: wgpu::StencilState {
                     write_mask: 0xFF,
                     read_mask: 0xFF,
@@ -255,7 +255,7 @@ impl Demo for Stencil {
         let model_pipeline_layout =
             display.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("model_pipeline_layout"),
-                bind_group_layouts: &[&camera_layout, material_binder.layout()],
+                bind_group_layouts: &[Some(&camera_layout), Some(material_binder.layout())],
                 immediate_size: 0,
             });
         let model_shader = wgpu::include_wgsl!("model.wgsl");
@@ -271,8 +271,8 @@ impl Demo for Stencil {
             })
             .depth_stencil(wgpu::DepthStencilState {
                 format: depth_stencil.format(),
-                depth_write_enabled: true,
-                depth_compare: wgpu::CompareFunction::Less,
+                depth_write_enabled: Some(true),
+                depth_compare: Some(wgpu::CompareFunction::Less),
                 stencil: wgpu::StencilState::default(),
                 bias: wgpu::DepthBiasState::default(),
             })
@@ -292,8 +292,8 @@ impl Demo for Stencil {
             })
             .depth_stencil(wgpu::DepthStencilState {
                 format: depth_stencil.format(),
-                depth_write_enabled: true,
-                depth_compare: wgpu::CompareFunction::Less,
+                depth_write_enabled: Some(true),
+                depth_compare: Some(wgpu::CompareFunction::Less),
                 stencil: wgpu::StencilState {
                     read_mask: 0xFF,
                     write_mask: 0xFF,
@@ -375,9 +375,21 @@ impl Demo for Stencil {
 
     fn render(&mut self, display: &mut framework::Display) {
         let frame = match display.surface().get_current_texture() {
-            Ok(frame) => frame,
-            Err(wgpu::SurfaceError::Outdated) => return,
-            Err(e) => panic!("{}", e),
+            wgpu::CurrentSurfaceTexture::Success(surface_texture) => surface_texture,
+            wgpu::CurrentSurfaceTexture::Suboptimal(surface_texture) => {
+                display.configure();
+                surface_texture
+            }
+            wgpu::CurrentSurfaceTexture::Timeout
+            | wgpu::CurrentSurfaceTexture::Occluded
+            | wgpu::CurrentSurfaceTexture::Validation => return,
+            wgpu::CurrentSurfaceTexture::Outdated => {
+                display.configure();
+                return;
+            }
+            wgpu::CurrentSurfaceTexture::Lost => {
+                panic!("Context lost");
+            }
         };
 
         let view = frame.texture.create_view(&Default::default());

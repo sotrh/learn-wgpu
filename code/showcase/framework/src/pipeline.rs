@@ -139,8 +139,8 @@ impl<'a> RenderPipelineBuilder<'a> {
     ) -> &mut Self {
         self.depth_stencil(wgpu::DepthStencilState {
             format,
-            depth_write_enabled,
-            depth_compare,
+            depth_write_enabled: Some(depth_write_enabled),
+            depth_compare: Some(depth_compare),
             stencil: Default::default(),
             bias: wgpu::DepthBiasState::default(),
         })

@@ -313,7 +313,7 @@ async fn new(...) {
     let render_pipeline_layout = device.create_pipeline_layout(
         &wgpu::PipelineLayoutDescriptor {
             label: Some("Render Pipeline Layout"),
-            bind_group_layouts: &[&texture_bind_group_layout], // NEW!
+            bind_group_layouts: &[Some(&texture_bind_group_layout)], // NEW!
             immediate_size: 0,
         }
     );

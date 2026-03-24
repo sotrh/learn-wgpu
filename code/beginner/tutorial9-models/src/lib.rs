@@ -241,12 +241,15 @@ impl State {
         // The instance is a handle to our GPU
         // BackendBit::PRIMARY => Vulkan + Metal + DX12 + Browser WebGPU
         log::warn!("WGPU setup");
-        let instance = wgpu::Instance::new(&wgpu::InstanceDescriptor {
+        let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
             #[cfg(not(target_arch = "wasm32"))]
             backends: wgpu::Backends::PRIMARY,
             #[cfg(target_arch = "wasm32")]
             backends: wgpu::Backends::GL,
-            ..Default::default()
+            flags: Default::default(),
+            memory_budget_thresholds: Default::default(),
+            backend_options: Default::default(),
+            display: None,
         });
 
         let surface = instance.create_surface(window.clone()).unwrap();
@@ -414,7 +417,10 @@ impl State {
         let render_pipeline_layout =
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("Render Pipeline Layout"),
-                bind_group_layouts: &[&texture_bind_group_layout, &camera_bind_group_layout],
+                bind_group_layouts: &[
+                    Some(&texture_bind_group_layout),
+                    Some(&camera_bind_group_layout),
+                ],
                 immediate_size: 0,
             });
 
@@ -455,8 +461,8 @@ impl State {
             },
             depth_stencil: Some(wgpu::DepthStencilState {
                 format: texture::Texture::DEPTH_FORMAT,
-                depth_write_enabled: true,
-                depth_compare: wgpu::CompareFunction::Less,
+                depth_write_enabled: Some(true),
+                depth_compare: Some(wgpu::CompareFunction::Less),
                 stencil: wgpu::StencilState::default(),
                 bias: wgpu::DepthBiasState::default(),
             }),
@@ -527,7 +533,7 @@ impl State {
         );
     }
 
-    fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
+    fn render(&mut self) -> anyhow::Result<()> {
         self.window.request_redraw();
 
         // We can't render unless the surface is configured
@@ -535,7 +541,28 @@ impl State {
             return Ok(());
         }
 
-        let output = self.surface.get_current_texture()?;
+        let output = match self.surface.get_current_texture() {
+            wgpu::CurrentSurfaceTexture::Success(surface_texture) => surface_texture,
+            wgpu::CurrentSurfaceTexture::Suboptimal(surface_texture) => {
+                self.surface.configure(&self.device, &self.config);
+                surface_texture
+            }
+            wgpu::CurrentSurfaceTexture::Timeout
+            | wgpu::CurrentSurfaceTexture::Occluded
+            | wgpu::CurrentSurfaceTexture::Validation => {
+                // Skip this frame
+                return Ok(());
+            }
+            wgpu::CurrentSurfaceTexture::Outdated => {
+                self.surface.configure(&self.device, &self.config);
+                return Ok(());
+            }
+            wgpu::CurrentSurfaceTexture::Lost => {
+                // You could recreate the devices and all resources
+                // created with it here, but we'll just bail
+                anyhow::bail!("Lost device");
+            }
+        };
         let view = output
             .texture
             .create_view(&wgpu::TextureViewDescriptor::default());
@@ -685,13 +712,10 @@ impl ApplicationHandler<State> for App {
                 state.update();
                 match state.render() {
                     Ok(_) => {}
-                    // Reconfigure the surface if it's lost or outdated
-                    Err(wgpu::SurfaceError::Lost | wgpu::SurfaceError::Outdated) => {
-                        let size = state.window.inner_size();
-                        state.resize(size.width, size.height);
-                    }
                     Err(e) => {
-                        log::error!("Unable to render {}", e);
+                        // Log the error and exit gracefully
+                        log::error!("{e}");
+                        event_loop.exit();
                     }
                 }
             }

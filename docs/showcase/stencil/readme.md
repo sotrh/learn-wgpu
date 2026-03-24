@@ -88,7 +88,7 @@ let mask_pipeline_layout =
         .device
         .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             label: Some("mask_pipeline_layout"),
-            bind_group_layouts: &[&mask_bind_group_layout],
+            bind_group_layouts: &[Some(&mask_bind_group_layout)],
             immediate_size: 0,
         });
 
@@ -100,8 +100,8 @@ let mask_pipeline = framework::RenderPipelineBuilder::new()
     .cull_mode(Some(wgpu::Face::Back))
     .depth_stencil(wgpu::DepthStencilState {
         format: depth_stencil_format,
-        depth_write_enabled: false,
-        depth_compare: wgpu::CompareFunction::Always,
+        depth_write_enabled: Some(false),
+        depth_compare: Some(wgpu::CompareFunction::Always),
         stencil: wgpu::StencilState {
             write_mask: 0xFF,
             read_mask: 0xFF,
@@ -234,8 +234,8 @@ let hidden_pipeline = framework::RenderPipelineBuilder::new()
     })
     .depth_stencil(wgpu::DepthStencilState {
         format: depth_stencil.format(),
-        depth_write_enabled: true,
-        depth_compare: wgpu::CompareFunction::Less,
+        depth_write_enabled: Some(true),
+        depth_compare: Some(wgpu::CompareFunction::Less),
         stencil: wgpu::StencilState {
             // Read all bits
             read_mask: 0xFF,

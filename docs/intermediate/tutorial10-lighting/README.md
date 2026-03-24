@@ -98,9 +98,9 @@ Add those to `State` and also update the `render_pipeline_layout`.
 ```rust
 let render_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
     bind_group_layouts: &[
-        &texture_bind_group_layout, 
-        &camera_bind_group_layout,
-        &light_bind_group_layout,
+        Some(&texture_bind_group_layout), 
+        Some(&camera_bind_group_layout),
+        Some(&light_bind_group_layout),
     ],
 });
 ```
@@ -171,8 +171,8 @@ fn create_render_pipeline(
         },
         depth_stencil: depth_format.map(|format| wgpu::DepthStencilState {
             format,
-            depth_write_enabled: true,
-            depth_compare: wgpu::CompareFunction::Less,
+            depth_write_enabled: Some(true),
+            depth_compare: Some(wgpu::CompareFunction::Less),
             stencil: wgpu::StencilState::default(),
             bias: wgpu::DepthBiasState::default(),
         }),
@@ -302,7 +302,7 @@ With that done, we can create another render pipeline for our light.
 let light_render_pipeline = {
     let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
         label: Some("Light Pipeline Layout"),
-        bind_group_layouts: &[&camera_bind_group_layout, &light_bind_group_layout],
+        bind_group_layouts: &[Some(&camera_bind_group_layout), Some(&light_bind_group_layout)],
         immediate_size: 0,
     });
     let shader = wgpu::ShaderModuleDescriptor {
@@ -457,7 +457,7 @@ Finally, we want to add Light rendering to our render passes.
 ```rust
 impl State {
     // ...
-   fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
+   fn render(&mut self) -> anyhow::Result<()> {
         // ...
         render_pass.set_vertex_buffer(1, self.instance_buffer.slice(..));
 

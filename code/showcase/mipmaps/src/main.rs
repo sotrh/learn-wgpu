@@ -418,7 +418,7 @@ impl Demo for Mipmaps {
                 .device
                 .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                     label: None,
-                    bind_group_layouts: &[&camera_layout, &texture_layout],
+                    bind_group_layouts: &[Some(&camera_layout), Some(&texture_layout)],
                     immediate_size: 0,
                 });
 
@@ -506,9 +506,21 @@ impl Demo for Mipmaps {
 
     fn render(&mut self, display: &mut framework::Display) {
         let frame = match display.surface().get_current_texture() {
-            Ok(frame) => frame,
-            Err(wgpu::SurfaceError::Outdated) => return,
-            Err(e) => panic!("{}", e),
+            wgpu::CurrentSurfaceTexture::Success(surface_texture) => surface_texture,
+            wgpu::CurrentSurfaceTexture::Suboptimal(surface_texture) => {
+                display.configure();
+                surface_texture
+            }
+            wgpu::CurrentSurfaceTexture::Timeout
+            | wgpu::CurrentSurfaceTexture::Occluded
+            | wgpu::CurrentSurfaceTexture::Validation => return,
+            wgpu::CurrentSurfaceTexture::Outdated => {
+                display.configure();
+                return;
+            }
+            wgpu::CurrentSurfaceTexture::Lost => {
+                panic!("Context lost");
+            }
         };
 
         let view = frame.texture.create_view(&Default::default());

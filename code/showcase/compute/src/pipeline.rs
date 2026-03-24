@@ -79,8 +79,8 @@ pub fn create_render_pipeline(
         },
         depth_stencil: depth_format.map(|format| wgpu::DepthStencilState {
             format,
-            depth_write_enabled: true,
-            depth_compare: wgpu::CompareFunction::Less,
+            depth_write_enabled: Some(true),
+            depth_compare: Some(wgpu::CompareFunction::Less),
             stencil: wgpu::StencilState::default(),
             bias: wgpu::DepthBiasState::default(),
         }),
@@ -98,7 +98,7 @@ pub fn create_render_pipeline(
 
 pub fn create_compute_pipeline(
     device: &wgpu::Device,
-    bind_group_layouts: &[&wgpu::BindGroupLayout],
+    bind_group_layouts: &[Option<&wgpu::BindGroupLayout>],
     shader_src: wgpu::ShaderModuleDescriptor,
     label: Option<&str>,
 ) -> wgpu::ComputePipeline {

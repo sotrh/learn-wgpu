@@ -40,7 +40,7 @@ impl Mipmapper {
 
         let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             label: None,
-            bind_group_layouts: &[&storage_texture_layout],
+            bind_group_layouts: &[Some(&storage_texture_layout)],
             immediate_size: 0,
         });
         let compute_module = device.create_shader_module(wgpu::include_wgsl!("mipmap.wgsl"));
