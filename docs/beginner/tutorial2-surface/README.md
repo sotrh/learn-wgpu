@@ -55,6 +55,18 @@ impl State {
 
         // ...
     }
+
+    // ...
+}
+```
+
+Note: if you specify a display handle via the `display` field on `InstanceDescriptor`
+the display you pass into `create_surface()` must match up with it. You can define
+the `display` on the `InstanceDescriptor` struct directly or with a convenience
+method:
+
+```rust
+let instance = Instance::new(InstanceDescriptor::new_with_display_handle(Box::new(event_loop.owned_display_handle())));
 ```
 
 ### Instance and Adapter
@@ -75,6 +87,8 @@ The options I've passed to `request_adapter` aren't guaranteed to work for all d
 ```rust
 let adapter = instance
     .enumerate_adapters(wgpu::Backends::all())
+    .await
+    .into_iter()
     .filter(|adapter| {
         // Check if this adapter supports our surface
         adapter.is_surface_supported(&surface)
@@ -91,7 +105,7 @@ For more fields you can use to refine your search, [check out the docs](https://
 
 </div>
 
-### The Surface
+### What is the Surface?
 
 The `surface` is the part of the window that we draw to. We need it to draw directly to the screen. Our `window` needs to implement [raw-window-handle](https://crates.io/crates/raw-window-handle)'s `HasRawWindowHandle` trait to create a surface. Fortunately, winit's `Window` fits the bill. We also need it to request our `adapter`.
 
