@@ -1,2 +1,3596 @@
-import{_ as Pd}from"./vite-plugin-wasm-helper-D7K_KhUE.js";let _e,Md=(async()=>{const te="/learn-wgpu/assets/demo_bg-Ckv9xvSG.wasm";_e=function(){i.run_web()};function re(e){const n=_(e).Window;return f(n)}function ce(e){const n=_(e).Window;return f(n)}function fe(e){const n=_(e).WorkerGlobalScope;return f(n)}function ae(e){const n=_(e),t=typeof n=="boolean"?n:void 0;return g(t)?16777215:t?1:0}function ue(e,n){const t=$(_(n)),r=y(t,i.__wbindgen_export,i.__wbindgen_export2),c=p;l().setInt32(e+4,c,!0),l().setInt32(e+0,r,!0)}function oe(e){return typeof _(e)=="function"}function be(e){return _(e)===null}function ie(e){const n=_(e);return typeof n=="object"&&n!==null}function de(e){return _(e)===void 0}function se(e,n){const t=_(n),r=typeof t=="number"?t:void 0;l().setFloat64(e+8,g(r)?0:r,!0),l().setInt32(e+0,!g(r),!0)}function ge(e,n){const t=_(n),r=typeof t=="string"?t:void 0;var c=g(r)?0:y(r,i.__wbindgen_export,i.__wbindgen_export2),a=p;l().setInt32(e+4,a,!0),l().setInt32(e+0,c,!0)}function we(e,n){throw new Error(s(e,n))}function le(e){_(e)._wbg_cb_unref()}function me(e){_(e).abort()}function pe(e){const n=_(e).activeElement;return g(n)?0:f(n)}function xe(e,n){_(e).activeTexture(n>>>0)}function ye(e,n){_(e).activeTexture(n>>>0)}function he(){return o(function(e,n,t,r){_(e).addEventListener(s(n,t),_(r))},arguments)}function ve(){return o(function(e,n){_(e).addListener(_(n))},arguments)}function Se(e){return _(e).altKey}function Ie(e){return _(e).altKey}function De(e,n,t){const r=_(e).animate(_(n),_(t));return f(r)}function Ae(){return o(function(e,n){const t=_(e).appendChild(_(n));return f(t)},arguments)}function Pe(){return o(function(e,n,t,r,c){_(e).append(s(n,t),s(r,c))},arguments)}function Me(){return o(function(e){const n=_(e).arrayBuffer();return f(n)},arguments)}function Be(e,n,t){_(e).attachShader(_(n),_(t))}function Fe(e,n,t){_(e).attachShader(_(n),_(t))}function Le(e,n,t){_(e).beginQuery(n>>>0,_(t))}function Te(){return o(function(e,n){const t=_(e).beginRenderPass(_(n));return f(t)},arguments)}function ke(e,n,t,r,c){_(e).bindAttribLocation(_(n),t>>>0,s(r,c))}function Ce(e,n,t,r,c){_(e).bindAttribLocation(_(n),t>>>0,s(r,c))}function Ee(e,n,t,r,c,a){_(e).bindBufferRange(n>>>0,t>>>0,_(r),c,a)}function Re(e,n,t){_(e).bindBuffer(n>>>0,_(t))}function Oe(e,n,t){_(e).bindBuffer(n>>>0,_(t))}function qe(e,n,t){_(e).bindFramebuffer(n>>>0,_(t))}function Ve(e,n,t){_(e).bindFramebuffer(n>>>0,_(t))}function Ge(e,n,t){_(e).bindRenderbuffer(n>>>0,_(t))}function We(e,n,t){_(e).bindRenderbuffer(n>>>0,_(t))}function Ue(e,n,t){_(e).bindSampler(n>>>0,_(t))}function ze(e,n,t){_(e).bindTexture(n>>>0,_(t))}function je(e,n,t){_(e).bindTexture(n>>>0,_(t))}function Ke(e,n){_(e).bindVertexArrayOES(_(n))}function Qe(e,n){_(e).bindVertexArray(_(n))}function Ne(e,n,t,r,c){_(e).blendColor(n,t,r,c)}function Xe(e,n,t,r,c){_(e).blendColor(n,t,r,c)}function $e(e,n,t){_(e).blendEquationSeparate(n>>>0,t>>>0)}function Ye(e,n,t){_(e).blendEquationSeparate(n>>>0,t>>>0)}function He(e,n){_(e).blendEquation(n>>>0)}function Je(e,n){_(e).blendEquation(n>>>0)}function Ze(e,n,t,r,c){_(e).blendFuncSeparate(n>>>0,t>>>0,r>>>0,c>>>0)}function en(e,n,t,r,c){_(e).blendFuncSeparate(n>>>0,t>>>0,r>>>0,c>>>0)}function nn(e,n,t){_(e).blendFunc(n>>>0,t>>>0)}function _n(e,n,t){_(e).blendFunc(n>>>0,t>>>0)}function tn(e,n,t,r,c,a,u,b,d,w,m){_(e).blitFramebuffer(n,t,r,c,a,u,b,d,w>>>0,m>>>0)}function rn(e){return _(e).blockSize}function cn(e){const n=_(e).body;return g(n)?0:f(n)}function fn(e,n){const t=_(n).brand,r=y(t,i.__wbindgen_export,i.__wbindgen_export2),c=p;l().setInt32(e+4,c,!0),l().setInt32(e+0,r,!0)}function an(e){const n=_(e).brands;return f(n)}function un(e,n,t,r){_(e).bufferData(n>>>0,t,r>>>0)}function on(e,n,t,r){_(e).bufferData(n>>>0,t,r>>>0)}function bn(e,n,t,r){_(e).bufferData(n>>>0,_(t),r>>>0)}function dn(e,n,t,r){_(e).bufferData(n>>>0,_(t),r>>>0)}function sn(e,n,t,r){_(e).bufferSubData(n>>>0,t,_(r))}function gn(e,n,t,r){_(e).bufferSubData(n>>>0,t,_(r))}function wn(e){return _(e).button}function ln(e){return _(e).buttons}function mn(){return o(function(e,n){const t=_(e).call(_(n));return f(t)},arguments)}function pn(){return o(function(e,n){_(e).cancelAnimationFrame(n)},arguments)}function xn(e,n){_(e).cancelIdleCallback(n>>>0)}function yn(e){_(e).cancel()}function hn(e,n){const t=_(e).catch(_(n));return f(t)}function vn(e,n,t,r,c){_(e).clearBufferfv(n>>>0,t,x(r,c))}function Sn(e,n,t,r,c){_(e).clearBufferiv(n>>>0,t,D(r,c))}function In(e,n,t,r,c){_(e).clearBufferuiv(n>>>0,t,M(r,c))}function Dn(e,n){_(e).clearDepth(n)}function An(e,n){_(e).clearDepth(n)}function Pn(e,n){_(e).clearStencil(n)}function Mn(e,n){_(e).clearStencil(n)}function Bn(e,n){_(e).clearTimeout(n)}function Fn(e,n){_(e).clear(n>>>0)}function Ln(e,n){_(e).clear(n>>>0)}function Tn(e,n,t,r){return _(e).clientWaitSync(_(n),t>>>0,r>>>0)}function kn(e){_(e).close()}function Cn(e,n){const t=_(n).code,r=y(t,i.__wbindgen_export,i.__wbindgen_export2),c=p;l().setInt32(e+4,c,!0),l().setInt32(e+0,r,!0)}function En(e,n,t,r,c){_(e).colorMask(n!==0,t!==0,r!==0,c!==0)}function Rn(e,n,t,r,c){_(e).colorMask(n!==0,t!==0,r!==0,c!==0)}function On(e,n){_(e).compileShader(_(n))}function qn(e,n){_(e).compileShader(_(n))}function Vn(e,n,t,r,c,a,u,b,d){_(e).compressedTexSubImage2D(n>>>0,t,r,c,a,u,b>>>0,_(d))}function Gn(e,n,t,r,c,a,u,b,d){_(e).compressedTexSubImage2D(n>>>0,t,r,c,a,u,b>>>0,_(d))}function Wn(e,n,t,r,c,a,u,b,d,w){_(e).compressedTexSubImage2D(n>>>0,t,r,c,a,u,b>>>0,d,w)}function Un(e,n,t,r,c,a,u,b,d,w,m){_(e).compressedTexSubImage3D(n>>>0,t,r,c,a,u,b,d,w>>>0,_(m))}function zn(e,n,t,r,c,a,u,b,d,w,m,h){_(e).compressedTexSubImage3D(n>>>0,t,r,c,a,u,b,d,w>>>0,m,h)}function jn(){return o(function(e,n){_(e).configure(_(n))},arguments)}function Kn(e,n){return _(e).contains(_(n))}function Qn(e){const n=_(e).contentRect;return f(n)}function Nn(e,n,t,r,c,a){_(e).copyBufferSubData(n>>>0,t>>>0,r,c,a)}function Xn(e,n,t,r,c,a,u,b,d){_(e).copyTexSubImage2D(n>>>0,t,r,c,a,u,b,d)}function $n(e,n,t,r,c,a,u,b,d){_(e).copyTexSubImage2D(n>>>0,t,r,c,a,u,b,d)}function Yn(e,n,t,r,c,a,u,b,d,w){_(e).copyTexSubImage3D(n>>>0,t,r,c,a,u,b,d,w)}function Hn(){return o(function(e,n){const t=_(e).createBindGroupLayout(_(n));return f(t)},arguments)}function Jn(e,n){const t=_(e).createBindGroup(_(n));return f(t)}function Zn(e){const n=_(e).createBuffer();return g(n)?0:f(n)}function e_(e){const n=_(e).createBuffer();return g(n)?0:f(n)}function n_(){return o(function(e,n){const t=_(e).createBuffer(_(n));return f(t)},arguments)}function __(e,n){const t=_(e).createCommandEncoder(_(n));return f(t)}function t_(){return o(function(e,n,t){const r=_(e).createElement(s(n,t));return f(r)},arguments)}function r_(e){const n=_(e).createFramebuffer();return g(n)?0:f(n)}function c_(e){const n=_(e).createFramebuffer();return g(n)?0:f(n)}function f_(){return o(function(e,n){const t=URL.createObjectURL(_(n)),r=y(t,i.__wbindgen_export,i.__wbindgen_export2),c=p;l().setInt32(e+4,c,!0),l().setInt32(e+0,r,!0)},arguments)}function a_(e,n){const t=_(e).createPipelineLayout(_(n));return f(t)}function u_(e){const n=_(e).createProgram();return g(n)?0:f(n)}function o_(e){const n=_(e).createProgram();return g(n)?0:f(n)}function b_(e){const n=_(e).createQuery();return g(n)?0:f(n)}function i_(){return o(function(e,n){const t=_(e).createRenderPipeline(_(n));return f(t)},arguments)}function d_(e){const n=_(e).createRenderbuffer();return g(n)?0:f(n)}function s_(e){const n=_(e).createRenderbuffer();return g(n)?0:f(n)}function g_(e,n){const t=_(e).createSampler(_(n));return f(t)}function w_(e){const n=_(e).createSampler();return g(n)?0:f(n)}function l_(e,n){const t=_(e).createShaderModule(_(n));return f(t)}function m_(e,n){const t=_(e).createShader(n>>>0);return g(t)?0:f(t)}function p_(e,n){const t=_(e).createShader(n>>>0);return g(t)?0:f(t)}function x_(e){const n=_(e).createTexture();return g(n)?0:f(n)}function y_(){return o(function(e,n){const t=_(e).createTexture(_(n));return f(t)},arguments)}function h_(e){const n=_(e).createTexture();return g(n)?0:f(n)}function v_(e){const n=_(e).createVertexArrayOES();return g(n)?0:f(n)}function S_(e){const n=_(e).createVertexArray();return g(n)?0:f(n)}function I_(){return o(function(e,n){const t=_(e).createView(_(n));return f(t)},arguments)}function D_(e){return _(e).ctrlKey}function A_(e){return _(e).ctrlKey}function P_(e,n){_(e).cullFace(n>>>0)}function M_(e,n){_(e).cullFace(n>>>0)}function B_(e){console.debug(_(e))}function F_(e,n){_(e).deleteBuffer(_(n))}function L_(e,n){_(e).deleteBuffer(_(n))}function T_(e,n){_(e).deleteFramebuffer(_(n))}function k_(e,n){_(e).deleteFramebuffer(_(n))}function C_(e,n){_(e).deleteProgram(_(n))}function E_(e,n){_(e).deleteProgram(_(n))}function R_(e,n){_(e).deleteQuery(_(n))}function O_(e,n){_(e).deleteRenderbuffer(_(n))}function q_(e,n){_(e).deleteRenderbuffer(_(n))}function V_(e,n){_(e).deleteSampler(_(n))}function G_(e,n){_(e).deleteShader(_(n))}function W_(e,n){_(e).deleteShader(_(n))}function U_(e,n){_(e).deleteSync(_(n))}function z_(e,n){_(e).deleteTexture(_(n))}function j_(e,n){_(e).deleteTexture(_(n))}function K_(e,n){_(e).deleteVertexArrayOES(_(n))}function Q_(e,n){_(e).deleteVertexArray(_(n))}function N_(e){return _(e).deltaMode}function X_(e){return _(e).deltaX}function $_(e){return _(e).deltaY}function Y_(e,n){_(e).depthFunc(n>>>0)}function H_(e,n){_(e).depthFunc(n>>>0)}function J_(e,n){_(e).depthMask(n!==0)}function Z_(e,n){_(e).depthMask(n!==0)}function et(e,n,t){_(e).depthRange(n,t)}function nt(e,n,t){_(e).depthRange(n,t)}function _t(e){_(e).destroy()}function tt(e){const n=_(e).devicePixelContentBoxSize;return f(n)}function rt(e){return _(e).devicePixelRatio}function ct(e,n){_(e).disableVertexAttribArray(n>>>0)}function ft(e,n){_(e).disableVertexAttribArray(n>>>0)}function at(e,n){_(e).disable(n>>>0)}function ut(e,n){_(e).disable(n>>>0)}function ot(e){_(e).disconnect()}function bt(e){_(e).disconnect()}function it(e){const n=_(e).document;return g(n)?0:f(n)}function dt(e){return _(e).done}function st(e,n,t,r,c){_(e).drawArraysInstancedANGLE(n>>>0,t,r,c)}function gt(e,n,t,r,c){_(e).drawArraysInstanced(n>>>0,t,r,c)}function wt(e,n,t,r){_(e).drawArrays(n>>>0,t,r)}function lt(e,n,t,r){_(e).drawArrays(n>>>0,t,r)}function mt(e,n){_(e).drawBuffersWEBGL(_(n))}function pt(e,n){_(e).drawBuffers(_(n))}function xt(e,n,t,r,c,a){_(e).drawElementsInstancedANGLE(n>>>0,t,r>>>0,c,a)}function yt(e,n,t,r,c,a){_(e).drawElementsInstanced(n>>>0,t,r>>>0,c,a)}function ht(e,n,t,r,c,a){_(e).drawIndexed(n>>>0,t>>>0,r>>>0,c,a>>>0)}function vt(e,n){_(e).enableVertexAttribArray(n>>>0)}function St(e,n){_(e).enableVertexAttribArray(n>>>0)}function It(e,n){_(e).enable(n>>>0)}function Dt(e,n){_(e).enable(n>>>0)}function At(e,n){_(e).endQuery(n>>>0)}function Pt(e){_(e).end()}function Mt(e,n){let t,r;try{t=e,r=n,console.error(s(e,n))}finally{i.__wbindgen_export4(t,r,1)}}function Bt(e){console.error(_(e))}function Ft(e,n){console.error(_(e),_(n))}function Lt(e,n,t){const r=_(e).fenceSync(n>>>0,t>>>0);return g(r)?0:f(r)}function Tt(e,n){const t=_(e).fetch(_(n));return f(t)}function kt(e){const n=fetch(_(e));return f(n)}function Ct(e){const n=_(e).finish();return f(n)}function Et(e,n){const t=_(e).finish(_(n));return f(t)}function Rt(e){_(e).flush()}function Ot(e){_(e).flush()}function qt(){return o(function(e){_(e).focus()},arguments)}function Vt(e,n,t,r,c){_(e).framebufferRenderbuffer(n>>>0,t>>>0,r>>>0,_(c))}function Gt(e,n,t,r,c){_(e).framebufferRenderbuffer(n>>>0,t>>>0,r>>>0,_(c))}function Wt(e,n,t,r,c,a){_(e).framebufferTexture2D(n>>>0,t>>>0,r>>>0,_(c),a)}function Ut(e,n,t,r,c,a){_(e).framebufferTexture2D(n>>>0,t>>>0,r>>>0,_(c),a)}function zt(e,n,t,r,c,a){_(e).framebufferTextureLayer(n>>>0,t>>>0,_(r),c,a)}function jt(e,n,t,r,c,a,u){_(e).framebufferTextureMultiviewOVR(n>>>0,t>>>0,_(r),c,a,u)}function Kt(e,n){_(e).frontFace(n>>>0)}function Qt(e,n){_(e).frontFace(n>>>0)}function Nt(e){const n=_(e).fullscreenElement;return g(n)?0:f(n)}function Xt(e,n,t,r){_(e).getBufferSubData(n>>>0,t,_(r))}function $t(e){const n=_(e).getCoalescedEvents;return f(n)}function Yt(e){const n=_(e).getCoalescedEvents();return f(n)}function Ht(){return o(function(e,n){const t=_(e).getComputedStyle(_(n));return g(t)?0:f(t)},arguments)}function Jt(){return o(function(e,n,t){const r=_(e).getContext(s(n,t));return g(r)?0:f(r)},arguments)}function Zt(){return o(function(e,n,t){const r=_(e).getContext(s(n,t));return g(r)?0:f(r)},arguments)}function er(){return o(function(e,n,t,r){const c=_(e).getContext(s(n,t),_(r));return g(c)?0:f(c)},arguments)}function nr(){return o(function(e,n,t,r){const c=_(e).getContext(s(n,t),_(r));return g(c)?0:f(c)},arguments)}function _r(){return o(function(e){const n=_(e).getCurrentTexture();return f(n)},arguments)}function tr(e,n,t){const r=_(e).getElementById(s(n,t));return g(r)?0:f(r)}function rr(){return o(function(e,n,t){const r=_(e).getExtension(s(n,t));return g(r)?0:f(r)},arguments)}function cr(){return o(function(e,n,t){const r=_(e).getIndexedParameter(n>>>0,t>>>0);return f(r)},arguments)}function fr(){return o(function(e,n,t){const r=_(e).getMappedRange(n,t);return f(r)},arguments)}function ar(e,n){const t=Object.getOwnPropertyDescriptor(_(e),_(n));return f(t)}function ur(){return o(function(e,n){const t=_(e).getParameter(n>>>0);return f(t)},arguments)}function or(){return o(function(e,n){const t=_(e).getParameter(n>>>0);return f(t)},arguments)}function br(e){const n=_(e).getPreferredCanvasFormat();return(P.indexOf(n)+1||96)-1}function ir(e,n,t){const r=_(n).getProgramInfoLog(_(t));var c=g(r)?0:y(r,i.__wbindgen_export,i.__wbindgen_export2),a=p;l().setInt32(e+4,a,!0),l().setInt32(e+0,c,!0)}function dr(e,n,t){const r=_(n).getProgramInfoLog(_(t));var c=g(r)?0:y(r,i.__wbindgen_export,i.__wbindgen_export2),a=p;l().setInt32(e+4,a,!0),l().setInt32(e+0,c,!0)}function sr(e,n,t){const r=_(e).getProgramParameter(_(n),t>>>0);return f(r)}function gr(e,n,t){const r=_(e).getProgramParameter(_(n),t>>>0);return f(r)}function wr(){return o(function(e,n,t,r){const c=_(n).getPropertyValue(s(t,r)),a=y(c,i.__wbindgen_export,i.__wbindgen_export2),u=p;l().setInt32(e+4,u,!0),l().setInt32(e+0,a,!0)},arguments)}function lr(e,n,t){const r=_(e).getQueryParameter(_(n),t>>>0);return f(r)}function mr(e,n,t){const r=_(n).getShaderInfoLog(_(t));var c=g(r)?0:y(r,i.__wbindgen_export,i.__wbindgen_export2),a=p;l().setInt32(e+4,a,!0),l().setInt32(e+0,c,!0)}function pr(e,n,t){const r=_(n).getShaderInfoLog(_(t));var c=g(r)?0:y(r,i.__wbindgen_export,i.__wbindgen_export2),a=p;l().setInt32(e+4,a,!0),l().setInt32(e+0,c,!0)}function xr(e,n,t){const r=_(e).getShaderParameter(_(n),t>>>0);return f(r)}function yr(e,n,t){const r=_(e).getShaderParameter(_(n),t>>>0);return f(r)}function hr(e){const n=_(e).getSupportedExtensions();return g(n)?0:f(n)}function vr(e){const n=_(e).getSupportedProfiles();return g(n)?0:f(n)}function Sr(e,n,t){const r=_(e).getSyncParameter(_(n),t>>>0);return f(r)}function Ir(e,n,t,r){return _(e).getUniformBlockIndex(_(n),s(t,r))}function Dr(e,n,t,r){const c=_(e).getUniformLocation(_(n),s(t,r));return g(c)?0:f(c)}function Ar(e,n,t,r){const c=_(e).getUniformLocation(_(n),s(t,r));return g(c)?0:f(c)}function Pr(e,n){const t=_(e)[n>>>0];return f(t)}function Mr(){return o(function(e,n){const t=Reflect.get(_(e),_(n));return f(t)},arguments)}function Br(e,n){const t=_(e)[n>>>0];return g(t)?0:f(t)}function Fr(e){const n=_(e).gpu;return f(n)}function Lr(){return o(function(e,n){return Reflect.has(_(e),_(n))},arguments)}function Tr(e){const n=_(e).headers;return f(n)}function kr(e){return _(e).height}function Cr(e,n,t){return _(e).includes(_(n),t)}function Er(e){console.info(_(e))}function Rr(e){return _(e).inlineSize}function Or(e){let n;try{n=_(e)instanceof GPUAdapter}catch{n=!1}return n}function qr(e){let n;try{n=_(e)instanceof GPUCanvasContext}catch{n=!1}return n}function Vr(e){let n;try{n=_(e)instanceof HTMLCanvasElement}catch{n=!1}return n}function Gr(e){let n;try{n=_(e)instanceof Response}catch{n=!1}return n}function Wr(e){let n;try{n=_(e)instanceof WebGL2RenderingContext}catch{n=!1}return n}function Ur(e){let n;try{n=_(e)instanceof Window}catch{n=!1}return n}function zr(){return o(function(e,n,t){_(e).invalidateFramebuffer(n>>>0,_(t))},arguments)}function jr(e){return _(e).isIntersecting}function Kr(e,n){return Object.is(_(e),_(n))}function Qr(){return f(Symbol.iterator)}function Nr(e,n){const t=_(n).key,r=y(t,i.__wbindgen_export,i.__wbindgen_export2),c=p;l().setInt32(e+4,c,!0),l().setInt32(e+0,r,!0)}function Xr(e,n){const t=_(n).label,r=y(t,i.__wbindgen_export,i.__wbindgen_export2),c=p;l().setInt32(e+4,c,!0),l().setInt32(e+0,r,!0)}function $r(e){return _(e).length}function Yr(e){return _(e).length}function Hr(e,n){_(e).linkProgram(_(n))}function Jr(e,n){_(e).linkProgram(_(n))}function Zr(e){return _(e).location}function ec(e){const n=_(e).location;return f(n)}function nc(e){console.log(_(e))}function _c(e,n,t,r){const c=_(e).mapAsync(n>>>0,t,r);return f(c)}function tc(){return o(function(e,n,t){const r=_(e).matchMedia(s(n,t));return g(r)?0:f(r)},arguments)}function rc(e){return _(e).matches}function cc(e,n){const t=_(n).media,r=y(t,i.__wbindgen_export,i.__wbindgen_export2),c=p;l().setInt32(e+4,c,!0),l().setInt32(e+0,r,!0)}function fc(e){return _(e).metaKey}function ac(e){return _(e).metaKey}function uc(e){return _(e).movementX}function oc(e){return _(e).movementY}function bc(e){const n=_(e).navigator;return f(n)}function ic(e){const n=_(e).navigator;return f(n)}function dc(){return o(function(e){const n=new ResizeObserver(_(e));return f(n)},arguments)}function sc(){const e=new Object;return f(e)}function gc(){const e=new Array;return f(e)}function wc(){return o(function(e,n){const t=new Worker(s(e,n));return f(t)},arguments)}function lc(){return o(function(){const e=new Headers;return f(e)},arguments)}function mc(){return o(function(){const e=new MessageChannel;return f(e)},arguments)}function pc(){const e=new Error;return f(e)}function xc(){return o(function(e){const n=new IntersectionObserver(_(e));return f(n)},arguments)}function yc(){return o(function(){const e=new AbortController;return f(e)},arguments)}function hc(e){const n=new Uint8Array(_(e));return f(n)}function vc(e,n){const t=new Uint8Array(F(e,n));return f(t)}function Sc(e,n){const t=new Function(s(e,n));return f(t)}function Ic(e,n,t){const r=new Uint8Array(_(e),n>>>0,t>>>0);return f(r)}function Dc(){return o(function(e,n,t){const r=new Request(s(e,n),_(t));return f(r)},arguments)}function Ac(){return o(function(e,n){const t=new Blob(_(e),_(n));return f(t)},arguments)}function Pc(){return o(function(e){const n=_(e).next();return f(n)},arguments)}function Mc(e){const n=_(e).next;return f(n)}function Bc(e){return _(e).now()}function Fc(e){return _(e).now()}function Lc(e,n,t){_(e).observe(_(n),_(t))}function Tc(e,n){_(e).observe(_(n))}function kc(e,n){_(e).observe(_(n))}function Cc(e,n){const t=Array.of(_(e),_(n));return f(t)}function Ec(e){const n=Array.of(_(e));return f(n)}function Rc(e){return _(e).offsetX}function Oc(e){return _(e).offsetY}function qc(e){const n=_(e).onSubmittedWorkDone();return f(n)}function Vc(){return o(function(e,n){const t=_(n).origin,r=y(t,i.__wbindgen_export,i.__wbindgen_export2),c=p;l().setInt32(e+4,c,!0),l().setInt32(e+0,r,!0)},arguments)}function Gc(e){const n=_(e).performance;return f(n)}function Wc(e){return _(e).persisted}function Uc(e,n,t){_(e).pixelStorei(n>>>0,t)}function zc(e,n,t){_(e).pixelStorei(n>>>0,t)}function jc(e){_(e).play()}function Kc(e){return _(e).pointerId}function Qc(e,n){const t=_(n).pointerType,r=y(t,i.__wbindgen_export,i.__wbindgen_export2),c=p;l().setInt32(e+4,c,!0),l().setInt32(e+0,r,!0)}function Nc(e,n,t){_(e).polygonOffset(n,t)}function Xc(e,n,t){_(e).polygonOffset(n,t)}function $c(e){const n=_(e).port1;return f(n)}function Yc(e){const n=_(e).port2;return f(n)}function Hc(){return o(function(e,n){_(e).postMessage(_(n))},arguments)}function Jc(){return o(function(e,n,t){_(e).postMessage(_(n),_(t))},arguments)}function Zc(e,n,t){const r=_(e).postTask(_(n),_(t));return f(r)}function ef(e){return _(e).pressure}function nf(e){_(e).preventDefault()}function _f(){const e=ResizeObserverEntry.prototype;return f(e)}function tf(e,n,t){Uint8Array.prototype.set.call(F(e,n),_(t))}function rf(e,n){return _(e).push(_(n))}function cf(e,n,t){_(e).queryCounterEXT(_(n),t>>>0)}function ff(){return o(function(e,n,t){const r=_(e).querySelectorAll(s(n,t));return f(r)},arguments)}function af(){return o(function(e,n,t){const r=_(e).querySelector(s(n,t));return g(r)?0:f(r)},arguments)}function uf(e){const n=_(e).queueMicrotask;return f(n)}function of(e){queueMicrotask(_(e))}function bf(e,n){_(e).queueMicrotask(_(n))}function df(e){const n=_(e).queue;return f(n)}function sf(e,n){_(e).readBuffer(n>>>0)}function gf(){return o(function(e,n,t,r,c,a,u,b){_(e).readPixels(n,t,r,c,a>>>0,u>>>0,_(b))},arguments)}function wf(){return o(function(e,n,t,r,c,a,u,b){_(e).readPixels(n,t,r,c,a>>>0,u>>>0,b)},arguments)}function lf(){return o(function(e,n,t,r,c,a,u,b){_(e).readPixels(n,t,r,c,a>>>0,u>>>0,_(b))},arguments)}function mf(){return o(function(e,n,t,r){_(e).removeEventListener(s(n,t),_(r))},arguments)}function pf(){return o(function(e,n){_(e).removeListener(_(n))},arguments)}function xf(){return o(function(e,n,t,r){const c=_(n).removeProperty(s(t,r)),a=y(c,i.__wbindgen_export,i.__wbindgen_export2),u=p;l().setInt32(e+4,u,!0),l().setInt32(e+0,a,!0)},arguments)}function yf(e,n,t,r,c,a){_(e).renderbufferStorageMultisample(n>>>0,t,r>>>0,c,a)}function hf(e,n,t,r,c){_(e).renderbufferStorage(n>>>0,t>>>0,r,c)}function vf(e,n,t,r,c){_(e).renderbufferStorage(n>>>0,t>>>0,r,c)}function Sf(e){return _(e).repeat}function If(e,n){const t=_(e).requestAdapter(_(n));return f(t)}function Df(){return o(function(e,n){return _(e).requestAnimationFrame(_(n))},arguments)}function Af(e,n){const t=_(e).requestDevice(_(n));return f(t)}function Pf(e){const n=_(e).requestFullscreen;return f(n)}function Mf(e){const n=_(e).requestFullscreen();return f(n)}function Bf(e){const n=_(e).requestIdleCallback;return f(n)}function Ff(){return o(function(e,n){return _(e).requestIdleCallback(_(n))},arguments)}function Lf(e){const n=Promise.resolve(_(e));return f(n)}function Tf(){return o(function(e,n){URL.revokeObjectURL(s(e,n))},arguments)}function kf(e,n,t,r){_(e).samplerParameterf(_(n),t>>>0,r)}function Cf(e,n,t,r){_(e).samplerParameteri(_(n),t>>>0,r)}function Ef(e){const n=_(e).scheduler;return f(n)}function Rf(e){const n=_(e).scheduler;return f(n)}function Of(e,n,t,r,c){_(e).scissor(n,t,r,c)}function qf(e,n,t,r,c){_(e).scissor(n,t,r,c)}function Vf(){return o(function(e,n,t,r,c){_(e).setAttribute(s(n,t),s(r,c))},arguments)}function Gf(e,n,t){_(e).setBindGroup(n>>>0,_(t))}function Wf(){return o(function(e,n,t,r,c,a,u){_(e).setBindGroup(n>>>0,_(t),M(r,c),a,u>>>0)},arguments)}function Uf(e,n,t,r,c){_(e).setIndexBuffer(_(n),j[t],r,c)}function zf(e,n,t,r){_(e).setIndexBuffer(_(n),j[t],r)}function jf(e,n){_(e).setPipeline(_(n))}function Kf(){return o(function(e,n){_(e).setPointerCapture(n)},arguments)}function Qf(){return o(function(e,n,t,r,c){_(e).setProperty(s(n,t),s(r,c))},arguments)}function Nf(){return o(function(e,n){return _(e).setTimeout(_(n))},arguments)}function Xf(){return o(function(e,n,t){return _(e).setTimeout(_(n),t)},arguments)}function $f(e,n,t,r,c){_(e).setVertexBuffer(n>>>0,_(t),r,c)}function Yf(e,n,t,r){_(e).setVertexBuffer(n>>>0,_(t),r)}function Hf(e,n,t){_(e).set(_(n),t>>>0)}function Jf(){return o(function(e,n,t){return Reflect.set(_(e),_(n),_(t))},arguments)}function Zf(e,n){_(e).a=n}function ea(e,n){_(e).access=j0[n]}function na(e,n){_(e).addressModeU=U[n]}function _a(e,n){_(e).addressModeV=U[n]}function ta(e,n){_(e).addressModeW=U[n]}function ra(e,n){_(e).alpha=_(n)}function ca(e,n){_(e).alphaMode=O0[n]}function fa(e,n){_(e).alphaToCoverageEnabled=n!==0}function aa(e,n){_(e).arrayLayerCount=n>>>0}function ua(e,n){_(e).arrayStride=n}function oa(e,n){_(e).aspect=Z[n]}function ba(e,n){_(e).aspect=Z[n]}function ia(e,n){_(e).attributes=_(n)}function da(e,n){_(e).b=n}function sa(e,n){_(e).baseArrayLayer=n>>>0}function ga(e,n){_(e).baseMipLevel=n>>>0}function wa(e,n){_(e).beginningOfPassWriteIndex=n>>>0}function la(e,n){_(e).bindGroupLayouts=_(n)}function ma(e,n){_(e).binding=n>>>0}function pa(e,n){_(e).binding=n>>>0}function xa(e,n){_(e).blend=_(n)}function ya(e,n){_(e).body=_(n)}function ha(e,n){_(e).box=H0[n]}function va(e,n){_(e).buffer=_(n)}function Sa(e,n){_(e).buffer=_(n)}function Ia(e,n){_(e).buffers=_(n)}function Da(e,n){_(e).bytesPerRow=n>>>0}function Aa(e,n){_(e).clearValue=_(n)}function Pa(e,n,t){_(e).code=s(n,t)}function Ma(e,n){_(e).color=_(n)}function Ba(e,n){_(e).colorAttachments=_(n)}function Fa(e,n){_(e).compare=z[n]}function La(e,n){_(e).compare=z[n]}function Ta(e,n){_(e).count=n>>>0}function ka(e,n){_(e).credentials=$0[n]}function Ca(e,n){_(e).cullMode=q0[n]}function Ea(e,n){_(e).depthBias=n}function Ra(e,n){_(e).depthBiasClamp=n}function Oa(e,n){_(e).depthBiasSlopeScale=n}function qa(e,n){_(e).depthClearValue=n}function Va(e,n){_(e).depthCompare=z[n]}function Ga(e,n){_(e).depthFailOp=Q[n]}function Wa(e,n){_(e).depthLoadOp=K[n]}function Ua(e,n){_(e).depthOrArrayLayers=n>>>0}function za(e,n){_(e).depthReadOnly=n!==0}function ja(e,n){_(e).depthStencil=_(n)}function Ka(e,n){_(e).depthStencilAttachment=_(n)}function Qa(e,n){_(e).depthStoreOp=N[n]}function Na(e,n){_(e).depthWriteEnabled=n!==0}function Xa(e,n){_(e).device=_(n)}function $a(e,n){_(e).dimension=K0[n]}function Ya(e,n){_(e).dimension=X[n]}function Ha(e,n){_(e).dstFactor=H[n]}function Ja(e,n){_(e).endOfPassWriteIndex=n>>>0}function Za(e,n){_(e).entries=_(n)}function eu(e,n){_(e).entries=_(n)}function nu(e,n,t){_(e).entryPoint=s(n,t)}function _u(e,n,t){_(e).entryPoint=s(n,t)}function tu(e,n){_(e).externalTexture=_(n)}function ru(e,n){_(e).failOp=Q[n]}function cu(e,n){_(e).format=P[n]}function fu(e,n){_(e).format=P[n]}function au(e,n){_(e).format=P[n]}function uu(e,n){_(e).format=N0[n]}function ou(e,n){_(e).format=P[n]}function bu(e,n){_(e).format=P[n]}function iu(e,n){_(e).format=P[n]}function du(e,n){_(e).fragment=_(n)}function su(e,n){_(e).frontFace=V0[n]}function gu(e,n){_(e).g=n}function wu(e,n){_(e).hasDynamicOffset=n!==0}function lu(e,n){_(e).headers=_(n)}function mu(e,n){_(e).height=n>>>0}function pu(e,n){_(e).height=n>>>0}function xu(e,n){_(e).height=n>>>0}function yu(e,n,t){_(e).label=s(n,t)}function hu(e,n,t){_(e).label=s(n,t)}function vu(e,n,t){_(e).label=s(n,t)}function Su(e,n,t){_(e).label=s(n,t)}function Iu(e,n,t){_(e).label=s(n,t)}function Du(e,n,t){_(e).label=s(n,t)}function Au(e,n,t){_(e).label=s(n,t)}function Pu(e,n,t){_(e).label=s(n,t)}function Mu(e,n,t){_(e).label=s(n,t)}function Bu(e,n,t){_(e).label=s(n,t)}function Fu(e,n,t){_(e).label=s(n,t)}function Lu(e,n,t){_(e).label=s(n,t)}function Tu(e,n,t){_(e).label=s(n,t)}function ku(e,n){_(e).layout=_(n)}function Cu(e,n){_(e).layout=_(n)}function Eu(e,n){_(e).loadOp=K[n]}function Ru(e,n){_(e).lodMaxClamp=n}function Ou(e,n){_(e).lodMinClamp=n}function qu(e,n){_(e).magFilter=J[n]}function Vu(e,n){_(e).mappedAtCreation=n!==0}function Gu(e,n){_(e).mask=n>>>0}function Wu(e,n){_(e).maxAnisotropy=n}function Uu(e,n,t){_(e).method=s(n,t)}function zu(e,n){_(e).minBindingSize=n}function ju(e,n){_(e).minFilter=J[n]}function Ku(e,n){_(e).mipLevel=n>>>0}function Qu(e,n){_(e).mipLevelCount=n>>>0}function Nu(e,n){_(e).mipLevelCount=n>>>0}function Xu(e,n){_(e).mipmapFilter=G0[n]}function $u(e,n){_(e).mode=Y0[n]}function Yu(e,n){_(e).module=_(n)}function Hu(e,n){_(e).module=_(n)}function Ju(e,n){_(e).multisample=_(n)}function Zu(e,n){_(e).multisampled=n!==0}function eo(e,n){_(e).offset=n}function no(e,n){_(e).offset=n}function _o(e,n){_(e).offset=n}function to(e,n){_(e).onmessage=_(n)}function ro(e,n){_(e).operation=E0[n]}function co(e,n){_(e).origin=_(n)}function fo(e,n){_(e).passOp=Q[n]}function ao(e,n){_(e).powerPreference=W0[n]}function uo(e,n){_(e).primitive=_(n)}function oo(e,n){_(e).querySet=_(n)}function bo(e,n){_(e).r=n}function io(e,n){_(e).requiredFeatures=_(n)}function so(e,n){_(e).requiredLimits=_(n)}function go(e,n){_(e).resolveTarget=_(n)}function wo(e,n){_(e).resource=_(n)}function lo(e,n){_(e).rowsPerImage=n>>>0}function mo(e,n){_(e).sampleCount=n>>>0}function po(e,n){_(e).sampleType=Q0[n]}function xo(e,n){_(e).sampler=_(n)}function yo(e,n){_(e).shaderLocation=n>>>0}function ho(e,n){_(e).signal=_(n)}function vo(e,n){_(e).size=n}function So(e,n){_(e).size=n}function Io(e,n){_(e).size=_(n)}function Do(e,n){_(e).srcFactor=H[n]}function Ao(e,n){_(e).stencilBack=_(n)}function Po(e,n){_(e).stencilClearValue=n>>>0}function Mo(e,n){_(e).stencilFront=_(n)}function Bo(e,n){_(e).stencilLoadOp=K[n]}function Fo(e,n){_(e).stencilReadMask=n>>>0}function Lo(e,n){_(e).stencilReadOnly=n!==0}function To(e,n){_(e).stencilStoreOp=N[n]}function ko(e,n){_(e).stencilWriteMask=n>>>0}function Co(e,n){_(e).stepMode=X0[n]}function Eo(e,n){_(e).storageTexture=_(n)}function Ro(e,n){_(e).storeOp=N[n]}function Oo(e,n){_(e).stripIndexFormat=j[n]}function qo(e,n){_(e).targets=_(n)}function Vo(e,n){_(e).texture=_(n)}function Go(e,n){_(e).texture=_(n)}function Wo(e,n){_(e).timestampWrites=_(n)}function Uo(e,n){_(e).topology=U0[n]}function zo(e,n,t){_(e).type=s(n,t)}function jo(e,n){_(e).type=R0[n]}function Ko(e,n){_(e).type=z0[n]}function Qo(e,n){_(e).unclippedDepth=n!==0}function No(e,n){_(e).usage=n>>>0}function Xo(e,n){_(e).usage=n>>>0}function $o(e,n){_(e).usage=n>>>0}function Yo(e,n){_(e).usage=n>>>0}function Ho(e,n){_(e).vertex=_(n)}function Jo(e,n){_(e).view=_(n)}function Zo(e,n){_(e).view=_(n)}function eb(e,n){_(e).viewDimension=X[n]}function nb(e,n){_(e).viewDimension=X[n]}function _b(e,n){_(e).viewFormats=_(n)}function tb(e,n){_(e).viewFormats=_(n)}function rb(e,n){_(e).visibility=n>>>0}function cb(e,n){_(e).width=n>>>0}function fb(e,n){_(e).width=n>>>0}function ab(e,n){_(e).width=n>>>0}function ub(e,n){_(e).writeMask=n>>>0}function ob(e,n){_(e).x=n>>>0}function bb(e,n){_(e).y=n>>>0}function ib(e,n){_(e).z=n>>>0}function db(e,n,t,r){_(e).shaderSource(_(n),s(t,r))}function sb(e,n,t,r){_(e).shaderSource(_(n),s(t,r))}function gb(e){return _(e).shiftKey}function wb(e){return _(e).shiftKey}function lb(e){const n=_(e).signal;return f(n)}function mb(e,n){const t=_(n).stack,r=y(t,i.__wbindgen_export,i.__wbindgen_export2),c=p;l().setInt32(e+4,c,!0),l().setInt32(e+0,r,!0)}function pb(e){_(e).start()}function xb(){const e=typeof global>"u"?null:global;return g(e)?0:f(e)}function yb(){const e=typeof globalThis>"u"?null:globalThis;return g(e)?0:f(e)}function hb(){const e=typeof self>"u"?null:self;return g(e)?0:f(e)}function vb(){const e=typeof window>"u"?null:window;return g(e)?0:f(e)}function Sb(e){return _(e).status}function Ib(e,n,t,r,c){_(e).stencilFuncSeparate(n>>>0,t>>>0,r,c>>>0)}function Db(e,n,t,r,c){_(e).stencilFuncSeparate(n>>>0,t>>>0,r,c>>>0)}function Ab(e,n,t){_(e).stencilMaskSeparate(n>>>0,t>>>0)}function Pb(e,n,t){_(e).stencilMaskSeparate(n>>>0,t>>>0)}function Mb(e,n){_(e).stencilMask(n>>>0)}function Bb(e,n){_(e).stencilMask(n>>>0)}function Fb(e,n,t,r,c){_(e).stencilOpSeparate(n>>>0,t>>>0,r>>>0,c>>>0)}function Lb(e,n,t,r,c){_(e).stencilOpSeparate(n>>>0,t>>>0,r>>>0,c>>>0)}function Tb(){return o(function(e){const n=JSON.stringify(_(e));return f(n)},arguments)}function kb(e){const n=_(e).style;return f(n)}function Cb(e,n){_(e).submit(_(n))}function Eb(){return o(function(e,n,t,r,c,a,u,b,d,w){_(e).texImage2D(n>>>0,t,r,c,a,u,b>>>0,d>>>0,_(w))},arguments)}function Rb(){return o(function(e,n,t,r,c,a,u,b,d,w){_(e).texImage2D(n>>>0,t,r,c,a,u,b>>>0,d>>>0,w)},arguments)}function Ob(){return o(function(e,n,t,r,c,a,u,b,d,w){_(e).texImage2D(n>>>0,t,r,c,a,u,b>>>0,d>>>0,_(w))},arguments)}function qb(){return o(function(e,n,t,r,c,a,u,b,d,w,m){_(e).texImage3D(n>>>0,t,r,c,a,u,b,d>>>0,w>>>0,m)},arguments)}function Vb(){return o(function(e,n,t,r,c,a,u,b,d,w,m){_(e).texImage3D(n>>>0,t,r,c,a,u,b,d>>>0,w>>>0,_(m))},arguments)}function Gb(e,n,t,r){_(e).texParameteri(n>>>0,t>>>0,r)}function Wb(e,n,t,r){_(e).texParameteri(n>>>0,t>>>0,r)}function Ub(e,n,t,r,c,a){_(e).texStorage2D(n>>>0,t,r>>>0,c,a)}function zb(e,n,t,r,c,a,u){_(e).texStorage3D(n>>>0,t,r>>>0,c,a,u)}function jb(){return o(function(e,n,t,r,c,a,u,b,d,w){_(e).texSubImage2D(n>>>0,t,r,c,a,u,b>>>0,d>>>0,_(w))},arguments)}function Kb(){return o(function(e,n,t,r,c,a,u,b,d,w){_(e).texSubImage2D(n>>>0,t,r,c,a,u,b>>>0,d>>>0,_(w))},arguments)}function Qb(){return o(function(e,n,t,r,c,a,u,b,d,w){_(e).texSubImage2D(n>>>0,t,r,c,a,u,b>>>0,d>>>0,_(w))},arguments)}function Nb(){return o(function(e,n,t,r,c,a,u,b,d,w){_(e).texSubImage2D(n>>>0,t,r,c,a,u,b>>>0,d>>>0,_(w))},arguments)}function Xb(){return o(function(e,n,t,r,c,a,u,b,d,w){_(e).texSubImage2D(n>>>0,t,r,c,a,u,b>>>0,d>>>0,_(w))},arguments)}function $b(){return o(function(e,n,t,r,c,a,u,b,d,w){_(e).texSubImage2D(n>>>0,t,r,c,a,u,b>>>0,d>>>0,_(w))},arguments)}function Yb(){return o(function(e,n,t,r,c,a,u,b,d,w){_(e).texSubImage2D(n>>>0,t,r,c,a,u,b>>>0,d>>>0,_(w))},arguments)}function Hb(){return o(function(e,n,t,r,c,a,u,b,d,w){_(e).texSubImage2D(n>>>0,t,r,c,a,u,b>>>0,d>>>0,w)},arguments)}function Jb(){return o(function(e,n,t,r,c,a,u,b,d,w,m,h){_(e).texSubImage3D(n>>>0,t,r,c,a,u,b,d,w>>>0,m>>>0,_(h))},arguments)}function Zb(){return o(function(e,n,t,r,c,a,u,b,d,w,m,h){_(e).texSubImage3D(n>>>0,t,r,c,a,u,b,d,w>>>0,m>>>0,_(h))},arguments)}function ei(){return o(function(e,n,t,r,c,a,u,b,d,w,m,h){_(e).texSubImage3D(n>>>0,t,r,c,a,u,b,d,w>>>0,m>>>0,_(h))},arguments)}function ni(){return o(function(e,n,t,r,c,a,u,b,d,w,m,h){_(e).texSubImage3D(n>>>0,t,r,c,a,u,b,d,w>>>0,m>>>0,_(h))},arguments)}function _i(){return o(function(e,n,t,r,c,a,u,b,d,w,m,h){_(e).texSubImage3D(n>>>0,t,r,c,a,u,b,d,w>>>0,m>>>0,_(h))},arguments)}function ti(){return o(function(e,n,t,r,c,a,u,b,d,w,m,h){_(e).texSubImage3D(n>>>0,t,r,c,a,u,b,d,w>>>0,m>>>0,h)},arguments)}function ri(){return o(function(e,n,t,r,c,a,u,b,d,w,m,h){_(e).texSubImage3D(n>>>0,t,r,c,a,u,b,d,w>>>0,m>>>0,_(h))},arguments)}function ci(){return o(function(e){const n=_(e).text();return f(n)},arguments)}function fi(e,n,t){const r=_(e).then(_(n),_(t));return f(r)}function ai(e,n){const t=_(e).then(_(n));return f(t)}function ui(e,n,t){_(e).uniform1f(_(n),t)}function oi(e,n,t){_(e).uniform1f(_(n),t)}function bi(e,n,t){_(e).uniform1i(_(n),t)}function ii(e,n,t){_(e).uniform1i(_(n),t)}function di(e,n,t){_(e).uniform1ui(_(n),t>>>0)}function si(e,n,t,r){_(e).uniform2fv(_(n),x(t,r))}function gi(e,n,t,r){_(e).uniform2fv(_(n),x(t,r))}function wi(e,n,t,r){_(e).uniform2iv(_(n),D(t,r))}function li(e,n,t,r){_(e).uniform2iv(_(n),D(t,r))}function mi(e,n,t,r){_(e).uniform2uiv(_(n),M(t,r))}function pi(e,n,t,r){_(e).uniform3fv(_(n),x(t,r))}function xi(e,n,t,r){_(e).uniform3fv(_(n),x(t,r))}function yi(e,n,t,r){_(e).uniform3iv(_(n),D(t,r))}function hi(e,n,t,r){_(e).uniform3iv(_(n),D(t,r))}function vi(e,n,t,r){_(e).uniform3uiv(_(n),M(t,r))}function Si(e,n,t,r,c,a){_(e).uniform4f(_(n),t,r,c,a)}function Ii(e,n,t,r,c,a){_(e).uniform4f(_(n),t,r,c,a)}function Di(e,n,t,r){_(e).uniform4fv(_(n),x(t,r))}function Ai(e,n,t,r){_(e).uniform4fv(_(n),x(t,r))}function Pi(e,n,t,r){_(e).uniform4iv(_(n),D(t,r))}function Mi(e,n,t,r){_(e).uniform4iv(_(n),D(t,r))}function Bi(e,n,t,r){_(e).uniform4uiv(_(n),M(t,r))}function Fi(e,n,t,r){_(e).uniformBlockBinding(_(n),t>>>0,r>>>0)}function Li(e,n,t,r,c){_(e).uniformMatrix2fv(_(n),t!==0,x(r,c))}function Ti(e,n,t,r,c){_(e).uniformMatrix2fv(_(n),t!==0,x(r,c))}function ki(e,n,t,r,c){_(e).uniformMatrix2x3fv(_(n),t!==0,x(r,c))}function Ci(e,n,t,r,c){_(e).uniformMatrix2x4fv(_(n),t!==0,x(r,c))}function Ei(e,n,t,r,c){_(e).uniformMatrix3fv(_(n),t!==0,x(r,c))}function Ri(e,n,t,r,c){_(e).uniformMatrix3fv(_(n),t!==0,x(r,c))}function Oi(e,n,t,r,c){_(e).uniformMatrix3x2fv(_(n),t!==0,x(r,c))}function qi(e,n,t,r,c){_(e).uniformMatrix3x4fv(_(n),t!==0,x(r,c))}function Vi(e,n,t,r,c){_(e).uniformMatrix4fv(_(n),t!==0,x(r,c))}function Gi(e,n,t,r,c){_(e).uniformMatrix4fv(_(n),t!==0,x(r,c))}function Wi(e,n,t,r,c){_(e).uniformMatrix4x2fv(_(n),t!==0,x(r,c))}function Ui(e,n,t,r,c){_(e).uniformMatrix4x3fv(_(n),t!==0,x(r,c))}function zi(e){_(e).unmap()}function ji(e,n){_(e).unobserve(_(n))}function Ki(e,n){const t=_(n).url,r=y(t,i.__wbindgen_export,i.__wbindgen_export2),c=p;l().setInt32(e+4,c,!0),l().setInt32(e+0,r,!0)}function Qi(e,n){_(e).useProgram(_(n))}function Ni(e,n){_(e).useProgram(_(n))}function Xi(e){const n=_(e).userAgentData;return g(n)?0:f(n)}function $i(){return o(function(e,n){const t=_(n).userAgent,r=y(t,i.__wbindgen_export,i.__wbindgen_export2),c=p;l().setInt32(e+4,c,!0),l().setInt32(e+0,r,!0)},arguments)}function Yi(e){const n=_(e).value;return f(n)}function Hi(e,n,t){_(e).vertexAttribDivisorANGLE(n>>>0,t>>>0)}function Ji(e,n,t){_(e).vertexAttribDivisor(n>>>0,t>>>0)}function Zi(e,n,t,r,c,a){_(e).vertexAttribIPointer(n>>>0,t,r>>>0,c,a)}function e0(e,n,t,r,c,a,u){_(e).vertexAttribPointer(n>>>0,t,r>>>0,c!==0,a,u)}function n0(e,n,t,r,c,a,u){_(e).vertexAttribPointer(n>>>0,t,r>>>0,c!==0,a,u)}function _0(e,n,t,r,c){_(e).viewport(n,t,r,c)}function t0(e,n,t,r,c){_(e).viewport(n,t,r,c)}function r0(e){const n=_(e).visibilityState;return(J0.indexOf(n)+1||3)-1}function c0(e){console.warn(_(e))}function f0(e){const n=_(e).webkitFullscreenElement;return g(n)?0:f(n)}function a0(e){_(e).webkitRequestFullscreen()}function u0(e){return _(e).width}function o0(){return o(function(e,n,t,r,c,a,u){_(e).writeBuffer(_(n),t,F(r,c),a,u)},arguments)}function b0(){return o(function(e,n,t,r,c,a){_(e).writeTexture(_(n),F(t,r),_(c),_(a))},arguments)}function i0(e,n){const t=S(e,n,i.__wasm_bindgen_func_elem_3147,C0);return f(t)}function d0(e,n){const t=S(e,n,i.__wasm_bindgen_func_elem_3147,A);return f(t)}function s0(e,n){const t=S(e,n,i.__wasm_bindgen_func_elem_3147,A);return f(t)}function g0(e,n){const t=S(e,n,i.__wasm_bindgen_func_elem_3147,A);return f(t)}function w0(e,n){const t=S(e,n,i.__wasm_bindgen_func_elem_3147,A);return f(t)}function l0(e,n){const t=S(e,n,i.__wasm_bindgen_func_elem_3147,A);return f(t)}function m0(e,n){const t=S(e,n,i.__wasm_bindgen_func_elem_3147,A);return f(t)}function p0(e,n){const t=S(e,n,i.__wasm_bindgen_func_elem_3147,A);return f(t)}function x0(e,n){const t=S(e,n,i.__wasm_bindgen_func_elem_3147,T0);return f(t)}function y0(e,n){const t=S(e,n,i.__wasm_bindgen_func_elem_4959,k0);return f(t)}function h0(e){return f(e)}function v0(e,n){const t=x(e,n);return f(t)}function S0(e,n){const t=ed(e,n);return f(t)}function I0(e,n){const t=D(e,n);return f(t)}function D0(e,n){const t=nd(e,n);return f(t)}function A0(e,n){const t=_d(e,n);return f(t)}function P0(e,n){const t=M(e,n);return f(t)}function M0(e,n){const t=F(e,n);return f(t)}function B0(e,n){const t=s(e,n);return f(t)}function F0(e){const n=_(e);return f(n)}function L0(e){od(e)}function T0(e,n){i.__wasm_bindgen_func_elem_3478(e,n)}function A(e,n,t){i.__wasm_bindgen_func_elem_3480(e,n,f(t))}function k0(e,n,t){i.__wasm_bindgen_func_elem_4960(e,n,f(t))}function C0(e,n,t,r){i.__wasm_bindgen_func_elem_3486(e,n,f(t),f(r))}const U=["clamp-to-edge","repeat","mirror-repeat"],H=["zero","one","src","one-minus-src","src-alpha","one-minus-src-alpha","dst","one-minus-dst","dst-alpha","one-minus-dst-alpha","src-alpha-saturated","constant","one-minus-constant","src1","one-minus-src1","src1-alpha","one-minus-src1-alpha"],E0=["add","subtract","reverse-subtract","min","max"],R0=["uniform","storage","read-only-storage"],O0=["opaque","premultiplied"],z=["never","less","equal","less-equal","greater","not-equal","greater-equal","always"],q0=["none","front","back"],J=["nearest","linear"],V0=["ccw","cw"],j=["uint16","uint32"],K=["load","clear"],G0=["nearest","linear"],W0=["low-power","high-performance"],U0=["point-list","line-list","line-strip","triangle-list","triangle-strip"],z0=["filtering","non-filtering","comparison"],Q=["keep","zero","replace","invert","increment-clamp","decrement-clamp","increment-wrap","decrement-wrap"],j0=["write-only","read-only","read-write"],N=["store","discard"],Z=["all","stencil-only","depth-only"],K0=["1d","2d","3d"],P=["r8unorm","r8snorm","r8uint","r8sint","r16uint","r16sint","r16float","rg8unorm","rg8snorm","rg8uint","rg8sint","r32uint","r32sint","r32float","rg16uint","rg16sint","rg16float","rgba8unorm","rgba8unorm-srgb","rgba8snorm","rgba8uint","rgba8sint","bgra8unorm","bgra8unorm-srgb","rgb9e5ufloat","rgb10a2uint","rgb10a2unorm","rg11b10ufloat","rg32uint","rg32sint","rg32float","rgba16uint","rgba16sint","rgba16float","rgba32uint","rgba32sint","rgba32float","stencil8","depth16unorm","depth24plus","depth24plus-stencil8","depth32float","depth32float-stencil8","bc1-rgba-unorm","bc1-rgba-unorm-srgb","bc2-rgba-unorm","bc2-rgba-unorm-srgb","bc3-rgba-unorm","bc3-rgba-unorm-srgb","bc4-r-unorm","bc4-r-snorm","bc5-rg-unorm","bc5-rg-snorm","bc6h-rgb-ufloat","bc6h-rgb-float","bc7-rgba-unorm","bc7-rgba-unorm-srgb","etc2-rgb8unorm","etc2-rgb8unorm-srgb","etc2-rgb8a1unorm","etc2-rgb8a1unorm-srgb","etc2-rgba8unorm","etc2-rgba8unorm-srgb","eac-r11unorm","eac-r11snorm","eac-rg11unorm","eac-rg11snorm","astc-4x4-unorm","astc-4x4-unorm-srgb","astc-5x4-unorm","astc-5x4-unorm-srgb","astc-5x5-unorm","astc-5x5-unorm-srgb","astc-6x5-unorm","astc-6x5-unorm-srgb","astc-6x6-unorm","astc-6x6-unorm-srgb","astc-8x5-unorm","astc-8x5-unorm-srgb","astc-8x6-unorm","astc-8x6-unorm-srgb","astc-8x8-unorm","astc-8x8-unorm-srgb","astc-10x5-unorm","astc-10x5-unorm-srgb","astc-10x6-unorm","astc-10x6-unorm-srgb","astc-10x8-unorm","astc-10x8-unorm-srgb","astc-10x10-unorm","astc-10x10-unorm-srgb","astc-12x10-unorm","astc-12x10-unorm-srgb","astc-12x12-unorm","astc-12x12-unorm-srgb"],Q0=["float","unfilterable-float","depth","sint","uint"],X=["1d","2d","2d-array","cube","cube-array","3d"],N0=["uint8","uint8x2","uint8x4","sint8","sint8x2","sint8x4","unorm8","unorm8x2","unorm8x4","snorm8","snorm8x2","snorm8x4","uint16","uint16x2","uint16x4","sint16","sint16x2","sint16x4","unorm16","unorm16x2","unorm16x4","snorm16","snorm16x2","snorm16x4","float16","float16x2","float16x4","float32","float32x2","float32x3","float32x4","uint32","uint32x2","uint32x3","uint32x4","sint32","sint32x2","sint32x3","sint32x4","unorm10-10-10-2","unorm8x4-bgra"],X0=["vertex","instance"],$0=["omit","same-origin","include"],Y0=["same-origin","no-cors","cors","navigate"],H0=["border-box","content-box","device-pixel-content-box"],J0=["hidden","visible"];function f(e){T===I.length&&I.push(I.length+1);const n=T;return T=I[n],I[n]=e,n}const ee=typeof FinalizationRegistry>"u"?{register:()=>{},unregister:()=>{}}:new FinalizationRegistry(e=>e.dtor(e.a,e.b));function $(e){const n=typeof e;if(n=="number"||n=="boolean"||e==null)return`${e}`;if(n=="string")return`"${e}"`;if(n=="symbol"){const c=e.description;return c==null?"Symbol":`Symbol(${c})`}if(n=="function"){const c=e.name;return typeof c=="string"&&c.length>0?`Function(${c})`:"Function"}if(Array.isArray(e)){const c=e.length;let a="[";c>0&&(a+=$(e[0]));for(let u=1;u<c;u++)a+=", "+$(e[u]);return a+="]",a}const t=/\[object ([^\]]+)\]/.exec(toString.call(e));let r;if(t&&t.length>1)r=t[1];else return toString.call(e);if(r=="Object")try{return"Object("+JSON.stringify(e)+")"}catch{return"Object"}return e instanceof Error?`${e.name}: ${e.message}
-${e.stack}`:r}function Z0(e){e<132||(I[e]=T,T=e)}function x(e,n){return e=e>>>0,td().subarray(e/4,e/4+n)}function ed(e,n){return e=e>>>0,rd().subarray(e/2,e/2+n)}function D(e,n){return e=e>>>0,cd().subarray(e/4,e/4+n)}function nd(e,n){return e=e>>>0,fd().subarray(e/1,e/1+n)}function _d(e,n){return e=e>>>0,ad().subarray(e/2,e/2+n)}function M(e,n){return e=e>>>0,ud().subarray(e/4,e/4+n)}function F(e,n){return e=e>>>0,L().subarray(e/1,e/1+n)}let B=null;function l(){return(B===null||B.buffer.detached===!0||B.buffer.detached===void 0&&B.buffer!==i.memory.buffer)&&(B=new DataView(i.memory.buffer)),B}let C=null;function td(){return(C===null||C.byteLength===0)&&(C=new Float32Array(i.memory.buffer)),C}let E=null;function rd(){return(E===null||E.byteLength===0)&&(E=new Int16Array(i.memory.buffer)),E}let R=null;function cd(){return(R===null||R.byteLength===0)&&(R=new Int32Array(i.memory.buffer)),R}let O=null;function fd(){return(O===null||O.byteLength===0)&&(O=new Int8Array(i.memory.buffer)),O}function s(e,n){return e=e>>>0,id(e,n)}let q=null;function ad(){return(q===null||q.byteLength===0)&&(q=new Uint16Array(i.memory.buffer)),q}let V=null;function ud(){return(V===null||V.byteLength===0)&&(V=new Uint32Array(i.memory.buffer)),V}let G=null;function L(){return(G===null||G.byteLength===0)&&(G=new Uint8Array(i.memory.buffer)),G}function _(e){return I[e]}function o(e,n){try{return e.apply(this,n)}catch(t){i.__wbindgen_export3(f(t))}}let I=new Array(128).fill(void 0);I.push(void 0,null,!0,!1);let T=I.length;function g(e){return e==null}function S(e,n,t,r){const c={a:e,b:n,cnt:1,dtor:t},a=(...u)=>{c.cnt++;const b=c.a;c.a=0;try{return r(b,c.b,...u)}finally{c.a=b,a._wbg_cb_unref()}};return a._wbg_cb_unref=()=>{--c.cnt===0&&(c.dtor(c.a,c.b),c.a=0,ee.unregister(c))},ee.register(a,c,c),a}function y(e,n,t){if(t===void 0){const b=k.encode(e),d=n(b.length,1)>>>0;return L().subarray(d,d+b.length).set(b),p=b.length,d}let r=e.length,c=n(r,1)>>>0;const a=L();let u=0;for(;u<r;u++){const b=e.charCodeAt(u);if(b>127)break;a[c+u]=b}if(u!==r){u!==0&&(e=e.slice(u)),c=t(c,r,r=u+e.length*3,1)>>>0;const b=L().subarray(c+u,c+r),d=k.encodeInto(e,b);u+=d.written,c=t(c,r,u,1)>>>0}return p=u,c}function od(e){const n=_(e);return Z0(e),n}let W=new TextDecoder("utf-8",{ignoreBOM:!0,fatal:!0});W.decode();const bd=2146435072;let Y=0;function id(e,n){return Y+=n,Y>=bd&&(W=new TextDecoder("utf-8",{ignoreBOM:!0,fatal:!0}),W.decode(),Y=n),W.decode(L().subarray(e,e+n))}const k=new TextEncoder;"encodeInto"in k||(k.encodeInto=function(e,n){const t=k.encode(e);return n.set(t),{read:e.length,written:t.length}});let p=0,i;function dd(e){i=e}URL=globalThis.URL;const v=await Pd({"./demo_bg.js":{__wbindgen_object_drop_ref:L0,__wbg_new_8a6f238a6ece86ea:pc,__wbg_stack_0ed75d68575b0f3c:mb,__wbg_error_7534b8e9a36f1ab4:Mt,__wbg_fetch_f1856afdb49415d1:kt,__wbindgen_object_clone_ref:F0,__wbg_scheduler_5156bb61cc1cf589:Rf,__wbg_getCoalescedEvents_21492912fd0145ec:$t,__wbg_requestFullscreen_86fc6cdb76000482:Pf,__wbg_requestIdleCallback_1b8d644ff564208f:Bf,__wbg_offsetX_cb6a38e6f23cb4a6:Rc,__wbg_offsetY_43e21941c5c1f8bf:Oc,__wbg_cancel_09c394f0894744eb:yn,__wbg_webkitFullscreenElement_a9ca38b7214d1567:f0,__wbg_requestFullscreen_9f0611438eb929cf:Mf,__wbg_webkitRequestFullscreen_23664c63833ff0e5:a0,__wbg_scheduler_48482a9974eeacbd:Ef,__wbg_postTask_41d93e93941e4a3d:Zc,__wbg_userAgentData_f7b0e61c05c54315:Xi,__wbg_brands_a1e7a2bce052128f:an,__wbg_brand_9562792cbb4735c3:fn,__wbg_prototype_c28bca39c45aba9b:_f,__wbg_animate_6ec571f163cf6f8d:De,__wbg_play_63bc12f42e16af91:jc,__wbg_Window_d1bf622f71ff0629:ce,__wbg_performance_7a3ffd0b17f663ad:Gc,__wbg_now_2c95c9de01293173:Bc,__wbg_set_color_attachments_81e56abd7f11d38b:Ba,__wbg_set_label_10c0715c06c574ce:yu,__wbg_set_view_dc1937ba74f6a24a:Zo,__wbg_set_depth_clear_value_d3053d10a4ac9092:qa,__wbg_set_depth_load_op_0e48f976ce8bf626:Wa,__wbg_set_depth_store_op_35c62b6bd92fd38a:Qa,__wbg_set_depth_read_only_16d1277d6c444182:za,__wbg_set_stencil_clear_value_c88c52b70d827549:Po,__wbg_set_stencil_load_op_f865ee8f5135b2e2:Bo,__wbg_set_stencil_store_op_b92786567b815d0f:To,__wbg_set_stencil_read_only_54652ff66298c4c5:Lo,__wbg_set_depth_stencil_attachment_6ad88a7f0d66500b:Ka,__wbg_set_query_set_1f3c39edf379c9f9:oo,__wbg_set_beginning_of_pass_write_index_fc4e5d9d098584df:wa,__wbg_set_end_of_pass_write_index_78b5e4acfb705c38:Ja,__wbg_set_timestamp_writes_d8d448bf6b1779ee:Wo,__wbg_beginRenderPass_c95ff061c0d906d5:Te,__wbg_set_width_d1fb21b0573a430a:fb,__wbg_set_height_308d7c58bb7196f5:mu,__wbg_set_depth_or_array_layers_922a1b1547bf00be:Ua,__wbg_label_37d2cc4e867fe710:Xr,__wbg_set_label_5871c6a4116d78e4:Iu,__wbg_finish_cafc9caa4b3df56c:Et,__wbg_finish_42f37cad38abaf27:Ct,__wbg_instanceof_GpuCanvasContext_ffa8d2a7cb70b8fd:qr,__wbg_set_dst_factor_01ac107dce46775a:Ha,__wbg_set_operation_872810b2c7ad34bb:ro,__wbg_set_src_factor_d869078ba948812f:Do,__wbg_set_texture_18b0fd044bd7238a:Vo,__wbg_set_mip_level_893bb594663b5970:Ku,__wbg_set_x_6e4718e5e565b05c:ob,__wbg_set_y_7ad35b82f29b7b2e:bb,__wbg_set_z_74f5725616541ab5:ib,__wbg_set_origin_a91df496455ed18c:co,__wbg_set_aspect_a06243383a09c435:ba,__wbg_Window_89f1205e6b84c5cf:re,__wbg_gpu_97c682b8bbd6da29:Fr,__wbg_WorkerGlobalScope_bfa24e5b372f1f02:fe,__wbg_set_a_cb5a15147778942a:Zf,__wbg_set_b_130b6d20afdc640c:da,__wbg_set_g_a202edac674d3195:gu,__wbg_set_r_d02e085dc65c7ba3:bo,__wbg_writeBuffer_204a3aba84ea260c:o0,__wbg_set_bytes_per_row_cc544005f5ac177d:Da,__wbg_set_rows_per_image_91e30e4ece899f1e:lo,__wbg_set_offset_50c0ba4bb906a321:eo,__wbg_writeTexture_bf31683b9d6c6d14:b0,__wbg_onSubmittedWorkDone_7c17a7914d6a1c0f:qc,__wbg_submit_5f96af711b83c2df:Cb,__wbg_getMappedRange_9a20d37843bbc5dd:fr,__wbg_unmap_80761f81f18ec521:zi,__wbg_destroy_834dd203329bdb3c:_t,__wbg_mapAsync_c9718fcf0566073c:_c,__wbg_set_size_61d185241554da71:So,__wbg_set_usage_063311abcbeb0c9f:No,__wbg_set_mapped_at_creation_0d65690c0978994b:Vu,__wbg_set_label_d7cc9fef79f6607e:Bu,__wbg_createBuffer_e488cd40ceda9067:n_,__wbg_set_address_mode_u_0099f90d7d87696a:na,__wbg_set_address_mode_v_04f9373166ede6c4:_a,__wbg_set_address_mode_w_b6c10646d3e36154:ta,__wbg_set_compare_247a44f5e76066a8:La,__wbg_set_lod_max_clamp_35cfaf5ea55bb7aa:Ru,__wbg_set_lod_min_clamp_30d6a6d6ab2266ba:Ou,__wbg_set_mag_filter_30e1d228621e7c54:qu,__wbg_set_min_filter_6674175c1bc1ef98:ju,__wbg_set_mipmap_filter_40fc07fcab34eb41:Xu,__wbg_set_max_anisotropy_32559abff96ae565:Wu,__wbg_set_label_6e50ef4fd57a0f6f:Au,__wbg_createSampler_a3dfb0f2f89fdc2b:g_,__wbg_set_format_dad716a408041ce0:ou,__wbg_set_size_b0ef925501e008f2:Io,__wbg_set_usage_f141b5de159a42da:Yo,__wbg_set_label_da0fad57dde6793d:Fu,__wbg_set_dimension_b61a8ae2d358aa5b:$a,__wbg_set_mip_level_count_6f365469d581bead:Nu,__wbg_set_sample_count_954d237c60a25f1d:mo,__wbg_set_view_formats_d410e2098aeda477:tb,__wbg_createTexture_cdd92f03ef413b88:y_,__wbg_set_entries_2cd3545ee493b9d8:Za,__wbg_set_layout_5bb0e3710064d78b:ku,__wbg_set_label_1eb936d3881c4a73:hu,__wbg_createBindGroup_0916ed8027ba2c5a:Jn,__wbg_set_code_d96e8bd591fe4d27:Pa,__wbg_set_label_4592679c60c3ae0e:vu,__wbg_createShaderModule_2b4d1147549bca28:l_,__wbg_set_label_4f94deb040009907:Su,__wbg_createCommandEncoder_e817b588d596b7d6:__,__wbg_set_bind_group_layouts_0304829711909964:la,__wbg_set_label_81a922ba355b9c4e:Pu,__wbg_createPipelineLayout_87ecd84a502ca7b4:a_,__wbg_set_module_b00779338e12d7cb:Hu,__wbg_set_entry_point_d34fa93493d1dc0e:_u,__wbg_set_buffers_c36e59052d233445:Ia,__wbg_set_layout_cf44c2080938f1e8:Cu,__wbg_set_vertex_84e0affabea33233:Ho,__wbg_set_label_ee8b5ccc3ceeadae:Lu,__wbg_set_format_1e6dd64c90091826:fu,__wbg_set_depth_compare_f44e1ef737045c19:Va,__wbg_set_depth_write_enabled_47d54383526f6b41:Na,__wbg_set_depth_bias_6f054d893efee16d:Ea,__wbg_set_depth_bias_clamp_13d8ea5bcc66315c:Ra,__wbg_set_depth_bias_slope_scale_79c154be54e419a7:Oa,__wbg_set_compare_13ccce3149fc8362:Fa,__wbg_set_depth_fail_op_a697253b12a479e1:Ga,__wbg_set_fail_op_45d1f0ecf070d60c:ru,__wbg_set_pass_op_10f19e715ae2c3ef:fo,__wbg_set_stencil_back_f7d6690835becc87:Ao,__wbg_set_stencil_front_b0e57ed3db28a814:Mo,__wbg_set_stencil_read_mask_6d091cd38b736049:Fo,__wbg_set_stencil_write_mask_775ac04ab32e79dc:ko,__wbg_set_depth_stencil_18746e1deb2f030f:ja,__wbg_set_module_70bd7be1f2808c25:Yu,__wbg_set_targets_8396bdc905d927e9:qo,__wbg_set_entry_point_37d0e849bed76259:nu,__wbg_set_fragment_0767ccf58ccf1f6e:du,__wbg_set_count_9f86d0fc02d08e45:Ta,__wbg_set_mask_d8e7d97222c8a92e:Gu,__wbg_set_alpha_to_coverage_enabled_a10bd37eb439b948:fa,__wbg_set_multisample_8821c65822c70695:Ju,__wbg_set_cull_mode_e2b289219d281f62:Ca,__wbg_set_front_face_3c32fabea21988fa:su,__wbg_set_strip_index_format_d819e0c5b56ce30e:Oo,__wbg_set_topology_ad5745a55cfa852b:Uo,__wbg_set_unclipped_depth_05a825ce1721e8ed:Qo,__wbg_set_primitive_8ec2530289b383b9:uo,__wbg_createRenderPipeline_5757ddd273de2e48:i_,__wbg_set_entries_7ced1e5c2593516b:eu,__wbg_set_label_6d2e77710a43dc8c:Du,__wbg_createBindGroupLayout_433fd88c480d15ee:Hn,__wbg_end_5a7ce60dc0f49d42:Pt,__wbg_set_required_limits_6e2e6f742e0f92ae:so,__wbg_set_required_features_505229173e5ae00f:io,__wbg_set_label_fcbb40adcedf7a3a:Tu,__wbg_requestDevice_acf949c0a7d11096:Af,__wbg_getPreferredCanvasFormat_a652de4dcf1b76a8:br,__wbg_getCurrentTexture_c288aea95a2ecd6c:_r,__wbg_set_device_cf77f0192bc5144c:Xa,__wbg_set_format_f98f8a95c86d8cc1:bu,__wbg_set_usage_e94a8ea3a622b561:$o,__wbg_set_alpha_mode_ea0e62378a600722:ca,__wbg_set_view_formats_57015785ec512612:_b,__wbg_configure_9ddad01510ae8865:jn,__wbg_set_dimension_f73df134b3cb9008:Ya,__wbg_set_format_17bbec4e26222ce0:cu,__wbg_set_aspect_24f00699ffc05e48:oa,__wbg_set_base_array_layer_8a27534c79ebf816:sa,__wbg_set_array_layer_count_fbec00646c2f76f0:aa,__wbg_set_base_mip_level_2a95e55cd9c4b4b0:ga,__wbg_set_mip_level_count_11613862db4f5326:Qu,__wbg_set_label_a9e60f11d8f6d907:Mu,__wbg_set_usage_8a7a3a48dde89c84:Xo,__wbg_createView_da8865cdd09ec9d5:I_,__wbg_set_power_preference_ad90ccb2239fef97:ao,__wbg_requestAdapter_7a2f80d6f6aea9f3:If,__wbg_queue_19586e9507f5e981:df,__wbg_instanceof_GpuAdapter_32c51925d44640f8:Or,__wbg_drawIndexed_61f900a3bae1176a:ht,__wbg_setPipeline_beee24fb5690e169:jf,__wbg_setBindGroup_59293f4cce3ae9cc:Wf,__wbg_setBindGroup_1e02fb4f10e03fb5:Gf,__wbg_setIndexBuffer_1cfc93f884167fc9:Uf,__wbg_setIndexBuffer_f0e21a93f9ba1002:zf,__wbg_setVertexBuffer_0e2ad0c3f14b93dc:$f,__wbg_setVertexBuffer_5090dba5d6df1168:Yf,__wbg_set_binding_b9f5989194044799:ma,__wbg_set_resource_e981078f9ddeee64:wo,__wbg_set_min_binding_size_c7f7fc1040f0d69b:zu,__wbg_set_has_dynamic_offset_45e6a78176745114:wu,__wbg_set_type_65c8734c99356bd7:jo,__wbg_set_alpha_e58cc49c799f170e:ra,__wbg_set_color_5c69a2b8e768328d:Ma,__wbg_set_attributes_9241554310424d07:ia,__wbg_set_array_stride_6ac1c0f48cbb1a6e:ua,__wbg_set_step_mode_e6ef4bb885b3b66a:Co,__wbg_set_buffer_c7c4bf990df518a5:Sa,__wbg_set_visibility_db1e452e6f23b84d:rb,__wbg_set_binding_f152b4f7c9a738e4:pa,__wbg_set_sampler_a3c99ec90976e6ff:xo,__wbg_set_texture_b1e40b7ea5ec46d9:Go,__wbg_set_storage_texture_e6cb7da67d8c6fce:Eo,__wbg_set_external_texture_743e2b3e660a1b87:tu,__wbg_set_format_313c8f10a7e36a0c:uu,__wbg_set_offset_697e85d970df2f50:no,__wbg_set_shader_location_01be15233cdb0803:yo,__wbg_set_buffer_9e1ebf8ed6567298:va,__wbg_set_offset_99d8916143968ec7:_o,__wbg_set_size_4a5f3caa1cb0f6ec:vo,__wbg_set_type_8131ac6aa51a1923:Ko,__wbg_set_multisampled_2ae606400626ad4f:Zu,__wbg_set_sample_type_12f50c8927ad99ab:po,__wbg_set_view_dimension_e40d2151f56ba216:nb,__wbg_set_format_fa63d24489fef366:iu,__wbg_set_access_318627865be26608:ea,__wbg_set_view_dimension_7031d64401f616a4:eb,__wbg_set_format_237204cc87ea4982:au,__wbg_set_blend_450723fd40147c64:xa,__wbg_set_write_mask_fc328072f01cb48d:ub,__wbg_set_load_op_de7ca59cc25dfb40:Eu,__wbg_set_store_op_5185ea291265ee63:Ro,__wbg_set_view_330ed9fc9fcc4d01:Jo,__wbg_set_clear_value_576d8a3bda7ba8cc:Aa,__wbg_set_resolve_target_cce9edc587b4211e:go,__wbg_queueMicrotask_5bb536982f78a56f:of,__wbg_queueMicrotask_0aa0a927f78f5d98:uf,__wbg_instanceof_WebGl2RenderingContext_4a08a94517ed5240:Wr,__wbg_blendFunc_2ef59299d10c662d:nn,__wbg_colorMask_177d9762658e5e28:En,__wbg_depthFunc_f670d4cbb9cd0913:H_,__wbg_depthMask_75a36d0065471a4b:Z_,__wbg_fenceSync_c52a4e24eabfa0d3:Lt,__wbg_frontFace_d4a6507ad2939b5c:Qt,__wbg_uniform1ui_a0f911ff174715d0:di,__wbg_beginQuery_0fdf154e1da0e73d:Le,__wbg_bindBuffer_c9068e8712a034f5:Oe,__wbg_blendColor_e799d452ab2a5788:Xe,__wbg_clearDepth_670099db422a4f91:An,__wbg_deleteSync_c8e4a9c735f71d18:U_,__wbg_depthRange_337bf254e67639bb:et,__wbg_drawArrays_075228181299b824:wt,__wbg_readBuffer_9eb461d6857295f0:sf,__wbg_useProgram_fe720ade4d3b6edb:Ni,__wbg_bindSampler_96f0e90e7bc31da9:Ue,__wbg_bindTexture_b2b7b1726a83f93e:ze,__wbg_createQuery_7988050efd7e4c48:b_,__wbg_deleteQuery_ea8bf1954febd774:R_,__wbg_drawBuffers_5eccfaacc6560299:pt,__wbg_linkProgram_6600dd2c0863bbfd:Hr,__wbg_pixelStorei_2a65936c11b710fe:Uc,__wbg_stencilMask_732dcc5aada10e4c:Bb,__wbg_attachShader_b36058e5c9eeaf54:Fe,__wbg_clearStencil_5d243d0dff03c315:Pn,__wbg_createBuffer_26534c05e01b8559:Zn,__wbg_createShader_e3ac08ed8c5b14b2:m_,__wbg_deleteBuffer_ab099883c168644d:L_,__wbg_deleteShader_aaf3b520a64d5d9d:G_,__wbg_getExtension_3c0cb5ae01bb4b17:rr,__wbg_getParameter_2e1f97ecaab76274:or,__wbg_shaderSource_32425cfe6e5a1e52:db,__wbg_activeTexture_6f9a710514686c24:xe,__wbg_blendEquation_e9b99928ed1494ad:Je,__wbg_compileShader_94718a93495d565d:qn,__wbg_createProgram_9b7710a1f2701c2c:o_,__wbg_createSampler_da6bb96c9ffaaa27:w_,__wbg_createTexture_16d2c8a3d7d4a75a:x_,__wbg_deleteProgram_9298fb3e3c1d3a78:C_,__wbg_deleteSampler_c6b68c4071841afa:V_,__wbg_deleteTexture_9d411c0e60ffa324:j_,__wbg_polygonOffset_4b3158d8ed028862:Xc,__wbg_texParameteri_0d45be2c88d6bad8:Gb,__wbg_texStorage2D_9504743abf5a986a:Ub,__wbg_texStorage3D_e9e1b58fee218abe:zb,__wbg_bindFramebuffer_031c73ba501cb8f6:qe,__wbg_blitFramebuffer_d730a23ab4db248e:tn,__wbg_bindRenderbuffer_8a2aa4e3d1fb5443:Ge,__wbg_bindVertexArray_78220d1edb1d2382:Qe,__wbg_createFramebuffer_41512c38358a41c4:r_,__wbg_deleteFramebuffer_9738f3bb85c1ab35:k_,__wbg_getSyncParameter_7d11ab875b41617e:Sr,__wbg_samplerParameterf_f070d2b69b1e2d46:kf,__wbg_samplerParameteri_8e4c4bcead0ee669:Cf,__wbg_blendFuncSeparate_95465944f788a092:Ze,__wbg_createRenderbuffer_a601226a6a680dbe:s_,__wbg_createVertexArray_ad5294951ae57497:S_,__wbg_deleteRenderbuffer_096edada57729468:O_,__wbg_deleteVertexArray_7bc7f92769862f93:Q_,__wbg_getQueryParameter_5d6af051438ae479:lr,__wbg_getShaderInfoLog_9e0b96da4b13ae49:pr,__wbg_stencilOpSeparate_4657523b1d3b184f:Fb,__wbg_bindAttribLocation_ce78bfb13019dbe6:Ce,__wbg_bufferData_32d26eba0c74a53c:on,__wbg_getProgramInfoLog_2ffa30e3abb8b5c2:ir,__wbg_getShaderParameter_afa4a3dd9dd397c1:yr,__wbg_getUniformLocation_d06b3a5b3c60e95c:Ar,__wbg_readPixels_6ea8e288a8673282:wf,__wbg_renderbufferStorage_1bc02383614b76b2:hf,__wbg_copyTexSubImage2D_91ebcd9cd1908265:$n,__wbg_copyTexSubImage3D_f62ef4c4eeb9a7dc:Yn,__wbg_drawArraysInstanced_ec30adc616ec58d5:gt,__wbg_getIndexedParameter_ca1693c768bc4934:cr,__wbg_getProgramParameter_92e4540ca9da06b2:gr,__wbg_stencilFuncSeparate_10d043d0af14366f:Ib,__wbg_stencilMaskSeparate_28d53625c02d9c7f:Ab,__wbg_texImage3D_2082006a8a9b28a7:qb,__wbg_uniformBlockBinding_1cf9fd2c49adf0f3:Fi,__wbg_vertexAttribDivisor_744c0ca468594894:Ji,__wbg_framebufferTexture2D_c283e928186aa542:Ut,__wbg_invalidateFramebuffer_b17b7e1da3051745:zr,__wbg_blendEquationSeparate_a8094fbec94cf80e:Ye,__wbg_getUniformBlockIndex_1ee7e922e6d96d7e:Ir,__wbg_framebufferRenderbuffer_850811ed6e26475e:Vt,__wbg_getSupportedExtensions_57142a6b598d7787:hr,__wbg_clientWaitSync_21865feaeb76a9a5:Tn,__wbg_framebufferTextureLayer_c8328828c8d5eb60:zt,__wbg_texSubImage3D_59b8e24fb05787aa:ti,__wbg_uniform2fv_2fb47cfe06330cc7:gi,__wbg_uniform2iv_095baf208f172131:wi,__wbg_uniform3fv_c0872003729939a5:xi,__wbg_uniform3iv_6aa2b0791e659d14:yi,__wbg_uniform4fv_498bd80dc5aa16ff:Di,__wbg_uniform4iv_8a8219fda39dffd5:Mi,__wbg_enableVertexAttribArray_475e06c31777296d:vt,__wbg_uniform2uiv_3030d7e769f5e82a:mi,__wbg_uniform3uiv_86941e7eeb8ee0a3:vi,__wbg_uniform4uiv_046ee400bb80547d:Bi,__wbg_disableVertexAttribArray_24a020060006b10f:ct,__wbg_clearBufferfv_ac87d92e2f45d80c:vn,__wbg_clearBufferiv_69ff24bb52ec4c88:Sn,__wbg_clearBufferuiv_8ad59a8219aafaca:In,__wbg_vertexAttribPointer_75f6ff47f6c9f8cb:e0,__wbg_drawElementsInstanced_d41fc920ae24717c:yt,__wbg_renderbufferStorageMultisample_bc0ae08a7abb887a:yf,__wbg_texSubImage3D_45591e5655d1ed5c:ni,__wbg_uniformMatrix2fv_24430076c7afb5e3:Li,__wbg_uniformMatrix3fv_6f822361173d8046:Ei,__wbg_uniformMatrix4fv_0e724dbebd372526:Vi,__wbg_vertexAttribIPointer_b9020d0c2e759912:Zi,__wbg_bindBufferRange_009d206fe9e4151e:Ee,__wbg_bufferData_98f6c413a8f0f139:dn,__wbg_texSubImage3D_3b653017c4c5d721:ei,__wbg_uniformMatrix2x3fv_a377326104a8faf4:ki,__wbg_uniformMatrix2x4fv_b7a4d810e7a1cf7d:Ci,__wbg_uniformMatrix3x2fv_69a4cf0ce5b09f8b:Oi,__wbg_uniformMatrix3x4fv_cc72e31a1baaf9c9:qi,__wbg_uniformMatrix4x2fv_8c9fb646f3b90b63:Wi,__wbg_uniformMatrix4x3fv_ee0bed9a1330400d:Ui,__wbg_readPixels_55b18304384e073d:gf,__wbg_texImage3D_bd2b0bd2cfcdb278:Vb,__wbg_texSubImage3D_47643556a8a4bf86:_i,__wbg_texSubImage3D_18d7f3c65567c885:Zb,__wbg_texSubImage3D_eff5cd6ab84f44ee:ri,__wbg_texSubImage3D_1102c12a20bf56d5:Jb,__wbg_compressedTexSubImage2D_d8fbae93bb8c4cc9:Wn,__wbg_compressedTexSubImage3D_778008a6293f15ab:zn,__wbg_copyBufferSubData_a4f9815861ff0ae9:Nn,__wbg_bufferSubData_3e902f031adf13fd:gn,__wbg_compressedTexSubImage2D_684350eb62830032:Gn,__wbg_compressedTexSubImage3D_16afa3a47bf1d979:Un,__wbg_getBufferSubData_4fc54b4fbb1462d7:Xt,__wbg_texSubImage2D_edf5bd70fda3feaf:Hb,__wbg_clear_7187030f892c5ca0:Ln,__wbg_flush_e322496f5412e567:Ot,__wbg_texImage2D_13414a4692836804:Rb,__wbg_texSubImage2D_bf72e56edeeed376:Xb,__wbg_texSubImage2D_e193f1d28439217c:Yb,__wbg_enable_d1ac04dfdd2fb3ae:It,__wbg_texSubImage2D_117d29278542feb0:jb,__wbg_texSubImage2D_bd034db2e58c352c:Nb,__wbg_texSubImage2D_5d270af600a7fc4a:Qb,__wbg_texSubImage2D_d17a39cdec4a3495:$b,__wbg_disable_7fe6fb3e97717f88:at,__wbg_scissor_2ff8f18f05a6d408:Of,__wbg_texImage2D_087ef94df78081f0:Eb,__wbg_viewport_df236eac68bc7467:t0,__wbg_cullFace_e7e711a14d2c3f48:M_,__wbg_endQuery_54f0627d4c931318:At,__wbg_uniform1f_b500ede5b612bea2:ui,__wbg_uniform1i_e9aee4b9e7fe8c4b:ii,__wbg_uniform4f_f6b5e2024636033a:Ii,__wbg_instanceof_Window_ed49b2db8df90359:Ur,__wbg_matchMedia_91d4fc9729dc3c84:tc,__wbg_queueMicrotask_885fd8605352e25d:bf,__wbg_devicePixelRatio_5c458affc89fc209:rt,__wbg_getComputedStyle_2d1f9dfe4ee7e0b9:Ht,__wbg_cancelIdleCallback_fdfaaf4ca585e729:xn,__wbg_requestIdleCallback_c9c643f8210d435b:Ff,__wbg_cancelAnimationFrame_cd35895d78cf4510:pn,__wbg_requestAnimationFrame_43682f8e1c5e5348:Df,__wbg_clearTimeout_df03cf00269bc442:Bn,__wbg_setTimeout_681abd84926a4da3:Nf,__wbg_setTimeout_eff32631ea138533:Xf,__wbg_document_ee35a3d3ae34ef6c:it,__wbg_location_df7ca06c93e51763:ec,__wbg_navigator_43be698ba96fc088:bc,__wbg_setAttribute_cc8e4c8a2a008508:Vf,__wbg_setPointerCapture_420db6f6826eb74b:Kf,__wbg_activeElement_1554b6917654f8d6:pe,__wbg_createElement_49f60fdcaae809c8:t_,__wbg_querySelector_c3b0df2d58eec220:af,__wbg_visibilityState_43b7b74940e07d22:r0,__wbg_getElementById_e34377b79d7285f6:tr,__wbg_fullscreenElement_25b445e2961e68ba:Nt,__wbg_querySelectorAll_1283aae52043a951:ff,__wbg_body_f67922363a220026:cn,__wbg_fetch_afb6a4b6cacf876d:Tt,__wbg_navigator_4478931f32ebca57:ic,__wbg_focus_128ff465f65677cc:qt,__wbg_style_0b7c9bd318f8b807:kb,__wbg_blendFunc_446658e7231ab9c8:_n,__wbg_colorMask_7a8dbc86e7376a9b:Rn,__wbg_depthFunc_eb3aa05361dd2eaa:Y_,__wbg_depthMask_103091329ca1a750:J_,__wbg_frontFace_027e2ec7a7bc347c:Kt,__wbg_bindBuffer_69a7a0b8f3f9b9cf:Re,__wbg_blendColor_1d50ac87d9a2794b:Ne,__wbg_clearDepth_2b109f644a783a53:Dn,__wbg_depthRange_5579d448b9d7de57:nt,__wbg_drawArrays_2be89c369a29f30b:lt,__wbg_useProgram_e82c1a5f87d81579:Qi,__wbg_bindTexture_ec13ddcb9dc8e032:je,__wbg_linkProgram_be6b825cf66d177b:Jr,__wbg_pixelStorei_f7cc498f52d523f1:zc,__wbg_stencilMask_0eca090c4c47f8f7:Mb,__wbg_attachShader_32114efcf2744eb6:Be,__wbg_clearStencil_aa65955bb39d8c18:Mn,__wbg_createBuffer_c4ec897aacc1b91c:e_,__wbg_createShader_f2b928ca9a426b14:p_,__wbg_deleteBuffer_22fcc93912cbf659:F_,__wbg_deleteShader_ff70ca962883e241:W_,__wbg_getParameter_1ecb910cfdd21f88:ur,__wbg_shaderSource_8f4bda03f70359df:sb,__wbg_activeTexture_7e39cb8fdf4b6d5a:ye,__wbg_blendEquation_82202f34c4c00e50:He,__wbg_compileShader_63b824e86bb00b8f:On,__wbg_createProgram_98aaa91f7c81c5e2:u_,__wbg_createTexture_f9451a82c7527ce2:h_,__wbg_deleteProgram_f354e79b8cae8076:E_,__wbg_deleteTexture_2be78224e5584a8b:z_,__wbg_polygonOffset_24a8059deb03be92:Nc,__wbg_texParameteri_ec937d2161018946:Wb,__wbg_bindFramebuffer_7815ca611abb057f:Ve,__wbg_bindRenderbuffer_db37c1bac9ed4da0:We,__wbg_createFramebuffer_b88ffa8e0fd262c4:c_,__wbg_deleteFramebuffer_8de1ca41ac87cfd9:T_,__wbg_blendFuncSeparate_f366c170c5097fbe:en,__wbg_createRenderbuffer_1e567f2f4d461710:d_,__wbg_deleteRenderbuffer_0f565f0727b341fc:q_,__wbg_getShaderInfoLog_9991e9e77b0c6805:mr,__wbg_stencilOpSeparate_de257f3c29e604cd:Lb,__wbg_bindAttribLocation_5cfc7fa688df5051:ke,__wbg_bufferData_1be8450fab534758:un,__wbg_getProgramInfoLog_dbfda4b6e7eb1b37:dr,__wbg_getShaderParameter_786fd84f85720ca8:xr,__wbg_getUniformLocation_71c070e6644669ad:Dr,__wbg_renderbufferStorage_6348154d30979c44:vf,__wbg_copyTexSubImage2D_417a65926e3d2490:Xn,__wbg_getProgramParameter_43fbc6d2613c08b3:sr,__wbg_stencilFuncSeparate_1798f5cca257f313:Db,__wbg_stencilMaskSeparate_c24c1a28b8dd8a63:Pb,__wbg_framebufferTexture2D_8adf6bdfc3c56dee:Wt,__wbg_blendEquationSeparate_1b12c43928cc7bc1:$e,__wbg_framebufferRenderbuffer_cd9d55a68a2300ea:Gt,__wbg_uniform2fv_04c304b93cbf7f55:si,__wbg_uniform2iv_ccf2ed44ac8e602e:li,__wbg_uniform3fv_aa35ef21e14d5469:pi,__wbg_uniform3iv_e912f444d4ff8269:hi,__wbg_uniform4fv_e6c73702e9a3be5c:Ai,__wbg_uniform4iv_375332584c65e61b:Pi,__wbg_enableVertexAttribArray_aa6e40408261eeb9:St,__wbg_disableVertexAttribArray_4bac633c27bae599:ft,__wbg_vertexAttribPointer_adbd1853cce679ad:n0,__wbg_uniformMatrix2fv_e2806601f5b95102:Ti,__wbg_uniformMatrix3fv_b94a764c63aa6468:Ri,__wbg_uniformMatrix4fv_923b55ad503fdc56:Gi,__wbg_bufferData_52235e85894af988:bn,__wbg_readPixels_95b2464a7bb863a2:lf,__wbg_bufferSubData_33eebcc173094f6a:sn,__wbg_compressedTexSubImage2D_215bb115facd5e48:Vn,__wbg_clear_4d801d0d054c3579:Fn,__wbg_flush_7777597fd43065db:Rt,__wbg_enable_fee40f19b7053ea3:Dt,__wbg_texSubImage2D_19ae4cadb809f264:Kb,__wbg_disable_bd37bdcca1764aea:ut,__wbg_scissor_b870b1434a9c25b4:qf,__wbg_texImage2D_e71049312f3172d9:Ob,__wbg_viewport_174ae1c2209344ae:_0,__wbg_cullFace_39500f654c67a205:P_,__wbg_uniform1f_c148eeaf4b531059:oi,__wbg_uniform1i_9f3f72dbcb98ada9:bi,__wbg_uniform4f_71ec75443e58cecc:Si,__wbg_movementX_ff6524e06bc35b6a:uc,__wbg_movementY_4cec81d9850ad239:oc,__wbg_button_d86841d0a03adc44:wn,__wbg_altKey_8155c319c215e3aa:Ie,__wbg_buttons_a158a0cad3175f24:ln,__wbg_ctrlKey_96ff94f8b18636a3:A_,__wbg_metaKey_374999c340f70626:fc,__wbg_shiftKey_5558a3288542c985:gb,__wbg_key_d41e8e825e6bb0e9:Nr,__wbg_code_dee0dae4730408e1:Cn,__wbg_repeat_375aae5c5c6a0258:Sf,__wbg_altKey_73c1173ba53073d5:Se,__wbg_ctrlKey_09a1b54d77dea92b:D_,__wbg_location_22bcb1a188a96eb1:Zr,__wbg_metaKey_67113fb40365d736:ac,__wbg_shiftKey_564be91ec842bcc4:wb,__wbg_addListener_03e8162d7e03c823:ve,__wbg_removeListener_e2a199028636dcf5:pf,__wbg_media_7bcde781569bca4c:cc,__wbg_matches_4b5c22bd830f7bb3:rc,__wbg_preventDefault_cdcfcd7e301b9702:nf,__wbg_userAgent_34463fd660ba4a2a:$i,__wbg_now_ebffdf7e580f210d:Fc,__wbg_new_b949e7f56150a5d1:yc,__wbg_abort_2f0584e03e8e3950:me,__wbg_signal_d1285ecab4ebc5ad:lb,__wbg_blockSize_ef9a626745d7dfac:rn,__wbg_inlineSize_3e4e7e8c813884fd:Rr,__wbg_bindVertexArrayOES_c2610602f7485b3f:Ke,__wbg_createVertexArrayOES_bd76ceee6ab9b95e:v_,__wbg_deleteVertexArrayOES_197df47ef9684195:K_,__wbg_framebufferTextureMultiviewOVR_16d049b41d692b91:jt,__wbg_contentRect_79b98e4d4f4728a4:Qn,__wbg_devicePixelContentBoxSize_8f39437eab7f03ea:tt,__wbg_isIntersecting_6807d592d68e059e:jr,__wbg_new_with_str_sequence_and_options_9b8b0bee99ec6b0f:Ac,__wbg_get_d8db2ad31d529ff8:Br,__wbg_instanceof_Response_ee1d54d79ae41977:Gr,__wbg_arrayBuffer_bb54076166006c39:Me,__wbg_url_c484c26b1fbf5126:Ki,__wbg_text_083b8727c990c8c0:ci,__wbg_status_89d7e803db911ee7:Sb,__wbg_headers_59a2938db9f80985:Tr,__wbg_disconnect_5202f399852258c0:bt,__wbg_observe_1ae37077cf10b11b:Lc,__wbg_new_2e2be9617c4407d5:dc,__wbg_observe_b9abc08d6d829e56:kc,__wbg_unobserve_b4eb8d945252124f:ji,__wbg_set_type_148de20768639245:zo,__wbg_set_height_f21f985387070100:xu,__wbg_getContext_2a5764d48600bc43:Zt,__wbg_getContext_b28d2db7bd648242:er,__wbg_set_width_d60bc4f2f20c56a4:ab,__wbg_instanceof_HtmlCanvasElement_3f2f6e1edb1c9792:Vr,__wbg_queryCounterEXT_b578f07c30420446:cf,__wbg_getSupportedProfiles_1f728bc32003c4d0:vr,__wbg_new_with_str_and_init_a61cbc6bdef21614:Dc,__wbg_set_height_b386c0f603610637:pu,__wbg_getContext_2966500392030d63:Jt,__wbg_getContext_de810d9f187f29ca:nr,__wbg_set_width_7f07715a20503914:cb,__wbg_setProperty_cbb25c4e74285b39:Qf,__wbg_removeProperty_a0d2ff8a76ffd2b1:xf,__wbg_getPropertyValue_d6911b2a1f9acba9:wr,__wbg_disconnect_0a2d26237dfc1e9e:ot,__wbg_new_8c6e67a40cee1f83:xc,__wbg_observe_2a9d63459970a2c1:Tc,__wbg_revokeObjectURL_ba5712ef5af8bc9a:Tf,__wbg_createObjectURL_918185db6a10a0c8:f_,__wbg_new_64284bd487f9d239:lc,__wbg_append_a992ccc37aa62dc4:Pe,__wbg_deltaMode_a1d1df711e44cefc:N_,__wbg_deltaX_f0ca9116db5f7bc1:X_,__wbg_deltaY_eb94120160ac821c:$_,__wbg_pointerId_466b1bdcaf2fe835:Kc,__wbg_pointerType_ba53c6f18634a26d:Qc,__wbg_getCoalescedEvents_8d19e426e1461e96:Yt,__wbg_pressure_f01a99684f7a6cf3:ef,__wbg_appendChild_dea38765a26d346d:Ae,__wbg_contains_1056459c33f961e8:Kn,__wbg_origin_a9c891fa602b4d40:Vc,__wbg_new_6f0524fbfa300c47:mc,__wbg_port1_6251ddc5cf5c9287:$c,__wbg_port2_b2a294b0ede1e13c:Yc,__wbg_drawArraysInstancedANGLE_9e4cc507eae8b24d:st,__wbg_vertexAttribDivisorANGLE_eaa3c29423ea6da4:Hi,__wbg_drawElementsInstancedANGLE_6f9da0b845ac6c4e:xt,__wbg_set_box_73d3355c6f95f24d:ha,__wbg_addEventListener_3acb0aad4483804c:he,__wbg_removeEventListener_e63328781a5b9af9:mf,__wbg_set_method_c3e20375f5ae7fac:Uu,__wbg_set_signal_f2d3f8599248896d:ho,__wbg_set_credentials_c4a58d2e05ef24fb:ka,__wbg_set_headers_cfc5f4b2c1f20549:lu,__wbg_set_body_9a7e00afe3cfe244:ya,__wbg_set_mode_b13642c312648202:$u,__wbg_postMessage_e45c89e4826cf2ef:Jc,__wbg_new_4f8f3c123e474358:wc,__wbg_log_6b5ca2e6124b2808:nc,__wbg_info_148d043840582012:Er,__wbg_warn_f7ae1b2e66ccb930:c0,__wbg_debug_a4099fa12db6cd61:B_,__wbg_error_9a7fe3f932034cde:Bt,__wbg_error_f852e41c69b0bd84:Ft,__wbg_postMessage_46eeeef39934b448:Hc,__wbg_set_onmessage_0e1ffb1c0d91d2ad:to,__wbg_close_fad2f0ee451926ed:kn,__wbg_start_ffb4b426b1e661bd:pb,__wbg_width_7444cca5dfea0645:u0,__wbg_height_c2027cf67d1c9b11:kr,__wbg_drawBuffersWEBGL_447bc0a21f8ef22d:mt,__wbg_persisted_de98357e1aaf6546:Wc,__wbg_new_3eb36ae241fe6f44:gc,__wbg_new_361308b2356cecd0:sc,__wbg_new_no_args_1c7c842f08d00ebb:Sc,__wbg_new_dd2b680c8bf6ae29:hc,__wbg_length_32ed9a279acd054c:$r,__wbg_prototypesetcall_bdcdcc5842e4d77d:tf,__wbg_new_from_slice_a3d2629dc1826784:vc,__wbg_new_with_byte_offset_and_length_aa261d9c9da49eb1:Ic,__wbg_set_25cf9deff6bf0ea8:Hf,__wbg_done_57b39ecd9addfe81:dt,__wbg_value_0546255b415e96c1:Yi,__wbg_get_9b94d73e6221f75c:Pr,__wbg_of_f915f7cd925b21a5:Ec,__wbg_of_9ab14f9d4bfb5040:Cc,__wbg_length_35a7bace40f36eac:Yr,__wbg_push_8ffdcb2063340ba5:rf,__wbg_includes_32215c836f1cd3fb:Cr,__wbg_getOwnPropertyDescriptor_03ccfd856865081b:ar,__wbg_is_f29129f676e5410c:Kr,__wbg_iterator_6ff6560ca1568e55:Qr,__wbg_static_accessor_GLOBAL_THIS_e628e89ab3b1c95f:yb,__wbg_call_389efe28435a9388:mn,__wbg_static_accessor_SELF_a621d3dfbb60d0ce:hb,__wbg_static_accessor_GLOBAL_12837167ad935116:xb,__wbg_static_accessor_WINDOW_f8727f0cf888e0bd:vb,__wbg_then_b9e7b3b5f1a9e1b5:ai,__wbg_catch_c1f8c7623b458214:hn,__wbg_then_0d9fe2c7b1857d32:fi,__wbg_resolve_002c4b7d9d8f6b64:Lf,__wbg_next_418f80d8f5303233:Mc,__wbg_next_3482f54c49e8af19:Pc,__wbg_get_b3ed3ad4be2bc8ac:Mr,__wbg_has_d4e53238966c12b6:Lr,__wbg_set_6cb8631f80447a67:Jf,__wbg_stringify_8d1cc6ff383e8bae:Tb,__wbg___wbindgen_number_get_8ff4255516ccad3e:se,__wbg___wbindgen_throw_be289d5034ed271b:we,__wbg___wbindgen_is_null_ac34f5003991759a:be,__wbg___wbindgen_is_object_5ae8e5880f2c1fbd:ie,__wbg___wbindgen_string_get_72fb696202c56729:ge,__wbg___wbindgen_boolean_get_bbbb1c18aa2f5e25:ae,__wbg___wbindgen_is_function_0095a73b8b156f76:oe,__wbg___wbindgen_is_undefined_9e4d92534c42d778:de,__wbg___wbindgen_debug_string_0bc8482c6e3508ae:ue,__wbg__wbg_cb_unref_d9b87ff7982e3b21:le,__wbindgen_cast_0000000000000001:i0,__wbindgen_cast_0000000000000002:d0,__wbindgen_cast_0000000000000003:s0,__wbindgen_cast_0000000000000004:g0,__wbindgen_cast_0000000000000005:w0,__wbindgen_cast_0000000000000006:l0,__wbindgen_cast_0000000000000007:m0,__wbindgen_cast_0000000000000008:p0,__wbindgen_cast_0000000000000009:x0,__wbindgen_cast_000000000000000a:y0,__wbindgen_cast_000000000000000b:h0,__wbindgen_cast_000000000000000c:v0,__wbindgen_cast_000000000000000d:S0,__wbindgen_cast_000000000000000e:I0,__wbindgen_cast_000000000000000f:D0,__wbindgen_cast_0000000000000010:A0,__wbindgen_cast_0000000000000011:P0,__wbindgen_cast_0000000000000012:M0,__wbindgen_cast_0000000000000013:B0}},te),sd=v.memory,gd=v.main,wd=v.run_web,ld=v.__wasm_bindgen_func_elem_3147,md=v.__wasm_bindgen_func_elem_4959,pd=v.__wasm_bindgen_func_elem_3486,xd=v.__wasm_bindgen_func_elem_3480,yd=v.__wasm_bindgen_func_elem_4960,hd=v.__wasm_bindgen_func_elem_3478,vd=v.__wbindgen_export,Sd=v.__wbindgen_export2,Id=v.__wbindgen_export3,Dd=v.__wbindgen_export4,ne=v.__wbindgen_start,Ad=Object.freeze(Object.defineProperty({__proto__:null,__wasm_bindgen_func_elem_3147:ld,__wasm_bindgen_func_elem_3478:hd,__wasm_bindgen_func_elem_3480:xd,__wasm_bindgen_func_elem_3486:pd,__wasm_bindgen_func_elem_4959:md,__wasm_bindgen_func_elem_4960:yd,__wbindgen_export:vd,__wbindgen_export2:Sd,__wbindgen_export3:Id,__wbindgen_export4:Dd,__wbindgen_start:ne,main:gd,memory:sd,run_web:wd},Symbol.toStringTag,{value:"Module"}));dd(Ad),ne()})();export{Md as __tla,_e as run_web};
+import { _ as t_ } from "./vite-plugin-wasm-helper-D7K_KhUE.js";
+let Md;
+let __tla = (async () => {
+  const n_ = "/learn-wgpu/assets/demo_bg-Ckv9xvSG.wasm";
+  Md = function() {
+    i.run_web();
+  };
+  function r_(_) {
+    const e = t(_).Window;
+    return b(e);
+  }
+  function c_(_) {
+    const e = t(_).Window;
+    return b(e);
+  }
+  function b_(_) {
+    const e = t(_).WorkerGlobalScope;
+    return b(e);
+  }
+  function a_(_) {
+    const e = t(_), n = typeof e == "boolean" ? e : void 0;
+    return w(n) ? 16777215 : n ? 1 : 0;
+  }
+  function f_(_, e) {
+    const n = z(t(e)), r = y(n, i.__wbindgen_export, i.__wbindgen_export2), c = p;
+    l().setInt32(_ + 4, c, true), l().setInt32(_ + 0, r, true);
+  }
+  function o_(_) {
+    return typeof t(_) == "function";
+  }
+  function u_(_) {
+    return t(_) === null;
+  }
+  function i_(_) {
+    const e = t(_);
+    return typeof e == "object" && e !== null;
+  }
+  function d_(_) {
+    return t(_) === void 0;
+  }
+  function g_(_, e) {
+    const n = t(e), r = typeof n == "number" ? n : void 0;
+    l().setFloat64(_ + 8, w(r) ? 0 : r, true), l().setInt32(_ + 0, !w(r), true);
+  }
+  function s_(_, e) {
+    const n = t(e), r = typeof n == "string" ? n : void 0;
+    var c = w(r) ? 0 : y(r, i.__wbindgen_export, i.__wbindgen_export2), a = p;
+    l().setInt32(_ + 4, a, true), l().setInt32(_ + 0, c, true);
+  }
+  function w_(_, e) {
+    throw new Error(g(_, e));
+  }
+  function l_(_) {
+    t(_)._wbg_cb_unref();
+  }
+  function m_(_) {
+    t(_).abort();
+  }
+  function p_(_) {
+    const e = t(_).activeElement;
+    return w(e) ? 0 : b(e);
+  }
+  function x_(_, e) {
+    t(_).activeTexture(e >>> 0);
+  }
+  function y_(_, e) {
+    t(_).activeTexture(e >>> 0);
+  }
+  function h_() {
+    return o(function(_, e, n, r) {
+      t(_).addEventListener(g(e, n), t(r));
+    }, arguments);
+  }
+  function S_() {
+    return o(function(_, e) {
+      t(_).addListener(t(e));
+    }, arguments);
+  }
+  function v_(_) {
+    return t(_).altKey;
+  }
+  function I_(_) {
+    return t(_).altKey;
+  }
+  function A_(_, e, n) {
+    const r = t(_).animate(t(e), t(n));
+    return b(r);
+  }
+  function D_() {
+    return o(function(_, e) {
+      const n = t(_).appendChild(t(e));
+      return b(n);
+    }, arguments);
+  }
+  function P_() {
+    return o(function(_, e, n, r, c) {
+      t(_).append(g(e, n), g(r, c));
+    }, arguments);
+  }
+  function M_() {
+    return o(function(_) {
+      const e = t(_).arrayBuffer();
+      return b(e);
+    }, arguments);
+  }
+  function F_(_, e, n) {
+    t(_).attachShader(t(e), t(n));
+  }
+  function T_(_, e, n) {
+    t(_).attachShader(t(e), t(n));
+  }
+  function B_(_, e, n) {
+    t(_).beginQuery(e >>> 0, t(n));
+  }
+  function k_() {
+    return o(function(_, e) {
+      const n = t(_).beginRenderPass(t(e));
+      return b(n);
+    }, arguments);
+  }
+  function L_(_, e, n, r, c) {
+    t(_).bindAttribLocation(t(e), n >>> 0, g(r, c));
+  }
+  function E_(_, e, n, r, c) {
+    t(_).bindAttribLocation(t(e), n >>> 0, g(r, c));
+  }
+  function C_(_, e, n, r, c, a) {
+    t(_).bindBufferRange(e >>> 0, n >>> 0, t(r), c, a);
+  }
+  function R_(_, e, n) {
+    t(_).bindBuffer(e >>> 0, t(n));
+  }
+  function O_(_, e, n) {
+    t(_).bindBuffer(e >>> 0, t(n));
+  }
+  function q_(_, e, n) {
+    t(_).bindFramebuffer(e >>> 0, t(n));
+  }
+  function G_(_, e, n) {
+    t(_).bindFramebuffer(e >>> 0, t(n));
+  }
+  function V_(_, e, n) {
+    t(_).bindRenderbuffer(e >>> 0, t(n));
+  }
+  function W_(_, e, n) {
+    t(_).bindRenderbuffer(e >>> 0, t(n));
+  }
+  function U_(_, e, n) {
+    t(_).bindSampler(e >>> 0, t(n));
+  }
+  function z_(_, e, n) {
+    t(_).bindTexture(e >>> 0, t(n));
+  }
+  function j_(_, e, n) {
+    t(_).bindTexture(e >>> 0, t(n));
+  }
+  function K_(_, e) {
+    t(_).bindVertexArrayOES(t(e));
+  }
+  function N_(_, e) {
+    t(_).bindVertexArray(t(e));
+  }
+  function Q_(_, e, n, r, c) {
+    t(_).blendColor(e, n, r, c);
+  }
+  function X_(_, e, n, r, c) {
+    t(_).blendColor(e, n, r, c);
+  }
+  function $_(_, e, n) {
+    t(_).blendEquationSeparate(e >>> 0, n >>> 0);
+  }
+  function Y_(_, e, n) {
+    t(_).blendEquationSeparate(e >>> 0, n >>> 0);
+  }
+  function H_(_, e) {
+    t(_).blendEquation(e >>> 0);
+  }
+  function J_(_, e) {
+    t(_).blendEquation(e >>> 0);
+  }
+  function Z_(_, e, n, r, c) {
+    t(_).blendFuncSeparate(e >>> 0, n >>> 0, r >>> 0, c >>> 0);
+  }
+  function _e(_, e, n, r, c) {
+    t(_).blendFuncSeparate(e >>> 0, n >>> 0, r >>> 0, c >>> 0);
+  }
+  function ee(_, e, n) {
+    t(_).blendFunc(e >>> 0, n >>> 0);
+  }
+  function te(_, e, n) {
+    t(_).blendFunc(e >>> 0, n >>> 0);
+  }
+  function ne(_, e, n, r, c, a, f, u, d, s, m) {
+    t(_).blitFramebuffer(e, n, r, c, a, f, u, d, s >>> 0, m >>> 0);
+  }
+  function re(_) {
+    return t(_).blockSize;
+  }
+  function ce(_) {
+    const e = t(_).body;
+    return w(e) ? 0 : b(e);
+  }
+  function be(_, e) {
+    const n = t(e).brand, r = y(n, i.__wbindgen_export, i.__wbindgen_export2), c = p;
+    l().setInt32(_ + 4, c, true), l().setInt32(_ + 0, r, true);
+  }
+  function ae(_) {
+    const e = t(_).brands;
+    return b(e);
+  }
+  function fe(_, e, n, r) {
+    t(_).bufferData(e >>> 0, n, r >>> 0);
+  }
+  function oe(_, e, n, r) {
+    t(_).bufferData(e >>> 0, n, r >>> 0);
+  }
+  function ue(_, e, n, r) {
+    t(_).bufferData(e >>> 0, t(n), r >>> 0);
+  }
+  function ie(_, e, n, r) {
+    t(_).bufferData(e >>> 0, t(n), r >>> 0);
+  }
+  function de(_, e, n, r) {
+    t(_).bufferSubData(e >>> 0, n, t(r));
+  }
+  function ge(_, e, n, r) {
+    t(_).bufferSubData(e >>> 0, n, t(r));
+  }
+  function se(_) {
+    return t(_).button;
+  }
+  function we(_) {
+    return t(_).buttons;
+  }
+  function le() {
+    return o(function(_, e) {
+      const n = t(_).call(t(e));
+      return b(n);
+    }, arguments);
+  }
+  function me() {
+    return o(function(_, e) {
+      t(_).cancelAnimationFrame(e);
+    }, arguments);
+  }
+  function pe(_, e) {
+    t(_).cancelIdleCallback(e >>> 0);
+  }
+  function xe(_) {
+    t(_).cancel();
+  }
+  function ye(_, e) {
+    const n = t(_).catch(t(e));
+    return b(n);
+  }
+  function he(_, e, n, r, c) {
+    t(_).clearBufferfv(e >>> 0, n, x(r, c));
+  }
+  function Se(_, e, n, r, c) {
+    t(_).clearBufferiv(e >>> 0, n, A(r, c));
+  }
+  function ve(_, e, n, r, c) {
+    t(_).clearBufferuiv(e >>> 0, n, F(r, c));
+  }
+  function Ie(_, e) {
+    t(_).clearDepth(e);
+  }
+  function Ae(_, e) {
+    t(_).clearDepth(e);
+  }
+  function De(_, e) {
+    t(_).clearStencil(e);
+  }
+  function Pe(_, e) {
+    t(_).clearStencil(e);
+  }
+  function Me(_, e) {
+    t(_).clearTimeout(e);
+  }
+  function Fe(_, e) {
+    t(_).clear(e >>> 0);
+  }
+  function Te(_, e) {
+    t(_).clear(e >>> 0);
+  }
+  function Be(_, e, n, r) {
+    return t(_).clientWaitSync(t(e), n >>> 0, r >>> 0);
+  }
+  function ke(_) {
+    t(_).close();
+  }
+  function Le(_, e) {
+    const n = t(e).code, r = y(n, i.__wbindgen_export, i.__wbindgen_export2), c = p;
+    l().setInt32(_ + 4, c, true), l().setInt32(_ + 0, r, true);
+  }
+  function Ee(_, e, n, r, c) {
+    t(_).colorMask(e !== 0, n !== 0, r !== 0, c !== 0);
+  }
+  function Ce(_, e, n, r, c) {
+    t(_).colorMask(e !== 0, n !== 0, r !== 0, c !== 0);
+  }
+  function Re(_, e) {
+    t(_).compileShader(t(e));
+  }
+  function Oe(_, e) {
+    t(_).compileShader(t(e));
+  }
+  function qe(_, e, n, r, c, a, f, u, d) {
+    t(_).compressedTexSubImage2D(e >>> 0, n, r, c, a, f, u >>> 0, t(d));
+  }
+  function Ge(_, e, n, r, c, a, f, u, d) {
+    t(_).compressedTexSubImage2D(e >>> 0, n, r, c, a, f, u >>> 0, t(d));
+  }
+  function Ve(_, e, n, r, c, a, f, u, d, s) {
+    t(_).compressedTexSubImage2D(e >>> 0, n, r, c, a, f, u >>> 0, d, s);
+  }
+  function We(_, e, n, r, c, a, f, u, d, s, m) {
+    t(_).compressedTexSubImage3D(e >>> 0, n, r, c, a, f, u, d, s >>> 0, t(m));
+  }
+  function Ue(_, e, n, r, c, a, f, u, d, s, m, h) {
+    t(_).compressedTexSubImage3D(e >>> 0, n, r, c, a, f, u, d, s >>> 0, m, h);
+  }
+  function ze() {
+    return o(function(_, e) {
+      t(_).configure(t(e));
+    }, arguments);
+  }
+  function je(_, e) {
+    return t(_).contains(t(e));
+  }
+  function Ke(_) {
+    const e = t(_).contentRect;
+    return b(e);
+  }
+  function Ne(_, e, n, r, c, a) {
+    t(_).copyBufferSubData(e >>> 0, n >>> 0, r, c, a);
+  }
+  function Qe(_, e, n, r, c, a, f, u, d) {
+    t(_).copyTexSubImage2D(e >>> 0, n, r, c, a, f, u, d);
+  }
+  function Xe(_, e, n, r, c, a, f, u, d) {
+    t(_).copyTexSubImage2D(e >>> 0, n, r, c, a, f, u, d);
+  }
+  function $e(_, e, n, r, c, a, f, u, d, s) {
+    t(_).copyTexSubImage3D(e >>> 0, n, r, c, a, f, u, d, s);
+  }
+  function Ye() {
+    return o(function(_, e) {
+      const n = t(_).createBindGroupLayout(t(e));
+      return b(n);
+    }, arguments);
+  }
+  function He(_, e) {
+    const n = t(_).createBindGroup(t(e));
+    return b(n);
+  }
+  function Je(_) {
+    const e = t(_).createBuffer();
+    return w(e) ? 0 : b(e);
+  }
+  function Ze(_) {
+    const e = t(_).createBuffer();
+    return w(e) ? 0 : b(e);
+  }
+  function _t() {
+    return o(function(_, e) {
+      const n = t(_).createBuffer(t(e));
+      return b(n);
+    }, arguments);
+  }
+  function et(_, e) {
+    const n = t(_).createCommandEncoder(t(e));
+    return b(n);
+  }
+  function tt() {
+    return o(function(_, e, n) {
+      const r = t(_).createElement(g(e, n));
+      return b(r);
+    }, arguments);
+  }
+  function nt(_) {
+    const e = t(_).createFramebuffer();
+    return w(e) ? 0 : b(e);
+  }
+  function rt(_) {
+    const e = t(_).createFramebuffer();
+    return w(e) ? 0 : b(e);
+  }
+  function ct() {
+    return o(function(_, e) {
+      const n = URL.createObjectURL(t(e)), r = y(n, i.__wbindgen_export, i.__wbindgen_export2), c = p;
+      l().setInt32(_ + 4, c, true), l().setInt32(_ + 0, r, true);
+    }, arguments);
+  }
+  function bt(_, e) {
+    const n = t(_).createPipelineLayout(t(e));
+    return b(n);
+  }
+  function at(_) {
+    const e = t(_).createProgram();
+    return w(e) ? 0 : b(e);
+  }
+  function ft(_) {
+    const e = t(_).createProgram();
+    return w(e) ? 0 : b(e);
+  }
+  function ot(_) {
+    const e = t(_).createQuery();
+    return w(e) ? 0 : b(e);
+  }
+  function ut() {
+    return o(function(_, e) {
+      const n = t(_).createRenderPipeline(t(e));
+      return b(n);
+    }, arguments);
+  }
+  function it(_) {
+    const e = t(_).createRenderbuffer();
+    return w(e) ? 0 : b(e);
+  }
+  function dt(_) {
+    const e = t(_).createRenderbuffer();
+    return w(e) ? 0 : b(e);
+  }
+  function gt(_, e) {
+    const n = t(_).createSampler(t(e));
+    return b(n);
+  }
+  function st(_) {
+    const e = t(_).createSampler();
+    return w(e) ? 0 : b(e);
+  }
+  function wt(_, e) {
+    const n = t(_).createShaderModule(t(e));
+    return b(n);
+  }
+  function lt(_, e) {
+    const n = t(_).createShader(e >>> 0);
+    return w(n) ? 0 : b(n);
+  }
+  function mt(_, e) {
+    const n = t(_).createShader(e >>> 0);
+    return w(n) ? 0 : b(n);
+  }
+  function pt(_) {
+    const e = t(_).createTexture();
+    return w(e) ? 0 : b(e);
+  }
+  function xt() {
+    return o(function(_, e) {
+      const n = t(_).createTexture(t(e));
+      return b(n);
+    }, arguments);
+  }
+  function yt(_) {
+    const e = t(_).createTexture();
+    return w(e) ? 0 : b(e);
+  }
+  function ht(_) {
+    const e = t(_).createVertexArrayOES();
+    return w(e) ? 0 : b(e);
+  }
+  function St(_) {
+    const e = t(_).createVertexArray();
+    return w(e) ? 0 : b(e);
+  }
+  function vt() {
+    return o(function(_, e) {
+      const n = t(_).createView(t(e));
+      return b(n);
+    }, arguments);
+  }
+  function It(_) {
+    return t(_).ctrlKey;
+  }
+  function At(_) {
+    return t(_).ctrlKey;
+  }
+  function Dt(_, e) {
+    t(_).cullFace(e >>> 0);
+  }
+  function Pt(_, e) {
+    t(_).cullFace(e >>> 0);
+  }
+  function Mt(_) {
+    console.debug(t(_));
+  }
+  function Ft(_, e) {
+    t(_).deleteBuffer(t(e));
+  }
+  function Tt(_, e) {
+    t(_).deleteBuffer(t(e));
+  }
+  function Bt(_, e) {
+    t(_).deleteFramebuffer(t(e));
+  }
+  function kt(_, e) {
+    t(_).deleteFramebuffer(t(e));
+  }
+  function Lt(_, e) {
+    t(_).deleteProgram(t(e));
+  }
+  function Et(_, e) {
+    t(_).deleteProgram(t(e));
+  }
+  function Ct(_, e) {
+    t(_).deleteQuery(t(e));
+  }
+  function Rt(_, e) {
+    t(_).deleteRenderbuffer(t(e));
+  }
+  function Ot(_, e) {
+    t(_).deleteRenderbuffer(t(e));
+  }
+  function qt(_, e) {
+    t(_).deleteSampler(t(e));
+  }
+  function Gt(_, e) {
+    t(_).deleteShader(t(e));
+  }
+  function Vt(_, e) {
+    t(_).deleteShader(t(e));
+  }
+  function Wt(_, e) {
+    t(_).deleteSync(t(e));
+  }
+  function Ut(_, e) {
+    t(_).deleteTexture(t(e));
+  }
+  function zt(_, e) {
+    t(_).deleteTexture(t(e));
+  }
+  function jt(_, e) {
+    t(_).deleteVertexArrayOES(t(e));
+  }
+  function Kt(_, e) {
+    t(_).deleteVertexArray(t(e));
+  }
+  function Nt(_) {
+    return t(_).deltaMode;
+  }
+  function Qt(_) {
+    return t(_).deltaX;
+  }
+  function Xt(_) {
+    return t(_).deltaY;
+  }
+  function $t(_, e) {
+    t(_).depthFunc(e >>> 0);
+  }
+  function Yt(_, e) {
+    t(_).depthFunc(e >>> 0);
+  }
+  function Ht(_, e) {
+    t(_).depthMask(e !== 0);
+  }
+  function Jt(_, e) {
+    t(_).depthMask(e !== 0);
+  }
+  function Zt(_, e, n) {
+    t(_).depthRange(e, n);
+  }
+  function _n(_, e, n) {
+    t(_).depthRange(e, n);
+  }
+  function en(_) {
+    t(_).destroy();
+  }
+  function tn(_) {
+    const e = t(_).devicePixelContentBoxSize;
+    return b(e);
+  }
+  function nn(_) {
+    return t(_).devicePixelRatio;
+  }
+  function rn(_, e) {
+    t(_).disableVertexAttribArray(e >>> 0);
+  }
+  function cn(_, e) {
+    t(_).disableVertexAttribArray(e >>> 0);
+  }
+  function bn(_, e) {
+    t(_).disable(e >>> 0);
+  }
+  function an(_, e) {
+    t(_).disable(e >>> 0);
+  }
+  function fn(_) {
+    t(_).disconnect();
+  }
+  function on(_) {
+    t(_).disconnect();
+  }
+  function un(_) {
+    const e = t(_).document;
+    return w(e) ? 0 : b(e);
+  }
+  function dn(_) {
+    return t(_).done;
+  }
+  function gn(_, e, n, r, c) {
+    t(_).drawArraysInstancedANGLE(e >>> 0, n, r, c);
+  }
+  function sn(_, e, n, r, c) {
+    t(_).drawArraysInstanced(e >>> 0, n, r, c);
+  }
+  function wn(_, e, n, r) {
+    t(_).drawArrays(e >>> 0, n, r);
+  }
+  function ln(_, e, n, r) {
+    t(_).drawArrays(e >>> 0, n, r);
+  }
+  function mn(_, e) {
+    t(_).drawBuffersWEBGL(t(e));
+  }
+  function pn(_, e) {
+    t(_).drawBuffers(t(e));
+  }
+  function xn(_, e, n, r, c, a) {
+    t(_).drawElementsInstancedANGLE(e >>> 0, n, r >>> 0, c, a);
+  }
+  function yn(_, e, n, r, c, a) {
+    t(_).drawElementsInstanced(e >>> 0, n, r >>> 0, c, a);
+  }
+  function hn(_, e, n, r, c, a) {
+    t(_).drawIndexed(e >>> 0, n >>> 0, r >>> 0, c, a >>> 0);
+  }
+  function Sn(_, e) {
+    t(_).enableVertexAttribArray(e >>> 0);
+  }
+  function vn(_, e) {
+    t(_).enableVertexAttribArray(e >>> 0);
+  }
+  function In(_, e) {
+    t(_).enable(e >>> 0);
+  }
+  function An(_, e) {
+    t(_).enable(e >>> 0);
+  }
+  function Dn(_, e) {
+    t(_).endQuery(e >>> 0);
+  }
+  function Pn(_) {
+    t(_).end();
+  }
+  function Mn(_, e) {
+    let n, r;
+    try {
+      n = _, r = e, console.error(g(_, e));
+    } finally {
+      i.__wbindgen_export4(n, r, 1);
+    }
+  }
+  function Fn(_) {
+    console.error(t(_));
+  }
+  function Tn(_, e) {
+    console.error(t(_), t(e));
+  }
+  function Bn(_, e, n) {
+    const r = t(_).fenceSync(e >>> 0, n >>> 0);
+    return w(r) ? 0 : b(r);
+  }
+  function kn(_, e) {
+    const n = t(_).fetch(t(e));
+    return b(n);
+  }
+  function Ln(_) {
+    const e = fetch(t(_));
+    return b(e);
+  }
+  function En(_) {
+    const e = t(_).finish();
+    return b(e);
+  }
+  function Cn(_, e) {
+    const n = t(_).finish(t(e));
+    return b(n);
+  }
+  function Rn(_) {
+    t(_).flush();
+  }
+  function On(_) {
+    t(_).flush();
+  }
+  function qn() {
+    return o(function(_) {
+      t(_).focus();
+    }, arguments);
+  }
+  function Gn(_, e, n, r, c) {
+    t(_).framebufferRenderbuffer(e >>> 0, n >>> 0, r >>> 0, t(c));
+  }
+  function Vn(_, e, n, r, c) {
+    t(_).framebufferRenderbuffer(e >>> 0, n >>> 0, r >>> 0, t(c));
+  }
+  function Wn(_, e, n, r, c, a) {
+    t(_).framebufferTexture2D(e >>> 0, n >>> 0, r >>> 0, t(c), a);
+  }
+  function Un(_, e, n, r, c, a) {
+    t(_).framebufferTexture2D(e >>> 0, n >>> 0, r >>> 0, t(c), a);
+  }
+  function zn(_, e, n, r, c, a) {
+    t(_).framebufferTextureLayer(e >>> 0, n >>> 0, t(r), c, a);
+  }
+  function jn(_, e, n, r, c, a, f) {
+    t(_).framebufferTextureMultiviewOVR(e >>> 0, n >>> 0, t(r), c, a, f);
+  }
+  function Kn(_, e) {
+    t(_).frontFace(e >>> 0);
+  }
+  function Nn(_, e) {
+    t(_).frontFace(e >>> 0);
+  }
+  function Qn(_) {
+    const e = t(_).fullscreenElement;
+    return w(e) ? 0 : b(e);
+  }
+  function Xn(_, e, n, r) {
+    t(_).getBufferSubData(e >>> 0, n, t(r));
+  }
+  function $n(_) {
+    const e = t(_).getCoalescedEvents;
+    return b(e);
+  }
+  function Yn(_) {
+    const e = t(_).getCoalescedEvents();
+    return b(e);
+  }
+  function Hn() {
+    return o(function(_, e) {
+      const n = t(_).getComputedStyle(t(e));
+      return w(n) ? 0 : b(n);
+    }, arguments);
+  }
+  function Jn() {
+    return o(function(_, e, n) {
+      const r = t(_).getContext(g(e, n));
+      return w(r) ? 0 : b(r);
+    }, arguments);
+  }
+  function Zn() {
+    return o(function(_, e, n) {
+      const r = t(_).getContext(g(e, n));
+      return w(r) ? 0 : b(r);
+    }, arguments);
+  }
+  function _r() {
+    return o(function(_, e, n, r) {
+      const c = t(_).getContext(g(e, n), t(r));
+      return w(c) ? 0 : b(c);
+    }, arguments);
+  }
+  function er() {
+    return o(function(_, e, n, r) {
+      const c = t(_).getContext(g(e, n), t(r));
+      return w(c) ? 0 : b(c);
+    }, arguments);
+  }
+  function tr() {
+    return o(function(_) {
+      const e = t(_).getCurrentTexture();
+      return b(e);
+    }, arguments);
+  }
+  function nr(_, e, n) {
+    const r = t(_).getElementById(g(e, n));
+    return w(r) ? 0 : b(r);
+  }
+  function rr() {
+    return o(function(_, e, n) {
+      const r = t(_).getExtension(g(e, n));
+      return w(r) ? 0 : b(r);
+    }, arguments);
+  }
+  function cr() {
+    return o(function(_, e, n) {
+      const r = t(_).getIndexedParameter(e >>> 0, n >>> 0);
+      return b(r);
+    }, arguments);
+  }
+  function br() {
+    return o(function(_, e, n) {
+      const r = t(_).getMappedRange(e, n);
+      return b(r);
+    }, arguments);
+  }
+  function ar(_, e) {
+    const n = Object.getOwnPropertyDescriptor(t(_), t(e));
+    return b(n);
+  }
+  function fr() {
+    return o(function(_, e) {
+      const n = t(_).getParameter(e >>> 0);
+      return b(n);
+    }, arguments);
+  }
+  function or() {
+    return o(function(_, e) {
+      const n = t(_).getParameter(e >>> 0);
+      return b(n);
+    }, arguments);
+  }
+  function ur(_) {
+    const e = t(_).getPreferredCanvasFormat();
+    return (P.indexOf(e) + 1 || 96) - 1;
+  }
+  function ir(_, e, n) {
+    const r = t(e).getProgramInfoLog(t(n));
+    var c = w(r) ? 0 : y(r, i.__wbindgen_export, i.__wbindgen_export2), a = p;
+    l().setInt32(_ + 4, a, true), l().setInt32(_ + 0, c, true);
+  }
+  function dr(_, e, n) {
+    const r = t(e).getProgramInfoLog(t(n));
+    var c = w(r) ? 0 : y(r, i.__wbindgen_export, i.__wbindgen_export2), a = p;
+    l().setInt32(_ + 4, a, true), l().setInt32(_ + 0, c, true);
+  }
+  function gr(_, e, n) {
+    const r = t(_).getProgramParameter(t(e), n >>> 0);
+    return b(r);
+  }
+  function sr(_, e, n) {
+    const r = t(_).getProgramParameter(t(e), n >>> 0);
+    return b(r);
+  }
+  function wr() {
+    return o(function(_, e, n, r) {
+      const c = t(e).getPropertyValue(g(n, r)), a = y(c, i.__wbindgen_export, i.__wbindgen_export2), f = p;
+      l().setInt32(_ + 4, f, true), l().setInt32(_ + 0, a, true);
+    }, arguments);
+  }
+  function lr(_, e, n) {
+    const r = t(_).getQueryParameter(t(e), n >>> 0);
+    return b(r);
+  }
+  function mr(_, e, n) {
+    const r = t(e).getShaderInfoLog(t(n));
+    var c = w(r) ? 0 : y(r, i.__wbindgen_export, i.__wbindgen_export2), a = p;
+    l().setInt32(_ + 4, a, true), l().setInt32(_ + 0, c, true);
+  }
+  function pr(_, e, n) {
+    const r = t(e).getShaderInfoLog(t(n));
+    var c = w(r) ? 0 : y(r, i.__wbindgen_export, i.__wbindgen_export2), a = p;
+    l().setInt32(_ + 4, a, true), l().setInt32(_ + 0, c, true);
+  }
+  function xr(_, e, n) {
+    const r = t(_).getShaderParameter(t(e), n >>> 0);
+    return b(r);
+  }
+  function yr(_, e, n) {
+    const r = t(_).getShaderParameter(t(e), n >>> 0);
+    return b(r);
+  }
+  function hr(_) {
+    const e = t(_).getSupportedExtensions();
+    return w(e) ? 0 : b(e);
+  }
+  function Sr(_) {
+    const e = t(_).getSupportedProfiles();
+    return w(e) ? 0 : b(e);
+  }
+  function vr(_, e, n) {
+    const r = t(_).getSyncParameter(t(e), n >>> 0);
+    return b(r);
+  }
+  function Ir(_, e, n, r) {
+    return t(_).getUniformBlockIndex(t(e), g(n, r));
+  }
+  function Ar(_, e, n, r) {
+    const c = t(_).getUniformLocation(t(e), g(n, r));
+    return w(c) ? 0 : b(c);
+  }
+  function Dr(_, e, n, r) {
+    const c = t(_).getUniformLocation(t(e), g(n, r));
+    return w(c) ? 0 : b(c);
+  }
+  function Pr(_, e) {
+    const n = t(_)[e >>> 0];
+    return b(n);
+  }
+  function Mr() {
+    return o(function(_, e) {
+      const n = Reflect.get(t(_), t(e));
+      return b(n);
+    }, arguments);
+  }
+  function Fr(_, e) {
+    const n = t(_)[e >>> 0];
+    return w(n) ? 0 : b(n);
+  }
+  function Tr(_) {
+    const e = t(_).gpu;
+    return b(e);
+  }
+  function Br() {
+    return o(function(_, e) {
+      return Reflect.has(t(_), t(e));
+    }, arguments);
+  }
+  function kr(_) {
+    const e = t(_).headers;
+    return b(e);
+  }
+  function Lr(_) {
+    return t(_).height;
+  }
+  function Er(_, e, n) {
+    return t(_).includes(t(e), n);
+  }
+  function Cr(_) {
+    console.info(t(_));
+  }
+  function Rr(_) {
+    return t(_).inlineSize;
+  }
+  function Or(_) {
+    let e;
+    try {
+      e = t(_) instanceof GPUAdapter;
+    } catch {
+      e = false;
+    }
+    return e;
+  }
+  function qr(_) {
+    let e;
+    try {
+      e = t(_) instanceof GPUCanvasContext;
+    } catch {
+      e = false;
+    }
+    return e;
+  }
+  function Gr(_) {
+    let e;
+    try {
+      e = t(_) instanceof HTMLCanvasElement;
+    } catch {
+      e = false;
+    }
+    return e;
+  }
+  function Vr(_) {
+    let e;
+    try {
+      e = t(_) instanceof Response;
+    } catch {
+      e = false;
+    }
+    return e;
+  }
+  function Wr(_) {
+    let e;
+    try {
+      e = t(_) instanceof WebGL2RenderingContext;
+    } catch {
+      e = false;
+    }
+    return e;
+  }
+  function Ur(_) {
+    let e;
+    try {
+      e = t(_) instanceof Window;
+    } catch {
+      e = false;
+    }
+    return e;
+  }
+  function zr() {
+    return o(function(_, e, n) {
+      t(_).invalidateFramebuffer(e >>> 0, t(n));
+    }, arguments);
+  }
+  function jr(_) {
+    return t(_).isIntersecting;
+  }
+  function Kr(_, e) {
+    return Object.is(t(_), t(e));
+  }
+  function Nr() {
+    return b(Symbol.iterator);
+  }
+  function Qr(_, e) {
+    const n = t(e).key, r = y(n, i.__wbindgen_export, i.__wbindgen_export2), c = p;
+    l().setInt32(_ + 4, c, true), l().setInt32(_ + 0, r, true);
+  }
+  function Xr(_, e) {
+    const n = t(e).label, r = y(n, i.__wbindgen_export, i.__wbindgen_export2), c = p;
+    l().setInt32(_ + 4, c, true), l().setInt32(_ + 0, r, true);
+  }
+  function $r(_) {
+    return t(_).length;
+  }
+  function Yr(_) {
+    return t(_).length;
+  }
+  function Hr(_, e) {
+    t(_).linkProgram(t(e));
+  }
+  function Jr(_, e) {
+    t(_).linkProgram(t(e));
+  }
+  function Zr(_) {
+    return t(_).location;
+  }
+  function _c(_) {
+    const e = t(_).location;
+    return b(e);
+  }
+  function ec(_) {
+    console.log(t(_));
+  }
+  function tc(_, e, n, r) {
+    const c = t(_).mapAsync(e >>> 0, n, r);
+    return b(c);
+  }
+  function nc() {
+    return o(function(_, e, n) {
+      const r = t(_).matchMedia(g(e, n));
+      return w(r) ? 0 : b(r);
+    }, arguments);
+  }
+  function rc(_) {
+    return t(_).matches;
+  }
+  function cc(_, e) {
+    const n = t(e).media, r = y(n, i.__wbindgen_export, i.__wbindgen_export2), c = p;
+    l().setInt32(_ + 4, c, true), l().setInt32(_ + 0, r, true);
+  }
+  function bc(_) {
+    return t(_).metaKey;
+  }
+  function ac(_) {
+    return t(_).metaKey;
+  }
+  function fc(_) {
+    return t(_).movementX;
+  }
+  function oc(_) {
+    return t(_).movementY;
+  }
+  function uc(_) {
+    const e = t(_).navigator;
+    return b(e);
+  }
+  function ic(_) {
+    const e = t(_).navigator;
+    return b(e);
+  }
+  function dc() {
+    return o(function(_) {
+      const e = new ResizeObserver(t(_));
+      return b(e);
+    }, arguments);
+  }
+  function gc() {
+    const _ = new Object();
+    return b(_);
+  }
+  function sc() {
+    const _ = new Array();
+    return b(_);
+  }
+  function wc() {
+    return o(function(_, e) {
+      const n = new Worker(g(_, e));
+      return b(n);
+    }, arguments);
+  }
+  function lc() {
+    return o(function() {
+      const _ = new Headers();
+      return b(_);
+    }, arguments);
+  }
+  function mc() {
+    return o(function() {
+      const _ = new MessageChannel();
+      return b(_);
+    }, arguments);
+  }
+  function pc() {
+    const _ = new Error();
+    return b(_);
+  }
+  function xc() {
+    return o(function(_) {
+      const e = new IntersectionObserver(t(_));
+      return b(e);
+    }, arguments);
+  }
+  function yc() {
+    return o(function() {
+      const _ = new AbortController();
+      return b(_);
+    }, arguments);
+  }
+  function hc(_) {
+    const e = new Uint8Array(t(_));
+    return b(e);
+  }
+  function Sc(_, e) {
+    const n = new Uint8Array(L(_, e));
+    return b(n);
+  }
+  function vc(_, e) {
+    const n = new Function(g(_, e));
+    return b(n);
+  }
+  function Ic(_, e, n) {
+    const r = new Uint8Array(t(_), e >>> 0, n >>> 0);
+    return b(r);
+  }
+  function Ac() {
+    return o(function(_, e, n) {
+      const r = new Request(g(_, e), t(n));
+      return b(r);
+    }, arguments);
+  }
+  function Dc() {
+    return o(function(_, e) {
+      const n = new Blob(t(_), t(e));
+      return b(n);
+    }, arguments);
+  }
+  function Pc() {
+    return o(function(_) {
+      const e = t(_).next();
+      return b(e);
+    }, arguments);
+  }
+  function Mc(_) {
+    const e = t(_).next;
+    return b(e);
+  }
+  function Fc(_) {
+    return t(_).now();
+  }
+  function Tc(_) {
+    return t(_).now();
+  }
+  function Bc(_, e, n) {
+    t(_).observe(t(e), t(n));
+  }
+  function kc(_, e) {
+    t(_).observe(t(e));
+  }
+  function Lc(_, e) {
+    t(_).observe(t(e));
+  }
+  function Ec(_, e) {
+    const n = Array.of(t(_), t(e));
+    return b(n);
+  }
+  function Cc(_) {
+    const e = Array.of(t(_));
+    return b(e);
+  }
+  function Rc(_) {
+    return t(_).offsetX;
+  }
+  function Oc(_) {
+    return t(_).offsetY;
+  }
+  function qc(_) {
+    const e = t(_).onSubmittedWorkDone();
+    return b(e);
+  }
+  function Gc() {
+    return o(function(_, e) {
+      const n = t(e).origin, r = y(n, i.__wbindgen_export, i.__wbindgen_export2), c = p;
+      l().setInt32(_ + 4, c, true), l().setInt32(_ + 0, r, true);
+    }, arguments);
+  }
+  function Vc(_) {
+    const e = t(_).performance;
+    return b(e);
+  }
+  function Wc(_) {
+    return t(_).persisted;
+  }
+  function Uc(_, e, n) {
+    t(_).pixelStorei(e >>> 0, n);
+  }
+  function zc(_, e, n) {
+    t(_).pixelStorei(e >>> 0, n);
+  }
+  function jc(_) {
+    t(_).play();
+  }
+  function Kc(_) {
+    return t(_).pointerId;
+  }
+  function Nc(_, e) {
+    const n = t(e).pointerType, r = y(n, i.__wbindgen_export, i.__wbindgen_export2), c = p;
+    l().setInt32(_ + 4, c, true), l().setInt32(_ + 0, r, true);
+  }
+  function Qc(_, e, n) {
+    t(_).polygonOffset(e, n);
+  }
+  function Xc(_, e, n) {
+    t(_).polygonOffset(e, n);
+  }
+  function $c(_) {
+    const e = t(_).port1;
+    return b(e);
+  }
+  function Yc(_) {
+    const e = t(_).port2;
+    return b(e);
+  }
+  function Hc() {
+    return o(function(_, e) {
+      t(_).postMessage(t(e));
+    }, arguments);
+  }
+  function Jc() {
+    return o(function(_, e, n) {
+      t(_).postMessage(t(e), t(n));
+    }, arguments);
+  }
+  function Zc(_, e, n) {
+    const r = t(_).postTask(t(e), t(n));
+    return b(r);
+  }
+  function _b(_) {
+    return t(_).pressure;
+  }
+  function eb(_) {
+    t(_).preventDefault();
+  }
+  function tb() {
+    const _ = ResizeObserverEntry.prototype;
+    return b(_);
+  }
+  function nb(_, e, n) {
+    Uint8Array.prototype.set.call(L(_, e), t(n));
+  }
+  function rb(_, e) {
+    return t(_).push(t(e));
+  }
+  function cb(_, e, n) {
+    t(_).queryCounterEXT(t(e), n >>> 0);
+  }
+  function bb() {
+    return o(function(_, e, n) {
+      const r = t(_).querySelectorAll(g(e, n));
+      return b(r);
+    }, arguments);
+  }
+  function ab() {
+    return o(function(_, e, n) {
+      const r = t(_).querySelector(g(e, n));
+      return w(r) ? 0 : b(r);
+    }, arguments);
+  }
+  function fb(_) {
+    const e = t(_).queueMicrotask;
+    return b(e);
+  }
+  function ob(_) {
+    queueMicrotask(t(_));
+  }
+  function ub(_, e) {
+    t(_).queueMicrotask(t(e));
+  }
+  function ib(_) {
+    const e = t(_).queue;
+    return b(e);
+  }
+  function db(_, e) {
+    t(_).readBuffer(e >>> 0);
+  }
+  function gb() {
+    return o(function(_, e, n, r, c, a, f, u) {
+      t(_).readPixels(e, n, r, c, a >>> 0, f >>> 0, t(u));
+    }, arguments);
+  }
+  function sb() {
+    return o(function(_, e, n, r, c, a, f, u) {
+      t(_).readPixels(e, n, r, c, a >>> 0, f >>> 0, u);
+    }, arguments);
+  }
+  function wb() {
+    return o(function(_, e, n, r, c, a, f, u) {
+      t(_).readPixels(e, n, r, c, a >>> 0, f >>> 0, t(u));
+    }, arguments);
+  }
+  function lb() {
+    return o(function(_, e, n, r) {
+      t(_).removeEventListener(g(e, n), t(r));
+    }, arguments);
+  }
+  function mb() {
+    return o(function(_, e) {
+      t(_).removeListener(t(e));
+    }, arguments);
+  }
+  function pb() {
+    return o(function(_, e, n, r) {
+      const c = t(e).removeProperty(g(n, r)), a = y(c, i.__wbindgen_export, i.__wbindgen_export2), f = p;
+      l().setInt32(_ + 4, f, true), l().setInt32(_ + 0, a, true);
+    }, arguments);
+  }
+  function xb(_, e, n, r, c, a) {
+    t(_).renderbufferStorageMultisample(e >>> 0, n, r >>> 0, c, a);
+  }
+  function yb(_, e, n, r, c) {
+    t(_).renderbufferStorage(e >>> 0, n >>> 0, r, c);
+  }
+  function hb(_, e, n, r, c) {
+    t(_).renderbufferStorage(e >>> 0, n >>> 0, r, c);
+  }
+  function Sb(_) {
+    return t(_).repeat;
+  }
+  function vb(_, e) {
+    const n = t(_).requestAdapter(t(e));
+    return b(n);
+  }
+  function Ib() {
+    return o(function(_, e) {
+      return t(_).requestAnimationFrame(t(e));
+    }, arguments);
+  }
+  function Ab(_, e) {
+    const n = t(_).requestDevice(t(e));
+    return b(n);
+  }
+  function Db(_) {
+    const e = t(_).requestFullscreen;
+    return b(e);
+  }
+  function Pb(_) {
+    const e = t(_).requestFullscreen();
+    return b(e);
+  }
+  function Mb(_) {
+    const e = t(_).requestIdleCallback;
+    return b(e);
+  }
+  function Fb() {
+    return o(function(_, e) {
+      return t(_).requestIdleCallback(t(e));
+    }, arguments);
+  }
+  function Tb(_) {
+    const e = Promise.resolve(t(_));
+    return b(e);
+  }
+  function Bb() {
+    return o(function(_, e) {
+      URL.revokeObjectURL(g(_, e));
+    }, arguments);
+  }
+  function kb(_, e, n, r) {
+    t(_).samplerParameterf(t(e), n >>> 0, r);
+  }
+  function Lb(_, e, n, r) {
+    t(_).samplerParameteri(t(e), n >>> 0, r);
+  }
+  function Eb(_) {
+    const e = t(_).scheduler;
+    return b(e);
+  }
+  function Cb(_) {
+    const e = t(_).scheduler;
+    return b(e);
+  }
+  function Rb(_, e, n, r, c) {
+    t(_).scissor(e, n, r, c);
+  }
+  function Ob(_, e, n, r, c) {
+    t(_).scissor(e, n, r, c);
+  }
+  function qb() {
+    return o(function(_, e, n, r, c) {
+      t(_).setAttribute(g(e, n), g(r, c));
+    }, arguments);
+  }
+  function Gb(_, e, n) {
+    t(_).setBindGroup(e >>> 0, t(n));
+  }
+  function Vb() {
+    return o(function(_, e, n, r, c, a, f) {
+      t(_).setBindGroup(e >>> 0, t(n), F(r, c), a, f >>> 0);
+    }, arguments);
+  }
+  function Wb(_, e, n, r, c) {
+    t(_).setIndexBuffer(t(e), N[n], r, c);
+  }
+  function Ub(_, e, n, r) {
+    t(_).setIndexBuffer(t(e), N[n], r);
+  }
+  function zb(_, e) {
+    t(_).setPipeline(t(e));
+  }
+  function jb() {
+    return o(function(_, e) {
+      t(_).setPointerCapture(e);
+    }, arguments);
+  }
+  function Kb() {
+    return o(function(_, e, n, r, c) {
+      t(_).setProperty(g(e, n), g(r, c));
+    }, arguments);
+  }
+  function Nb() {
+    return o(function(_, e) {
+      return t(_).setTimeout(t(e));
+    }, arguments);
+  }
+  function Qb() {
+    return o(function(_, e, n) {
+      return t(_).setTimeout(t(e), n);
+    }, arguments);
+  }
+  function Xb(_, e, n, r, c) {
+    t(_).setVertexBuffer(e >>> 0, t(n), r, c);
+  }
+  function $b(_, e, n, r) {
+    t(_).setVertexBuffer(e >>> 0, t(n), r);
+  }
+  function Yb(_, e, n) {
+    t(_).set(t(e), n >>> 0);
+  }
+  function Hb() {
+    return o(function(_, e, n) {
+      return Reflect.set(t(_), t(e), t(n));
+    }, arguments);
+  }
+  function Jb(_, e) {
+    t(_).a = e;
+  }
+  function Zb(_, e) {
+    t(_).access = ji[e];
+  }
+  function _a(_, e) {
+    t(_).addressModeU = j[e];
+  }
+  function ea(_, e) {
+    t(_).addressModeV = j[e];
+  }
+  function ta(_, e) {
+    t(_).addressModeW = j[e];
+  }
+  function na(_, e) {
+    t(_).alpha = t(e);
+  }
+  function ra(_, e) {
+    t(_).alphaMode = Oi[e];
+  }
+  function ca(_, e) {
+    t(_).alphaToCoverageEnabled = e !== 0;
+  }
+  function ba(_, e) {
+    t(_).arrayLayerCount = e >>> 0;
+  }
+  function aa(_, e) {
+    t(_).arrayStride = e;
+  }
+  function fa(_, e) {
+    t(_).aspect = __[e];
+  }
+  function oa(_, e) {
+    t(_).aspect = __[e];
+  }
+  function ua(_, e) {
+    t(_).attributes = t(e);
+  }
+  function ia(_, e) {
+    t(_).b = e;
+  }
+  function da(_, e) {
+    t(_).baseArrayLayer = e >>> 0;
+  }
+  function ga(_, e) {
+    t(_).baseMipLevel = e >>> 0;
+  }
+  function sa(_, e) {
+    t(_).beginningOfPassWriteIndex = e >>> 0;
+  }
+  function wa(_, e) {
+    t(_).bindGroupLayouts = t(e);
+  }
+  function la(_, e) {
+    t(_).binding = e >>> 0;
+  }
+  function ma(_, e) {
+    t(_).binding = e >>> 0;
+  }
+  function pa(_, e) {
+    t(_).blend = t(e);
+  }
+  function xa(_, e) {
+    t(_).body = t(e);
+  }
+  function ya(_, e) {
+    t(_).box = Hi[e];
+  }
+  function ha(_, e) {
+    t(_).buffer = t(e);
+  }
+  function Sa(_, e) {
+    t(_).buffer = t(e);
+  }
+  function va(_, e) {
+    t(_).buffers = t(e);
+  }
+  function Ia(_, e) {
+    t(_).bytesPerRow = e >>> 0;
+  }
+  function Aa(_, e) {
+    t(_).clearValue = t(e);
+  }
+  function Da(_, e, n) {
+    t(_).code = g(e, n);
+  }
+  function Pa(_, e) {
+    t(_).color = t(e);
+  }
+  function Ma(_, e) {
+    t(_).colorAttachments = t(e);
+  }
+  function Fa(_, e) {
+    t(_).compare = K[e];
+  }
+  function Ta(_, e) {
+    t(_).compare = K[e];
+  }
+  function Ba(_, e) {
+    t(_).count = e >>> 0;
+  }
+  function ka(_, e) {
+    t(_).credentials = $i[e];
+  }
+  function La(_, e) {
+    t(_).cullMode = qi[e];
+  }
+  function Ea(_, e) {
+    t(_).depthBias = e;
+  }
+  function Ca(_, e) {
+    t(_).depthBiasClamp = e;
+  }
+  function Ra(_, e) {
+    t(_).depthBiasSlopeScale = e;
+  }
+  function Oa(_, e) {
+    t(_).depthClearValue = e;
+  }
+  function qa(_, e) {
+    t(_).depthCompare = K[e];
+  }
+  function Ga(_, e) {
+    t(_).depthFailOp = X[e];
+  }
+  function Va(_, e) {
+    t(_).depthLoadOp = Q[e];
+  }
+  function Wa(_, e) {
+    t(_).depthOrArrayLayers = e >>> 0;
+  }
+  function Ua(_, e) {
+    t(_).depthReadOnly = e !== 0;
+  }
+  function za(_, e) {
+    t(_).depthStencil = t(e);
+  }
+  function ja(_, e) {
+    t(_).depthStencilAttachment = t(e);
+  }
+  function Ka(_, e) {
+    t(_).depthStoreOp = $[e];
+  }
+  function Na(_, e) {
+    t(_).depthWriteEnabled = e !== 0;
+  }
+  function Qa(_, e) {
+    t(_).device = t(e);
+  }
+  function Xa(_, e) {
+    t(_).dimension = Ki[e];
+  }
+  function $a(_, e) {
+    t(_).dimension = Y[e];
+  }
+  function Ya(_, e) {
+    t(_).dstFactor = J[e];
+  }
+  function Ha(_, e) {
+    t(_).endOfPassWriteIndex = e >>> 0;
+  }
+  function Ja(_, e) {
+    t(_).entries = t(e);
+  }
+  function Za(_, e) {
+    t(_).entries = t(e);
+  }
+  function _f(_, e, n) {
+    t(_).entryPoint = g(e, n);
+  }
+  function ef(_, e, n) {
+    t(_).entryPoint = g(e, n);
+  }
+  function tf(_, e) {
+    t(_).externalTexture = t(e);
+  }
+  function nf(_, e) {
+    t(_).failOp = X[e];
+  }
+  function rf(_, e) {
+    t(_).format = P[e];
+  }
+  function cf(_, e) {
+    t(_).format = P[e];
+  }
+  function bf(_, e) {
+    t(_).format = P[e];
+  }
+  function af(_, e) {
+    t(_).format = Qi[e];
+  }
+  function ff(_, e) {
+    t(_).format = P[e];
+  }
+  function of(_, e) {
+    t(_).format = P[e];
+  }
+  function uf(_, e) {
+    t(_).format = P[e];
+  }
+  function df(_, e) {
+    t(_).fragment = t(e);
+  }
+  function gf(_, e) {
+    t(_).frontFace = Gi[e];
+  }
+  function sf(_, e) {
+    t(_).g = e;
+  }
+  function wf(_, e) {
+    t(_).hasDynamicOffset = e !== 0;
+  }
+  function lf(_, e) {
+    t(_).headers = t(e);
+  }
+  function mf(_, e) {
+    t(_).height = e >>> 0;
+  }
+  function pf(_, e) {
+    t(_).height = e >>> 0;
+  }
+  function xf(_, e) {
+    t(_).height = e >>> 0;
+  }
+  function yf(_, e, n) {
+    t(_).label = g(e, n);
+  }
+  function hf(_, e, n) {
+    t(_).label = g(e, n);
+  }
+  function Sf(_, e, n) {
+    t(_).label = g(e, n);
+  }
+  function vf(_, e, n) {
+    t(_).label = g(e, n);
+  }
+  function If(_, e, n) {
+    t(_).label = g(e, n);
+  }
+  function Af(_, e, n) {
+    t(_).label = g(e, n);
+  }
+  function Df(_, e, n) {
+    t(_).label = g(e, n);
+  }
+  function Pf(_, e, n) {
+    t(_).label = g(e, n);
+  }
+  function Mf(_, e, n) {
+    t(_).label = g(e, n);
+  }
+  function Ff(_, e, n) {
+    t(_).label = g(e, n);
+  }
+  function Tf(_, e, n) {
+    t(_).label = g(e, n);
+  }
+  function Bf(_, e, n) {
+    t(_).label = g(e, n);
+  }
+  function kf(_, e, n) {
+    t(_).label = g(e, n);
+  }
+  function Lf(_, e) {
+    t(_).layout = t(e);
+  }
+  function Ef(_, e) {
+    t(_).layout = t(e);
+  }
+  function Cf(_, e) {
+    t(_).loadOp = Q[e];
+  }
+  function Rf(_, e) {
+    t(_).lodMaxClamp = e;
+  }
+  function Of(_, e) {
+    t(_).lodMinClamp = e;
+  }
+  function qf(_, e) {
+    t(_).magFilter = Z[e];
+  }
+  function Gf(_, e) {
+    t(_).mappedAtCreation = e !== 0;
+  }
+  function Vf(_, e) {
+    t(_).mask = e >>> 0;
+  }
+  function Wf(_, e) {
+    t(_).maxAnisotropy = e;
+  }
+  function Uf(_, e, n) {
+    t(_).method = g(e, n);
+  }
+  function zf(_, e) {
+    t(_).minBindingSize = e;
+  }
+  function jf(_, e) {
+    t(_).minFilter = Z[e];
+  }
+  function Kf(_, e) {
+    t(_).mipLevel = e >>> 0;
+  }
+  function Nf(_, e) {
+    t(_).mipLevelCount = e >>> 0;
+  }
+  function Qf(_, e) {
+    t(_).mipLevelCount = e >>> 0;
+  }
+  function Xf(_, e) {
+    t(_).mipmapFilter = Vi[e];
+  }
+  function $f(_, e) {
+    t(_).mode = Yi[e];
+  }
+  function Yf(_, e) {
+    t(_).module = t(e);
+  }
+  function Hf(_, e) {
+    t(_).module = t(e);
+  }
+  function Jf(_, e) {
+    t(_).multisample = t(e);
+  }
+  function Zf(_, e) {
+    t(_).multisampled = e !== 0;
+  }
+  function _o(_, e) {
+    t(_).offset = e;
+  }
+  function eo(_, e) {
+    t(_).offset = e;
+  }
+  function to(_, e) {
+    t(_).offset = e;
+  }
+  function no(_, e) {
+    t(_).onmessage = t(e);
+  }
+  function ro(_, e) {
+    t(_).operation = Ci[e];
+  }
+  function co(_, e) {
+    t(_).origin = t(e);
+  }
+  function bo(_, e) {
+    t(_).passOp = X[e];
+  }
+  function ao(_, e) {
+    t(_).powerPreference = Wi[e];
+  }
+  function fo(_, e) {
+    t(_).primitive = t(e);
+  }
+  function oo(_, e) {
+    t(_).querySet = t(e);
+  }
+  function uo(_, e) {
+    t(_).r = e;
+  }
+  function io(_, e) {
+    t(_).requiredFeatures = t(e);
+  }
+  function go(_, e) {
+    t(_).requiredLimits = t(e);
+  }
+  function so(_, e) {
+    t(_).resolveTarget = t(e);
+  }
+  function wo(_, e) {
+    t(_).resource = t(e);
+  }
+  function lo(_, e) {
+    t(_).rowsPerImage = e >>> 0;
+  }
+  function mo(_, e) {
+    t(_).sampleCount = e >>> 0;
+  }
+  function po(_, e) {
+    t(_).sampleType = Ni[e];
+  }
+  function xo(_, e) {
+    t(_).sampler = t(e);
+  }
+  function yo(_, e) {
+    t(_).shaderLocation = e >>> 0;
+  }
+  function ho(_, e) {
+    t(_).signal = t(e);
+  }
+  function So(_, e) {
+    t(_).size = e;
+  }
+  function vo(_, e) {
+    t(_).size = e;
+  }
+  function Io(_, e) {
+    t(_).size = t(e);
+  }
+  function Ao(_, e) {
+    t(_).srcFactor = J[e];
+  }
+  function Do(_, e) {
+    t(_).stencilBack = t(e);
+  }
+  function Po(_, e) {
+    t(_).stencilClearValue = e >>> 0;
+  }
+  function Mo(_, e) {
+    t(_).stencilFront = t(e);
+  }
+  function Fo(_, e) {
+    t(_).stencilLoadOp = Q[e];
+  }
+  function To(_, e) {
+    t(_).stencilReadMask = e >>> 0;
+  }
+  function Bo(_, e) {
+    t(_).stencilReadOnly = e !== 0;
+  }
+  function ko(_, e) {
+    t(_).stencilStoreOp = $[e];
+  }
+  function Lo(_, e) {
+    t(_).stencilWriteMask = e >>> 0;
+  }
+  function Eo(_, e) {
+    t(_).stepMode = Xi[e];
+  }
+  function Co(_, e) {
+    t(_).storageTexture = t(e);
+  }
+  function Ro(_, e) {
+    t(_).storeOp = $[e];
+  }
+  function Oo(_, e) {
+    t(_).stripIndexFormat = N[e];
+  }
+  function qo(_, e) {
+    t(_).targets = t(e);
+  }
+  function Go(_, e) {
+    t(_).texture = t(e);
+  }
+  function Vo(_, e) {
+    t(_).texture = t(e);
+  }
+  function Wo(_, e) {
+    t(_).timestampWrites = t(e);
+  }
+  function Uo(_, e) {
+    t(_).topology = Ui[e];
+  }
+  function zo(_, e, n) {
+    t(_).type = g(e, n);
+  }
+  function jo(_, e) {
+    t(_).type = Ri[e];
+  }
+  function Ko(_, e) {
+    t(_).type = zi[e];
+  }
+  function No(_, e) {
+    t(_).unclippedDepth = e !== 0;
+  }
+  function Qo(_, e) {
+    t(_).usage = e >>> 0;
+  }
+  function Xo(_, e) {
+    t(_).usage = e >>> 0;
+  }
+  function $o(_, e) {
+    t(_).usage = e >>> 0;
+  }
+  function Yo(_, e) {
+    t(_).usage = e >>> 0;
+  }
+  function Ho(_, e) {
+    t(_).vertex = t(e);
+  }
+  function Jo(_, e) {
+    t(_).view = t(e);
+  }
+  function Zo(_, e) {
+    t(_).view = t(e);
+  }
+  function _u(_, e) {
+    t(_).viewDimension = Y[e];
+  }
+  function eu(_, e) {
+    t(_).viewDimension = Y[e];
+  }
+  function tu(_, e) {
+    t(_).viewFormats = t(e);
+  }
+  function nu(_, e) {
+    t(_).viewFormats = t(e);
+  }
+  function ru(_, e) {
+    t(_).visibility = e >>> 0;
+  }
+  function cu(_, e) {
+    t(_).width = e >>> 0;
+  }
+  function bu(_, e) {
+    t(_).width = e >>> 0;
+  }
+  function au(_, e) {
+    t(_).width = e >>> 0;
+  }
+  function fu(_, e) {
+    t(_).writeMask = e >>> 0;
+  }
+  function ou(_, e) {
+    t(_).x = e >>> 0;
+  }
+  function uu(_, e) {
+    t(_).y = e >>> 0;
+  }
+  function iu(_, e) {
+    t(_).z = e >>> 0;
+  }
+  function du(_, e, n, r) {
+    t(_).shaderSource(t(e), g(n, r));
+  }
+  function gu(_, e, n, r) {
+    t(_).shaderSource(t(e), g(n, r));
+  }
+  function su(_) {
+    return t(_).shiftKey;
+  }
+  function wu(_) {
+    return t(_).shiftKey;
+  }
+  function lu(_) {
+    const e = t(_).signal;
+    return b(e);
+  }
+  function mu(_, e) {
+    const n = t(e).stack, r = y(n, i.__wbindgen_export, i.__wbindgen_export2), c = p;
+    l().setInt32(_ + 4, c, true), l().setInt32(_ + 0, r, true);
+  }
+  function pu(_) {
+    t(_).start();
+  }
+  function xu() {
+    const _ = typeof global > "u" ? null : global;
+    return w(_) ? 0 : b(_);
+  }
+  function yu() {
+    const _ = typeof globalThis > "u" ? null : globalThis;
+    return w(_) ? 0 : b(_);
+  }
+  function hu() {
+    const _ = typeof self > "u" ? null : self;
+    return w(_) ? 0 : b(_);
+  }
+  function Su() {
+    const _ = typeof window > "u" ? null : window;
+    return w(_) ? 0 : b(_);
+  }
+  function vu(_) {
+    return t(_).status;
+  }
+  function Iu(_, e, n, r, c) {
+    t(_).stencilFuncSeparate(e >>> 0, n >>> 0, r, c >>> 0);
+  }
+  function Au(_, e, n, r, c) {
+    t(_).stencilFuncSeparate(e >>> 0, n >>> 0, r, c >>> 0);
+  }
+  function Du(_, e, n) {
+    t(_).stencilMaskSeparate(e >>> 0, n >>> 0);
+  }
+  function Pu(_, e, n) {
+    t(_).stencilMaskSeparate(e >>> 0, n >>> 0);
+  }
+  function Mu(_, e) {
+    t(_).stencilMask(e >>> 0);
+  }
+  function Fu(_, e) {
+    t(_).stencilMask(e >>> 0);
+  }
+  function Tu(_, e, n, r, c) {
+    t(_).stencilOpSeparate(e >>> 0, n >>> 0, r >>> 0, c >>> 0);
+  }
+  function Bu(_, e, n, r, c) {
+    t(_).stencilOpSeparate(e >>> 0, n >>> 0, r >>> 0, c >>> 0);
+  }
+  function ku() {
+    return o(function(_) {
+      const e = JSON.stringify(t(_));
+      return b(e);
+    }, arguments);
+  }
+  function Lu(_) {
+    const e = t(_).style;
+    return b(e);
+  }
+  function Eu(_, e) {
+    t(_).submit(t(e));
+  }
+  function Cu() {
+    return o(function(_, e, n, r, c, a, f, u, d, s) {
+      t(_).texImage2D(e >>> 0, n, r, c, a, f, u >>> 0, d >>> 0, t(s));
+    }, arguments);
+  }
+  function Ru() {
+    return o(function(_, e, n, r, c, a, f, u, d, s) {
+      t(_).texImage2D(e >>> 0, n, r, c, a, f, u >>> 0, d >>> 0, s);
+    }, arguments);
+  }
+  function Ou() {
+    return o(function(_, e, n, r, c, a, f, u, d, s) {
+      t(_).texImage2D(e >>> 0, n, r, c, a, f, u >>> 0, d >>> 0, t(s));
+    }, arguments);
+  }
+  function qu() {
+    return o(function(_, e, n, r, c, a, f, u, d, s, m) {
+      t(_).texImage3D(e >>> 0, n, r, c, a, f, u, d >>> 0, s >>> 0, m);
+    }, arguments);
+  }
+  function Gu() {
+    return o(function(_, e, n, r, c, a, f, u, d, s, m) {
+      t(_).texImage3D(e >>> 0, n, r, c, a, f, u, d >>> 0, s >>> 0, t(m));
+    }, arguments);
+  }
+  function Vu(_, e, n, r) {
+    t(_).texParameteri(e >>> 0, n >>> 0, r);
+  }
+  function Wu(_, e, n, r) {
+    t(_).texParameteri(e >>> 0, n >>> 0, r);
+  }
+  function Uu(_, e, n, r, c, a) {
+    t(_).texStorage2D(e >>> 0, n, r >>> 0, c, a);
+  }
+  function zu(_, e, n, r, c, a, f) {
+    t(_).texStorage3D(e >>> 0, n, r >>> 0, c, a, f);
+  }
+  function ju() {
+    return o(function(_, e, n, r, c, a, f, u, d, s) {
+      t(_).texSubImage2D(e >>> 0, n, r, c, a, f, u >>> 0, d >>> 0, t(s));
+    }, arguments);
+  }
+  function Ku() {
+    return o(function(_, e, n, r, c, a, f, u, d, s) {
+      t(_).texSubImage2D(e >>> 0, n, r, c, a, f, u >>> 0, d >>> 0, t(s));
+    }, arguments);
+  }
+  function Nu() {
+    return o(function(_, e, n, r, c, a, f, u, d, s) {
+      t(_).texSubImage2D(e >>> 0, n, r, c, a, f, u >>> 0, d >>> 0, t(s));
+    }, arguments);
+  }
+  function Qu() {
+    return o(function(_, e, n, r, c, a, f, u, d, s) {
+      t(_).texSubImage2D(e >>> 0, n, r, c, a, f, u >>> 0, d >>> 0, t(s));
+    }, arguments);
+  }
+  function Xu() {
+    return o(function(_, e, n, r, c, a, f, u, d, s) {
+      t(_).texSubImage2D(e >>> 0, n, r, c, a, f, u >>> 0, d >>> 0, t(s));
+    }, arguments);
+  }
+  function $u() {
+    return o(function(_, e, n, r, c, a, f, u, d, s) {
+      t(_).texSubImage2D(e >>> 0, n, r, c, a, f, u >>> 0, d >>> 0, t(s));
+    }, arguments);
+  }
+  function Yu() {
+    return o(function(_, e, n, r, c, a, f, u, d, s) {
+      t(_).texSubImage2D(e >>> 0, n, r, c, a, f, u >>> 0, d >>> 0, t(s));
+    }, arguments);
+  }
+  function Hu() {
+    return o(function(_, e, n, r, c, a, f, u, d, s) {
+      t(_).texSubImage2D(e >>> 0, n, r, c, a, f, u >>> 0, d >>> 0, s);
+    }, arguments);
+  }
+  function Ju() {
+    return o(function(_, e, n, r, c, a, f, u, d, s, m, h) {
+      t(_).texSubImage3D(e >>> 0, n, r, c, a, f, u, d, s >>> 0, m >>> 0, t(h));
+    }, arguments);
+  }
+  function Zu() {
+    return o(function(_, e, n, r, c, a, f, u, d, s, m, h) {
+      t(_).texSubImage3D(e >>> 0, n, r, c, a, f, u, d, s >>> 0, m >>> 0, t(h));
+    }, arguments);
+  }
+  function _0() {
+    return o(function(_, e, n, r, c, a, f, u, d, s, m, h) {
+      t(_).texSubImage3D(e >>> 0, n, r, c, a, f, u, d, s >>> 0, m >>> 0, t(h));
+    }, arguments);
+  }
+  function e0() {
+    return o(function(_, e, n, r, c, a, f, u, d, s, m, h) {
+      t(_).texSubImage3D(e >>> 0, n, r, c, a, f, u, d, s >>> 0, m >>> 0, t(h));
+    }, arguments);
+  }
+  function t0() {
+    return o(function(_, e, n, r, c, a, f, u, d, s, m, h) {
+      t(_).texSubImage3D(e >>> 0, n, r, c, a, f, u, d, s >>> 0, m >>> 0, t(h));
+    }, arguments);
+  }
+  function n0() {
+    return o(function(_, e, n, r, c, a, f, u, d, s, m, h) {
+      t(_).texSubImage3D(e >>> 0, n, r, c, a, f, u, d, s >>> 0, m >>> 0, h);
+    }, arguments);
+  }
+  function r0() {
+    return o(function(_, e, n, r, c, a, f, u, d, s, m, h) {
+      t(_).texSubImage3D(e >>> 0, n, r, c, a, f, u, d, s >>> 0, m >>> 0, t(h));
+    }, arguments);
+  }
+  function c0() {
+    return o(function(_) {
+      const e = t(_).text();
+      return b(e);
+    }, arguments);
+  }
+  function b0(_, e, n) {
+    const r = t(_).then(t(e), t(n));
+    return b(r);
+  }
+  function a0(_, e) {
+    const n = t(_).then(t(e));
+    return b(n);
+  }
+  function f0(_, e, n) {
+    t(_).uniform1f(t(e), n);
+  }
+  function o0(_, e, n) {
+    t(_).uniform1f(t(e), n);
+  }
+  function u0(_, e, n) {
+    t(_).uniform1i(t(e), n);
+  }
+  function i0(_, e, n) {
+    t(_).uniform1i(t(e), n);
+  }
+  function d0(_, e, n) {
+    t(_).uniform1ui(t(e), n >>> 0);
+  }
+  function g0(_, e, n, r) {
+    t(_).uniform2fv(t(e), x(n, r));
+  }
+  function s0(_, e, n, r) {
+    t(_).uniform2fv(t(e), x(n, r));
+  }
+  function w0(_, e, n, r) {
+    t(_).uniform2iv(t(e), A(n, r));
+  }
+  function l0(_, e, n, r) {
+    t(_).uniform2iv(t(e), A(n, r));
+  }
+  function m0(_, e, n, r) {
+    t(_).uniform2uiv(t(e), F(n, r));
+  }
+  function p0(_, e, n, r) {
+    t(_).uniform3fv(t(e), x(n, r));
+  }
+  function x0(_, e, n, r) {
+    t(_).uniform3fv(t(e), x(n, r));
+  }
+  function y0(_, e, n, r) {
+    t(_).uniform3iv(t(e), A(n, r));
+  }
+  function h0(_, e, n, r) {
+    t(_).uniform3iv(t(e), A(n, r));
+  }
+  function S0(_, e, n, r) {
+    t(_).uniform3uiv(t(e), F(n, r));
+  }
+  function v0(_, e, n, r, c, a) {
+    t(_).uniform4f(t(e), n, r, c, a);
+  }
+  function I0(_, e, n, r, c, a) {
+    t(_).uniform4f(t(e), n, r, c, a);
+  }
+  function A0(_, e, n, r) {
+    t(_).uniform4fv(t(e), x(n, r));
+  }
+  function D0(_, e, n, r) {
+    t(_).uniform4fv(t(e), x(n, r));
+  }
+  function P0(_, e, n, r) {
+    t(_).uniform4iv(t(e), A(n, r));
+  }
+  function M0(_, e, n, r) {
+    t(_).uniform4iv(t(e), A(n, r));
+  }
+  function F0(_, e, n, r) {
+    t(_).uniform4uiv(t(e), F(n, r));
+  }
+  function T0(_, e, n, r) {
+    t(_).uniformBlockBinding(t(e), n >>> 0, r >>> 0);
+  }
+  function B0(_, e, n, r, c) {
+    t(_).uniformMatrix2fv(t(e), n !== 0, x(r, c));
+  }
+  function k0(_, e, n, r, c) {
+    t(_).uniformMatrix2fv(t(e), n !== 0, x(r, c));
+  }
+  function L0(_, e, n, r, c) {
+    t(_).uniformMatrix2x3fv(t(e), n !== 0, x(r, c));
+  }
+  function E0(_, e, n, r, c) {
+    t(_).uniformMatrix2x4fv(t(e), n !== 0, x(r, c));
+  }
+  function C0(_, e, n, r, c) {
+    t(_).uniformMatrix3fv(t(e), n !== 0, x(r, c));
+  }
+  function R0(_, e, n, r, c) {
+    t(_).uniformMatrix3fv(t(e), n !== 0, x(r, c));
+  }
+  function O0(_, e, n, r, c) {
+    t(_).uniformMatrix3x2fv(t(e), n !== 0, x(r, c));
+  }
+  function q0(_, e, n, r, c) {
+    t(_).uniformMatrix3x4fv(t(e), n !== 0, x(r, c));
+  }
+  function G0(_, e, n, r, c) {
+    t(_).uniformMatrix4fv(t(e), n !== 0, x(r, c));
+  }
+  function V0(_, e, n, r, c) {
+    t(_).uniformMatrix4fv(t(e), n !== 0, x(r, c));
+  }
+  function W0(_, e, n, r, c) {
+    t(_).uniformMatrix4x2fv(t(e), n !== 0, x(r, c));
+  }
+  function U0(_, e, n, r, c) {
+    t(_).uniformMatrix4x3fv(t(e), n !== 0, x(r, c));
+  }
+  function z0(_) {
+    t(_).unmap();
+  }
+  function j0(_, e) {
+    t(_).unobserve(t(e));
+  }
+  function K0(_, e) {
+    const n = t(e).url, r = y(n, i.__wbindgen_export, i.__wbindgen_export2), c = p;
+    l().setInt32(_ + 4, c, true), l().setInt32(_ + 0, r, true);
+  }
+  function N0(_, e) {
+    t(_).useProgram(t(e));
+  }
+  function Q0(_, e) {
+    t(_).useProgram(t(e));
+  }
+  function X0(_) {
+    const e = t(_).userAgentData;
+    return w(e) ? 0 : b(e);
+  }
+  function $0() {
+    return o(function(_, e) {
+      const n = t(e).userAgent, r = y(n, i.__wbindgen_export, i.__wbindgen_export2), c = p;
+      l().setInt32(_ + 4, c, true), l().setInt32(_ + 0, r, true);
+    }, arguments);
+  }
+  function Y0(_) {
+    const e = t(_).value;
+    return b(e);
+  }
+  function H0(_, e, n) {
+    t(_).vertexAttribDivisorANGLE(e >>> 0, n >>> 0);
+  }
+  function J0(_, e, n) {
+    t(_).vertexAttribDivisor(e >>> 0, n >>> 0);
+  }
+  function Z0(_, e, n, r, c, a) {
+    t(_).vertexAttribIPointer(e >>> 0, n, r >>> 0, c, a);
+  }
+  function _i(_, e, n, r, c, a, f) {
+    t(_).vertexAttribPointer(e >>> 0, n, r >>> 0, c !== 0, a, f);
+  }
+  function ei(_, e, n, r, c, a, f) {
+    t(_).vertexAttribPointer(e >>> 0, n, r >>> 0, c !== 0, a, f);
+  }
+  function ti(_, e, n, r, c) {
+    t(_).viewport(e, n, r, c);
+  }
+  function ni(_, e, n, r, c) {
+    t(_).viewport(e, n, r, c);
+  }
+  function ri(_) {
+    const e = t(_).visibilityState;
+    return (Ji.indexOf(e) + 1 || 3) - 1;
+  }
+  function ci(_) {
+    console.warn(t(_));
+  }
+  function bi(_) {
+    const e = t(_).webkitFullscreenElement;
+    return w(e) ? 0 : b(e);
+  }
+  function ai(_) {
+    t(_).webkitRequestFullscreen();
+  }
+  function fi(_) {
+    return t(_).width;
+  }
+  function oi() {
+    return o(function(_, e, n, r, c, a, f) {
+      t(_).writeBuffer(t(e), n, L(r, c), a, f);
+    }, arguments);
+  }
+  function ui() {
+    return o(function(_, e, n, r, c, a) {
+      t(_).writeTexture(t(e), L(n, r), t(c), t(a));
+    }, arguments);
+  }
+  function ii(_, e) {
+    const n = v(_, e, i.__wasm_bindgen_func_elem_3147, Ei);
+    return b(n);
+  }
+  function di(_, e) {
+    const n = v(_, e, i.__wasm_bindgen_func_elem_3147, D);
+    return b(n);
+  }
+  function gi(_, e) {
+    const n = v(_, e, i.__wasm_bindgen_func_elem_3147, D);
+    return b(n);
+  }
+  function si(_, e) {
+    const n = v(_, e, i.__wasm_bindgen_func_elem_3147, D);
+    return b(n);
+  }
+  function wi(_, e) {
+    const n = v(_, e, i.__wasm_bindgen_func_elem_3147, D);
+    return b(n);
+  }
+  function li(_, e) {
+    const n = v(_, e, i.__wasm_bindgen_func_elem_3147, D);
+    return b(n);
+  }
+  function mi(_, e) {
+    const n = v(_, e, i.__wasm_bindgen_func_elem_3147, D);
+    return b(n);
+  }
+  function pi(_, e) {
+    const n = v(_, e, i.__wasm_bindgen_func_elem_3147, D);
+    return b(n);
+  }
+  function xi(_, e) {
+    const n = v(_, e, i.__wasm_bindgen_func_elem_3147, ki);
+    return b(n);
+  }
+  function yi(_, e) {
+    const n = v(_, e, i.__wasm_bindgen_func_elem_4959, Li);
+    return b(n);
+  }
+  function hi(_) {
+    return b(_);
+  }
+  function Si(_, e) {
+    const n = x(_, e);
+    return b(n);
+  }
+  function vi(_, e) {
+    const n = _d(_, e);
+    return b(n);
+  }
+  function Ii(_, e) {
+    const n = A(_, e);
+    return b(n);
+  }
+  function Ai(_, e) {
+    const n = ed(_, e);
+    return b(n);
+  }
+  function Di(_, e) {
+    const n = td(_, e);
+    return b(n);
+  }
+  function Pi(_, e) {
+    const n = F(_, e);
+    return b(n);
+  }
+  function Mi(_, e) {
+    const n = L(_, e);
+    return b(n);
+  }
+  function Fi(_, e) {
+    const n = g(_, e);
+    return b(n);
+  }
+  function Ti(_) {
+    const e = t(_);
+    return b(e);
+  }
+  function Bi(_) {
+    od(_);
+  }
+  function ki(_, e) {
+    i.__wasm_bindgen_func_elem_3478(_, e);
+  }
+  function D(_, e, n) {
+    i.__wasm_bindgen_func_elem_3480(_, e, b(n));
+  }
+  function Li(_, e, n) {
+    i.__wasm_bindgen_func_elem_4960(_, e, b(n));
+  }
+  function Ei(_, e, n, r) {
+    i.__wasm_bindgen_func_elem_3486(_, e, b(n), b(r));
+  }
+  const j = [
+    "clamp-to-edge",
+    "repeat",
+    "mirror-repeat"
+  ], J = [
+    "zero",
+    "one",
+    "src",
+    "one-minus-src",
+    "src-alpha",
+    "one-minus-src-alpha",
+    "dst",
+    "one-minus-dst",
+    "dst-alpha",
+    "one-minus-dst-alpha",
+    "src-alpha-saturated",
+    "constant",
+    "one-minus-constant",
+    "src1",
+    "one-minus-src1",
+    "src1-alpha",
+    "one-minus-src1-alpha"
+  ], Ci = [
+    "add",
+    "subtract",
+    "reverse-subtract",
+    "min",
+    "max"
+  ], Ri = [
+    "uniform",
+    "storage",
+    "read-only-storage"
+  ], Oi = [
+    "opaque",
+    "premultiplied"
+  ], K = [
+    "never",
+    "less",
+    "equal",
+    "less-equal",
+    "greater",
+    "not-equal",
+    "greater-equal",
+    "always"
+  ], qi = [
+    "none",
+    "front",
+    "back"
+  ], Z = [
+    "nearest",
+    "linear"
+  ], Gi = [
+    "ccw",
+    "cw"
+  ], N = [
+    "uint16",
+    "uint32"
+  ], Q = [
+    "load",
+    "clear"
+  ], Vi = [
+    "nearest",
+    "linear"
+  ], Wi = [
+    "low-power",
+    "high-performance"
+  ], Ui = [
+    "point-list",
+    "line-list",
+    "line-strip",
+    "triangle-list",
+    "triangle-strip"
+  ], zi = [
+    "filtering",
+    "non-filtering",
+    "comparison"
+  ], X = [
+    "keep",
+    "zero",
+    "replace",
+    "invert",
+    "increment-clamp",
+    "decrement-clamp",
+    "increment-wrap",
+    "decrement-wrap"
+  ], ji = [
+    "write-only",
+    "read-only",
+    "read-write"
+  ], $ = [
+    "store",
+    "discard"
+  ], __ = [
+    "all",
+    "stencil-only",
+    "depth-only"
+  ], Ki = [
+    "1d",
+    "2d",
+    "3d"
+  ], P = [
+    "r8unorm",
+    "r8snorm",
+    "r8uint",
+    "r8sint",
+    "r16uint",
+    "r16sint",
+    "r16float",
+    "rg8unorm",
+    "rg8snorm",
+    "rg8uint",
+    "rg8sint",
+    "r32uint",
+    "r32sint",
+    "r32float",
+    "rg16uint",
+    "rg16sint",
+    "rg16float",
+    "rgba8unorm",
+    "rgba8unorm-srgb",
+    "rgba8snorm",
+    "rgba8uint",
+    "rgba8sint",
+    "bgra8unorm",
+    "bgra8unorm-srgb",
+    "rgb9e5ufloat",
+    "rgb10a2uint",
+    "rgb10a2unorm",
+    "rg11b10ufloat",
+    "rg32uint",
+    "rg32sint",
+    "rg32float",
+    "rgba16uint",
+    "rgba16sint",
+    "rgba16float",
+    "rgba32uint",
+    "rgba32sint",
+    "rgba32float",
+    "stencil8",
+    "depth16unorm",
+    "depth24plus",
+    "depth24plus-stencil8",
+    "depth32float",
+    "depth32float-stencil8",
+    "bc1-rgba-unorm",
+    "bc1-rgba-unorm-srgb",
+    "bc2-rgba-unorm",
+    "bc2-rgba-unorm-srgb",
+    "bc3-rgba-unorm",
+    "bc3-rgba-unorm-srgb",
+    "bc4-r-unorm",
+    "bc4-r-snorm",
+    "bc5-rg-unorm",
+    "bc5-rg-snorm",
+    "bc6h-rgb-ufloat",
+    "bc6h-rgb-float",
+    "bc7-rgba-unorm",
+    "bc7-rgba-unorm-srgb",
+    "etc2-rgb8unorm",
+    "etc2-rgb8unorm-srgb",
+    "etc2-rgb8a1unorm",
+    "etc2-rgb8a1unorm-srgb",
+    "etc2-rgba8unorm",
+    "etc2-rgba8unorm-srgb",
+    "eac-r11unorm",
+    "eac-r11snorm",
+    "eac-rg11unorm",
+    "eac-rg11snorm",
+    "astc-4x4-unorm",
+    "astc-4x4-unorm-srgb",
+    "astc-5x4-unorm",
+    "astc-5x4-unorm-srgb",
+    "astc-5x5-unorm",
+    "astc-5x5-unorm-srgb",
+    "astc-6x5-unorm",
+    "astc-6x5-unorm-srgb",
+    "astc-6x6-unorm",
+    "astc-6x6-unorm-srgb",
+    "astc-8x5-unorm",
+    "astc-8x5-unorm-srgb",
+    "astc-8x6-unorm",
+    "astc-8x6-unorm-srgb",
+    "astc-8x8-unorm",
+    "astc-8x8-unorm-srgb",
+    "astc-10x5-unorm",
+    "astc-10x5-unorm-srgb",
+    "astc-10x6-unorm",
+    "astc-10x6-unorm-srgb",
+    "astc-10x8-unorm",
+    "astc-10x8-unorm-srgb",
+    "astc-10x10-unorm",
+    "astc-10x10-unorm-srgb",
+    "astc-12x10-unorm",
+    "astc-12x10-unorm-srgb",
+    "astc-12x12-unorm",
+    "astc-12x12-unorm-srgb"
+  ], Ni = [
+    "float",
+    "unfilterable-float",
+    "depth",
+    "sint",
+    "uint"
+  ], Y = [
+    "1d",
+    "2d",
+    "2d-array",
+    "cube",
+    "cube-array",
+    "3d"
+  ], Qi = [
+    "uint8",
+    "uint8x2",
+    "uint8x4",
+    "sint8",
+    "sint8x2",
+    "sint8x4",
+    "unorm8",
+    "unorm8x2",
+    "unorm8x4",
+    "snorm8",
+    "snorm8x2",
+    "snorm8x4",
+    "uint16",
+    "uint16x2",
+    "uint16x4",
+    "sint16",
+    "sint16x2",
+    "sint16x4",
+    "unorm16",
+    "unorm16x2",
+    "unorm16x4",
+    "snorm16",
+    "snorm16x2",
+    "snorm16x4",
+    "float16",
+    "float16x2",
+    "float16x4",
+    "float32",
+    "float32x2",
+    "float32x3",
+    "float32x4",
+    "uint32",
+    "uint32x2",
+    "uint32x3",
+    "uint32x4",
+    "sint32",
+    "sint32x2",
+    "sint32x3",
+    "sint32x4",
+    "unorm10-10-10-2",
+    "unorm8x4-bgra"
+  ], Xi = [
+    "vertex",
+    "instance"
+  ], $i = [
+    "omit",
+    "same-origin",
+    "include"
+  ], Yi = [
+    "same-origin",
+    "no-cors",
+    "cors",
+    "navigate"
+  ], Hi = [
+    "border-box",
+    "content-box",
+    "device-pixel-content-box"
+  ], Ji = [
+    "hidden",
+    "visible"
+  ];
+  function b(_) {
+    B === I.length && I.push(I.length + 1);
+    const e = B;
+    return B = I[e], I[e] = _, e;
+  }
+  const H = typeof FinalizationRegistry > "u" ? {
+    register: () => {
+    },
+    unregister: () => {
+    }
+  } : new FinalizationRegistry((_) => _.dtor(_.a, _.b));
+  function z(_) {
+    const e = typeof _;
+    if (e == "number" || e == "boolean" || _ == null) return `${_}`;
+    if (e == "string") return `"${_}"`;
+    if (e == "symbol") {
+      const c = _.description;
+      return c == null ? "Symbol" : `Symbol(${c})`;
+    }
+    if (e == "function") {
+      const c = _.name;
+      return typeof c == "string" && c.length > 0 ? `Function(${c})` : "Function";
+    }
+    if (Array.isArray(_)) {
+      const c = _.length;
+      let a = "[";
+      c > 0 && (a += z(_[0]));
+      for (let f = 1; f < c; f++) a += ", " + z(_[f]);
+      return a += "]", a;
+    }
+    const n = /\[object ([^\]]+)\]/.exec(toString.call(_));
+    let r;
+    if (n && n.length > 1) r = n[1];
+    else return toString.call(_);
+    if (r == "Object") try {
+      return "Object(" + JSON.stringify(_) + ")";
+    } catch {
+      return "Object";
+    }
+    return _ instanceof Error ? `${_.name}: ${_.message}
+${_.stack}` : r;
+  }
+  function Zi(_) {
+    _ < 132 || (I[_] = B, B = _);
+  }
+  function x(_, e) {
+    return _ = _ >>> 0, nd().subarray(_ / 4, _ / 4 + e);
+  }
+  function _d(_, e) {
+    return _ = _ >>> 0, rd().subarray(_ / 2, _ / 2 + e);
+  }
+  function A(_, e) {
+    return _ = _ >>> 0, cd().subarray(_ / 4, _ / 4 + e);
+  }
+  function ed(_, e) {
+    return _ = _ >>> 0, bd().subarray(_ / 1, _ / 1 + e);
+  }
+  function td(_, e) {
+    return _ = _ >>> 0, ad().subarray(_ / 2, _ / 2 + e);
+  }
+  function F(_, e) {
+    return _ = _ >>> 0, fd().subarray(_ / 4, _ / 4 + e);
+  }
+  function L(_, e) {
+    return _ = _ >>> 0, T().subarray(_ / 1, _ / 1 + e);
+  }
+  let M = null;
+  function l() {
+    return (M === null || M.buffer.detached === true || M.buffer.detached === void 0 && M.buffer !== i.memory.buffer) && (M = new DataView(i.memory.buffer)), M;
+  }
+  let E = null;
+  function nd() {
+    return (E === null || E.byteLength === 0) && (E = new Float32Array(i.memory.buffer)), E;
+  }
+  let C = null;
+  function rd() {
+    return (C === null || C.byteLength === 0) && (C = new Int16Array(i.memory.buffer)), C;
+  }
+  let R = null;
+  function cd() {
+    return (R === null || R.byteLength === 0) && (R = new Int32Array(i.memory.buffer)), R;
+  }
+  let O = null;
+  function bd() {
+    return (O === null || O.byteLength === 0) && (O = new Int8Array(i.memory.buffer)), O;
+  }
+  function g(_, e) {
+    return _ = _ >>> 0, id(_, e);
+  }
+  let q = null;
+  function ad() {
+    return (q === null || q.byteLength === 0) && (q = new Uint16Array(i.memory.buffer)), q;
+  }
+  let G = null;
+  function fd() {
+    return (G === null || G.byteLength === 0) && (G = new Uint32Array(i.memory.buffer)), G;
+  }
+  let V = null;
+  function T() {
+    return (V === null || V.byteLength === 0) && (V = new Uint8Array(i.memory.buffer)), V;
+  }
+  function t(_) {
+    return I[_];
+  }
+  function o(_, e) {
+    try {
+      return _.apply(this, e);
+    } catch (n) {
+      i.__wbindgen_export3(b(n));
+    }
+  }
+  let I = new Array(128).fill(void 0);
+  I.push(void 0, null, true, false);
+  let B = I.length;
+  function w(_) {
+    return _ == null;
+  }
+  function v(_, e, n, r) {
+    const c = {
+      a: _,
+      b: e,
+      cnt: 1,
+      dtor: n
+    }, a = (...f) => {
+      c.cnt++;
+      const u = c.a;
+      c.a = 0;
+      try {
+        return r(u, c.b, ...f);
+      } finally {
+        c.a = u, a._wbg_cb_unref();
+      }
+    };
+    return a._wbg_cb_unref = () => {
+      --c.cnt === 0 && (c.dtor(c.a, c.b), c.a = 0, H.unregister(c));
+    }, H.register(a, c, c), a;
+  }
+  function y(_, e, n) {
+    if (n === void 0) {
+      const u = k.encode(_), d = e(u.length, 1) >>> 0;
+      return T().subarray(d, d + u.length).set(u), p = u.length, d;
+    }
+    let r = _.length, c = e(r, 1) >>> 0;
+    const a = T();
+    let f = 0;
+    for (; f < r; f++) {
+      const u = _.charCodeAt(f);
+      if (u > 127) break;
+      a[c + f] = u;
+    }
+    if (f !== r) {
+      f !== 0 && (_ = _.slice(f)), c = n(c, r, r = f + _.length * 3, 1) >>> 0;
+      const u = T().subarray(c + f, c + r), d = k.encodeInto(_, u);
+      f += d.written, c = n(c, r, f, 1) >>> 0;
+    }
+    return p = f, c;
+  }
+  function od(_) {
+    const e = t(_);
+    return Zi(_), e;
+  }
+  let W = new TextDecoder("utf-8", {
+    ignoreBOM: true,
+    fatal: true
+  });
+  W.decode();
+  const ud = 2146435072;
+  let U = 0;
+  function id(_, e) {
+    return U += e, U >= ud && (W = new TextDecoder("utf-8", {
+      ignoreBOM: true,
+      fatal: true
+    }), W.decode(), U = e), W.decode(T().subarray(_, _ + e));
+  }
+  const k = new TextEncoder();
+  "encodeInto" in k || (k.encodeInto = function(_, e) {
+    const n = k.encode(_);
+    return e.set(n), {
+      read: _.length,
+      written: n.length
+    };
+  });
+  let p = 0, i;
+  function dd(_) {
+    i = _;
+  }
+  URL = globalThis.URL;
+  const S = await t_({
+    "./demo_bg.js": {
+      __wbindgen_object_drop_ref: Bi,
+      __wbg_new_8a6f238a6ece86ea: pc,
+      __wbg_stack_0ed75d68575b0f3c: mu,
+      __wbg_error_7534b8e9a36f1ab4: Mn,
+      __wbg_fetch_f1856afdb49415d1: Ln,
+      __wbindgen_object_clone_ref: Ti,
+      __wbg_scheduler_5156bb61cc1cf589: Cb,
+      __wbg_getCoalescedEvents_21492912fd0145ec: $n,
+      __wbg_requestFullscreen_86fc6cdb76000482: Db,
+      __wbg_requestIdleCallback_1b8d644ff564208f: Mb,
+      __wbg_offsetX_cb6a38e6f23cb4a6: Rc,
+      __wbg_offsetY_43e21941c5c1f8bf: Oc,
+      __wbg_cancel_09c394f0894744eb: xe,
+      __wbg_webkitFullscreenElement_a9ca38b7214d1567: bi,
+      __wbg_requestFullscreen_9f0611438eb929cf: Pb,
+      __wbg_webkitRequestFullscreen_23664c63833ff0e5: ai,
+      __wbg_scheduler_48482a9974eeacbd: Eb,
+      __wbg_postTask_41d93e93941e4a3d: Zc,
+      __wbg_userAgentData_f7b0e61c05c54315: X0,
+      __wbg_brands_a1e7a2bce052128f: ae,
+      __wbg_brand_9562792cbb4735c3: be,
+      __wbg_prototype_c28bca39c45aba9b: tb,
+      __wbg_animate_6ec571f163cf6f8d: A_,
+      __wbg_play_63bc12f42e16af91: jc,
+      __wbg_Window_d1bf622f71ff0629: c_,
+      __wbg_performance_7a3ffd0b17f663ad: Vc,
+      __wbg_now_2c95c9de01293173: Fc,
+      __wbg_set_color_attachments_81e56abd7f11d38b: Ma,
+      __wbg_set_label_10c0715c06c574ce: yf,
+      __wbg_set_view_dc1937ba74f6a24a: Zo,
+      __wbg_set_depth_clear_value_d3053d10a4ac9092: Oa,
+      __wbg_set_depth_load_op_0e48f976ce8bf626: Va,
+      __wbg_set_depth_store_op_35c62b6bd92fd38a: Ka,
+      __wbg_set_depth_read_only_16d1277d6c444182: Ua,
+      __wbg_set_stencil_clear_value_c88c52b70d827549: Po,
+      __wbg_set_stencil_load_op_f865ee8f5135b2e2: Fo,
+      __wbg_set_stencil_store_op_b92786567b815d0f: ko,
+      __wbg_set_stencil_read_only_54652ff66298c4c5: Bo,
+      __wbg_set_depth_stencil_attachment_6ad88a7f0d66500b: ja,
+      __wbg_set_query_set_1f3c39edf379c9f9: oo,
+      __wbg_set_beginning_of_pass_write_index_fc4e5d9d098584df: sa,
+      __wbg_set_end_of_pass_write_index_78b5e4acfb705c38: Ha,
+      __wbg_set_timestamp_writes_d8d448bf6b1779ee: Wo,
+      __wbg_beginRenderPass_c95ff061c0d906d5: k_,
+      __wbg_set_width_d1fb21b0573a430a: bu,
+      __wbg_set_height_308d7c58bb7196f5: mf,
+      __wbg_set_depth_or_array_layers_922a1b1547bf00be: Wa,
+      __wbg_label_37d2cc4e867fe710: Xr,
+      __wbg_set_label_5871c6a4116d78e4: If,
+      __wbg_finish_cafc9caa4b3df56c: Cn,
+      __wbg_finish_42f37cad38abaf27: En,
+      __wbg_instanceof_GpuCanvasContext_ffa8d2a7cb70b8fd: qr,
+      __wbg_set_dst_factor_01ac107dce46775a: Ya,
+      __wbg_set_operation_872810b2c7ad34bb: ro,
+      __wbg_set_src_factor_d869078ba948812f: Ao,
+      __wbg_set_texture_18b0fd044bd7238a: Go,
+      __wbg_set_mip_level_893bb594663b5970: Kf,
+      __wbg_set_x_6e4718e5e565b05c: ou,
+      __wbg_set_y_7ad35b82f29b7b2e: uu,
+      __wbg_set_z_74f5725616541ab5: iu,
+      __wbg_set_origin_a91df496455ed18c: co,
+      __wbg_set_aspect_a06243383a09c435: oa,
+      __wbg_Window_89f1205e6b84c5cf: r_,
+      __wbg_gpu_97c682b8bbd6da29: Tr,
+      __wbg_WorkerGlobalScope_bfa24e5b372f1f02: b_,
+      __wbg_set_a_cb5a15147778942a: Jb,
+      __wbg_set_b_130b6d20afdc640c: ia,
+      __wbg_set_g_a202edac674d3195: sf,
+      __wbg_set_r_d02e085dc65c7ba3: uo,
+      __wbg_writeBuffer_204a3aba84ea260c: oi,
+      __wbg_set_bytes_per_row_cc544005f5ac177d: Ia,
+      __wbg_set_rows_per_image_91e30e4ece899f1e: lo,
+      __wbg_set_offset_50c0ba4bb906a321: _o,
+      __wbg_writeTexture_bf31683b9d6c6d14: ui,
+      __wbg_onSubmittedWorkDone_7c17a7914d6a1c0f: qc,
+      __wbg_submit_5f96af711b83c2df: Eu,
+      __wbg_getMappedRange_9a20d37843bbc5dd: br,
+      __wbg_unmap_80761f81f18ec521: z0,
+      __wbg_destroy_834dd203329bdb3c: en,
+      __wbg_mapAsync_c9718fcf0566073c: tc,
+      __wbg_set_size_61d185241554da71: vo,
+      __wbg_set_usage_063311abcbeb0c9f: Qo,
+      __wbg_set_mapped_at_creation_0d65690c0978994b: Gf,
+      __wbg_set_label_d7cc9fef79f6607e: Ff,
+      __wbg_createBuffer_e488cd40ceda9067: _t,
+      __wbg_set_address_mode_u_0099f90d7d87696a: _a,
+      __wbg_set_address_mode_v_04f9373166ede6c4: ea,
+      __wbg_set_address_mode_w_b6c10646d3e36154: ta,
+      __wbg_set_compare_247a44f5e76066a8: Ta,
+      __wbg_set_lod_max_clamp_35cfaf5ea55bb7aa: Rf,
+      __wbg_set_lod_min_clamp_30d6a6d6ab2266ba: Of,
+      __wbg_set_mag_filter_30e1d228621e7c54: qf,
+      __wbg_set_min_filter_6674175c1bc1ef98: jf,
+      __wbg_set_mipmap_filter_40fc07fcab34eb41: Xf,
+      __wbg_set_max_anisotropy_32559abff96ae565: Wf,
+      __wbg_set_label_6e50ef4fd57a0f6f: Df,
+      __wbg_createSampler_a3dfb0f2f89fdc2b: gt,
+      __wbg_set_format_dad716a408041ce0: ff,
+      __wbg_set_size_b0ef925501e008f2: Io,
+      __wbg_set_usage_f141b5de159a42da: Yo,
+      __wbg_set_label_da0fad57dde6793d: Tf,
+      __wbg_set_dimension_b61a8ae2d358aa5b: Xa,
+      __wbg_set_mip_level_count_6f365469d581bead: Qf,
+      __wbg_set_sample_count_954d237c60a25f1d: mo,
+      __wbg_set_view_formats_d410e2098aeda477: nu,
+      __wbg_createTexture_cdd92f03ef413b88: xt,
+      __wbg_set_entries_2cd3545ee493b9d8: Ja,
+      __wbg_set_layout_5bb0e3710064d78b: Lf,
+      __wbg_set_label_1eb936d3881c4a73: hf,
+      __wbg_createBindGroup_0916ed8027ba2c5a: He,
+      __wbg_set_code_d96e8bd591fe4d27: Da,
+      __wbg_set_label_4592679c60c3ae0e: Sf,
+      __wbg_createShaderModule_2b4d1147549bca28: wt,
+      __wbg_set_label_4f94deb040009907: vf,
+      __wbg_createCommandEncoder_e817b588d596b7d6: et,
+      __wbg_set_bind_group_layouts_0304829711909964: wa,
+      __wbg_set_label_81a922ba355b9c4e: Pf,
+      __wbg_createPipelineLayout_87ecd84a502ca7b4: bt,
+      __wbg_set_module_b00779338e12d7cb: Hf,
+      __wbg_set_entry_point_d34fa93493d1dc0e: ef,
+      __wbg_set_buffers_c36e59052d233445: va,
+      __wbg_set_layout_cf44c2080938f1e8: Ef,
+      __wbg_set_vertex_84e0affabea33233: Ho,
+      __wbg_set_label_ee8b5ccc3ceeadae: Bf,
+      __wbg_set_format_1e6dd64c90091826: cf,
+      __wbg_set_depth_compare_f44e1ef737045c19: qa,
+      __wbg_set_depth_write_enabled_47d54383526f6b41: Na,
+      __wbg_set_depth_bias_6f054d893efee16d: Ea,
+      __wbg_set_depth_bias_clamp_13d8ea5bcc66315c: Ca,
+      __wbg_set_depth_bias_slope_scale_79c154be54e419a7: Ra,
+      __wbg_set_compare_13ccce3149fc8362: Fa,
+      __wbg_set_depth_fail_op_a697253b12a479e1: Ga,
+      __wbg_set_fail_op_45d1f0ecf070d60c: nf,
+      __wbg_set_pass_op_10f19e715ae2c3ef: bo,
+      __wbg_set_stencil_back_f7d6690835becc87: Do,
+      __wbg_set_stencil_front_b0e57ed3db28a814: Mo,
+      __wbg_set_stencil_read_mask_6d091cd38b736049: To,
+      __wbg_set_stencil_write_mask_775ac04ab32e79dc: Lo,
+      __wbg_set_depth_stencil_18746e1deb2f030f: za,
+      __wbg_set_module_70bd7be1f2808c25: Yf,
+      __wbg_set_targets_8396bdc905d927e9: qo,
+      __wbg_set_entry_point_37d0e849bed76259: _f,
+      __wbg_set_fragment_0767ccf58ccf1f6e: df,
+      __wbg_set_count_9f86d0fc02d08e45: Ba,
+      __wbg_set_mask_d8e7d97222c8a92e: Vf,
+      __wbg_set_alpha_to_coverage_enabled_a10bd37eb439b948: ca,
+      __wbg_set_multisample_8821c65822c70695: Jf,
+      __wbg_set_cull_mode_e2b289219d281f62: La,
+      __wbg_set_front_face_3c32fabea21988fa: gf,
+      __wbg_set_strip_index_format_d819e0c5b56ce30e: Oo,
+      __wbg_set_topology_ad5745a55cfa852b: Uo,
+      __wbg_set_unclipped_depth_05a825ce1721e8ed: No,
+      __wbg_set_primitive_8ec2530289b383b9: fo,
+      __wbg_createRenderPipeline_5757ddd273de2e48: ut,
+      __wbg_set_entries_7ced1e5c2593516b: Za,
+      __wbg_set_label_6d2e77710a43dc8c: Af,
+      __wbg_createBindGroupLayout_433fd88c480d15ee: Ye,
+      __wbg_end_5a7ce60dc0f49d42: Pn,
+      __wbg_set_required_limits_6e2e6f742e0f92ae: go,
+      __wbg_set_required_features_505229173e5ae00f: io,
+      __wbg_set_label_fcbb40adcedf7a3a: kf,
+      __wbg_requestDevice_acf949c0a7d11096: Ab,
+      __wbg_getPreferredCanvasFormat_a652de4dcf1b76a8: ur,
+      __wbg_getCurrentTexture_c288aea95a2ecd6c: tr,
+      __wbg_set_device_cf77f0192bc5144c: Qa,
+      __wbg_set_format_f98f8a95c86d8cc1: of,
+      __wbg_set_usage_e94a8ea3a622b561: $o,
+      __wbg_set_alpha_mode_ea0e62378a600722: ra,
+      __wbg_set_view_formats_57015785ec512612: tu,
+      __wbg_configure_9ddad01510ae8865: ze,
+      __wbg_set_dimension_f73df134b3cb9008: $a,
+      __wbg_set_format_17bbec4e26222ce0: rf,
+      __wbg_set_aspect_24f00699ffc05e48: fa,
+      __wbg_set_base_array_layer_8a27534c79ebf816: da,
+      __wbg_set_array_layer_count_fbec00646c2f76f0: ba,
+      __wbg_set_base_mip_level_2a95e55cd9c4b4b0: ga,
+      __wbg_set_mip_level_count_11613862db4f5326: Nf,
+      __wbg_set_label_a9e60f11d8f6d907: Mf,
+      __wbg_set_usage_8a7a3a48dde89c84: Xo,
+      __wbg_createView_da8865cdd09ec9d5: vt,
+      __wbg_set_power_preference_ad90ccb2239fef97: ao,
+      __wbg_requestAdapter_7a2f80d6f6aea9f3: vb,
+      __wbg_queue_19586e9507f5e981: ib,
+      __wbg_instanceof_GpuAdapter_32c51925d44640f8: Or,
+      __wbg_drawIndexed_61f900a3bae1176a: hn,
+      __wbg_setPipeline_beee24fb5690e169: zb,
+      __wbg_setBindGroup_59293f4cce3ae9cc: Vb,
+      __wbg_setBindGroup_1e02fb4f10e03fb5: Gb,
+      __wbg_setIndexBuffer_1cfc93f884167fc9: Wb,
+      __wbg_setIndexBuffer_f0e21a93f9ba1002: Ub,
+      __wbg_setVertexBuffer_0e2ad0c3f14b93dc: Xb,
+      __wbg_setVertexBuffer_5090dba5d6df1168: $b,
+      __wbg_set_binding_b9f5989194044799: la,
+      __wbg_set_resource_e981078f9ddeee64: wo,
+      __wbg_set_min_binding_size_c7f7fc1040f0d69b: zf,
+      __wbg_set_has_dynamic_offset_45e6a78176745114: wf,
+      __wbg_set_type_65c8734c99356bd7: jo,
+      __wbg_set_alpha_e58cc49c799f170e: na,
+      __wbg_set_color_5c69a2b8e768328d: Pa,
+      __wbg_set_attributes_9241554310424d07: ua,
+      __wbg_set_array_stride_6ac1c0f48cbb1a6e: aa,
+      __wbg_set_step_mode_e6ef4bb885b3b66a: Eo,
+      __wbg_set_buffer_c7c4bf990df518a5: Sa,
+      __wbg_set_visibility_db1e452e6f23b84d: ru,
+      __wbg_set_binding_f152b4f7c9a738e4: ma,
+      __wbg_set_sampler_a3c99ec90976e6ff: xo,
+      __wbg_set_texture_b1e40b7ea5ec46d9: Vo,
+      __wbg_set_storage_texture_e6cb7da67d8c6fce: Co,
+      __wbg_set_external_texture_743e2b3e660a1b87: tf,
+      __wbg_set_format_313c8f10a7e36a0c: af,
+      __wbg_set_offset_697e85d970df2f50: eo,
+      __wbg_set_shader_location_01be15233cdb0803: yo,
+      __wbg_set_buffer_9e1ebf8ed6567298: ha,
+      __wbg_set_offset_99d8916143968ec7: to,
+      __wbg_set_size_4a5f3caa1cb0f6ec: So,
+      __wbg_set_type_8131ac6aa51a1923: Ko,
+      __wbg_set_multisampled_2ae606400626ad4f: Zf,
+      __wbg_set_sample_type_12f50c8927ad99ab: po,
+      __wbg_set_view_dimension_e40d2151f56ba216: eu,
+      __wbg_set_format_fa63d24489fef366: uf,
+      __wbg_set_access_318627865be26608: Zb,
+      __wbg_set_view_dimension_7031d64401f616a4: _u,
+      __wbg_set_format_237204cc87ea4982: bf,
+      __wbg_set_blend_450723fd40147c64: pa,
+      __wbg_set_write_mask_fc328072f01cb48d: fu,
+      __wbg_set_load_op_de7ca59cc25dfb40: Cf,
+      __wbg_set_store_op_5185ea291265ee63: Ro,
+      __wbg_set_view_330ed9fc9fcc4d01: Jo,
+      __wbg_set_clear_value_576d8a3bda7ba8cc: Aa,
+      __wbg_set_resolve_target_cce9edc587b4211e: so,
+      __wbg_queueMicrotask_5bb536982f78a56f: ob,
+      __wbg_queueMicrotask_0aa0a927f78f5d98: fb,
+      __wbg_instanceof_WebGl2RenderingContext_4a08a94517ed5240: Wr,
+      __wbg_blendFunc_2ef59299d10c662d: ee,
+      __wbg_colorMask_177d9762658e5e28: Ee,
+      __wbg_depthFunc_f670d4cbb9cd0913: Yt,
+      __wbg_depthMask_75a36d0065471a4b: Jt,
+      __wbg_fenceSync_c52a4e24eabfa0d3: Bn,
+      __wbg_frontFace_d4a6507ad2939b5c: Nn,
+      __wbg_uniform1ui_a0f911ff174715d0: d0,
+      __wbg_beginQuery_0fdf154e1da0e73d: B_,
+      __wbg_bindBuffer_c9068e8712a034f5: O_,
+      __wbg_blendColor_e799d452ab2a5788: X_,
+      __wbg_clearDepth_670099db422a4f91: Ae,
+      __wbg_deleteSync_c8e4a9c735f71d18: Wt,
+      __wbg_depthRange_337bf254e67639bb: Zt,
+      __wbg_drawArrays_075228181299b824: wn,
+      __wbg_readBuffer_9eb461d6857295f0: db,
+      __wbg_useProgram_fe720ade4d3b6edb: Q0,
+      __wbg_bindSampler_96f0e90e7bc31da9: U_,
+      __wbg_bindTexture_b2b7b1726a83f93e: z_,
+      __wbg_createQuery_7988050efd7e4c48: ot,
+      __wbg_deleteQuery_ea8bf1954febd774: Ct,
+      __wbg_drawBuffers_5eccfaacc6560299: pn,
+      __wbg_linkProgram_6600dd2c0863bbfd: Hr,
+      __wbg_pixelStorei_2a65936c11b710fe: Uc,
+      __wbg_stencilMask_732dcc5aada10e4c: Fu,
+      __wbg_attachShader_b36058e5c9eeaf54: T_,
+      __wbg_clearStencil_5d243d0dff03c315: De,
+      __wbg_createBuffer_26534c05e01b8559: Je,
+      __wbg_createShader_e3ac08ed8c5b14b2: lt,
+      __wbg_deleteBuffer_ab099883c168644d: Tt,
+      __wbg_deleteShader_aaf3b520a64d5d9d: Gt,
+      __wbg_getExtension_3c0cb5ae01bb4b17: rr,
+      __wbg_getParameter_2e1f97ecaab76274: or,
+      __wbg_shaderSource_32425cfe6e5a1e52: du,
+      __wbg_activeTexture_6f9a710514686c24: x_,
+      __wbg_blendEquation_e9b99928ed1494ad: J_,
+      __wbg_compileShader_94718a93495d565d: Oe,
+      __wbg_createProgram_9b7710a1f2701c2c: ft,
+      __wbg_createSampler_da6bb96c9ffaaa27: st,
+      __wbg_createTexture_16d2c8a3d7d4a75a: pt,
+      __wbg_deleteProgram_9298fb3e3c1d3a78: Lt,
+      __wbg_deleteSampler_c6b68c4071841afa: qt,
+      __wbg_deleteTexture_9d411c0e60ffa324: zt,
+      __wbg_polygonOffset_4b3158d8ed028862: Xc,
+      __wbg_texParameteri_0d45be2c88d6bad8: Vu,
+      __wbg_texStorage2D_9504743abf5a986a: Uu,
+      __wbg_texStorage3D_e9e1b58fee218abe: zu,
+      __wbg_bindFramebuffer_031c73ba501cb8f6: q_,
+      __wbg_blitFramebuffer_d730a23ab4db248e: ne,
+      __wbg_bindRenderbuffer_8a2aa4e3d1fb5443: V_,
+      __wbg_bindVertexArray_78220d1edb1d2382: N_,
+      __wbg_createFramebuffer_41512c38358a41c4: nt,
+      __wbg_deleteFramebuffer_9738f3bb85c1ab35: kt,
+      __wbg_getSyncParameter_7d11ab875b41617e: vr,
+      __wbg_samplerParameterf_f070d2b69b1e2d46: kb,
+      __wbg_samplerParameteri_8e4c4bcead0ee669: Lb,
+      __wbg_blendFuncSeparate_95465944f788a092: Z_,
+      __wbg_createRenderbuffer_a601226a6a680dbe: dt,
+      __wbg_createVertexArray_ad5294951ae57497: St,
+      __wbg_deleteRenderbuffer_096edada57729468: Rt,
+      __wbg_deleteVertexArray_7bc7f92769862f93: Kt,
+      __wbg_getQueryParameter_5d6af051438ae479: lr,
+      __wbg_getShaderInfoLog_9e0b96da4b13ae49: pr,
+      __wbg_stencilOpSeparate_4657523b1d3b184f: Tu,
+      __wbg_bindAttribLocation_ce78bfb13019dbe6: E_,
+      __wbg_bufferData_32d26eba0c74a53c: oe,
+      __wbg_getProgramInfoLog_2ffa30e3abb8b5c2: ir,
+      __wbg_getShaderParameter_afa4a3dd9dd397c1: yr,
+      __wbg_getUniformLocation_d06b3a5b3c60e95c: Dr,
+      __wbg_readPixels_6ea8e288a8673282: sb,
+      __wbg_renderbufferStorage_1bc02383614b76b2: yb,
+      __wbg_copyTexSubImage2D_91ebcd9cd1908265: Xe,
+      __wbg_copyTexSubImage3D_f62ef4c4eeb9a7dc: $e,
+      __wbg_drawArraysInstanced_ec30adc616ec58d5: sn,
+      __wbg_getIndexedParameter_ca1693c768bc4934: cr,
+      __wbg_getProgramParameter_92e4540ca9da06b2: sr,
+      __wbg_stencilFuncSeparate_10d043d0af14366f: Iu,
+      __wbg_stencilMaskSeparate_28d53625c02d9c7f: Du,
+      __wbg_texImage3D_2082006a8a9b28a7: qu,
+      __wbg_uniformBlockBinding_1cf9fd2c49adf0f3: T0,
+      __wbg_vertexAttribDivisor_744c0ca468594894: J0,
+      __wbg_framebufferTexture2D_c283e928186aa542: Un,
+      __wbg_invalidateFramebuffer_b17b7e1da3051745: zr,
+      __wbg_blendEquationSeparate_a8094fbec94cf80e: Y_,
+      __wbg_getUniformBlockIndex_1ee7e922e6d96d7e: Ir,
+      __wbg_framebufferRenderbuffer_850811ed6e26475e: Gn,
+      __wbg_getSupportedExtensions_57142a6b598d7787: hr,
+      __wbg_clientWaitSync_21865feaeb76a9a5: Be,
+      __wbg_framebufferTextureLayer_c8328828c8d5eb60: zn,
+      __wbg_texSubImage3D_59b8e24fb05787aa: n0,
+      __wbg_uniform2fv_2fb47cfe06330cc7: s0,
+      __wbg_uniform2iv_095baf208f172131: w0,
+      __wbg_uniform3fv_c0872003729939a5: x0,
+      __wbg_uniform3iv_6aa2b0791e659d14: y0,
+      __wbg_uniform4fv_498bd80dc5aa16ff: A0,
+      __wbg_uniform4iv_8a8219fda39dffd5: M0,
+      __wbg_enableVertexAttribArray_475e06c31777296d: Sn,
+      __wbg_uniform2uiv_3030d7e769f5e82a: m0,
+      __wbg_uniform3uiv_86941e7eeb8ee0a3: S0,
+      __wbg_uniform4uiv_046ee400bb80547d: F0,
+      __wbg_disableVertexAttribArray_24a020060006b10f: rn,
+      __wbg_clearBufferfv_ac87d92e2f45d80c: he,
+      __wbg_clearBufferiv_69ff24bb52ec4c88: Se,
+      __wbg_clearBufferuiv_8ad59a8219aafaca: ve,
+      __wbg_vertexAttribPointer_75f6ff47f6c9f8cb: _i,
+      __wbg_drawElementsInstanced_d41fc920ae24717c: yn,
+      __wbg_renderbufferStorageMultisample_bc0ae08a7abb887a: xb,
+      __wbg_texSubImage3D_45591e5655d1ed5c: e0,
+      __wbg_uniformMatrix2fv_24430076c7afb5e3: B0,
+      __wbg_uniformMatrix3fv_6f822361173d8046: C0,
+      __wbg_uniformMatrix4fv_0e724dbebd372526: G0,
+      __wbg_vertexAttribIPointer_b9020d0c2e759912: Z0,
+      __wbg_bindBufferRange_009d206fe9e4151e: C_,
+      __wbg_bufferData_98f6c413a8f0f139: ie,
+      __wbg_texSubImage3D_3b653017c4c5d721: _0,
+      __wbg_uniformMatrix2x3fv_a377326104a8faf4: L0,
+      __wbg_uniformMatrix2x4fv_b7a4d810e7a1cf7d: E0,
+      __wbg_uniformMatrix3x2fv_69a4cf0ce5b09f8b: O0,
+      __wbg_uniformMatrix3x4fv_cc72e31a1baaf9c9: q0,
+      __wbg_uniformMatrix4x2fv_8c9fb646f3b90b63: W0,
+      __wbg_uniformMatrix4x3fv_ee0bed9a1330400d: U0,
+      __wbg_readPixels_55b18304384e073d: gb,
+      __wbg_texImage3D_bd2b0bd2cfcdb278: Gu,
+      __wbg_texSubImage3D_47643556a8a4bf86: t0,
+      __wbg_texSubImage3D_18d7f3c65567c885: Zu,
+      __wbg_texSubImage3D_eff5cd6ab84f44ee: r0,
+      __wbg_texSubImage3D_1102c12a20bf56d5: Ju,
+      __wbg_compressedTexSubImage2D_d8fbae93bb8c4cc9: Ve,
+      __wbg_compressedTexSubImage3D_778008a6293f15ab: Ue,
+      __wbg_copyBufferSubData_a4f9815861ff0ae9: Ne,
+      __wbg_bufferSubData_3e902f031adf13fd: ge,
+      __wbg_compressedTexSubImage2D_684350eb62830032: Ge,
+      __wbg_compressedTexSubImage3D_16afa3a47bf1d979: We,
+      __wbg_getBufferSubData_4fc54b4fbb1462d7: Xn,
+      __wbg_texSubImage2D_edf5bd70fda3feaf: Hu,
+      __wbg_clear_7187030f892c5ca0: Te,
+      __wbg_flush_e322496f5412e567: On,
+      __wbg_texImage2D_13414a4692836804: Ru,
+      __wbg_texSubImage2D_bf72e56edeeed376: Xu,
+      __wbg_texSubImage2D_e193f1d28439217c: Yu,
+      __wbg_enable_d1ac04dfdd2fb3ae: In,
+      __wbg_texSubImage2D_117d29278542feb0: ju,
+      __wbg_texSubImage2D_bd034db2e58c352c: Qu,
+      __wbg_texSubImage2D_5d270af600a7fc4a: Nu,
+      __wbg_texSubImage2D_d17a39cdec4a3495: $u,
+      __wbg_disable_7fe6fb3e97717f88: bn,
+      __wbg_scissor_2ff8f18f05a6d408: Rb,
+      __wbg_texImage2D_087ef94df78081f0: Cu,
+      __wbg_viewport_df236eac68bc7467: ni,
+      __wbg_cullFace_e7e711a14d2c3f48: Pt,
+      __wbg_endQuery_54f0627d4c931318: Dn,
+      __wbg_uniform1f_b500ede5b612bea2: f0,
+      __wbg_uniform1i_e9aee4b9e7fe8c4b: i0,
+      __wbg_uniform4f_f6b5e2024636033a: I0,
+      __wbg_instanceof_Window_ed49b2db8df90359: Ur,
+      __wbg_matchMedia_91d4fc9729dc3c84: nc,
+      __wbg_queueMicrotask_885fd8605352e25d: ub,
+      __wbg_devicePixelRatio_5c458affc89fc209: nn,
+      __wbg_getComputedStyle_2d1f9dfe4ee7e0b9: Hn,
+      __wbg_cancelIdleCallback_fdfaaf4ca585e729: pe,
+      __wbg_requestIdleCallback_c9c643f8210d435b: Fb,
+      __wbg_cancelAnimationFrame_cd35895d78cf4510: me,
+      __wbg_requestAnimationFrame_43682f8e1c5e5348: Ib,
+      __wbg_clearTimeout_df03cf00269bc442: Me,
+      __wbg_setTimeout_681abd84926a4da3: Nb,
+      __wbg_setTimeout_eff32631ea138533: Qb,
+      __wbg_document_ee35a3d3ae34ef6c: un,
+      __wbg_location_df7ca06c93e51763: _c,
+      __wbg_navigator_43be698ba96fc088: uc,
+      __wbg_setAttribute_cc8e4c8a2a008508: qb,
+      __wbg_setPointerCapture_420db6f6826eb74b: jb,
+      __wbg_activeElement_1554b6917654f8d6: p_,
+      __wbg_createElement_49f60fdcaae809c8: tt,
+      __wbg_querySelector_c3b0df2d58eec220: ab,
+      __wbg_visibilityState_43b7b74940e07d22: ri,
+      __wbg_getElementById_e34377b79d7285f6: nr,
+      __wbg_fullscreenElement_25b445e2961e68ba: Qn,
+      __wbg_querySelectorAll_1283aae52043a951: bb,
+      __wbg_body_f67922363a220026: ce,
+      __wbg_fetch_afb6a4b6cacf876d: kn,
+      __wbg_navigator_4478931f32ebca57: ic,
+      __wbg_focus_128ff465f65677cc: qn,
+      __wbg_style_0b7c9bd318f8b807: Lu,
+      __wbg_blendFunc_446658e7231ab9c8: te,
+      __wbg_colorMask_7a8dbc86e7376a9b: Ce,
+      __wbg_depthFunc_eb3aa05361dd2eaa: $t,
+      __wbg_depthMask_103091329ca1a750: Ht,
+      __wbg_frontFace_027e2ec7a7bc347c: Kn,
+      __wbg_bindBuffer_69a7a0b8f3f9b9cf: R_,
+      __wbg_blendColor_1d50ac87d9a2794b: Q_,
+      __wbg_clearDepth_2b109f644a783a53: Ie,
+      __wbg_depthRange_5579d448b9d7de57: _n,
+      __wbg_drawArrays_2be89c369a29f30b: ln,
+      __wbg_useProgram_e82c1a5f87d81579: N0,
+      __wbg_bindTexture_ec13ddcb9dc8e032: j_,
+      __wbg_linkProgram_be6b825cf66d177b: Jr,
+      __wbg_pixelStorei_f7cc498f52d523f1: zc,
+      __wbg_stencilMask_0eca090c4c47f8f7: Mu,
+      __wbg_attachShader_32114efcf2744eb6: F_,
+      __wbg_clearStencil_aa65955bb39d8c18: Pe,
+      __wbg_createBuffer_c4ec897aacc1b91c: Ze,
+      __wbg_createShader_f2b928ca9a426b14: mt,
+      __wbg_deleteBuffer_22fcc93912cbf659: Ft,
+      __wbg_deleteShader_ff70ca962883e241: Vt,
+      __wbg_getParameter_1ecb910cfdd21f88: fr,
+      __wbg_shaderSource_8f4bda03f70359df: gu,
+      __wbg_activeTexture_7e39cb8fdf4b6d5a: y_,
+      __wbg_blendEquation_82202f34c4c00e50: H_,
+      __wbg_compileShader_63b824e86bb00b8f: Re,
+      __wbg_createProgram_98aaa91f7c81c5e2: at,
+      __wbg_createTexture_f9451a82c7527ce2: yt,
+      __wbg_deleteProgram_f354e79b8cae8076: Et,
+      __wbg_deleteTexture_2be78224e5584a8b: Ut,
+      __wbg_polygonOffset_24a8059deb03be92: Qc,
+      __wbg_texParameteri_ec937d2161018946: Wu,
+      __wbg_bindFramebuffer_7815ca611abb057f: G_,
+      __wbg_bindRenderbuffer_db37c1bac9ed4da0: W_,
+      __wbg_createFramebuffer_b88ffa8e0fd262c4: rt,
+      __wbg_deleteFramebuffer_8de1ca41ac87cfd9: Bt,
+      __wbg_blendFuncSeparate_f366c170c5097fbe: _e,
+      __wbg_createRenderbuffer_1e567f2f4d461710: it,
+      __wbg_deleteRenderbuffer_0f565f0727b341fc: Ot,
+      __wbg_getShaderInfoLog_9991e9e77b0c6805: mr,
+      __wbg_stencilOpSeparate_de257f3c29e604cd: Bu,
+      __wbg_bindAttribLocation_5cfc7fa688df5051: L_,
+      __wbg_bufferData_1be8450fab534758: fe,
+      __wbg_getProgramInfoLog_dbfda4b6e7eb1b37: dr,
+      __wbg_getShaderParameter_786fd84f85720ca8: xr,
+      __wbg_getUniformLocation_71c070e6644669ad: Ar,
+      __wbg_renderbufferStorage_6348154d30979c44: hb,
+      __wbg_copyTexSubImage2D_417a65926e3d2490: Qe,
+      __wbg_getProgramParameter_43fbc6d2613c08b3: gr,
+      __wbg_stencilFuncSeparate_1798f5cca257f313: Au,
+      __wbg_stencilMaskSeparate_c24c1a28b8dd8a63: Pu,
+      __wbg_framebufferTexture2D_8adf6bdfc3c56dee: Wn,
+      __wbg_blendEquationSeparate_1b12c43928cc7bc1: $_,
+      __wbg_framebufferRenderbuffer_cd9d55a68a2300ea: Vn,
+      __wbg_uniform2fv_04c304b93cbf7f55: g0,
+      __wbg_uniform2iv_ccf2ed44ac8e602e: l0,
+      __wbg_uniform3fv_aa35ef21e14d5469: p0,
+      __wbg_uniform3iv_e912f444d4ff8269: h0,
+      __wbg_uniform4fv_e6c73702e9a3be5c: D0,
+      __wbg_uniform4iv_375332584c65e61b: P0,
+      __wbg_enableVertexAttribArray_aa6e40408261eeb9: vn,
+      __wbg_disableVertexAttribArray_4bac633c27bae599: cn,
+      __wbg_vertexAttribPointer_adbd1853cce679ad: ei,
+      __wbg_uniformMatrix2fv_e2806601f5b95102: k0,
+      __wbg_uniformMatrix3fv_b94a764c63aa6468: R0,
+      __wbg_uniformMatrix4fv_923b55ad503fdc56: V0,
+      __wbg_bufferData_52235e85894af988: ue,
+      __wbg_readPixels_95b2464a7bb863a2: wb,
+      __wbg_bufferSubData_33eebcc173094f6a: de,
+      __wbg_compressedTexSubImage2D_215bb115facd5e48: qe,
+      __wbg_clear_4d801d0d054c3579: Fe,
+      __wbg_flush_7777597fd43065db: Rn,
+      __wbg_enable_fee40f19b7053ea3: An,
+      __wbg_texSubImage2D_19ae4cadb809f264: Ku,
+      __wbg_disable_bd37bdcca1764aea: an,
+      __wbg_scissor_b870b1434a9c25b4: Ob,
+      __wbg_texImage2D_e71049312f3172d9: Ou,
+      __wbg_viewport_174ae1c2209344ae: ti,
+      __wbg_cullFace_39500f654c67a205: Dt,
+      __wbg_uniform1f_c148eeaf4b531059: o0,
+      __wbg_uniform1i_9f3f72dbcb98ada9: u0,
+      __wbg_uniform4f_71ec75443e58cecc: v0,
+      __wbg_movementX_ff6524e06bc35b6a: fc,
+      __wbg_movementY_4cec81d9850ad239: oc,
+      __wbg_button_d86841d0a03adc44: se,
+      __wbg_altKey_8155c319c215e3aa: I_,
+      __wbg_buttons_a158a0cad3175f24: we,
+      __wbg_ctrlKey_96ff94f8b18636a3: At,
+      __wbg_metaKey_374999c340f70626: bc,
+      __wbg_shiftKey_5558a3288542c985: su,
+      __wbg_key_d41e8e825e6bb0e9: Qr,
+      __wbg_code_dee0dae4730408e1: Le,
+      __wbg_repeat_375aae5c5c6a0258: Sb,
+      __wbg_altKey_73c1173ba53073d5: v_,
+      __wbg_ctrlKey_09a1b54d77dea92b: It,
+      __wbg_location_22bcb1a188a96eb1: Zr,
+      __wbg_metaKey_67113fb40365d736: ac,
+      __wbg_shiftKey_564be91ec842bcc4: wu,
+      __wbg_addListener_03e8162d7e03c823: S_,
+      __wbg_removeListener_e2a199028636dcf5: mb,
+      __wbg_media_7bcde781569bca4c: cc,
+      __wbg_matches_4b5c22bd830f7bb3: rc,
+      __wbg_preventDefault_cdcfcd7e301b9702: eb,
+      __wbg_userAgent_34463fd660ba4a2a: $0,
+      __wbg_now_ebffdf7e580f210d: Tc,
+      __wbg_new_b949e7f56150a5d1: yc,
+      __wbg_abort_2f0584e03e8e3950: m_,
+      __wbg_signal_d1285ecab4ebc5ad: lu,
+      __wbg_blockSize_ef9a626745d7dfac: re,
+      __wbg_inlineSize_3e4e7e8c813884fd: Rr,
+      __wbg_bindVertexArrayOES_c2610602f7485b3f: K_,
+      __wbg_createVertexArrayOES_bd76ceee6ab9b95e: ht,
+      __wbg_deleteVertexArrayOES_197df47ef9684195: jt,
+      __wbg_framebufferTextureMultiviewOVR_16d049b41d692b91: jn,
+      __wbg_contentRect_79b98e4d4f4728a4: Ke,
+      __wbg_devicePixelContentBoxSize_8f39437eab7f03ea: tn,
+      __wbg_isIntersecting_6807d592d68e059e: jr,
+      __wbg_new_with_str_sequence_and_options_9b8b0bee99ec6b0f: Dc,
+      __wbg_get_d8db2ad31d529ff8: Fr,
+      __wbg_instanceof_Response_ee1d54d79ae41977: Vr,
+      __wbg_arrayBuffer_bb54076166006c39: M_,
+      __wbg_url_c484c26b1fbf5126: K0,
+      __wbg_text_083b8727c990c8c0: c0,
+      __wbg_status_89d7e803db911ee7: vu,
+      __wbg_headers_59a2938db9f80985: kr,
+      __wbg_disconnect_5202f399852258c0: on,
+      __wbg_observe_1ae37077cf10b11b: Bc,
+      __wbg_new_2e2be9617c4407d5: dc,
+      __wbg_observe_b9abc08d6d829e56: Lc,
+      __wbg_unobserve_b4eb8d945252124f: j0,
+      __wbg_set_type_148de20768639245: zo,
+      __wbg_set_height_f21f985387070100: xf,
+      __wbg_getContext_2a5764d48600bc43: Zn,
+      __wbg_getContext_b28d2db7bd648242: _r,
+      __wbg_set_width_d60bc4f2f20c56a4: au,
+      __wbg_instanceof_HtmlCanvasElement_3f2f6e1edb1c9792: Gr,
+      __wbg_queryCounterEXT_b578f07c30420446: cb,
+      __wbg_getSupportedProfiles_1f728bc32003c4d0: Sr,
+      __wbg_new_with_str_and_init_a61cbc6bdef21614: Ac,
+      __wbg_set_height_b386c0f603610637: pf,
+      __wbg_getContext_2966500392030d63: Jn,
+      __wbg_getContext_de810d9f187f29ca: er,
+      __wbg_set_width_7f07715a20503914: cu,
+      __wbg_setProperty_cbb25c4e74285b39: Kb,
+      __wbg_removeProperty_a0d2ff8a76ffd2b1: pb,
+      __wbg_getPropertyValue_d6911b2a1f9acba9: wr,
+      __wbg_disconnect_0a2d26237dfc1e9e: fn,
+      __wbg_new_8c6e67a40cee1f83: xc,
+      __wbg_observe_2a9d63459970a2c1: kc,
+      __wbg_revokeObjectURL_ba5712ef5af8bc9a: Bb,
+      __wbg_createObjectURL_918185db6a10a0c8: ct,
+      __wbg_new_64284bd487f9d239: lc,
+      __wbg_append_a992ccc37aa62dc4: P_,
+      __wbg_deltaMode_a1d1df711e44cefc: Nt,
+      __wbg_deltaX_f0ca9116db5f7bc1: Qt,
+      __wbg_deltaY_eb94120160ac821c: Xt,
+      __wbg_pointerId_466b1bdcaf2fe835: Kc,
+      __wbg_pointerType_ba53c6f18634a26d: Nc,
+      __wbg_getCoalescedEvents_8d19e426e1461e96: Yn,
+      __wbg_pressure_f01a99684f7a6cf3: _b,
+      __wbg_appendChild_dea38765a26d346d: D_,
+      __wbg_contains_1056459c33f961e8: je,
+      __wbg_origin_a9c891fa602b4d40: Gc,
+      __wbg_new_6f0524fbfa300c47: mc,
+      __wbg_port1_6251ddc5cf5c9287: $c,
+      __wbg_port2_b2a294b0ede1e13c: Yc,
+      __wbg_drawArraysInstancedANGLE_9e4cc507eae8b24d: gn,
+      __wbg_vertexAttribDivisorANGLE_eaa3c29423ea6da4: H0,
+      __wbg_drawElementsInstancedANGLE_6f9da0b845ac6c4e: xn,
+      __wbg_set_box_73d3355c6f95f24d: ya,
+      __wbg_addEventListener_3acb0aad4483804c: h_,
+      __wbg_removeEventListener_e63328781a5b9af9: lb,
+      __wbg_set_method_c3e20375f5ae7fac: Uf,
+      __wbg_set_signal_f2d3f8599248896d: ho,
+      __wbg_set_credentials_c4a58d2e05ef24fb: ka,
+      __wbg_set_headers_cfc5f4b2c1f20549: lf,
+      __wbg_set_body_9a7e00afe3cfe244: xa,
+      __wbg_set_mode_b13642c312648202: $f,
+      __wbg_postMessage_e45c89e4826cf2ef: Jc,
+      __wbg_new_4f8f3c123e474358: wc,
+      __wbg_log_6b5ca2e6124b2808: ec,
+      __wbg_info_148d043840582012: Cr,
+      __wbg_warn_f7ae1b2e66ccb930: ci,
+      __wbg_debug_a4099fa12db6cd61: Mt,
+      __wbg_error_9a7fe3f932034cde: Fn,
+      __wbg_error_f852e41c69b0bd84: Tn,
+      __wbg_postMessage_46eeeef39934b448: Hc,
+      __wbg_set_onmessage_0e1ffb1c0d91d2ad: no,
+      __wbg_close_fad2f0ee451926ed: ke,
+      __wbg_start_ffb4b426b1e661bd: pu,
+      __wbg_width_7444cca5dfea0645: fi,
+      __wbg_height_c2027cf67d1c9b11: Lr,
+      __wbg_drawBuffersWEBGL_447bc0a21f8ef22d: mn,
+      __wbg_persisted_de98357e1aaf6546: Wc,
+      __wbg_new_3eb36ae241fe6f44: sc,
+      __wbg_new_361308b2356cecd0: gc,
+      __wbg_new_no_args_1c7c842f08d00ebb: vc,
+      __wbg_new_dd2b680c8bf6ae29: hc,
+      __wbg_length_32ed9a279acd054c: $r,
+      __wbg_prototypesetcall_bdcdcc5842e4d77d: nb,
+      __wbg_new_from_slice_a3d2629dc1826784: Sc,
+      __wbg_new_with_byte_offset_and_length_aa261d9c9da49eb1: Ic,
+      __wbg_set_25cf9deff6bf0ea8: Yb,
+      __wbg_done_57b39ecd9addfe81: dn,
+      __wbg_value_0546255b415e96c1: Y0,
+      __wbg_get_9b94d73e6221f75c: Pr,
+      __wbg_of_f915f7cd925b21a5: Cc,
+      __wbg_of_9ab14f9d4bfb5040: Ec,
+      __wbg_length_35a7bace40f36eac: Yr,
+      __wbg_push_8ffdcb2063340ba5: rb,
+      __wbg_includes_32215c836f1cd3fb: Er,
+      __wbg_getOwnPropertyDescriptor_03ccfd856865081b: ar,
+      __wbg_is_f29129f676e5410c: Kr,
+      __wbg_iterator_6ff6560ca1568e55: Nr,
+      __wbg_static_accessor_GLOBAL_THIS_e628e89ab3b1c95f: yu,
+      __wbg_call_389efe28435a9388: le,
+      __wbg_static_accessor_SELF_a621d3dfbb60d0ce: hu,
+      __wbg_static_accessor_GLOBAL_12837167ad935116: xu,
+      __wbg_static_accessor_WINDOW_f8727f0cf888e0bd: Su,
+      __wbg_then_b9e7b3b5f1a9e1b5: a0,
+      __wbg_catch_c1f8c7623b458214: ye,
+      __wbg_then_0d9fe2c7b1857d32: b0,
+      __wbg_resolve_002c4b7d9d8f6b64: Tb,
+      __wbg_next_418f80d8f5303233: Mc,
+      __wbg_next_3482f54c49e8af19: Pc,
+      __wbg_get_b3ed3ad4be2bc8ac: Mr,
+      __wbg_has_d4e53238966c12b6: Br,
+      __wbg_set_6cb8631f80447a67: Hb,
+      __wbg_stringify_8d1cc6ff383e8bae: ku,
+      __wbg___wbindgen_number_get_8ff4255516ccad3e: g_,
+      __wbg___wbindgen_throw_be289d5034ed271b: w_,
+      __wbg___wbindgen_is_null_ac34f5003991759a: u_,
+      __wbg___wbindgen_is_object_5ae8e5880f2c1fbd: i_,
+      __wbg___wbindgen_string_get_72fb696202c56729: s_,
+      __wbg___wbindgen_boolean_get_bbbb1c18aa2f5e25: a_,
+      __wbg___wbindgen_is_function_0095a73b8b156f76: o_,
+      __wbg___wbindgen_is_undefined_9e4d92534c42d778: d_,
+      __wbg___wbindgen_debug_string_0bc8482c6e3508ae: f_,
+      __wbg__wbg_cb_unref_d9b87ff7982e3b21: l_,
+      __wbindgen_cast_0000000000000001: ii,
+      __wbindgen_cast_0000000000000002: di,
+      __wbindgen_cast_0000000000000003: gi,
+      __wbindgen_cast_0000000000000004: si,
+      __wbindgen_cast_0000000000000005: wi,
+      __wbindgen_cast_0000000000000006: li,
+      __wbindgen_cast_0000000000000007: mi,
+      __wbindgen_cast_0000000000000008: pi,
+      __wbindgen_cast_0000000000000009: xi,
+      __wbindgen_cast_000000000000000a: yi,
+      __wbindgen_cast_000000000000000b: hi,
+      __wbindgen_cast_000000000000000c: Si,
+      __wbindgen_cast_000000000000000d: vi,
+      __wbindgen_cast_000000000000000e: Ii,
+      __wbindgen_cast_000000000000000f: Ai,
+      __wbindgen_cast_0000000000000010: Di,
+      __wbindgen_cast_0000000000000011: Pi,
+      __wbindgen_cast_0000000000000012: Mi,
+      __wbindgen_cast_0000000000000013: Fi
+    }
+  }, n_), gd = S.memory, sd = S.main, wd = S.run_web, ld = S.__wasm_bindgen_func_elem_3147, md = S.__wasm_bindgen_func_elem_4959, pd = S.__wasm_bindgen_func_elem_3486, xd = S.__wasm_bindgen_func_elem_3480, yd = S.__wasm_bindgen_func_elem_4960, hd = S.__wasm_bindgen_func_elem_3478, Sd = S.__wbindgen_export, vd = S.__wbindgen_export2, Id = S.__wbindgen_export3, Ad = S.__wbindgen_export4, e_ = S.__wbindgen_start, Dd = Object.freeze(Object.defineProperty({
+    __proto__: null,
+    __wasm_bindgen_func_elem_3147: ld,
+    __wasm_bindgen_func_elem_3478: hd,
+    __wasm_bindgen_func_elem_3480: xd,
+    __wasm_bindgen_func_elem_3486: pd,
+    __wasm_bindgen_func_elem_4959: md,
+    __wasm_bindgen_func_elem_4960: yd,
+    __wbindgen_export: Sd,
+    __wbindgen_export2: vd,
+    __wbindgen_export3: Id,
+    __wbindgen_export4: Ad,
+    __wbindgen_start: e_,
+    main: sd,
+    memory: gd,
+    run_web: wd
+  }, Symbol.toStringTag, {
+    value: "Module"
+  }));
+  dd(Dd);
+  e_();
+})();
+export {
+  __tla,
+  Md as run_web
+};

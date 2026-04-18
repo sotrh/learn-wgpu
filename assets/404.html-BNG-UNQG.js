@@ -1,1 +1,0 @@
-import{_ as a,c as n,b as o,o as l}from"./app-C0Ciur3R.js";const e={};function r(u,t){return l(),n("div",null,[...t[0]||(t[0]=[o("p",null,"404 Not Found",-1)])])}const s=a(e,[["render",r]]),i=JSON.parse('{"path":"/404.html","title":"","lang":"en-US","frontmatter":{"layout":"NotFound"},"git":{},"filePathRelative":null}');export{s as comp,i as data};
