@@ -239,6 +239,15 @@ pub fn resize(&mut self, width: u32, height: u32) {
 
 This is where we configure the `surface`. We need the surface to be configured before we can do anything with it. We set the `is_surface_configured` flag to true here and we'll check it in the `render()` function.
 
+Note that the max supported dimension in WebGL is 2048 px. If you have a larger display, you must cap the height and width, e.g.:
+
+```rust
+if width > 0 && height > 0 {
+  let max = 2048;
+  self.config.width = width.min(max);
+  self.config.height = height.min(max);
+```
+
 ## handle_key()
 
 This is where we'll handle keyboard events. Currently just want to exit the app when the escape key is pressed. We'll do some other stuff later.
