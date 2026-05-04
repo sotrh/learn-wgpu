@@ -78,7 +78,7 @@ impl State {
 // ...
 ```
 
-There's not much going on here, but once we start using WGPU will start filling this up pretty quick. Most of the methods on this struct are place holders, though in `render()` we ask the window to draw another frame as soon as possible as winit only draws one frame unless the window is resized or we request it to draw another one.
+There's not much going on here, but once we start using, we WGPU will start filling this up pretty quick. Most of the methods on this struct are place holders, though in `render()` we ask the window to draw another frame as soon as possible as winit only draws one frame unless the window is resized or we request it to draw another one.
 
 Now that we have our `State` struct, we need to tell winit how to use it. We'll create an `App` struct for this.
 
@@ -135,7 +135,7 @@ impl ApplicationHandler<State> for App {
         #[cfg(not(target_arch = "wasm32"))]
         {
             // If we are not on web we can use pollster to
-            // await the 
+            // await the window creation
             self.state = Some(pollster::block_on(State::new(window)).unwrap());
         }
 
@@ -180,7 +180,7 @@ The `resumed` method seems like it does a lot, but it only does a few things:
 - It defines attributes about the window including some web specific stuff.
 - We use those attributes to create the window.
 - We create a future that creates our `State` struct
-- On native we use pollster to get await the future
+- On native we use `pollster` to await the future
 - On web we run the future asynchronously which sends the results to the `user_event` function
 
 The `user_event` function just serves as a landing point for our `State` future. `resumed` isn't async so we need to offload the future and send the results somewhere.
@@ -284,7 +284,7 @@ Now, all we need are some more dependencies that are specific to running in WASM
 ```toml
 # This should go in the Cargo.toml in the root directory
 
-# tThis is not required for WASM as wasm-opt should take care of this.
+# This is not required for WASM as wasm-opt should take care of this.
 # It can also interfere with WASM builds so feel free to leave it out.
 # It helps if you are wanting to build native binaries, as it helps reduce
 # the size of the executable, and make it harder to reverse engineer.
@@ -341,7 +341,7 @@ Now you can build a wgpu application with just wasm-bindgen, but I ran into some
 
 To get around this shortcoming and to make the lives of everyone reading this easier, I opted to add [wasm-pack](https://drager.github.io/wasm-pack/) to the mix. Wasm-pack handles installing the correct version of wasm-bindgen for you, and it supports building for different types of web targets as well: browser, NodeJS, and bundlers such as webpack.
 
-To use wasm-pack, first, you need to [install it](https://drager.github.io/wasm-pack/).
+To use wasm-pack, first, you need to [install it](https://wasm-bindgen.github.io/wasm-pack/installer/).
 
 Once you've done that, we can use it to build our crate. If you only have one crate in your project, you can just use `wasm-pack build`. If you're using a workspace, you'll have to specify what crate you want to build. Imagine your crate is a directory called `game`. You would then use:
 
