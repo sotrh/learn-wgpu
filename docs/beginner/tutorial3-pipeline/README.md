@@ -167,9 +167,9 @@ pub struct State {
     queue: wgpu::Queue,
     config: wgpu::SurfaceConfiguration,
     is_surface_configured: bool,
+    window: Arc<Window>,
     // NEW!
     render_pipeline: wgpu::RenderPipeline,
-    window: Arc<Window>,
 }
 ```
 
@@ -311,6 +311,7 @@ If you run your program now, it'll take a little longer to start, but it will st
             Some(wgpu::RenderPassColorAttachment {
                 view: &view,
                 resolve_target: None,
+                depth_slice: None,
                 ops: wgpu::Operations {
                     load: wgpu::LoadOp::Clear(
                         wgpu::Color {
@@ -325,6 +326,9 @@ If you run your program now, it'll take a little longer to start, but it will st
             })
         ],
         depth_stencil_attachment: None,
+        occlusion_query_set: None,
+        timestamp_writes: None,
+        multiview_mask: None,
     });
 
     // NEW!
