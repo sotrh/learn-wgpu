@@ -43,13 +43,13 @@ said, not all algorithms benefit from leveraging this compute power.
 I can't possibly make a comprehensive list of all the things you could use a GPU for,
 but here are some rules of thumb:
 
-- Tasks that can be easily parrallelized. GPUs don't like switching tasks, so if you
+- Tasks that can be easily parallelized. GPUs don't like switching tasks, so if you
 need the computation to use data from previous operations, compute shaders are likely
 to be slower than a CPU based approach. If each operation can excute without any
 knowledge of other operations, you can get a lot out of the GPU.
-- You already have the data on the GPU. If your working with texture or model data
-It can often be faster to process it with a compute shader rather than copying the data
-to the CPU, modifying it, than shipping that back to the GPU.
+- You already have the data on the GPU. If you're working with texture or model data,
+it can often be faster to process it with a compute shader rather than copying the data
+to the CPU, modifying it, then shipping that back to the GPU.
 - You have a massive amount of data. At some point the size of your data starts to outweigh
 the setup time and complexity of using a compute pipeline. You'll still need to tailor
 your approach to the data and processing you need to do.
