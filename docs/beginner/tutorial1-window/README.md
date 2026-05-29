@@ -245,7 +245,7 @@ pub fn run() -> anyhow::Result<()> {
     let event_loop = EventLoop::with_user_event().build()?;
     #[cfg(not(target_arch = "wasm32"))]
     {
-        let mut app = App::new();
+        let mut app = App::new(&event_loop);
         event_loop.run_app(&mut app)?;
     }
     #[cfg(target_arch = "wasm32")]
