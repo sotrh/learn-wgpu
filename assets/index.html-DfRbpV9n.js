@@ -1,0 +1,10 @@
+import { _ as n, c as s, b as e, d as a, o as t } from "./app-Dxbori4z.js";
+const r = {};
+function i(c, o) {
+  return t(), s("div", null, [...o[0] || (o[0] = [e("h1", { id: "foreword", tabindex: "-1" }, [e("a", { class: "header-anchor", href: "#foreword" }, [e("span", null, "Foreword")])], -1), e("p", null, [a("The articles in this section are not meant to be tutorials. They are showcases of the various things you can do with "), e("code", null, "wgpu"), a(". I won't go over the specifics of creating "), e("code", null, "wgpu"), a(" resources, as those will be covered elsewhere. The code for these examples is still available however and will be accessible on Github.")], -1)])]);
+}
+const h = n(r, [["render", i]]), m = JSON.parse('{"path":"/showcase/","title":"Foreword","lang":"en-US","frontmatter":{},"git":{"updatedTime":1781585520000,"contributors":[{"name":"Benjamin Hansen","username":"","email":"bhbenjaminhansen@gmail.com","commits":1}],"changelog":[{"hash":"509f878a570b7807eac8f231b7e5c0187dc40f5d","time":1781585520000,"email":"bhbenjaminhansen@gmail.com","author":"Benjamin Hansen","message":"textcamera"}]},"filePathRelative":"showcase/README.md"}');
+export {
+  h as comp,
+  m as data
+};
