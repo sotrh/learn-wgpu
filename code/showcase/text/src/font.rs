@@ -1,9 +1,10 @@
 use std::{
     collections::{HashMap, HashSet},
+    num::NonZero,
     path::Path,
 };
 
-use ab_glyph::{Font as _, ScaleFont};
+use bytemuck::{bytes_of, cast_ref, cast_slice};
 use framework::{CameraBinder, CameraBinding, resources::load_binary};
 use glam::{Vec2, vec2};
 use wgpu::{
@@ -59,9 +60,7 @@ impl BitmapFont {
         for c in chars.iter().copied() {
             let (metrics, coverage) = font.rasterize(c, glyph_scale);
 
-            // let glyph = font.scaled_glyph(c);
-            // let glyph_id = glyph.id;
-            let mut offset = vec2(metrics.xmin as _, metrics.ymin as _);
+            let offset = vec2(metrics.xmin as _, metrics.ymin as _);
 
             let mut texture_region = None;
 
@@ -156,36 +155,57 @@ pub struct TextureRegion {
 }
 
 pub struct FontBinder {
-    layout: wgpu::BindGroupLayout,
+    glyph_atlas_layout: wgpu::BindGroupLayout,
+    text_buffer_layout: wgpu::BindGroupLayout,
 }
 
 impl FontBinder {
     pub fn new(device: &wgpu::Device) -> Self {
-        let layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-            label: Some("FontBinder"),
-            entries: &[
-                wgpu::BindGroupLayoutEntry {
+        let glyph_atlas_layout =
+            device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+                label: Some("FontBinder::glyph_atlas_layout"),
+                entries: &[
+                    wgpu::BindGroupLayoutEntry {
+                        binding: 0,
+                        visibility: wgpu::ShaderStages::FRAGMENT,
+                        ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
+                        count: None,
+                    },
+                    wgpu::BindGroupLayoutEntry {
+                        binding: 1,
+                        visibility: wgpu::ShaderStages::FRAGMENT,
+                        ty: wgpu::BindingType::Texture {
+                            sample_type: wgpu::TextureSampleType::Float { filterable: true },
+                            view_dimension: wgpu::TextureViewDimension::D2,
+                            multisampled: false,
+                        },
+                        count: None,
+                    },
+                ],
+            });
+
+        let text_buffer_layout =
+            device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+                label: Some("FontBinder::text_buffer_layout"),
+                entries: &[wgpu::BindGroupLayoutEntry {
                     binding: 0,
-                    visibility: wgpu::ShaderStages::FRAGMENT,
-                    ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
-                    count: None,
-                },
-                wgpu::BindGroupLayoutEntry {
-                    binding: 1,
-                    visibility: wgpu::ShaderStages::FRAGMENT,
-                    ty: wgpu::BindingType::Texture {
-                        sample_type: wgpu::TextureSampleType::Float { filterable: true },
-                        view_dimension: wgpu::TextureViewDimension::D2,
-                        multisampled: false,
+                    visibility: wgpu::ShaderStages::VERTEX,
+                    ty: wgpu::BindingType::Buffer {
+                        ty: wgpu::BufferBindingType::Uniform,
+                        has_dynamic_offset: false,
+                        min_binding_size: None,
                     },
                     count: None,
-                },
-            ],
-        });
-        Self { layout }
+                }],
+            });
+
+        Self {
+            glyph_atlas_layout,
+            text_buffer_layout,
+        }
     }
 
-    pub fn bind(
+    pub fn bind_font(
         &self,
         device: &wgpu::Device,
         font: &BitmapFont,
@@ -193,7 +213,7 @@ impl FontBinder {
     ) -> FontBinding {
         let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
             label: None,
-            layout: &self.layout,
+            layout: &self.glyph_atlas_layout,
             entries: &[
                 wgpu::BindGroupEntry {
                     binding: 0,
@@ -208,6 +228,27 @@ impl FontBinder {
 
         FontBinding { bind_group }
     }
+
+    fn bind_uniforms(
+        &self,
+        device: &wgpu::Device,
+        uniform_buffer: &wgpu::Buffer,
+    ) -> FontUniformsBinding {
+        FontUniformsBinding {
+            bind_group: device.create_bind_group(&wgpu::BindGroupDescriptor {
+                label: Some("text bind_group"),
+                layout: &self.text_buffer_layout,
+                entries: &[wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: wgpu::BindingResource::Buffer(wgpu::BufferBinding {
+                        buffer: uniform_buffer,
+                        offset: 0,
+                        size: NonZero::new(std::mem::size_of::<FontUniforms>() as _),
+                    }),
+                }],
+            }),
+        }
+    }
 }
 
 pub struct FontBinding {
@@ -220,12 +261,28 @@ impl FontBinding {
     }
 }
 
+pub struct FontUniformsBinding {
+    bind_group: wgpu::BindGroup,
+}
+
+impl FontUniformsBinding {
+    fn bind_group(&self) -> &wgpu::BindGroup {
+        &self.bind_group
+    }
+}
+
 #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
 #[repr(C)]
 pub struct FontVertex {
     position: glam::Vec2,
     uv: glam::Vec2,
     color: glam::Vec4,
+}
+
+#[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
+#[repr(C)]
+pub struct FontUniforms {
+    position: glam::Vec2,
 }
 
 impl FontVertex {
@@ -257,13 +314,17 @@ impl TextPipeline {
 
         let debug_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             label: None,
-            bind_group_layouts: &[Some(&font_binder.layout)],
+            bind_group_layouts: &[Some(&font_binder.glyph_atlas_layout)],
             immediate_size: 0,
         });
 
         let draw_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             label: None,
-            bind_group_layouts: &[Some(&font_binder.layout), Some(camera_binder.layout())],
+            bind_group_layouts: &[
+                Some(&font_binder.glyph_atlas_layout),
+                Some(camera_binder.layout()),
+                Some(&font_binder.text_buffer_layout),
+            ],
             immediate_size: 0,
         });
 
@@ -338,13 +399,13 @@ impl TextPipeline {
     ) -> TextBuffer {
         let mut vertices = Vec::new();
         let mut indices = Vec::new();
-        let mut current_position = position;
+        let mut current_position = Vec2::ZERO;
 
         for c in text.chars() {
             let glyph = font.glyph(c).unwrap();
 
             if c == '\n' {
-                current_position.x = position.x;
+                current_position.x = 0.0;
                 current_position.y -= font.line_height;
                 continue;
             }
@@ -386,12 +447,30 @@ impl TextPipeline {
             }
 
             current_position.x += glyph.h_advance;
+
+            // Only used for vertical fonts
+            current_position.y += glyph.v_advance;
         }
 
-        let vertex_buffer = device.create_buffer_init(&BufferInitDescriptor {
+        let vertex_bytes: &[u8] = cast_slice(&vertices);
+        let mut bytes: Vec<u8> =
+            Vec::with_capacity(std::mem::size_of::<FontUniforms>() + vertex_bytes.len());
+
+        let uniforms = FontUniforms { position };
+        let uniform_bytes = bytes_of(&uniforms);
+
+        // Put the uniform data at the start of the buffer
+        bytes.extend(uniform_bytes);
+
+        // and the vertices at the end
+        bytes.extend(vertex_bytes);
+
+        let uniform_vertex_buffer = device.create_buffer_init(&BufferInitDescriptor {
             label: Some(text),
-            contents: bytemuck::cast_slice(&vertices),
-            usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
+            contents: &bytes,
+            usage: wgpu::BufferUsages::VERTEX
+                | wgpu::BufferUsages::UNIFORM
+                | wgpu::BufferUsages::COPY_DST,
         });
         let index_buffer = device.create_buffer_init(&BufferInitDescriptor {
             label: Some(text),
@@ -399,12 +478,14 @@ impl TextPipeline {
             usage: wgpu::BufferUsages::INDEX | wgpu::BufferUsages::COPY_DST,
         });
 
-        let binding = font_binder.bind(device, font, sampler);
+        let binding = font_binder.bind_font(device, font, sampler);
+        let uniforms = font_binder.bind_uniforms(device, &uniform_vertex_buffer);
 
         TextBuffer {
-            vertex_buffer,
+            uniform_vertex_buffer,
             index_buffer,
-            binding,
+            glyph_atlas: binding,
+            uniforms,
             num_indices: indices.len() as u32,
         }
     }
@@ -422,17 +503,27 @@ impl TextPipeline {
         pass: &mut wgpu::RenderPass<'_>,
     ) {
         pass.set_pipeline(&self.draw_glyph);
-        pass.set_bind_group(0, text.binding.bind_group(), &[]);
+        pass.set_bind_group(0, text.glyph_atlas.bind_group(), &[]);
         pass.set_bind_group(1, camera.bind_group(), &[]);
-        pass.set_vertex_buffer(0, text.vertex_buffer.slice(..));
+        pass.set_bind_group(2, text.uniforms.bind_group(), &[]);
+
+        // Since the uniform buffer takes up the first part of
+        // the buffer we need to tell wgpu to start after that
+        pass.set_vertex_buffer(
+            0,
+            text.uniform_vertex_buffer
+                .slice((std::mem::size_of::<FontUniforms>() as u64)..),
+        );
+
         pass.set_index_buffer(text.index_buffer.slice(..), wgpu::IndexFormat::Uint32);
         pass.draw_indexed(0..text.num_indices, 0, 0..1);
     }
 }
 
 pub struct TextBuffer {
-    vertex_buffer: wgpu::Buffer,
+    uniform_vertex_buffer: wgpu::Buffer,
     index_buffer: wgpu::Buffer,
-    binding: FontBinding,
+    glyph_atlas: FontBinding,
     num_indices: u32,
+    uniforms: FontUniformsBinding,
 }

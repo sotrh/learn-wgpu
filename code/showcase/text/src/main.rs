@@ -113,8 +113,9 @@ impl framework::Demo for TextDemo {
             ..Default::default()
         });
         let font_binder = FontBinder::new(&display.device);
-        let sans_binding = font_binder.bind(&display.device, &sans_font, &font_sampler);
-        let medieval_binding = font_binder.bind(&display.device, &medieval_font, &font_sampler);
+        let sans_binding = font_binder.bind_font(&display.device, &sans_font, &font_sampler);
+        let medieval_binding =
+            font_binder.bind_font(&display.device, &medieval_font, &font_sampler);
 
         let text_pipeline = TextPipeline::new(
             &display.device,

@@ -22,9 +22,10 @@ struct Camera {
     view_proj: mat4x4<f32>,
 }
 
-@group(1)
-@binding(0)
-var<uniform> camera: Camera;
+struct FontUniforms {
+    position: vec2<f32>,
+}
+
 
 @group(0)
 @binding(0)
@@ -32,6 +33,14 @@ var font_sampler: sampler;
 @group(0)
 @binding(1)
 var font_texture: texture_2d<f32>;
+
+@group(1)
+@binding(0)
+var<uniform> camera: Camera;
+
+@group(2)
+@binding(0)
+var<uniform> uniforms: FontUniforms;
 
 @vertex
 fn vs_fullscreen(
@@ -53,7 +62,7 @@ fn vs_glyph(
 ) -> VertexOutput {
     var out: VertexOutput;
 
-    out.clip_position = camera.view_proj * vec4(v.position, 0.0, 1.0);
+    out.clip_position = camera.view_proj * vec4(v.position + uniforms.position, 0.0, 1.0);
     out.uv = v.uv;
     out.color = v.color;
 
