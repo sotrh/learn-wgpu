@@ -37,7 +37,7 @@ impl Camera for TextCamera {
 
 impl Projection for TextCamera {
     fn proj(&self) -> glam::Mat4 {
-        glam::Mat4::orthographic_rh(0.0, self.width, self.height, 0.0, 0.0, 1.0)
+        glam::Mat4::orthographic_rh(0.0, self.width, 0.0, self.height, 0.0, 1.0)
     }
 }
 
@@ -123,13 +123,15 @@ impl framework::Demo for TextDemo {
             &camera_binder,
         );
 
+        let position = vec2(10.0, 100.0);
+
         let sans_text = text_pipeline.buffer_text(
             &display.device,
             &sans_font,
             &font_binder,
             &font_sampler,
             &dialog,
-            vec2(10.0, 10.0),
+            position.clone(),
             vec4(0.8, 0.9, 0.7, 1.0),
         );
         let medieval_text = text_pipeline.buffer_text(
@@ -138,7 +140,7 @@ impl framework::Demo for TextDemo {
             &font_binder,
             &font_sampler,
             &dialog,
-            vec2(10.0, 10.0),
+            position,
             vec4(0.8, 0.9, 0.7, 1.0),
         );
 
@@ -155,6 +157,13 @@ impl framework::Demo for TextDemo {
             camera_buffer,
             camera_binding,
         })
+    }
+
+    fn handle_keyboard(&mut self, key: KeyCode, pressed: bool) {
+        match (key, pressed) {
+            (KeyCode::Space, true) => self.cycle_font(),
+            _ => {}
+        }
     }
 
     fn resize(&mut self, display: &Display) {
@@ -208,8 +217,14 @@ impl framework::Demo for TextDemo {
                 multiview_mask: None,
             });
 
+            let text = if self.font_index == 0 {
+                &self.sans_text
+            } else {
+                &self.medieval_text
+            };
+
             self.text_pipeline
-                .draw_text(&self.sans_text, &self.camera_binding, &mut pass);
+                .draw_text(text, &self.camera_binding, &mut pass);
 
             // self.text_pipeline
             //     .debug_glyph_texture(&self.current_font(), &mut pass);

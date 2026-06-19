@@ -10,3 +10,4 @@ wgpu.workspace = true
 ab_glyph.workspace = true
 glam.workspace = true
 bytemuck.workspace = true
+fontdue = "0.9.3"

@@ -14,6 +14,7 @@ use wgpu::{
 pub struct BitmapFont {
     glyphs: HashMap<char, Glyph>,
     texture: wgpu::TextureView,
+    line_height: f32,
 }
 
 impl BitmapFont {
@@ -26,7 +27,9 @@ impl BitmapFont {
     ) -> anyhow::Result<Self> {
         let font_bytes = load_binary(path.as_ref()).await?;
         let glyph_scale = 64.0;
-        let font = ab_glyph::FontRef::try_from_slice(&font_bytes)?.into_scaled(glyph_scale);
+
+        let font = fontdue::Font::from_bytes(font_bytes, Default::default())
+            .map_err(|e| anyhow::anyhow!("{e}"))?;
 
         // Figure out texture size
         let glyph_size = 64;
@@ -54,17 +57,17 @@ impl BitmapFont {
         let mut max_g_height = 0;
 
         for c in chars.iter().copied() {
-            let glyph = font.scaled_glyph(c);
-            let glyph_id = glyph.id;
-            let offset = vec2(font.h_side_bearing(glyph_id), font.line_gap());
+            let (metrics, coverage) = font.rasterize(c, glyph_scale);
 
-            println!("offset: {offset:?}");
+            // let glyph = font.scaled_glyph(c);
+            // let glyph_id = glyph.id;
+            let mut offset = vec2(metrics.xmin as _, metrics.ymin as _);
 
             let mut texture_region = None;
 
-            if let Some(outline) = font.outline_glyph(glyph) {
-                let g_width = outline.px_bounds().width().ceil() as u32;
-                let g_height = outline.px_bounds().height().ceil() as u32;
+            if coverage.len() > 0 {
+                let g_width = metrics.width as u32;
+                let g_height = metrics.height as u32;
 
                 // Maybe have the texture atlas be layered
                 if x + g_width >= texture.size().width {
@@ -76,11 +79,6 @@ impl BitmapFont {
                 if max_g_height < g_height {
                     max_g_height = g_height;
                 }
-
-                let mut coverage = vec![0u8; (g_width * g_height) as _];
-                outline.draw(|x, y, c| {
-                    coverage[(x + y * g_width) as usize] = (255.0 * c) as u8;
-                });
 
                 let bytes_per_row = g_width;
                 queue.write_texture(
@@ -121,7 +119,8 @@ impl BitmapFont {
             glyphs.insert(
                 c,
                 Glyph {
-                    h_advance: font.h_advance(glyph_id),
+                    h_advance: metrics.advance_width,
+                    v_advance: metrics.advance_height,
                     offset,
                     texture_region,
                 },
@@ -131,6 +130,7 @@ impl BitmapFont {
         Ok(Self {
             glyphs,
             texture: texture.create_view(&Default::default()),
+            line_height: glyph_scale,
         })
     }
 
@@ -144,6 +144,7 @@ pub struct Glyph {
     offset: Vec2,
     h_advance: f32,
     texture_region: Option<TextureRegion>,
+    v_advance: f32,
 }
 
 #[derive(Debug)]
@@ -342,6 +343,12 @@ impl TextPipeline {
         for c in text.chars() {
             let glyph = font.glyph(c).unwrap();
 
+            if c == '\n' {
+                current_position.x = position.x;
+                current_position.y -= font.line_height;
+                continue;
+            }
+
             if let Some(region) = &glyph.texture_region {
                 let start_vertex = vertices.len() as u32;
 
@@ -351,22 +358,22 @@ impl TextPipeline {
 
                 vertices.push(FontVertex {
                     position: min,
-                    uv: region.min_uv,
+                    uv: vec2(region.min_uv.x, region.max_uv.y),
                     color,
                 });
                 vertices.push(FontVertex {
                     position: vec2(max.x, min.y),
-                    uv: vec2(region.max_uv.x, region.min_uv.y),
+                    uv: vec2(region.max_uv.x, region.max_uv.y),
                     color,
                 });
                 vertices.push(FontVertex {
                     position: max,
-                    uv: region.max_uv,
+                    uv: vec2(region.max_uv.x, region.min_uv.y),
                     color,
                 });
                 vertices.push(FontVertex {
                     position: vec2(min.x, max.y),
-                    uv: vec2(region.min_uv.x, region.max_uv.y),
+                    uv: vec2(region.min_uv.x, region.min_uv.y),
                     color,
                 });
 
