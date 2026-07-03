@@ -1,15 +1,11 @@
 mod font;
 
-use std::{
-    collections::{HashMap, HashSet},
-    f32::consts::PI,
-    path::Path,
-};
+use std::{collections::HashSet, path::Path, sync::Arc};
 
 use framework::{
     Camera, CameraBinder, Display, Projection, resources::load_string, winit::keyboard::KeyCode,
 };
-use glam::{vec2, vec4};
+use glam::{Vec2, Vec4, vec2, vec4};
 
 use crate::font::{BitmapFont, FontBinder, TextPipeline};
 
@@ -42,8 +38,6 @@ impl Projection for TextCamera {
 }
 
 struct TextDemo {
-    sans_font: BitmapFont,
-    medieval_font: BitmapFont,
     text_pipeline: TextPipeline,
     font_index: u32,
     sans_binding: font::FontBinding,
@@ -53,6 +47,10 @@ struct TextDemo {
     camera: TextCamera,
     camera_buffer: framework::CameraBuffer,
     camera_binding: framework::CameraBinding,
+    metrics_text: font::TextBuffer,
+    ticks: usize,
+    last_time: web_time::Instant,
+    debug_mode: bool,
 }
 
 impl TextDemo {
@@ -86,25 +84,31 @@ impl framework::Demo for TextDemo {
         let dialog_dir = res_dir.join("dialog");
         let dialog = load_string(dbg!(dialog_dir.join("text-demo.txt"))).await?;
 
+        let char_set = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz01234567891!@#$%^&*()_-+={[}],<>.?/'\"\\ \t\n\r";
+
         let fonts_dir = res_dir.join("fonts");
-        let chars = HashSet::from_iter(dialog.chars());
+        let chars = HashSet::from_iter(char_set.chars());
         let padding = 4;
-        let sans_font = BitmapFont::load(
-            &display.device,
-            &display.queue,
-            padding,
-            fonts_dir.join("Open_Sans/OpenSans-VariableFont_wdth,wght.ttf"),
-            &chars,
-        )
-        .await?;
-        let medieval_font = BitmapFont::load(
-            &display.device,
-            &display.queue,
-            padding,
-            fonts_dir.join("MedievalSharp/MedievalSharp-Regular.ttf"),
-            &chars,
-        )
-        .await?;
+        let sans_font = Arc::new(
+            BitmapFont::load(
+                &display.device,
+                &display.queue,
+                padding,
+                fonts_dir.join("Open_Sans/OpenSans-VariableFont_wdth,wght.ttf"),
+                &chars,
+            )
+            .await?,
+        );
+        let medieval_font = Arc::new(
+            BitmapFont::load(
+                &display.device,
+                &display.queue,
+                padding,
+                fonts_dir.join("MedievalSharp/MedievalSharp-Regular.ttf"),
+                &chars,
+            )
+            .await?,
+        );
 
         let font_sampler = display.device.create_sampler(&wgpu::SamplerDescriptor {
             label: Some("font_sampler"),
@@ -124,11 +128,11 @@ impl framework::Demo for TextDemo {
             &camera_binder,
         );
 
-        let position = vec2(10.0, 100.0);
+        let position = vec2(10.0, 52.0);
 
         let sans_text = text_pipeline.buffer_text(
             &display.device,
-            &sans_font,
+            sans_font.clone(),
             &font_binder,
             &font_sampler,
             &dialog,
@@ -137,7 +141,7 @@ impl framework::Demo for TextDemo {
         );
         let medieval_text = text_pipeline.buffer_text(
             &display.device,
-            &medieval_font,
+            medieval_font.clone(),
             &font_binder,
             &font_sampler,
             &dialog,
@@ -145,24 +149,37 @@ impl framework::Demo for TextDemo {
             vec4(0.8, 0.9, 0.7, 1.0),
         );
 
+        let metrics_text = text_pipeline.buffer_text(
+            &display.device,
+            sans_font.clone(),
+            &font_binder,
+            &font_sampler,
+            "xxxx.xx mspt",
+            Vec2::ZERO,
+            Vec4::ONE,
+        );
+
         Ok(TextDemo {
-            sans_font,
-            medieval_font,
             text_pipeline,
             font_index: 0,
             sans_binding,
             medieval_binding,
             sans_text,
             medieval_text,
+            metrics_text,
             camera,
             camera_buffer,
             camera_binding,
+            ticks: 0,
+            last_time: web_time::Instant::now(),
+            debug_mode: false,
         })
     }
 
     fn handle_keyboard(&mut self, key: KeyCode, pressed: bool) {
         match (key, pressed) {
             (KeyCode::Space, true) => self.cycle_font(),
+            (KeyCode::Digit1, true) => self.debug_mode = !self.debug_mode,
             _ => {}
         }
     }
@@ -170,11 +187,12 @@ impl framework::Demo for TextDemo {
     fn resize(&mut self, display: &Display) {
         self.camera
             .resize(display.width() as _, display.height() as _);
+
+        self.metrics_text
+            .update_position(&display.queue, vec2(10.0, display.height() as f32 - 42.0));
     }
 
-    fn update(&mut self, _display: &Display, _dt: std::time::Duration) {
-        // self.camera_controller.update_camera(&mut self.camera, dt);
-    }
+    fn update(&mut self, _display: &Display, _dt: std::time::Duration) {}
 
     fn render(&mut self, display: &mut Display) {
         let frame = match display.surface().get_current_texture() {
@@ -192,6 +210,26 @@ impl framework::Demo for TextDemo {
             }
             wgpu::CurrentSurfaceTexture::Lost => panic!("Surface lost"),
         };
+
+        let dt = self.last_time.elapsed();
+        if dt >= web_time::Duration::from_secs(1) {
+            let dti = dt / self.ticks as u32;
+
+            let millis = dti.as_micros() / 1000;
+            let micros = dti.as_micros() % 1000;
+            
+            self.metrics_text.update_text(
+                &display.device,
+                &display.queue,
+                vec4(1.0, 1.0, 1.0, 1.0),
+                &format!("{millis}.{micros} mspt"),
+            );
+
+            self.last_time = web_time::Instant::now();
+            self.ticks = 0;
+        }
+
+        self.ticks += 1;
 
         let view = frame.texture.create_view(&Default::default());
 
@@ -218,17 +256,22 @@ impl framework::Demo for TextDemo {
                 multiview_mask: None,
             });
 
-            let text = if self.font_index == 0 {
-                &self.sans_text
+            if self.debug_mode {
+                self.text_pipeline
+                    .debug_glyph_texture(&self.current_font(), &mut pass);
             } else {
-                &self.medieval_text
-            };
+                let text = if self.font_index == 0 {
+                    &self.sans_text
+                } else {
+                    &self.medieval_text
+                };
 
-            self.text_pipeline
-                .draw_text(text, &self.camera_binding, &mut pass);
+                self.text_pipeline
+                    .draw_text(text, &self.camera_binding, &mut pass);
 
-            // self.text_pipeline
-            //     .debug_glyph_texture(&self.current_font(), &mut pass);
+                self.text_pipeline
+                    .draw_text(&self.metrics_text, &self.camera_binding, &mut pass);
+            }
         }
 
         display.queue.submit([encoder.finish()]);

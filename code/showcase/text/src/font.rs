@@ -2,9 +2,10 @@ use std::{
     collections::{HashMap, HashSet},
     num::NonZero,
     path::Path,
+    sync::Arc,
 };
 
-use bytemuck::{bytes_of, cast_ref, cast_slice};
+use bytemuck::{bytes_of, cast_slice};
 use framework::{CameraBinder, CameraBinding, resources::load_binary};
 use glam::{Vec2, vec2};
 use wgpu::{
@@ -27,7 +28,7 @@ impl BitmapFont {
         chars: &HashSet<char>,
     ) -> anyhow::Result<Self> {
         let font_bytes = load_binary(path.as_ref()).await?;
-        let glyph_scale = 64.0;
+        let glyph_scale = 32.0;
 
         let font = fontdue::Font::from_bytes(font_bytes, Default::default())
             .map_err(|e| anyhow::anyhow!("{e}"))?;
@@ -299,7 +300,6 @@ impl FontVertex {
 
 pub struct TextPipeline {
     debug: wgpu::RenderPipeline,
-    render_format: wgpu::TextureFormat,
     draw_glyph: wgpu::RenderPipeline,
 }
 
@@ -383,87 +383,20 @@ impl TextPipeline {
         Self {
             debug,
             draw_glyph,
-            render_format,
         }
     }
 
     pub fn buffer_text(
         &self,
         device: &wgpu::Device,
-        font: &BitmapFont,
+        font: Arc<BitmapFont>,
         font_binder: &FontBinder,
         sampler: &wgpu::Sampler,
         text: &str,
         position: glam::Vec2,
         color: glam::Vec4,
     ) -> TextBuffer {
-        let mut vertices = Vec::new();
-        let mut indices = Vec::new();
-        let mut current_position = Vec2::ZERO;
-
-        for c in text.chars() {
-            let glyph = font.glyph(c).unwrap();
-
-            if c == '\n' {
-                current_position.x = 0.0;
-                current_position.y -= font.line_height;
-                continue;
-            }
-
-            if let Some(region) = &glyph.texture_region {
-                let start_vertex = vertices.len() as u32;
-
-                let size = region.max - region.min;
-                let min = current_position + glyph.offset;
-                let max = min + size;
-
-                vertices.push(FontVertex {
-                    position: min,
-                    uv: vec2(region.min_uv.x, region.max_uv.y),
-                    color,
-                });
-                vertices.push(FontVertex {
-                    position: vec2(max.x, min.y),
-                    uv: vec2(region.max_uv.x, region.max_uv.y),
-                    color,
-                });
-                vertices.push(FontVertex {
-                    position: max,
-                    uv: vec2(region.max_uv.x, region.min_uv.y),
-                    color,
-                });
-                vertices.push(FontVertex {
-                    position: vec2(min.x, max.y),
-                    uv: vec2(region.min_uv.x, region.min_uv.y),
-                    color,
-                });
-
-                indices.push(start_vertex);
-                indices.push(start_vertex + 1);
-                indices.push(start_vertex + 2);
-                indices.push(start_vertex);
-                indices.push(start_vertex + 2);
-                indices.push(start_vertex + 3);
-            }
-
-            current_position.x += glyph.h_advance;
-
-            // Only used for vertical fonts
-            current_position.y += glyph.v_advance;
-        }
-
-        let vertex_bytes: &[u8] = cast_slice(&vertices);
-        let mut bytes: Vec<u8> =
-            Vec::with_capacity(std::mem::size_of::<FontUniforms>() + vertex_bytes.len());
-
-        let uniforms = FontUniforms { position };
-        let uniform_bytes = bytes_of(&uniforms);
-
-        // Put the uniform data at the start of the buffer
-        bytes.extend(uniform_bytes);
-
-        // and the vertices at the end
-        bytes.extend(vertex_bytes);
+        let (indices, bytes, uniforms) = layout_glyphs(&font, text, position, color);
 
         let uniform_vertex_buffer = device.create_buffer_init(&BufferInitDescriptor {
             label: Some(text),
@@ -478,15 +411,17 @@ impl TextPipeline {
             usage: wgpu::BufferUsages::INDEX | wgpu::BufferUsages::COPY_DST,
         });
 
-        let binding = font_binder.bind_font(device, font, sampler);
-        let uniforms = font_binder.bind_uniforms(device, &uniform_vertex_buffer);
+        let glyph_atlas_binding = font_binder.bind_font(device, &font, sampler);
+        let uniforms_binding = font_binder.bind_uniforms(device, &uniform_vertex_buffer);
 
         TextBuffer {
             uniform_vertex_buffer,
             index_buffer,
-            glyph_atlas: binding,
-            uniforms,
+            glyph_atlas_binding,
+            uniforms_binding,
             num_indices: indices.len() as u32,
+            uniforms,
+            font: font.clone(),
         }
     }
 
@@ -503,9 +438,9 @@ impl TextPipeline {
         pass: &mut wgpu::RenderPass<'_>,
     ) {
         pass.set_pipeline(&self.draw_glyph);
-        pass.set_bind_group(0, text.glyph_atlas.bind_group(), &[]);
+        pass.set_bind_group(0, text.glyph_atlas_binding.bind_group(), &[]);
         pass.set_bind_group(1, camera.bind_group(), &[]);
-        pass.set_bind_group(2, text.uniforms.bind_group(), &[]);
+        pass.set_bind_group(2, text.uniforms_binding.bind_group(), &[]);
 
         // Since the uniform buffer takes up the first part of
         // the buffer we need to tell wgpu to start after that
@@ -520,10 +455,134 @@ impl TextPipeline {
     }
 }
 
+fn layout_glyphs(
+    font: &BitmapFont,
+    text: &str,
+    position: Vec2,
+    color: glam::Vec4,
+) -> (Vec<u32>, Vec<u8>, FontUniforms) {
+    let mut vertices = Vec::new();
+    let mut indices = Vec::new();
+    let mut current_position = Vec2::ZERO;
+
+    for c in text.chars() {
+        let glyph = font.glyph(c).unwrap();
+
+        if c == '\n' {
+            current_position.x = 0.0;
+            current_position.y -= font.line_height;
+            continue;
+        }
+
+        if let Some(region) = &glyph.texture_region {
+            let start_vertex = vertices.len() as u32;
+
+            let size = region.max - region.min;
+            let min = current_position + glyph.offset;
+            let max = min + size;
+
+            vertices.push(FontVertex {
+                position: min,
+                uv: vec2(region.min_uv.x, region.max_uv.y),
+                color,
+            });
+            vertices.push(FontVertex {
+                position: vec2(max.x, min.y),
+                uv: vec2(region.max_uv.x, region.max_uv.y),
+                color,
+            });
+            vertices.push(FontVertex {
+                position: max,
+                uv: vec2(region.max_uv.x, region.min_uv.y),
+                color,
+            });
+            vertices.push(FontVertex {
+                position: vec2(min.x, max.y),
+                uv: vec2(region.min_uv.x, region.min_uv.y),
+                color,
+            });
+
+            indices.push(start_vertex);
+            indices.push(start_vertex + 1);
+            indices.push(start_vertex + 2);
+            indices.push(start_vertex);
+            indices.push(start_vertex + 2);
+            indices.push(start_vertex + 3);
+        }
+
+        current_position.x += glyph.h_advance;
+
+        // Only used for vertical fonts
+        current_position.y += glyph.v_advance;
+    }
+
+    let vertex_bytes: &[u8] = cast_slice(&vertices);
+    let mut bytes: Vec<u8> =
+        Vec::with_capacity(std::mem::size_of::<FontUniforms>() + vertex_bytes.len());
+
+    let uniforms = FontUniforms { position };
+    let uniform_bytes = bytes_of(&uniforms);
+
+    // Put the uniform data at the start of the buffer
+    bytes.extend(uniform_bytes);
+
+    // and the vertices at the end
+    bytes.extend(vertex_bytes);
+
+    (indices, bytes, uniforms)
+}
+
 pub struct TextBuffer {
+    uniforms: FontUniforms,
+    num_indices: u32,
+    glyph_atlas_binding: FontBinding,
+    uniforms_binding: FontUniformsBinding,
     uniform_vertex_buffer: wgpu::Buffer,
     index_buffer: wgpu::Buffer,
-    glyph_atlas: FontBinding,
-    num_indices: u32,
-    uniforms: FontUniformsBinding,
+    font: Arc<BitmapFont>,
+}
+
+impl TextBuffer {
+    pub fn update_position(&mut self, queue: &wgpu::Queue, position: glam::Vec2) {
+        self.uniforms.position = position;
+        queue.write_buffer(&self.uniform_vertex_buffer, 0, bytes_of(&self.uniforms));
+    }
+
+    pub fn update_text(
+        &mut self,
+        device: &wgpu::Device,
+        queue: &wgpu::Queue,
+        color: glam::Vec4,
+        text: &str,
+    ) {
+        let (indices, bytes, uniforms) =
+            layout_glyphs(&self.font, text, self.uniforms.position, color);
+
+        self.uniforms = uniforms;
+        self.num_indices = indices.len() as _;
+
+        let index_bytes: &[u8] = cast_slice(&indices);
+
+        if self.uniform_vertex_buffer.size() < bytes.len() as wgpu::BufferAddress {
+            self.uniform_vertex_buffer = device.create_buffer_init(&BufferInitDescriptor {
+                label: Some(text),
+                contents: &bytes,
+                usage: wgpu::BufferUsages::VERTEX
+                    | wgpu::BufferUsages::UNIFORM
+                    | wgpu::BufferUsages::COPY_DST,
+            });
+        } else {
+            queue.write_buffer(&self.uniform_vertex_buffer, 0, &bytes);
+        }
+
+        if self.index_buffer.size() < index_bytes.len() as wgpu::BufferAddress {
+            self.index_buffer = device.create_buffer_init(&BufferInitDescriptor {
+                label: Some(text),
+                contents: bytemuck::cast_slice(&indices),
+                usage: wgpu::BufferUsages::INDEX | wgpu::BufferUsages::COPY_DST,
+            });
+        } else {
+            queue.write_buffer(&self.index_buffer, 0, index_bytes);
+        }
+    }
 }

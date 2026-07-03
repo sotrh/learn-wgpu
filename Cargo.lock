@@ -3756,6 +3756,7 @@ dependencies = [
  "fontdue",
  "framework",
  "glam",
+ "web-time",
  "wgpu",
 ]
 
