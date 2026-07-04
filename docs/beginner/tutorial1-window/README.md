@@ -14,7 +14,7 @@ anyhow = "1.0"
 winit = { version = "0.30", features = ["android-native-activity"] }
 env_logger = "0.10"
 log = "0.4"
-wgpu = "28.0"
+wgpu = "29.0.3"
 pollster = "0.3"
 ```
 
@@ -245,7 +245,7 @@ pub fn run() -> anyhow::Result<()> {
     let event_loop = EventLoop::with_user_event().build()?;
     #[cfg(not(target_arch = "wasm32"))]
     {
-        let mut app = App::new();
+        let mut app = App::new(&event_loop);
         event_loop.run_app(&mut app)?;
     }
     #[cfg(target_arch = "wasm32")]

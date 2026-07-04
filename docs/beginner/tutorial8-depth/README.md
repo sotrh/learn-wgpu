@@ -120,7 +120,7 @@ Don't forget to store the `depth_texture` in `State`.
 ```rust
 pub struct State {
     // ...
-    depth_texture: Texture,
+    depth_texture: texture::Texture,
     // ...
 }
 
