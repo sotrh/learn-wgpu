@@ -8,7 +8,7 @@ edition = "2018"
 
 [dependencies]
 image = "0.24"
-wgpu = { version = "29.0", features = ["spirv"] }
+wgpu = { version= "30.0", features = ["spirv"] }
 pollster = "0.3"
 flume.workspace = true
 

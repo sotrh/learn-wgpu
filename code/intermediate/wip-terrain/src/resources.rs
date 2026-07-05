@@ -262,7 +262,7 @@ pub async fn load_model(
 //         buffer_slice.map_async(wgpu::MapMode::Read, |result| {
 //             result.unwrap();
 
-//             let data = buffer_slice.get_mapped_range();
+//             let data = buffer_slice.get_mapped_range()?;
 
 //             println!("data.len(): {}", data.len());
 //             let data_t: &[T] = bytemuck::cast_slice(&data[..]);

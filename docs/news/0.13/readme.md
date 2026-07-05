@@ -14,7 +14,7 @@ The change log above contains most of the details about what has changed about W
     device.poll(wgpu::PollType::wait_indefinitely())?;
     mapping.await.unwrap();
 
-    let data = buffer_slice.get_mapped_range();
+    let data = buffer_slice.get_mapped_range()?;
 
     use image::{ImageBuffer, Rgba};
     let buffer =
@@ -37,7 +37,7 @@ We would do the following:
     device.poll(wgpu::PollType::wait_indefinitely())?;
     rx.recv_async().await.unwrap().unwrap();
 
-    let data = buffer_slice.get_mapped_range();
+    let data = buffer_slice.get_mapped_range()?;
 
     use image::{ImageBuffer, Rgba};
     let buffer =

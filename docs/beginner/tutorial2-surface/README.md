@@ -50,6 +50,7 @@ impl State {
                 power_preference: wgpu::PowerPreference::default(),
                 compatible_surface: Some(&surface),
                 force_fallback_adapter: false,
+                apply_limit_buckets: true,
             })
             .await?;
 
@@ -169,6 +170,7 @@ The `memory_hints` field provides the adapter with a preferred memory allocation
             alpha_mode: surface_caps.alpha_modes[0],
             view_formats: vec![],
             desired_maximum_frame_latency: 2,
+            color_space: wgpu::SurfaceColorSpace::Auto,
         };
 ```
 
@@ -392,7 +394,7 @@ Now we can get to clearing the screen (a long time coming). We need to use the `
 
     // submit will accept anything that implements IntoIter
     self.queue.submit(std::iter::once(encoder.finish()));
-    output.present();
+    self.queue.present(output);
 
     Ok(())
 }

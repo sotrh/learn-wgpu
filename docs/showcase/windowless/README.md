@@ -267,7 +267,7 @@ In order to get the data out of the buffer, we need to first map it, then we can
     device.poll(wgpu::PollType::wait_indefinitely())?;
     rx.recv_async().await.unwrap().unwrap();
 
-    let data = buffer_slice.get_mapped_range();
+    let data = buffer_slice.get_mapped_range()?;
 
     use image::{ImageBuffer, Rgba};
     let buffer =

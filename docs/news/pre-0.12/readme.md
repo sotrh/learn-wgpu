@@ -44,7 +44,7 @@ Another change is that you must call `SurfaceTexture::present()` after you submi
 
 ```rust
 self.queue.submit(iter::once(encoder.finish()));
-output.present();
+self.queue.present(output);
 ```
 
 There are a good deal of internal changes such as WebGL support (which I really need to cover). You can check out more on wgpu's [changelog](https://github.com/gfx-rs/wgpu/blob/master/CHANGELOG.md#wgpu-011-2021-10-07).

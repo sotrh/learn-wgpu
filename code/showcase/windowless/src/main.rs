@@ -7,6 +7,7 @@ async fn run() {
             power_preference: wgpu::PowerPreference::default(),
             compatible_surface: None,
             force_fallback_adapter: false,
+            apply_limit_buckets: true,
         })
         .await
         .unwrap();
@@ -163,7 +164,7 @@ async fn run() {
         device.poll(wgpu::PollType::wait_indefinitely()).unwrap();
         rx.recv_async().await.unwrap().unwrap();
 
-        let data = buffer_slice.get_mapped_range();
+        let data = buffer_slice.get_mapped_range().unwrap();
 
         use image::{ImageBuffer, Rgba};
         let buffer =

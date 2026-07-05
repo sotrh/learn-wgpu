@@ -148,7 +148,7 @@ impl TerrainPipeline {
             &render_pipeline_layout,
             color_format,
             depth_format,
-            &[wgpu::VertexBufferLayout {
+            &[Some(wgpu::VertexBufferLayout {
                 array_stride: 32,
                 step_mode: wgpu::VertexStepMode::Vertex,
                 attributes: &[
@@ -163,7 +163,7 @@ impl TerrainPipeline {
                         shader_location: 1,
                     },
                 ],
-            }],
+            })],
             &shader,
         );
 

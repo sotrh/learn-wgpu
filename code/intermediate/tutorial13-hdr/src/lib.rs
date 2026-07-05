@@ -189,7 +189,7 @@ fn create_render_pipeline(
     layout: &wgpu::PipelineLayout,
     color_format: wgpu::TextureFormat,
     depth_format: Option<wgpu::TextureFormat>,
-    vertex_layouts: &[wgpu::VertexBufferLayout],
+    vertex_layouts: &[Option<wgpu::VertexBufferLayout>],
     topology: wgpu::PrimitiveTopology, // NEW!
     shader: wgpu::ShaderModuleDescriptor,
 ) -> wgpu::RenderPipeline {
@@ -270,6 +270,7 @@ impl State {
                 power_preference: wgpu::PowerPreference::default(),
                 compatible_surface: Some(&surface),
                 force_fallback_adapter: false,
+                apply_limit_buckets: true,
             })
             .await
             .unwrap();
@@ -307,6 +308,7 @@ impl State {
             // NEW!
             view_formats: vec![surface_format.add_srgb_suffix()],
             desired_maximum_frame_latency: 2,
+            color_space: wgpu::SurfaceColorSpace::Srgb,
         };
 
         let texture_bind_group_layout =
@@ -535,7 +537,7 @@ impl State {
                 &render_pipeline_layout,
                 hdr.format(),
                 Some(texture::Texture::DEPTH_FORMAT),
-                &[model::ModelVertex::desc(), InstanceRaw::desc()],
+                &[Some(model::ModelVertex::desc()), Some(InstanceRaw::desc())],
                 wgpu::PrimitiveTopology::TriangleList,
                 shader,
             )
@@ -559,7 +561,7 @@ impl State {
                 &layout,
                 hdr.format(),
                 Some(texture::Texture::DEPTH_FORMAT),
-                &[model::ModelVertex::desc()],
+                &[Some(model::ModelVertex::desc())],
                 wgpu::PrimitiveTopology::TriangleList,
                 shader,
             )
@@ -831,7 +833,7 @@ impl State {
         }
 
         self.queue.submit(iter::once(encoder.finish()));
-        output.present();
+        self.queue.present(output);
 
         Ok(())
     }

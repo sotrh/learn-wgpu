@@ -110,7 +110,11 @@ impl CameraBinder {
         camera: &impl Camera,
         projection: &impl Projection,
     ) -> (CameraBuffer, CameraBinding) {
-        let buffer = CameraBuffer::new(device);
+        let mut buffer = CameraBuffer::new(device);
+
+        buffer.data.view = camera.view();
+        buffer.data.proj = projection.proj();
+        buffer.data.view_proj = buffer.data.proj * buffer.data.view;
 
         let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
             label: Some("CameraBinding"),

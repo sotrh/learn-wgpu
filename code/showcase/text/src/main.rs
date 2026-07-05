@@ -217,7 +217,7 @@ impl framework::Demo for TextDemo {
 
             let millis = dti.as_micros() / 1000;
             let micros = dti.as_micros() % 1000;
-            
+
             self.metrics_text.update_text(
                 &display.device,
                 &display.queue,
@@ -275,7 +275,7 @@ impl framework::Demo for TextDemo {
         }
 
         display.queue.submit([encoder.finish()]);
-        frame.present();
+        display.queue.present(frame);
     }
 }
 

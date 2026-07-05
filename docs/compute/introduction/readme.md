@@ -343,7 +343,7 @@ The process is a little involved so let's look at the code.
         rx.recv()??;
 
         // We then get the bytes that were stored in the buffer
-        let output_data = temp_buffer.get_mapped_range(..);
+        let output_data = temp_buffer.get_mapped_range(..)?;
 
         // Now we have the data on the CPU we can do what ever we want to with it
         assert_eq!(&input_data, bytemuck::cast_slice(&output_data));
