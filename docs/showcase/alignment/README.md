@@ -4,7 +4,7 @@
 
 This page is currently being reworked. I want to understand the topics a bit better, but as 0.12 is out I want to release what I have for now.
 
-</div>
+</Note>
 
 ## Alignment of vertex and index buffers
 

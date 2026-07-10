@@ -81,7 +81,7 @@ The `adapter` is a handle for our actual graphics card. You can use this to get 
 * The `compatible_surface` field tells wgpu to find an adapter that can present to the supplied surface.
 * The `force_fallback_adapter` forces wgpu to pick an adapter that will work on all hardware. This usually means that the rendering backend will use a "software" system instead of hardware such as a GPU.
 
-<div class="note">
+<Note>
 
 The options I've passed to `request_adapter` aren't guaranteed to work for all devices, but will work for most of them. If wgpu can't find an adapter with the required permissions, `request_adapter` will return `None`. If you want to get all adapters for a particular backend, you can use `enumerate_adapters`. This will give you an iterator that you can loop over to check if one of the adapters works for your needs.
 
@@ -104,7 +104,7 @@ Another thing to note is that `Adapter`s are locked to a specific backend. If yo
 
 For more fields you can use to refine your search, [check out the docs](https://docs.rs/wgpu/latest/wgpu/struct.Adapter.html).
 
-</div>
+</Note>
 
 ### What is the Surface?
 
@@ -135,7 +135,7 @@ Let's use the `adapter` to create the device and queue.
 
 The `required_features` field on `DeviceDescriptor` allows us to specify what extra features we want. For this simple example, I've decided not to use any extra features.
 
-<div class="note">
+<Note>
 
 The graphics card you have limits the features you can use. If you want to use certain features, you may need to limit what devices you support or provide workarounds.
 
@@ -143,7 +143,7 @@ You can get a list of features supported by your device using `adapter.features(
 
 You can view a full list of features [here](https://docs.rs/wgpu/latest/wgpu/struct.Features.html).
 
-</div>
+</Note>
 
 The `experimental_features` field specifies whether we intend to use features that
 are not stable yet. We'll leave this as disabled for now.
@@ -186,11 +186,11 @@ The `format` defines how `SurfaceTexture`s will be stored on the GPU. We can get
 
 Make sure that the width and height of the `SurfaceTexture` are not 0, as that can cause your app to crash.
 
-</div>
+</Note>
 
 `present_mode` uses `wgpu::PresentMode` enum, which determines how to sync the surface with the display. For the sake of simplicity, we select the first available option. If you do not want runtime selection, `PresentMode::Fifo` will cap the display rate at the display's framerate. This is essentially VSync. This mode is guaranteed to be supported on all platforms. There are other options, and you can see all of them [in the docs](https://docs.rs/wgpu/latest/wgpu/enum.PresentMode.html)
 
-<div class="note">
+<Note>
 
 If you want to let your users pick what `PresentMode` they use, you can use [SurfaceCapabilities::present_modes](https://docs.rs/wgpu/latest/wgpu/struct.SurfaceCapabilities.html#structfield.present_modes) to get a list of all the `PresentMode`s the surface supports:
 
@@ -200,7 +200,7 @@ let modes = &surface_caps.present_modes;
 
 Regardless, `PresentMode::Fifo` will always be supported, and `PresentMode::AutoVsync` and `PresentMode::AutoNoVsync` have fallback support and therefore will work on all platforms.
 
-</div>
+</Note>
 
 `alpha_mode` is honestly not something I'm familiar with. I believe it has something to do with transparent windows, but feel free to open a pull request. For now, we'll just use the first `AlphaMode` in the list given by `surface_caps`.
 
@@ -328,7 +328,6 @@ fn render(&mut self) -> anyhow::Result<()> {
     let output = match self.surface.get_current_texture() {
             wgpu::CurrentSurfaceTexture::Success(surface_texture) => surface_texture,
             wgpu::CurrentSurfaceTexture::Suboptimal(surface_texture) => {
-                self.surface.configure(&self.device, &self.config);
                 surface_texture
             }
             wgpu::CurrentSurfaceTexture::Timeout
@@ -457,11 +456,11 @@ Some of you may be able to tell what's going on just by looking at it, but I'd b
 
 A `RenderPassDescriptor` only has three fields: `label`, `color_attachments` and `depth_stencil_attachment`. The `color_attachments` describe where we are going to draw our color to. We use the `TextureView` we created earlier to make sure that we render to the screen.
 
-<div class="note">
+<Note>
 
 The `color_attachments` field is a "sparse" array. This allows you to use a pipeline that expects multiple render targets and only supplies the ones you care about.
 
-</div>
+</Note>
 
 We'll use `depth_stencil_attachment` later, but we'll set it to `None` for now.
 
@@ -487,13 +486,13 @@ The `resolve_target` is the texture that will receive the resolved output. This 
 
 The `ops` field takes a `wgpu::Operations` object. This tells wgpu what to do with the colors on the screen (specified by `view`). The `load` field tells wgpu how to handle colors stored from the previous frame. Currently, we are clearing the screen with a bluish color. The `store` field tells wgpu whether we want to store the rendered results to the `Texture` behind our `TextureView` (in this case, it's the `SurfaceTexture`). We use `StoreOp::Store` as we do want to store our render results.
 
-<div class="note">
+<Note>
 
 It's not uncommon to not clear the screen if the screen is going to be completely covered up with objects. If your scene doesn't cover the entire screen, however, you can end up with something like this.
 
 ![./no-clear.png](./no-clear.png)
 
-</div>
+</Note>
 
 ## Validation Errors?
 

@@ -248,7 +248,6 @@ impl State {
         let output = match self.surface.get_current_texture() {
             wgpu::CurrentSurfaceTexture::Success(surface_texture) => surface_texture,
             wgpu::CurrentSurfaceTexture::Suboptimal(surface_texture) => {
-                self.surface.configure(&self.device, &self.config);
                 surface_texture
             }
             wgpu::CurrentSurfaceTexture::Timeout

@@ -12,11 +12,11 @@ In layman's terms, a High Dynamic Range texture is a texture with more bits per 
 
 As of writing, wgpu doesn't allow us to use a floating point format such as `TextureFormat::Rgba16Float` as the surface texture format (not all monitors support that anyway), so we will have to render our scene in an HDR format, then convert the values to a supported format, such as `TextureFormat::Bgra8UnormSrgb` using a technique called tonemapping.
 
-<div class="note">
+<Note>
 
 There are some talks about implementing HDR surface texture support in wgpu. Here is a GitHub issue if you want to contribute to that effort: https://github.com/gfx-rs/wgpu/issues/2920
 
-</div>
+</Note>
 
 Before we do that, though, we need to switch to using an HDR texture for rendering.
 
@@ -389,7 +389,7 @@ While we can technically use an equirectangular map directly, as long as we do s
 
 A cube map is a special kind of texture that has six layers. Each layer corresponds to a different face of an imaginary cube that is aligned to the X, Y and Z axes. The layers are stored in the following order: +X, -X, +Y, -Y, +Z, -Z. 
 
-</div>
+</Note>
 
 To prepare to store the cube texture, we are going to create a new struct called `CubeTexture` in `texture.rs`.
 
@@ -495,7 +495,7 @@ Consequently, we are going to remove the WebGL feature from `Cargo.toml`. This l
 wgpu = { version = "28.0", features = ["webgl"]}
 ```
 
-</div>
+</Note>
 
 Now that we've told wgpu that we want to use the compute shaders, let's create a struct in `resource.rs` that we'll use to load the HDR image into our cube map.
 
@@ -794,7 +794,7 @@ The `workgroup_size` decorator tells the dimensions of the workgroup's local gri
 
 For WebGPU, each workgroup can only have a max of 256 threads (also called invocations).
 
-</div>
+</Note>
 
 With this, we can load the environment map in the `new()` function:
 
@@ -1056,7 +1056,7 @@ You may have noticed that we removed the `OPENGL_TO_WGPU_MATRIX`. The reason for
 
 Technically, it wasn't needed, so I felt fine removing it.
 
-</div>
+</Note>
 
 ## Reflections
 
@@ -1262,7 +1262,7 @@ With that you should get the sRGB output as expected.
 
 If your browser doesn't support WebGPU, this example won't work for you.
 
-</div>
+</Note>
 
 <WasmExample example="tutorial13_hdr"></WasmExample>
 

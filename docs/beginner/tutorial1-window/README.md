@@ -271,13 +271,13 @@ crate-type = ["cdylib", "rlib"]
 
 These lines tell Cargo that we want to allow our crate to build a native Rust static library (rlib) and a C/C++ compatible library (cdylib). We need rlib if we want to run wgpu in a desktop environment. We need cdylib to create the Web Assembly that the browser will run.
 
-<div class="note">
+<Note>
 
 ## Web Assembly
 
 Web Assembly, i.e. WASM, is a binary format supported by most modern browsers that allows lower-level languages such as Rust to run on a web page. This allows us to write the bulk of our application in Rust and use a few lines of Javascript to get it running in a web browser.
 
-</div>
+</Note>
 
 Now, all we need are some more dependencies that are specific to running in WASM:
 
@@ -358,7 +358,7 @@ init().then(() => console.log("WASM Loaded"));
 
 This site uses [Vuepress](https://vuepress.vuejs.org/), so I load the WASM in a Vue component. How you handle your WASM will depend on what you want to do. If you want to check out how I'm doing things, take a look at [this](https://github.com/sotrh/learn-wgpu/blob/master/docs/.vuepress/components/WasmExample.vue).
 
-<div class="note">
+<Note>
 
 If you intend to use your WASM module in a plain HTML website, you'll need to tell wasm-pack to target the web:
 
@@ -401,7 +401,7 @@ You'll then need to run the WASM code in an ES6 Module:
 </html>
 ```
 
-</div>
+</Note>
 
 ## Demo
 

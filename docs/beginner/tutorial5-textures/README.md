@@ -21,11 +21,11 @@ features = ["png", "jpeg"]
 
 The jpeg decoder that `image` includes uses [rayon](https://docs.rs/rayon) to speed up the decoding with threads. WASM doesn't support threads currently, so we need to disable this so our code won't crash when we try to load a jpeg on the web.
 
-<div class="note">
+<Note>
 
 Decoding jpegs in WASM isn't very performant. If you want to speed up image loading in general in WASM, you could opt to use the browser's built-in decoders instead of `image` when building with `wasm-bindgen`. This will involve creating an `<img>` tag in Rust to get the image and then a `<canvas>` to get the pixel data, but I'll leave this as an exercise for the reader.
 
-</div>
+</Note>
 
 In `State`'s `new()` method, add the following just after declaring the `config`:
 
@@ -111,7 +111,7 @@ queue.write_texture(
 );
 ```
 
-<div class="note">
+<Note>
 
 The old way of writing data to a texture was to copy the pixel data to a buffer and then copy it to the texture. Using `write_texture` is a bit more efficient as it uses one buffer less - I'll leave it here, though, in case you need it.
 
@@ -149,7 +149,7 @@ queue.submit(std::iter::once(encoder.finish()));
 
 The `bytes_per_row` field needs some consideration. This value needs to be a multiple of 256. Check out [the gif tutorial](../../showcase/gifs/#how-do-we-make-the-frames) for more details.
 
-</div>
+</Note>
 
 ## TextureViews and Samplers
 
@@ -554,11 +554,11 @@ impl Texture {
 }
 ```
 
-<div class="note">
+<Note>
 
 Notice that we're using `to_rgba8()` instead of `as_rgba8()`. PNGs work fine with `as_rgba8()`, as they have an alpha channel. But JPEGs don't have an alpha channel, and the code would panic if we try to call `as_rgba8()` on the JPEG texture image we are going to use. Instead, we can use `to_rgba8()` to handle such an image, which will generate a new image buffer with an alpha channel even if the original image does not have one.
 
-</div>
+</Note>
 
 We need to import `texture.rs` as a module, so at the top of `lib.rs` add the following.
 

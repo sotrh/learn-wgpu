@@ -198,7 +198,6 @@ impl framework::Demo for TextDemo {
         let frame = match display.surface().get_current_texture() {
             wgpu::CurrentSurfaceTexture::Success(surface_texture) => surface_texture,
             wgpu::CurrentSurfaceTexture::Suboptimal(surface_texture) => {
-                display.configure();
                 surface_texture
             }
             wgpu::CurrentSurfaceTexture::Timeout

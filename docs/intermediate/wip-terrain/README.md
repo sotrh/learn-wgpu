@@ -8,11 +8,11 @@ As the name of this article suggests, we're going to create a terrain. Now, the 
 
 A compute shader is simply a shader that allows you to leverage the GPU's parallel computing power for arbitrary tasks. You can use them for anything from creating a texture to running a neural network. I'll get more into how they work in a bit, but for now, suffice to say that we're going to use them to create the vertex and index buffers for our terrain.
 
-<div class="note">
+<Note>
 
 As of writing, compute shaders are still experimental on the web. You can enable them on beta versions of browsers such as Chrome Canary and Firefox Nightly. Because of this, I'll cover a method to use a fragment shader to compute the vertex and index buffers after we cover the compute shader method.
 
-</div>
+</Note>
 
 ## Noise Functions
 
@@ -157,13 +157,13 @@ The `terrain_point` function takes an XZ point on the terrain and returns a `vec
 
 `terrain_vertex` uses `terrain_point` to get its position and also to compute the normal of the surface by sampling four nearby points and uses them to compute the normal using [cross products](https://www.khanacademy.org/math/multivariable-calculus/thinking-about-multivariable-function/x786f2022:vectors-and-matrices/a/cross-products-mvc).
 
-<div class="note">
+<Note>
 
 You'll notice that our `Vertex` struct doesn't include a texture coordinate. We could easily create texture coordinates by using the XZ coords of the vertices and having the texture sampler mirror the texture on the x and y axes, but heightmaps tend to have stretching when textured in this way.
 
 We'll cover a method called triplanar mapping to texture the terrain in a future tutorial. For now, we'll just use a procedural texture that will be created in the fragment shader we use to render the terrain.
 
-</div>
+</Note>
 
 Now that we can get a vertex on the terrain surface, we can fill our vertex and index buffers with actual data. We'll create a `gen_terrain()` function that will be the entry point for our compute shader:
 
@@ -186,7 +186,7 @@ Visually, the workgroup grid would look something like this:
 
 ![work group grid](./figure_work-groups.jpg)
 
-<div class="note">
+<Note>
 
 It may be helpful to think of a compute shader as a function that is run in a bunch of nested for loops, but each loop is executed in parallel. It would look something like this:
 
@@ -205,7 +205,7 @@ for wgx in num_workgroups.x:
 
 If you want to learn more about workgroups, [check out the docs](https://www.w3.org/TR/WGSL/#compute-shader-workgroups).
 
-</div>
+</Note>
 
 
 

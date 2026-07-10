@@ -35,14 +35,14 @@ struct LightUniform {
 Our `LightUniform` represents a colored point in space. We're just going to use pure white light, but it's good to allow different colors of light.
 
 
-<div class="note">
+<Note>
 
 The rule of thumb for alignment with WGSL structs is field alignments are always powers of 2. For example, a `vec3` may only have three float fields, giving it a size of 12. The alignment will be bumped up to the next power of 2 being 16. This means that you have to be more careful with how you layout your struct in Rust.
 
 Some developers choose to use `vec4`s instead of `vec3`s to avoid alignment
 issues. You can learn more about the alignment rules in the [WGSL spec](https://www.w3.org/TR/WGSL/#alignment-and-size)
 
-</div>
+</Note>
 
 We're going to create another buffer to store our light in.
 
@@ -622,11 +622,11 @@ We could compute the normal matrix in the vertex shader, but that would involve 
 
 Instead, we're going to add a `normal` matrix field to `InstanceRaw`. Instead of inverting the model matrix, we'll just use the instance's rotation to create a `Matrix3`.
 
-<div class="note">
+<Note>
 
 We are using `Matrix3` instead of `Matrix4` as we only really need the rotation component of the matrix.
 
-</div>
+</Note>
 
 ```rust
 #[repr(C)]
@@ -762,13 +762,13 @@ fn vs_main(
 }
 ```
 
-<div class="note">
+<Note>
 
 I'm currently doing things in [world space](https://gamedev.stackexchange.com/questions/65783/what-are-world-space-and-eye-space-in-game-development). Doing things in view-space, also known as eye-space, is more standard as objects can have lighting issues when they are further away from the origin. If we wanted to use view-space, we would have included the rotation due to the view matrix as well. We'd also have to transform our light's position using something like `view_matrix * model_matrix * light_position` to keep the calculation from getting messed up when the camera moves.
 
 There are advantages to using view space. The main one is that when you have massive worlds doing lighting and other calculations in model spacing, it can cause issues as floating-point precision degrades when numbers get really large. View space keeps the camera at the origin meaning all calculations will be using smaller numbers. The actual lighting math ends up the same, but it does require a bit more setup.
 
-</div>
+</Note>
 
 With that change, our lighting now looks correct.
 
@@ -778,7 +778,7 @@ Bringing back our other objects and adding the ambient lighting gives us this.
 
 ![./ambient_diffuse_lighting.png](./ambient_diffuse_lighting.png);
 
-<div class="note">
+<Note>
 
 If you can guarantee that your model matrix will always apply uniform scaling to your objects, you can get away with just using the model matrix. Github user @julhe shared this code with me that does the trick:
 
@@ -792,7 +792,7 @@ The scaling factor *needs* to be uniform in order for this to work. If it's not,
 
 ![./normal-scale-issue.png](./normal-scale-issue.png)
 
-</div>
+</Note>
 
 ## Specular Lighting
 
@@ -811,11 +811,11 @@ struct Camera {
 var<uniform> camera: Camera;
 ```
 
-<div class="note">
+<Note>
 
 Don't forget to update the `Camera` struct in `light.wgsl` as well, as if it doesn't match the `CameraUniform` struct in rust, the light will render wrong.
 
-</div>
+</Note>
 
 We're going to need to update the `CameraUniform` struct as well.
 

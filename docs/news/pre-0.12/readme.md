@@ -16,7 +16,6 @@ If you want to check out the demo, just head over to [the write up](../showcase/
 let output = match self.surface.get_current_texture() {
             wgpu::CurrentSurfaceTexture::Success(surface_texture) => surface_texture,
             wgpu::CurrentSurfaceTexture::Suboptimal(surface_texture) => {
-                self.surface.configure(&self.device, &self.config);
                 surface_texture
             }
             wgpu::CurrentSurfaceTexture::Timeout
@@ -85,7 +84,6 @@ Finally, getting a `SurfaceTexture` to draw to will use the surface directly.
 let output = match self.surface.get_current_texture() {
             wgpu::CurrentSurfaceTexture::Success(surface_texture) => surface_texture,
             wgpu::CurrentSurfaceTexture::Suboptimal(surface_texture) => {
-                self.surface.configure(&self.device, &self.config);
                 surface_texture
             }
             wgpu::CurrentSurfaceTexture::Timeout

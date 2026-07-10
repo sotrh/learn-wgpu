@@ -73,14 +73,14 @@ a mask to the screen. We'll skip the visible object pipeline as that's
 something that we've already covered in the rendering guide. Let's start
 with the mask pipeline.
 
-<div class="note">
+<Note>
 
 I'm leveraging some code shared between multiple showcases, including
 a `RenderPipelineBuilder` to reduce the boilerplate. I won't go into all
 the code for that here, but you can check it out in the
 [Github Repo](https://github.com/sotrh/learn-wgpu/tree/master/code/showcase/framework)
 
-</div>
+</Note>
 
 ```rust
 let mask_pipeline_layout =
@@ -255,7 +255,7 @@ let hidden_pipeline = framework::RenderPipelineBuilder::new()
     .build(&display.device)?;
 ```
 
-<div class="note">
+<Note>
 
 We are skipping over `model.wgsl` as it's a standard shader that
 just renders the objects using normal mapping and diffuse lighting.
@@ -265,7 +265,7 @@ buffer is used properly.
 You can check out [the code](https://github.com/sotrh/learn-wgpu/tree/master/code/showcase/stencil/src/model.wgsl)
 if you are curious.
 
-</div>
+</Note>
 
 We also create another pipeline just like this one to draw the visible
 objects. Will skip over that because it's just the same code but we use
