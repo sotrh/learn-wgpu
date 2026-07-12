@@ -1,6 +1,6 @@
 # Multi-threading with Wgpu and Rayon
 
-<div class="warn">
+<Note class="warn">
 
 This example has not been tested on WASM. Rayon has support for multi threading on WASM via [wasm-bindgen-rayon](https://docs.rs/crate/wasm-bindgen-rayon/latest), though that implementation is only currently working on Chrome-based browsers. Because of this I've elected not to make a WASM version of this tutorial at this time.
 

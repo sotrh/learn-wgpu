@@ -385,7 +385,7 @@ This simple projection is easy to use, making it one of the most popular project
 
 While we can technically use an equirectangular map directly, as long as we do some math to figure out the correct coordinates, it is a lot more convenient to convert our environment map into a cube map.
 
-<div class="info">
+<Note>
 
 A cube map is a special kind of texture that has six layers. Each layer corresponds to a different face of an imaginary cube that is aligned to the X, Y and Z axes. The layers are stored in the following order: +X, -X, +Y, -Y, +Z, -Z. 
 
@@ -485,7 +485,7 @@ let (device, queue) = adapter
     .unwrap();
 ```
 
-<div class="warn">
+<Note class="warn">
 
 You may have noted that we have switched from `downlevel_webgl2_defaults()` to `downlevel_defaults()`. This means that we are dropping support for WebGL2. The reason for this is that WebGL2 doesn't support the compute shaders. WebGPU was built with compute shaders in mind. As of writing, the only browser that supports WebGPU is Chrome and some experimental browsers such as Firefox Nightly.
 
@@ -790,7 +790,7 @@ While I commented in the previous code, there are some things I want to go over 
 
 The `workgroup_size` decorator tells the dimensions of the workgroup's local grid of invocations. Because we are dispatching one workgroup for every pixel in the texture, we have each workgroup be a 16x16x1 grid. This means that each workgroup can have 256 threads to work with.
 
-<div class="warn">
+<Note class="warn">
 
 For WebGPU, each workgroup can only have a max of 256 threads (also called invocations).
 
@@ -1048,7 +1048,7 @@ struct Camera {
 var<uniform> camera: Camera;
 ```
 
-<div class="info">
+<Note>
 
 You may have noticed that we removed the `OPENGL_TO_WGPU_MATRIX`. The reason for this is that it was messing with the projection of the skybox.
 
@@ -1258,7 +1258,7 @@ With that you should get the sRGB output as expected.
 
 ## Demo
 
-<div class="warn">
+<Note :hidden="false" class="warn">
 
 If your browser doesn't support WebGPU, this example won't work for you.
 

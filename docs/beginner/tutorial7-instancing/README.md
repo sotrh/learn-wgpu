@@ -218,7 +218,7 @@ render_pass.set_index_buffer(self.index_buffer.slice(..), wgpu::IndexFormat::Uin
 render_pass.draw_indexed(0..self.num_indices, 0, 0..self.instances.len() as _);
 ```
 
-<div class="warning">
+<Note class="warning">
 
 Make sure that if you add new instances to the `Vec`, you recreate the `instance_buffer` as well as `camera_bind_group`. Otherwise, your new instances won't show up correctly.
 

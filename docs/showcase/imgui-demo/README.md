@@ -1,6 +1,6 @@
 # Basic Imgui Demo
 
-<div class="warning">
+<Note class="warning">
 
 This example is currently broken. It got behind when I was migrating the tutorial to 0.8 as the imgui_wgpu crate was still on 0.7 at the time. I haven't updated it since. While fixing it wouldn't be too hard (feel free to send a PR), I'm considering removing this example entirely.
 

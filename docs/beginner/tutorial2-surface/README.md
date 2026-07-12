@@ -182,7 +182,7 @@ The `format` defines how `SurfaceTexture`s will be stored on the GPU. We can get
 
 `width` and `height` are the width and the height in pixels of a `SurfaceTexture`. This should usually be the width and the height of the window.
 
-<div class="warning">
+<Note>
 
 Make sure that the width and height of the `SurfaceTexture` are not 0, as that can cause your app to crash.
 
@@ -205,6 +205,20 @@ Regardless, `PresentMode::Fifo` will always be supported, and `PresentMode::Auto
 `alpha_mode` is honestly not something I'm familiar with. I believe it has something to do with transparent windows, but feel free to open a pull request. For now, we'll just use the first `AlphaMode` in the list given by `surface_caps`.
 
 `view_formats` is a list of `TextureFormat`s that you can use when creating `TextureView`s (we'll cover those briefly later in this tutorial as well as more in depth [in the texture tutorial](../tutorial5-textures)). As of writing, this means that if your surface is sRGB color space, you can create a texture view that uses a linear color space.
+
+`color_space` this tells wgpu how your windowing system expects colors to be laid out.
+It's more of an advanced topic so I won't be covering it here. In most cases `Auto` should
+be good enough.
+
+<Note>
+
+If you're curious what your setup supports for any of these options, you can call:
+
+```rust
+let caps = surface.get_capabilities(&adapter);
+```
+
+</Note>
 
 Now that we've configured our surface properly, we can add these new fields at the end of the method. The `is_surface_configured` field will be used later.
 

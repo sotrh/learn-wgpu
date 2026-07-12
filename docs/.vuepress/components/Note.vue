@@ -1,7 +1,7 @@
 <template>
-    <div class="note" :class="{ hidden: hidden }" v-on:click="toggle">
+    <div class="note" :class="{ hidden: is_hidden }" v-on:click="toggle">
         <div class="header">
-            <div :class="{ arrow: true, down: hidden }"></div>
+            <div :class="{ arrow: true, down: is_hidden }"></div>
             <div class="grow">Note</div>
         </div>
         <div class="content">
@@ -12,14 +12,20 @@
 <script lang="js">
 export default {
     name: "Note",
+    props: {
+        hidden: {
+            type: Boolean,
+            default: true,
+        },
+    },
     data() {
         return {
-            hidden: true
+            is_hidden: this.hidden
         }
     },
     methods: {
         toggle() {
-            this.hidden = !this.hidden;
+            this.is_hidden = !this.is_hidden;
         }
     }
 }
@@ -37,7 +43,7 @@ export default {
 }
 
 .note.hidden {
-    max-height: 2rem;
+    max-height: 1rem;
     overflow: hidden;
 }
 

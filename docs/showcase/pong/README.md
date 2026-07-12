@@ -2,7 +2,7 @@
 
 ![A screenshot of pong](./pong.png)
 
-<div class="warning">
+<Note class="warning">
 
 This example is not working as of `wgpu = "28.0"`. If the crate updates to
 the latest version I'll switch it over, but given that the crate maintainer
