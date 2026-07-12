@@ -1,30 +1,31 @@
 #!/bin/bash
 
-(trap 'kill 0' SIGINT;
-cargo run --bin tutorial1-window &
-cargo run --bin tutorial2-surface &
-cargo run --bin tutorial2-challenge &
-cargo run --bin tutorial3-pipeline &
-cargo run --bin tutorial3-challenge &
-cargo run --bin tutorial4-buffer &
-cargo run --bin tutorial4-challenge &
-cargo run --bin tutorial5-textures &
-cargo run --bin tutorial5-challenge &
-cargo run --bin tutorial6-uniforms &
-cargo run --bin tutorial6-challenge &
-cargo run --bin tutorial7-instancing &
-cargo run --bin tutorial7-challenge &
-cargo run --bin tutorial8-depth &
-cargo run --bin tutorial8-challenge &
-cargo run --bin tutorial9-models &
-cargo run --bin tutorial10-lighting &
-cargo run --bin tutorial11-normals &
-cargo run --bin tutorial12-camera &
-cargo run --bin tutorial13-hdr &
-cargo run --bin windowless &
-cargo run --bin gifs &
-cargo run --bin compute &
-cargo r -p stencil
-cargo r -p mipmaps
-# cargo run --bin pong
-)
+cargo build;
+
+./target/debug/tutorial1-window
+./target/debug/tutorial2-surface
+./target/debug/tutorial2-challenge
+./target/debug/tutorial3-pipeline
+./target/debug/tutorial3-challenge
+./target/debug/tutorial4-buffer
+./target/debug/tutorial4-challenge
+./target/debug/tutorial5-textures
+./target/debug/tutorial5-challenge
+./target/debug/tutorial6-uniforms
+./target/debug/tutorial6-challenge
+./target/debug/tutorial7-instancing
+./target/debug/tutorial7-challenge
+./target/debug/tutorial8-depth
+./target/debug/tutorial8-challenge
+./target/debug/tutorial9-models
+./target/debug/tutorial10-lighting
+./target/debug/tutorial11-normals
+./target/debug/tutorial12-camera
+./target/debug/tutorial13-hdr
+./target/debug/windowless
+./target/debug/gifs
+./target/debug/compute
+./target/debug/stencil
+./target/debug/mipmaps
+./target/debug/text
+# # ./target/debug/pong

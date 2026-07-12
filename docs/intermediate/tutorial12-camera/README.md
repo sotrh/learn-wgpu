@@ -22,7 +22,7 @@ pub const OPENGL_TO_WGPU_MATRIX: cgmath::Matrix4<f32> = cgmath::Matrix4::from_co
 const SAFE_FRAC_PI_2: f32 = FRAC_PI_2 - 0.0001;
 ```
 
-<div class="note">
+<Note>
 
 `std::time::Instant` panics on WASM, so we'll use the [instant crate](https://docs.rs/instant). You'll want to include it in your `Cargo.toml`:
 
@@ -35,7 +35,7 @@ instant = "0.1"
 instant = { version = "0.1", features = [ "wasm-bindgen" ] }
 ```
 
-</div>
+</Note>
 
 ## The Camera
 

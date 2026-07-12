@@ -23,5 +23,5 @@ web-sys = { version = "0.3", features = [
     "Url",
     "DedicatedWorkerGlobalScope",
 ] }
-wgpu = "29.0"
+wgpu = "30.0"
 winit = { version = "0.30" }

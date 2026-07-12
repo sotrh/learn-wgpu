@@ -39,7 +39,7 @@ pub fn create_render_pipeline(
     layout: &wgpu::PipelineLayout,
     color_format: wgpu::TextureFormat,
     depth_format: Option<wgpu::TextureFormat>,
-    vertex_layouts: &[wgpu::VertexBufferLayout],
+    vertex_layouts: &[Option<wgpu::VertexBufferLayout>],
     vs_src: wgpu::ShaderModuleDescriptor,
     fs_src: wgpu::ShaderModuleDescriptor,
 ) -> wgpu::RenderPipeline {

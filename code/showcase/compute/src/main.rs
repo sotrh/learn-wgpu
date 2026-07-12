@@ -185,6 +185,7 @@ impl State {
                 power_preference: wgpu::PowerPreference::default(),
                 compatible_surface: Some(&surface),
                 force_fallback_adapter: false,
+                apply_limit_buckets: true,
             })
             .await
             .unwrap();
@@ -226,6 +227,7 @@ impl State {
             alpha_mode: surface_caps.alpha_modes[0],
             view_formats: vec![surface_format.add_srgb_suffix()],
             desired_maximum_frame_latency: 2,
+            color_space: wgpu::SurfaceColorSpace::Auto,
         };
 
         let texture_bind_group_layout =
@@ -409,7 +411,7 @@ impl State {
             &render_pipeline_layout,
             config.format,
             Some(texture::Texture::DEPTH_FORMAT),
-            &[model::ModelVertex::desc(), InstanceRaw::desc()],
+            &[Some(model::ModelVertex::desc()), Some(InstanceRaw::desc())],
             wgpu::include_wgsl!("shader.vert.wgsl"),
             wgpu::include_wgsl!("shader.frag.wgsl"),
         );
@@ -430,7 +432,7 @@ impl State {
                 &layout,
                 config.format,
                 Some(texture::Texture::DEPTH_FORMAT),
-                &[model::ModelVertex::desc()],
+                &[Some(model::ModelVertex::desc())],
                 wgpu::include_wgsl!("light.vert.wgsl"),
                 wgpu::include_wgsl!("light.frag.wgsl"),
             )
@@ -540,7 +542,6 @@ impl State {
         let output = match self.surface.get_current_texture() {
             wgpu::CurrentSurfaceTexture::Success(surface_texture) => surface_texture,
             wgpu::CurrentSurfaceTexture::Suboptimal(surface_texture) => {
-                self.surface.configure(&self.device, &self.config);
                 surface_texture
             }
             wgpu::CurrentSurfaceTexture::Timeout
@@ -616,7 +617,7 @@ impl State {
             );
         }
         self.queue.submit(iter::once(encoder.finish()));
-        output.present();
+        self.queue.present(output);
 
         Ok(())
     }

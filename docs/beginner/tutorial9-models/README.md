@@ -69,7 +69,7 @@ let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescrip
     // ...
     vertex: wgpu::VertexState {
         // ...
-        buffers: &[model::ModelVertex::desc(), InstanceRaw::desc()],
+        buffers: &[Some(model::ModelVertex::desc()), Some(InstanceRaw::desc())],
     },
     // ...
 });
@@ -110,17 +110,17 @@ fn main() -> Result<()> {
 }
 ```
 
-<div class="note">
+<Note>
 
 Make sure to put `build.rs` in the same folder as the `Cargo.toml`. If you don't, Cargo won't run it when your crate builds.
 
-</div>
+</Note>
 
-<div class="note">
+<Note>
 
 The `OUT_DIR` is an environment variable that Cargo uses to specify where our application will be built.
 
-</div>
+</Note>
 
 You'll need to modify your `Cargo.toml` for this to work properly. Add the following below your `[dependencies]` block.
 
@@ -189,11 +189,11 @@ pub async fn load_binary(file_name: &str) -> anyhow::Result<Vec<u8>> {
 }
 ```
 
-<div class="note">
+<Note>
 
 We're using `OUT_DIR` on desktop to access our `res` folder.
 
-</div>
+</Note>
 
 I'm using [reqwest](https://docs.rs/reqwest) to handle loading the requests when using WASM. Add the following to the `Cargo.toml`:
 

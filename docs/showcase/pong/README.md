@@ -2,14 +2,14 @@
 
 ![A screenshot of pong](./pong.png)
 
-<div class="warning">
+<Note class="warning">
 
 This example is not working as of `wgpu = "28.0"`. If the crate updates to
 the latest version I'll switch it over, but given that the crate maintainer
 is directing users to use [glypon](https://github.com/grovesNL/glyphon?tab=readme-ov-file)
 I'm considering either switching to using that, or writing my own text code.
 
-</div>
+</Note>
 
 Practically the "Hello World!" of games. Pong has been remade thousands of times. I know Pong. You know Pong. We all know Pong. That being said, this time I wanted to put in a little more effort than most people do. This showcase has a basic menu system, sounds, and different game states.
 

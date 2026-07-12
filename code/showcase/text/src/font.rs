@@ -361,7 +361,7 @@ impl TextPipeline {
                 module: &shader,
                 entry_point: Some("vs_glyph"),
                 compilation_options: Default::default(),
-                buffers: &[FontVertex::LAYOUT],
+                buffers: &[Some(FontVertex::LAYOUT)],
             },
             primitive: Default::default(),
             depth_stencil: None,
@@ -380,10 +380,7 @@ impl TextPipeline {
             cache: None,
         });
 
-        Self {
-            debug,
-            draw_glyph,
-        }
+        Self { debug, draw_glyph }
     }
 
     pub fn buffer_text(

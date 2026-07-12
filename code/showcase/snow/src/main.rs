@@ -222,7 +222,7 @@ impl framework::Demo for Snow {
                     vertex: wgpu::VertexState {
                         module: &shader,
                         entry_point: Some("vs_main"),
-                        buffers: &[PARTICLE_LAYOUT],
+                        buffers: &[Some(PARTICLE_LAYOUT)],
                         compilation_options: Default::default(),
                     },
                     primitive: wgpu::PrimitiveState {
@@ -387,7 +387,7 @@ impl framework::Demo for Snow {
         drop(draw_pass);
 
         display.queue.submit([encoder.finish()]);
-        frame.present();
+        display.queue.present(frame);
     }
 }
 

@@ -259,6 +259,7 @@ impl State {
                 power_preference: wgpu::PowerPreference::default(),
                 compatible_surface: Some(&surface),
                 force_fallback_adapter: false,
+                apply_limit_buckets: true,
             })
             .await
             .unwrap();
@@ -301,6 +302,7 @@ impl State {
             alpha_mode: surface_caps.alpha_modes[0],
             view_formats: vec![],
             desired_maximum_frame_latency: 2,
+            color_space: wgpu::SurfaceColorSpace::Auto,
         };
 
         let texture_bind_group_layout =
@@ -430,7 +432,7 @@ impl State {
             vertex: wgpu::VertexState {
                 module: &shader,
                 entry_point: Some("vs_main"),
-                buffers: &[model::ModelVertex::desc(), InstanceRaw::desc()],
+                buffers: &[Some(model::ModelVertex::desc()), Some(InstanceRaw::desc())],
                 compilation_options: Default::default(),
             },
             fragment: Some(wgpu::FragmentState {
@@ -544,7 +546,6 @@ impl State {
         let output = match self.surface.get_current_texture() {
             wgpu::CurrentSurfaceTexture::Success(surface_texture) => surface_texture,
             wgpu::CurrentSurfaceTexture::Suboptimal(surface_texture) => {
-                self.surface.configure(&self.device, &self.config);
                 surface_texture
             }
             wgpu::CurrentSurfaceTexture::Timeout
@@ -613,7 +614,7 @@ impl State {
         }
 
         self.queue.submit(iter::once(encoder.finish()));
-        output.present();
+        self.queue.present(output);
 
         Ok(())
     }

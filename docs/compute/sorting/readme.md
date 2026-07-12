@@ -166,7 +166,7 @@ until all other threads in the work group have reached the barrier. It
 will also sync up all atomic variables and data stored in workgroup address
 space as well.
 
-<div class="note">
+<Note>
 
 In WGSL and "address space" determines how a certain chunk of can be access.
 Data in the `workgroup` address space is only accessible by threads within
@@ -175,7 +175,7 @@ the same workgroup. Many of the address spaces are implicit such as the
 significant as they correspond to uniform buffers and storage buffers
 respectively.
 
-</div>
+</Note>
 
 A `storageBarrier` will cause the GPU to sync all changes to storage buffers.
 Since our data is in a storage buffer, this is the barrier we need to

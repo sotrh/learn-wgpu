@@ -387,7 +387,7 @@ mipmapper.blit_mipmaps(&display.device, &display.queue, &diffuse_blit_texture)?;
 With that our texture looks great even at far distances.
 ![ground-with-mips.png](./ground-with-mips.png)
 
-<div class="note">
+<Note>
 
 You may have noticed that when we created the render pipeline we used the
 texture format `RgbaUnorm`, if we wanted to support a different format
@@ -400,7 +400,7 @@ this method will not work otherwise. You can check out the
 [WebGPU specification](https://www.w3.org/TR/webgpu/#renderable)
 for how to tell if a format is renderable or not.
 
-</div>
+</Note>
 
 ## Generating mipmaps with a compute shader
 
@@ -448,7 +448,7 @@ a mip from the texture and `dst` will be the mip directly below that.
 We will that grab 4 pixels from the `src` texture, compute there
 average and store that into `dst` texture.
 
-<div class="note">
+<Note>
 
 Similar to the render pipeline, this compute pipeline only works
 with `Rgba8Unorm` textures. Supporting other textures requires we
@@ -456,7 +456,7 @@ modify both the shader and the bind group setup (that we'll cover
 next). We are also limited to textures that can be used as a
 storage texture.
 
-</div>
+</Note>
 
 With that done we can move on to setting up the compute pipeline.
 

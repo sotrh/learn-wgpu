@@ -1,26 +1,26 @@
 # Multi-threading with Wgpu and Rayon
 
-<div class="warn">
+<Note class="warn">
 
 This example has not been tested on WASM. Rayon has support for multi threading on WASM via [wasm-bindgen-rayon](https://docs.rs/crate/wasm-bindgen-rayon/latest), though that implementation is only currently working on Chrome-based browsers. Because of this I've elected not to make a WASM version of this tutorial at this time.
 
-</div>
+</Note>
 
 The main selling point of Vulkan, DirectX 12, Metal, and by extension Wgpu is that these APIs is that they designed from the ground up to be thread safe. Up to this point, we have been doing everything on a single thread. That's about to change.
 
-<div class="note">
+<Note>
 
 This example is based on the code for [tutorial12-camera](../intermediate/tutorial12-camera)
 
-</div>
+</Note>
 
-<div class="note">
+<Note>
 
 I won't go into what threads are in this tutorial. That is a full CS course in and of itself. All we'll be covering is using threading to make loading resources faster.
 
 We won't go over multithreading rendering as we don't have enough different types of objects to justify that yet. This will change in a coming tutorial
 
-</div>
+</Note>
 
 ## Parallelizing loading models and textures
 
@@ -124,13 +124,13 @@ impl Model {
 
 We've parallelized loading the meshes, and making the vertex array for them. Probably a bit overkill, but `rayon` should prevent us from using too many threads.
 
-<div class="note">
+<Note>
 
 You'll notice that we didn't use `rayon` for calculating the tangent, and bitangent. I tried to get it to work, but I was having trouble finding a way to do it without multiple mutable references to `vertices`. I don't feel like introducing a `std::sync::Mutex`, so I'll leave it for now.
 
 This is honestly a better job for a compute shader, as the model data is going to get loaded into a buffer anyway.
 
-</div>
+</Note>
 
 ## It's that easy!
 

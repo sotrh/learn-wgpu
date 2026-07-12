@@ -68,14 +68,14 @@ a device and queue with this simple code:
     let (device, queue) = adapter.request_device(&Default::default()).await.unwrap();
 ```
 
-<div class="note">
+<Note>
 
 I'm using [pollster](https://docs.rs/pollster) to handle `async` in the native code in
 these examples. You can use whatever `async` implementation you like though. I'm also
 using [anyhow](https://docs.rs/anyhow) for error handling, and [flume](https://docs.rs/flume)
 for it's `async` channel implementation.
 
-</div>
+</Note>
 
 If you want more info about these calls and the potential arguments you can pass
 to them check out [the rendering guide](../../beginner/tutorial2-surface/).
@@ -172,7 +172,7 @@ that the following:
 This means that we might not be able to use `@workgroup_size(64, 64, 1)` but `@workgroup_size(16, 16, 1)`
 should work on most devices.
 
-<div class="note">
+<Note>
 
 ### Why XYZ?
 
@@ -183,7 +183,7 @@ For example, a blur on a 2D image would benefit from a 2D work group so each thr
 match up to a pixel in the image. A marching cubes implementation would benefit from a 3D workgroup,
 so each thread handles the geometry for one voxel in the voxel grid.
 
-</div>
+</Note>
 
 ## The global invocation id
 
@@ -343,7 +343,7 @@ The process is a little involved so let's look at the code.
         rx.recv()??;
 
         // We then get the bytes that were stored in the buffer
-        let output_data = temp_buffer.get_mapped_range(..);
+        let output_data = temp_buffer.get_mapped_range(..)?;
 
         // Now we have the data on the CPU we can do what ever we want to with it
         assert_eq!(&input_data, bytemuck::cast_slice(&output_data));

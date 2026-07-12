@@ -38,11 +38,11 @@ struct Instance {
 }
 ```
 
-<div class="note">
+<Note>
 
 A `Quaternion` is a mathematical structure often used to represent rotation. The math behind them is beyond me (it involves imaginary numbers and 4D space), so I won't be covering them here. If you really want to dive into them [here's a Wolfram Alpha article](https://mathworld.wolfram.com/Quaternion.html).
 
-</div>
+</Note>
 
 Using these values directly in the shader would be a pain, as quaternions don't have a WGSL analog. I don't feel like writing the math in the shader, so we'll convert the `Instance` data into a matrix and store it in a struct called `InstanceRaw`.
 
@@ -186,7 +186,7 @@ let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescrip
     vertex: wgpu::VertexState {
         // ...
         // UPDATED!
-        buffers: &[Vertex::desc(), InstanceRaw::desc()],
+        buffers: &[Some(Vertex::desc()), Some(InstanceRaw::desc())],
     },
     // ...
 });
@@ -218,11 +218,11 @@ render_pass.set_index_buffer(self.index_buffer.slice(..), wgpu::IndexFormat::Uin
 render_pass.draw_indexed(0..self.num_indices, 0, 0..self.instances.len() as _);
 ```
 
-<div class="warning">
+<Note class="warning">
 
 Make sure that if you add new instances to the `Vec`, you recreate the `instance_buffer` as well as `camera_bind_group`. Otherwise, your new instances won't show up correctly.
 
-</div>
+</Note>
 
 We need to reference the parts of our new matrix in `shader.wgsl` so that we can use it for our instances. Add the following to the top of `shader.wgsl`.
 

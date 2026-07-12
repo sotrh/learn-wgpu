@@ -46,6 +46,7 @@ impl State {
                 power_preference: wgpu::PowerPreference::default(),
                 compatible_surface: Some(&surface),
                 force_fallback_adapter: false,
+                apply_limit_buckets: true,
             })
             .await?;
 
@@ -86,6 +87,7 @@ impl State {
             alpha_mode: surface_caps.alpha_modes[0],
             desired_maximum_frame_latency: 2,
             view_formats: vec![],
+            color_space: wgpu::SurfaceColorSpace::Auto,
         };
 
         Ok(Self {
@@ -120,7 +122,6 @@ impl State {
         let output = match self.surface.get_current_texture() {
             wgpu::CurrentSurfaceTexture::Success(surface_texture) => surface_texture,
             wgpu::CurrentSurfaceTexture::Suboptimal(surface_texture) => {
-                self.surface.configure(&self.device, &self.config);
                 surface_texture
             }
             wgpu::CurrentSurfaceTexture::Timeout
@@ -169,7 +170,7 @@ impl State {
         }
 
         self.queue.submit(iter::once(encoder.finish()));
-        output.present();
+        self.queue.present(output);
 
         Ok(())
     }

@@ -589,7 +589,7 @@ impl Demo for Mipmaps {
         }
 
         display.queue.submit([encoder.finish()]);
-        frame.present();
+        display.queue.present(frame);
     }
 }
 

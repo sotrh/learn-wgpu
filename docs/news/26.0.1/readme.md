@@ -24,12 +24,12 @@ all you need to get prevent the issue:
         }
 ```
 
-<div class="note">
+<Note>
 
 Technically you only need the `width: 100%` part. Basically you just need to make
 the browser in charge of what size the canvas should be.
 
-</div>
+</Note>
 
 ## What's changed
 

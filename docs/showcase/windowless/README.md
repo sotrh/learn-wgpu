@@ -267,7 +267,7 @@ In order to get the data out of the buffer, we need to first map it, then we can
     device.poll(wgpu::PollType::wait_indefinitely())?;
     rx.recv_async().await.unwrap().unwrap();
 
-    let data = buffer_slice.get_mapped_range();
+    let data = buffer_slice.get_mapped_range()?;
 
     use image::{ImageBuffer, Rgba};
     let buffer =
@@ -278,21 +278,21 @@ In order to get the data out of the buffer, we need to first map it, then we can
 output_buffer.unmap();
 ```
 
-<div class="note">
+<Note>
 
 I used [futures-intrusive](https://docs.rs/futures-intrusive) as that's the crate they use in the [exampls on the wgpu repo](https://github.com/gfx-rs/wgpu/tree/master/wgpu/examples/capture).
 
-</div>
+</Note>
 
 ## Main is not asyncable
 
 The `main()` method can't return a future, so we can't use the `async` keyword. We'll get around this by putting our code into a different function so that we can block it in `main()`. You'll need to use a crate that can poll futures such as the [pollster crate](https://docs.rs/pollster).
 
-<div class="note">
+<Note>
 
 There are crates such as [async-std](https://docs.rs/async-std), and [tokio](https://docs.rs/tokio) that you can use to annotate `main()` so it can be async. I opted not to do that as both those crates are a little more hefty for this project. You're welcome to use whatever async setup you like :slightly_smiling_face:
 
-</div>
+</Note>
 
 ```rust
 async fn run() {

@@ -90,7 +90,7 @@ struct Vertex {
 }
 ```
 
-<div class="note">
+<Note>
 
 If your struct includes types that don't implement `Pod` and `Zeroable`, you'll need to implement these traits manually. These traits don't require us to implement any methods, so we just need to use the following to get our code to work.
 
@@ -99,7 +99,7 @@ unsafe impl bytemuck::Pod for Vertex {}
 unsafe impl bytemuck::Zeroable for Vertex {}
 ```
 
-</div>
+</Note>
 
 Finally, we can add our `vertex_buffer` to our `State` struct.
 
@@ -178,7 +178,7 @@ impl Vertex {
 }
 ```
 
-<div class="note">
+<Note>
 
 Specifying the attributes as we did now is quite verbose. We could use the `vertex_attr_array` macro provided by wgpu to clean things up a bit. With it, our `VertexBufferLayout` becomes
 
@@ -211,7 +211,7 @@ impl Vertex {
 
 Regardless, I feel it's good to show how the data gets mapped, so I'll forgo using this macro for now.
 
-</div>
+</Note>
 
 Now, we can use it when we create the `render_pipeline`.
 
@@ -221,14 +221,41 @@ let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescrip
     vertex: wgpu::VertexState {
         // ...
         buffers: &[
-            Vertex::desc(),
+            Some(Vertex::desc()),
         ],
     },
     // ...
 });
 ```
 
-One more thing: we need to actually set the vertex buffer in the render method. Otherwise, our program will crash.
+You'll notice that buffers is a `&[Option<wgpu::VertexBufferLayout>]`. Each entry
+in this list represents a slot that a buffer can be bound to. Having `None` means
+that slot should be empty. This can be useful if you like having specific buffers
+in specific slots. For example consider the following buffer list:
+
+```rust
+&[
+    Some(Vertex::desc()),
+    Some(Instance::desc()),
+    Some(Material::desc()),
+]
+```
+
+Slot 0 would be a vertex buffer, slot 1 would be an instance buffer (we'll talk
+about those [later](../tutorial7-instancing/)), and a buffer for material data.
+If you only wanted vertex and material data in your pipeline you could use the
+following:
+
+```rust
+&[
+    Some(Vertex::desc()),
+    None,
+    Some(Material::desc()),
+]
+```
+
+For this demo we will only use one buffer. That said we need to actually set the
+vertex buffer in the render method otherwise, our program will crash.
 
 ```rust
 // render()
@@ -238,9 +265,20 @@ render_pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
 render_pass.draw(0..3, 0..1);
 ```
 
-`set_vertex_buffer` takes two parameters. The first is what buffer slot to use for this vertex buffer. You can have multiple vertex buffers set at a time.
+`set_vertex_buffer` takes two parameters. The first is what buffer slot to use for this vertex buffer.
 
 The second parameter is the slice of the buffer to use. You can store as many objects in a buffer as your hardware allows, so `slice` allows us to specify which portion of the buffer to use. We use `..` to specify the entire buffer.
+
+<Note>
+
+If you want to specify a slot is empty you can pass `None` for
+the buffer slice parameter.
+
+```rust
+render_pass.set_vertex_buffer(slot_num, None);
+```
+
+</Note>
 
 Before we continue, we should change the `render_pass.draw()` call to use the number of vertices specified by `VERTICES`. Add a `num_vertices` to `State`, and set it to be equal to `VERTICES.len()`.
 

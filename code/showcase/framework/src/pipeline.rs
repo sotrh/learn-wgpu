@@ -16,7 +16,7 @@ pub struct RenderPipelineBuilder<'a> {
     color_states: Vec<Option<wgpu::ColorTargetState>>,
     depth_stencil: Option<wgpu::DepthStencilState>,
     index_format: wgpu::IndexFormat,
-    vertex_buffers: Vec<wgpu::VertexBufferLayout<'a>>,
+    vertex_buffers: Vec<Option<wgpu::VertexBufferLayout<'a>>>,
     sample_count: u32,
     sample_mask: u64,
     alpha_to_coverage_enabled: bool,
@@ -158,12 +158,12 @@ impl<'a> RenderPipelineBuilder<'a> {
     }
 
     pub fn vertex_buffer<V: Vertex>(&mut self) -> &mut Self {
-        self.vertex_buffers.push(V::desc());
+        self.vertex_buffers.push(Some(V::desc()));
         self
     }
 
     pub fn vertex_buffer_desc(&mut self, vb: wgpu::VertexBufferLayout<'a>) -> &mut Self {
-        self.vertex_buffers.push(vb);
+        self.vertex_buffers.push(Some(vb));
         self
     }
 

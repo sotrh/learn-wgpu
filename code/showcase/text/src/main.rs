@@ -198,7 +198,6 @@ impl framework::Demo for TextDemo {
         let frame = match display.surface().get_current_texture() {
             wgpu::CurrentSurfaceTexture::Success(surface_texture) => surface_texture,
             wgpu::CurrentSurfaceTexture::Suboptimal(surface_texture) => {
-                display.configure();
                 surface_texture
             }
             wgpu::CurrentSurfaceTexture::Timeout
@@ -217,7 +216,7 @@ impl framework::Demo for TextDemo {
 
             let millis = dti.as_micros() / 1000;
             let micros = dti.as_micros() % 1000;
-            
+
             self.metrics_text.update_text(
                 &display.device,
                 &display.queue,
@@ -275,7 +274,7 @@ impl framework::Demo for TextDemo {
         }
 
         display.queue.submit([encoder.finish()]);
-        frame.present();
+        display.queue.present(frame);
     }
 }
 

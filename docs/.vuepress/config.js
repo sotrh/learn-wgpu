@@ -68,6 +68,7 @@ export default defineUserConfig({
         text: "News",
         collapsable: true,
         children: [
+          "/news/30.0/",
           "/news/29.0/",
           "/news/vuepress-v2/",
           "/news/28.0/",

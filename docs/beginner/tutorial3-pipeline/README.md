@@ -31,17 +31,17 @@ In the case of wgpu, it's done by the library called [naga](https://github.com/g
 
 Note that, at the time of writing this, some WebGPU implementations also support SPIR-V, but it's just a temporary measure during the transition period to WGSL and will be removed (If you are curious about the drama behind SPIR-V and WGSL, please refer to [this blog post](https://kvark.github.io/spirv/2021/05/01/spirv-horrors.html)).
 
-<div class="note">
+<Note>
 
 If you've gone through this tutorial before, you'll likely notice that I've switched from using GLSL to using WGSL. Given that GLSL support is a secondary concern and that WGSL is the first-class language of WGPU, I've elected to convert all the tutorials to use WGSL. Some showcase examples still use GLSL, but the main tutorial and all examples going forward will be using WGSL.
 
-</div>
+</Note>
 
-<div class="note">
+<Note>
 
 The WGSL spec and its inclusion in WGPU are still in development. If you run into trouble using it, you may want the folks at [https://app.element.io/#/room/#wgpu:matrix.org](https://app.element.io/#/room/#wgpu:matrix.org) to take a look at your code.
 
-</div>
+</Note>
 
 ## Writing the shaders
 
@@ -68,31 +68,31 @@ fn vs_main(
 
 First, we declare `struct` to store the output of our vertex shader. This currently consists of only one field, which is our vertex's `clip_position`. The `@builtin(position)` bit tells WGPU that this is the value we want to use as the vertex's [clip coordinates](https://en.wikipedia.org/wiki/Clip_coordinates). This is analogous to GLSL's `gl_Position` variable.
 
-<div class="note">
+<Note>
 
 Vector types such as `vec4` are generic. Currently, you must specify the type of value the vector will contain. Thus, a 3D vector using 32bit floats would be `vec3<f32>`.
 
-</div>
+</Note>
 
 The next part of the shader code is the `vs_main` function. We are using `@vertex` to mark this function as a valid entry point for a vertex shader. We expect a `u32` called `in_vertex_index`, which gets its value from `@builtin(vertex_index)`.
 
 We then declare a variable called `out` using our `VertexOutput` struct. We create two other variables for the `x` and `y` of a triangle.
 
-<div class="note">
+<Note>
 
 The `f32()` and `i32()` bits are examples of casts.
 
-</div>
+</Note>
 
-<div class="note">
+<Note>
 
 Variables defined with `var` can be modified but must specify their type. Variables created with `let` can have their types inferred, but their value cannot be changed during the shader.
 
-</div>
+</Note>
 
 Now we can save our `clip_position` to `out`. We then just return `out`, and we're done with the vertex shader!
 
-<div class="note">
+<Note>
 
 We technically didn't need a struct for this example and could have just done something like the following:
 
@@ -107,7 +107,7 @@ fn vs_main(
 
 We'll be adding more fields to `VertexOutput` later, so we might as well start using it now.
 
-</div>
+</Note>
 
 Next up, the fragment shader. Still in `shader.wgsl` add the following:
 
@@ -122,15 +122,15 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
 
 This sets the color of the current fragment to brown.
 
-<div class="note">
+<Note>
 
 Notice that the entry point for the vertex shader was named `vs_main` and that the entry point for the fragment shader is called `fs_main`. In earlier versions of wgpu, it was ok for both these functions to have the same name, but newer versions of the [WGSL spec](https://www.w3.org/TR/WGSL/#declaration-and-scope) require these names to be different. Therefore, the above-mentioned naming scheme (which is adopted from the `wgpu` examples) is used throughout the tutorial.
 
-</div>
+</Note>
 
 The `@location(0)` bit tells WGPU to store the `vec4` value returned by this function in the first color target. We'll get into what this is later.
 
-<div class="note">
+<Note>
 
 Something to note about `@builtin(position)`, in the fragment shader, this value is in [framebuffer space](https://gpuweb.github.io/gpuweb/#coordinate-systems). This means that if your window is 800x600, the x and y of `clip_position` would be between 0-800 and 0-600, respectively, with the y = 0 being the top of the screen. This can be useful if you want to know the pixel coordinates of a given fragment, but if you want the position coordinates, you'll have to pass them in separately.
 
@@ -153,7 +153,7 @@ fn vs_main(
 }
 ```
 
-</div>
+</Note>
 
 ## How do we use the shaders?
 
@@ -182,7 +182,7 @@ let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
 });
 ```
 
-<div class="note">
+<Note>
 
 You can also use `include_wgsl!` macro as a small shortcut to create the `ShaderModuleDescriptor`.
 
@@ -190,7 +190,7 @@ You can also use `include_wgsl!` macro as a small shortcut to create the `Shader
 let shader = device.create_shader_module(wgpu::include_wgsl!("shader.wgsl"));
 ```
 
-</div>
+</Note>
 
 One more thing, we need to create a `PipelineLayout`. We'll get more into this after we cover `Buffer`s.
 

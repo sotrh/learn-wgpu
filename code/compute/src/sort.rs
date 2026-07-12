@@ -109,7 +109,7 @@ pub async fn run() -> anyhow::Result<()> {
         device.poll(wgpu::PollType::wait_indefinitely())?;
         rx.recv_async().await??;
 
-        let output_data = temp_buffer.get_mapped_range(..);
+        let output_data = temp_buffer.get_mapped_range(..)?;
         let u32_data = bytemuck::cast_slice::<_, u32>(&output_data);
 
         // Confirm that the list is sorted

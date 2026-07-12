@@ -1,6 +1,6 @@
 # Basic Imgui Demo
 
-<div class="warning">
+<Note class="warning">
 
 This example is currently broken. It got behind when I was migrating the tutorial to 0.8 as the imgui_wgpu crate was still on 0.7 at the time. I haven't updated it since. While fixing it wouldn't be too hard (feel free to send a PR), I'm considering removing this example entirely.
 
@@ -8,7 +8,7 @@ This tutorial is focused on how to use wgpu (and by extension the WebGPU standar
 
 For the 0.10 migration, I'll keep this example in and keep the showcase code excluded.
 
-</div>
+</Note>
 
 This is not an in-depth guide on how to use Imgui. But here are some of the basics you'll need to get started. We'll need to import [imgui-rs](https://docs.rs/imgui), [imgui-wgpu](https://docs.rs/imgui-wgpu), and [imgui-winit-support](https://docs.rs/imgui-winit-support).
 
@@ -18,11 +18,11 @@ imgui-wgpu = "28.0"
 imgui-winit-support = "0.7"
 ```
 
-<div class="note">
+<Note>
 
 I've excluded some dependencies for brevity. I'm also using the [framework crate](https://github.com/sotrh/learn-wgpu/tree/master/code/showcase/framework) I've created for showcases to simplify setup. If you see a `display` variable in code, it's from the `framework`. `Display` is where the `device`, `queue`, `swap_chain`, and other basic wgpu objects are stored.
 
-</div>
+</Note>
 
 We need to set up imgui and a `WinitPlatform` to get started. Do this after creating you're `winit::Window`.
 

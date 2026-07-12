@@ -535,7 +535,7 @@ impl Demo for Stencil {
         }
 
         display.queue.submit([encoder.finish()]);
-        frame.present();
+        display.queue.present(frame);
     }
 }
 
