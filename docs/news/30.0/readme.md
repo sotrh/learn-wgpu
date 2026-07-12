@@ -5,11 +5,11 @@ A few things have changed, so let's jump in!
 ## Presenting a SurfaceTexture
 
 `SurfaceTexture::present()` has been removed. We now need to
-    pass the `SurfaceTexture` into the `Queue::present()` function.
+pass the `SurfaceTexture` into the `Queue::present()` function.
 
-    ```rust
-    self.queue.present(output);
-    ```
+```rust
+self.queue.present(output);
+```
 
 ## Sparse VertexBufferLayout
 
