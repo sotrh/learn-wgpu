@@ -11,4 +11,6 @@ ab_glyph.workspace = true
 glam.workspace = true
 bytemuck.workspace = true
 web-time.workspace = true
+serde.workspace = true
+serde_json.workspace = true
 fontdue = "0.9.3"

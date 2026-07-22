@@ -7,7 +7,7 @@ use std::{
 
 use bytemuck::{bytes_of, cast_slice};
 use framework::{CameraBinder, CameraBinding, resources::load_binary};
-use glam::{Vec2, vec2};
+use glam::{Vec2, Vec4, vec2};
 use wgpu::{
     BlendState,
     util::{BufferInitDescriptor, DeviceExt},
@@ -275,15 +275,16 @@ impl FontUniformsBinding {
 #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
 #[repr(C)]
 pub struct FontVertex {
-    position: glam::Vec2,
-    uv: glam::Vec2,
-    color: glam::Vec4,
+    position: Vec2,
+    uv: Vec2,
+    color: Vec4,
 }
 
 #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
 #[repr(C)]
 pub struct FontUniforms {
-    position: glam::Vec2,
+    position: Vec2,
+    extents: Vec2,
 }
 
 impl FontVertex {
@@ -390,8 +391,8 @@ impl TextPipeline {
         font_binder: &FontBinder,
         sampler: &wgpu::Sampler,
         text: &str,
-        position: glam::Vec2,
-        color: glam::Vec4,
+        position: Vec2,
+        color: Vec4,
     ) -> TextBuffer {
         let (indices, bytes, uniforms) = layout_glyphs(&font, text, position, color);
 
@@ -456,11 +457,12 @@ fn layout_glyphs(
     font: &BitmapFont,
     text: &str,
     position: Vec2,
-    color: glam::Vec4,
+    color: Vec4,
 ) -> (Vec<u32>, Vec<u8>, FontUniforms) {
     let mut vertices = Vec::new();
     let mut indices = Vec::new();
     let mut current_position = Vec2::ZERO;
+    let mut extents = Vec2::ZERO;
 
     for c in text.chars() {
         let glyph = font.glyph(c).unwrap();
@@ -477,6 +479,9 @@ fn layout_glyphs(
             let size = region.max - region.min;
             let min = current_position + glyph.offset;
             let max = min + size;
+
+            // Update the bounds with the next character
+            extents = max;
 
             vertices.push(FontVertex {
                 position: min,
@@ -517,7 +522,7 @@ fn layout_glyphs(
     let mut bytes: Vec<u8> =
         Vec::with_capacity(std::mem::size_of::<FontUniforms>() + vertex_bytes.len());
 
-    let uniforms = FontUniforms { position };
+    let uniforms = FontUniforms { position, extents };
     let uniform_bytes = bytes_of(&uniforms);
 
     // Put the uniform data at the start of the buffer
@@ -527,6 +532,14 @@ fn layout_glyphs(
     bytes.extend(vertex_bytes);
 
     (indices, bytes, uniforms)
+}
+
+#[derive(Debug, Clone, Copy, Default, serde::Serialize, serde::Deserialize)]
+pub enum TextAlignment {
+    #[default]
+    Start,
+    Center,
+    End,
 }
 
 pub struct TextBuffer {
@@ -540,16 +553,51 @@ pub struct TextBuffer {
 }
 
 impl TextBuffer {
-    pub fn update_position(&mut self, queue: &wgpu::Queue, position: glam::Vec2) {
-        self.uniforms.position = position;
-        queue.write_buffer(&self.uniform_vertex_buffer, 0, bytes_of(&self.uniforms));
+    pub fn update_layout(
+        &mut self,
+        display: &framework::Display,
+        position: Vec2,
+        horizontal: TextAlignment,
+        vertical: TextAlignment,
+    ) {
+        match horizontal {
+            TextAlignment::Start => {
+                self.uniforms.position.x = position.x;
+            }
+            TextAlignment::Center => {
+                self.uniforms.position.x =
+                    position.x + (display.width() as f32 - self.uniforms.extents.x) * 0.5;
+            }
+            TextAlignment::End => {
+                self.uniforms.position.x =
+                    position.x + display.width() as f32 - self.uniforms.extents.x;
+            }
+        }
+
+        match vertical {
+            TextAlignment::Start => {
+                self.uniforms.position.y = position.y;
+            }
+            TextAlignment::Center => {
+                self.uniforms.position.y =
+                    position.y + (display.height() as f32 - self.uniforms.extents.y) * 0.5;
+            }
+            TextAlignment::End => {
+                self.uniforms.position.y =
+                    position.y + display.height() as f32 - self.uniforms.extents.y;
+            }
+        }
+
+        display
+            .queue
+            .write_buffer(&self.uniform_vertex_buffer, 0, bytes_of(&self.uniforms));
     }
 
     pub fn update_text(
         &mut self,
         device: &wgpu::Device,
         queue: &wgpu::Queue,
-        color: glam::Vec4,
+        color: Vec4,
         text: &str,
     ) {
         let (indices, bytes, uniforms) =
