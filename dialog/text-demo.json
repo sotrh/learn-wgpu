@@ -1,4 +1,36 @@
-[
-    { "text": "Press space to advance text" },
-    { "text": "This is a test. I hope it works" }
-]
+{
+  "fonts": {
+    "medieval": "MedievalSharp/MedievalSharp-Regular.ttf",
+    "sans": "Open_Sans/OpenSans-VariableFont_wdth,wght.ttf"
+  },
+  "text_groups": {
+    "sans": {
+      "sans_center_text": {
+        "font": "sans",
+        "text": "Press SPACE to toggle font!",
+        "color": [0.8, 0.9, 0.2, 1.0],
+        "horizontal": "Center",
+        "vertical": "Center"
+      },
+      "sans_multi_line_text": {
+        "font": "sans",
+        "position": [10, 52],
+        "text": "This is a test. I hope it works.\r\nThe quick brown fox jumped over the lazy dog."
+      }
+    },
+    "medieval": {
+      "medieval_center_text": {
+        "font": "medieval",
+        "text": "Press SPACE to toggle font!",
+        "color": [0.8, 0.9, 0.2, 1.0],
+        "horizontal": "Center",
+        "vertical": "Center"
+      },
+      "medieval_multi_line_text": {
+        "font": "sans",
+        "position": [10, 52],
+        "text": "This is a test. I hope it works.\r\nThe quick brown fox jumped over the lazy dog."
+      }
+    }
+  }
+}
