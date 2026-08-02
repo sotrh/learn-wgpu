@@ -163,7 +163,7 @@ The `memory_hints` field provides the adapter with a preferred memory allocation
             width: size.width,
             height: size.height,
             present_mode: wgpu::PresentMode::Fifo,
-            alpha_mode: wgpu::CompositeAlphaMode::Opaque,
+            alpha_mode: wgpu::CompositeAlphaMode::Auto,
             view_formats: vec![],
             desired_maximum_frame_latency: 2,
             color_space: wgpu::SurfaceColorSpace::Auto,
@@ -198,7 +198,7 @@ Regardless, `PresentMode::Fifo` will always be supported, and `PresentMode::Auto
 
 </Note>
 
-`alpha_mode` tells the application how transparency should be handled. `CompositeAlphaMode::Opaque` tells the compositor to ignore transparency altogether, `CompositeAlphaMode::PostMultiplied` means the colors are automatically multiplied by the alpha, which is what most people expect to happen, and `CompositeAlphaMode::PreMultiplied` expects you to have already multiplied the RGB channels by the alpha before using the color, which may improve performance slightly above PostMultiplied but can cause colors to look too bright if you don't multiply the colors yourself.
+`alpha_mode` tells the application how window transparency should be handled. `CompositeAlphaMode::Opaque` tells the compositor to ignore window transparency altogether, `CompositeAlphaMode::PostMultiplied` means the colors are automatically multiplied by the alpha, which is what most people expect to happen when you want a transparent window, and `CompositeAlphaMode::PreMultiplied` expects you to have already multiplied the RGB channels by the alpha before using the color, which can cause colors to look too bright if you don't multiply the colors yourself. We don't need our window to be transparent, so we'll use `CompositeAlphaMode::Auto` since this is guaranteed to be supported.
 
 `view_formats` is a list of `TextureFormat`s that you can use when creating `TextureView`s (we'll cover those briefly later in this tutorial as well as more in depth [in the texture tutorial](../tutorial5-textures)). As of writing, this means that if your surface is sRGB color space, you can create a texture view that uses a linear color space.
 
