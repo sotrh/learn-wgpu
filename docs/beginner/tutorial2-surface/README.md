@@ -157,17 +157,13 @@ The `memory_hints` field provides the adapter with a preferred memory allocation
         // Shader code in this tutorial assumes an sRGB surface texture. Using a different
         // one will result in all the colors coming out darker. If you want to support non
         // sRGB surfaces, you'll need to account for that when drawing to the frame.
-        let surface_format = surface_caps.formats.iter()
-            .find(|f| f.is_srgb())
-            .copied()
-            .unwrap_or(surface_caps.formats[0]);
         let config = wgpu::SurfaceConfiguration {
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-            format: surface_format,
+            format: wgpu::TextureFormat::Bgra8UnormSrgb,
             width: size.width,
             height: size.height,
-            present_mode: surface_caps.present_modes[0],
-            alpha_mode: surface_caps.alpha_modes[0],
+            present_mode: wgpu::PresentMode::Fifo,
+            alpha_mode: wgpu::CompositeAlphaMode::Auto,
             view_formats: vec![],
             desired_maximum_frame_latency: 2,
             color_space: wgpu::SurfaceColorSpace::Auto,
@@ -178,7 +174,7 @@ Here we are defining a config for our surface. This will define how the surface 
 
 The `usage` field describes how `SurfaceTexture`s will be used. `RENDER_ATTACHMENT` specifies that the textures will be used to write to the screen (we'll talk about more `TextureUsages`s later).
 
-The `format` defines how `SurfaceTexture`s will be stored on the GPU. We can get a supported format from the `SurfaceCapabilities`.
+The `format` defines how `SurfaceTexture`s will be stored on the GPU. We'll use `TextureFormat::Bgra8UnormSrgb` since it's guaranteed to be supported.
 
 `width` and `height` are the width and the height in pixels of a `SurfaceTexture`. This should usually be the width and the height of the window.
 
@@ -188,7 +184,7 @@ Make sure that the width and height of the `SurfaceTexture` are not 0, as that c
 
 </Note>
 
-`present_mode` uses `wgpu::PresentMode` enum, which determines how to sync the surface with the display. For the sake of simplicity, we select the first available option. If you do not want runtime selection, `PresentMode::Fifo` will cap the display rate at the display's framerate. This is essentially VSync. This mode is guaranteed to be supported on all platforms. There are other options, and you can see all of them [in the docs](https://docs.rs/wgpu/latest/wgpu/enum.PresentMode.html)
+`present_mode` uses `wgpu::PresentMode` enum, which determines how to sync the surface with the display. For the sake of simplicity, we select Fifo. If you do not want runtime selection, `PresentMode::Fifo` will cap the display rate at the display's framerate. This is essentially VSync. This mode is guaranteed to be supported on all platforms. There are other options, and you can see all of them [in the docs](https://docs.rs/wgpu/latest/wgpu/enum.PresentMode.html)
 
 <Note>
 
@@ -202,7 +198,7 @@ Regardless, `PresentMode::Fifo` will always be supported, and `PresentMode::Auto
 
 </Note>
 
-`alpha_mode` is honestly not something I'm familiar with. I believe it has something to do with transparent windows, but feel free to open a pull request. For now, we'll just use the first `AlphaMode` in the list given by `surface_caps`.
+`alpha_mode` tells the application how window transparency should be handled. `CompositeAlphaMode::Opaque` tells the compositor to ignore window transparency altogether, `CompositeAlphaMode::PostMultiplied` means the colors are automatically multiplied by the alpha, which is what most people expect to happen when you want a transparent window, and `CompositeAlphaMode::PreMultiplied` expects you to have already multiplied the RGB channels by the alpha before using the color, which can cause colors to look too bright if you don't multiply the colors yourself. We don't need our window to be transparent, so we'll use `CompositeAlphaMode::Auto` since this is guaranteed to be supported.
 
 `view_formats` is a list of `TextureFormat`s that you can use when creating `TextureView`s (we'll cover those briefly later in this tutorial as well as more in depth [in the texture tutorial](../tutorial5-textures)). As of writing, this means that if your surface is sRGB color space, you can create a texture view that uses a linear color space.
 
