@@ -101,19 +101,17 @@ pub async fn load_model(
     let meshes = models
         .into_iter()
         .map(|m| {
-            let mut vertices = (0..m.mesh.positions.len() / 3)
-                .map(|i| model::ModelVertex {
-                    position: [
-                        m.mesh.positions[i * 3],
-                        m.mesh.positions[i * 3 + 1],
-                        m.mesh.positions[i * 3 + 2],
-                    ],
-                    tex_coords: [m.mesh.texcoords[i * 2], 1.0 - m.mesh.texcoords[i * 2 + 1]],
-                    normal: [
-                        m.mesh.normals[i * 3],
-                        m.mesh.normals[i * 3 + 1],
-                        m.mesh.normals[i * 3 + 2],
-                    ],
+            let coords = m
+                .mesh
+                .positions
+                .chunks_exact(3)
+                .zip(m.mesh.normals.chunks_exact(3))
+                .zip(m.mesh.texcoords.chunks_exact(2));
+            let mut vertices = coords
+                .map(|((position, normals), texcoords)| model::ModelVertex {
+                    position: [position[0], position[1], position[2]],
+                    tex_coords: [texcoords[0], 1.0 - texcoords[1]],
+                    normal: [normals[0], normals[1], normals[2]],
                     // We'll calculate these later
                     tangent: [0.0; 3],
                     bitangent: [0.0; 3],
@@ -126,27 +124,21 @@ pub async fn load_model(
             // Calculate tangents and bitangets. We're going to
             // use the triangles, so we need to loop through the
             // indices in chunks of 3
-            for c in indices.chunks(3) {
-                let v0 = vertices[c[0] as usize];
-                let v1 = vertices[c[1] as usize];
-                let v2 = vertices[c[2] as usize];
+            for c in indices.chunks_exact(3) {
+                let verts = c.iter().map(|i| vertices[*i as usize]);
 
-                let pos0: cgmath::Vector3<_> = v0.position.into();
-                let pos1: cgmath::Vector3<_> = v1.position.into();
-                let pos2: cgmath::Vector3<_> = v2.position.into();
-
-                let uv0: cgmath::Vector2<_> = v0.tex_coords.into();
-                let uv1: cgmath::Vector2<_> = v1.tex_coords.into();
-                let uv2: cgmath::Vector2<_> = v2.tex_coords.into();
+                let positions: Vec<cgmath::Vector3<_>> =
+                    verts.clone().map(|v| v.position.into()).collect::<Vec<_>>();
+                let uvs: Vec<cgmath::Vector2<_>> =
+                    verts.clone().map(|v| v.tex_coords.into()).collect();
 
                 // Calculate the edges of the triangle
-                let delta_pos1 = pos1 - pos0;
-                let delta_pos2 = pos2 - pos0;
-
+                let delta_pos1 = positions[1] - positions[0];
+                let delta_pos2 = positions[2] - positions[0];
                 // This will give us a direction to calculate the
                 // tangent and bitangent
-                let delta_uv1 = uv1 - uv0;
-                let delta_uv2 = uv2 - uv0;
+                let delta_uv1 = uvs[1] - uvs[0];
+                let delta_uv2 = uvs[2] - uvs[0];
 
                 // Solving the following system of equations will
                 // give us the tangent and bitangent.
@@ -160,24 +152,17 @@ pub async fn load_model(
                 // maps with wgpu texture coordinate system
                 let bitangent = (delta_pos2 * delta_uv1.x - delta_pos1 * delta_uv2.x) * -r;
 
-                // We'll use the same tangent/bitangent for each vertex in the triangle
-                vertices[c[0] as usize].tangent =
-                    (tangent + cgmath::Vector3::from(vertices[c[0] as usize].tangent)).into();
-                vertices[c[1] as usize].tangent =
-                    (tangent + cgmath::Vector3::from(vertices[c[1] as usize].tangent)).into();
-                vertices[c[2] as usize].tangent =
-                    (tangent + cgmath::Vector3::from(vertices[c[2] as usize].tangent)).into();
-                vertices[c[0] as usize].bitangent =
-                    (bitangent + cgmath::Vector3::from(vertices[c[0] as usize].bitangent)).into();
-                vertices[c[1] as usize].bitangent =
-                    (bitangent + cgmath::Vector3::from(vertices[c[1] as usize].bitangent)).into();
-                vertices[c[2] as usize].bitangent =
-                    (bitangent + cgmath::Vector3::from(vertices[c[2] as usize].bitangent)).into();
+                for i in 0..3 {
+                    // We'll use the same tangent/bitangent for each vertex in the triangle
+                    vertices[c[i] as usize].tangent =
+                        (tangent + cgmath::Vector3::from(vertices[c[i] as usize].tangent)).into();
+                    vertices[c[1] as usize].bitangent = (bitangent
+                        + cgmath::Vector3::from(vertices[c[1] as usize].bitangent))
+                    .into();
 
-                // Used to average the tangents/bitangents
-                triangles_included[c[0] as usize] += 1;
-                triangles_included[c[1] as usize] += 1;
-                triangles_included[c[2] as usize] += 1;
+                    // Used to average the tangents/bitangents
+                    triangles_included[c[i] as usize] += 1;
+                }
             }
 
             // Average the tangents/bitangents
