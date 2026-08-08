@@ -34,7 +34,7 @@ impl BitmapFont {
             .map_err(|e| anyhow::anyhow!("{e}"))?;
 
         // Figure out texture size
-        let glyph_size = 64;
+        let glyph_size = glyph_scale as u32 + padding * 2;
         let glyphs_per_row = chars.len().isqrt().next_power_of_two() as u32;
         let size = glyphs_per_row * glyph_size;
         let texture = device.create_texture(&wgpu::TextureDescriptor {
@@ -463,6 +463,12 @@ fn layout_glyphs(
     let mut indices = Vec::new();
     let mut current_position = Vec2::ZERO;
     let mut extents = Vec2::ZERO;
+
+    for c in text.chars() {
+        if c == '\n' {
+            current_position.y += font.line_height;
+        }
+    }
 
     for c in text.chars() {
         let glyph = font.glyph(c).unwrap();

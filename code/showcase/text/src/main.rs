@@ -9,7 +9,7 @@ use std::{
 use framework::{
     Camera, CameraBinder, Display, Projection, resources::load_string, winit::keyboard::KeyCode,
 };
-use glam::{Vec2, Vec4, vec2, vec4};
+use glam::{Vec2, Vec4};
 
 use crate::font::{BitmapFont, FontBinder, TextAlignment, TextBuffer, TextPipeline};
 
@@ -141,7 +141,7 @@ impl framework::Demo for TextDemo {
                 BitmapFont::load(
                     &display.device,
                     &display.queue,
-                    4,
+                    padding,
                     fonts_dir.join(font_path),
                     &chars,
                 )
