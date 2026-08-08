@@ -285,6 +285,18 @@ pub struct FontVertex {
 pub struct FontUniforms {
     position: Vec2,
     extents: Vec2,
+    // Padding to 16 bytes as wasm requires 16 byte alignment
+    _padding: [u32; 8],
+}
+
+impl FontUniforms {
+    pub fn new(position: Vec2, extents: Vec2) -> FontUniforms {
+        Self {
+            position,
+            extents,
+            _padding: Default::default(),
+        }
+    }
 }
 
 impl FontVertex {
@@ -528,7 +540,7 @@ fn layout_glyphs(
     let mut bytes: Vec<u8> =
         Vec::with_capacity(std::mem::size_of::<FontUniforms>() + vertex_bytes.len());
 
-    let uniforms = FontUniforms { position, extents };
+    let uniforms = FontUniforms::new ( position, extents );
     let uniform_bytes = bytes_of(&uniforms);
 
     // Put the uniform data at the start of the buffer

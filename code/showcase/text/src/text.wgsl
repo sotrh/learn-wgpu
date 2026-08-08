@@ -24,6 +24,8 @@ struct Camera {
 
 struct FontUniforms {
     position: vec2<f32>,
+    // Unused, but needed for alignment
+    extents: vec2<f32>,
 }
 
 

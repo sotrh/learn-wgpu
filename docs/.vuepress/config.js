@@ -57,6 +57,7 @@ export default defineUserConfig({
           "/showcase/",
           "/showcase/mipmaps/",
           "/showcase/stencil/",
+          "/showcase/text/",
           "/showcase/windowless/",
           "/showcase/gifs/",
           "/showcase/pong/",
