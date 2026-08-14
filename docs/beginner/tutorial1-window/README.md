@@ -78,7 +78,7 @@ impl State {
 // ...
 ```
 
-There's not much going on here, but once we start using, we WGPU will start filling this up pretty quick. Most of the methods on this struct are place holders, though in `render()` we ask the window to draw another frame as soon as possible as winit only draws one frame unless the window is resized or we request it to draw another one.
+There's not much going on here, but once we start using WGPU, we will start filling this up pretty quick. Most of the methods on this struct are place holders, though in `render()` we ask the window to draw another frame as soon as possible as winit only draws one frame unless the window is resized or we request it to draw another one.
 
 Now that we have our `State` struct, we need to tell winit how to use it. We'll create an `App` struct for this.
 
