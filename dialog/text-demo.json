@@ -14,7 +14,7 @@
       },
       "sans_multi_line_text": {
         "font": "sans",
-        "position": [10, 52],
+        "position": [10, 10],
         "text": "This is a test. I hope it works.\r\nThe quick brown fox jumped over the lazy dog."
       }
     },
@@ -28,7 +28,7 @@
       },
       "medieval_multi_line_text": {
         "font": "sans",
-        "position": [10, 52],
+        "position": [10, 10],
         "text": "This is a test. I hope it works.\r\nThe quick brown fox jumped over the lazy dog."
       }
     }
