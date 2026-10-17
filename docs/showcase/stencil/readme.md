@@ -333,7 +333,7 @@ You can also use any model you want, but I'm using the rounded cube
 from the same demo.
 
 The visible objects use similar code so I'll leave that out for
-brevity. You can check 
+brevity. You can check
 [the example code](https://github.com/sotrh/learn-wgpu/tree/master/code/showcase/stencil/)
 if your stuck.
 

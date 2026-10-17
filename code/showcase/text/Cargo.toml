@@ -7,7 +7,6 @@ edition = "2024"
 framework = { version = "0.1.0", path = "../framework" }
 anyhow.workspace = true
 wgpu.workspace = true
-ab_glyph.workspace = true
 glam.workspace = true
 bytemuck.workspace = true
 web-time.workspace = true

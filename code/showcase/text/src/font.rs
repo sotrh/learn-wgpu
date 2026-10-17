@@ -17,6 +17,7 @@ pub struct BitmapFont {
     glyphs: HashMap<char, Glyph>,
     texture: wgpu::TextureView,
     line_height: f32,
+    kerning: HashMap<(char, char), f32>,
 }
 
 impl BitmapFont {
@@ -53,6 +54,7 @@ impl BitmapFont {
         });
 
         let mut glyphs = HashMap::new();
+        let mut kerning = HashMap::new();
         let mut x = padding;
         let mut y = padding;
 
@@ -62,6 +64,16 @@ impl BitmapFont {
             let (metrics, coverage) = font.rasterize(c, glyph_scale);
 
             let offset = vec2(metrics.xmin as _, metrics.ymin as _);
+
+            for c2 in chars.iter().copied() {
+                if c == c2 {
+                    continue;
+                }
+
+                if let Some(kern) = font.horizontal_kern(c, c2, glyph_scale) {
+                    kerning.insert((c, c2), kern);
+                }
+            }
 
             let mut texture_region = None;
 
@@ -129,8 +141,9 @@ impl BitmapFont {
 
         Ok(Self {
             glyphs,
-            texture: texture.create_view(&Default::default()),
             line_height: glyph_scale,
+            kerning,
+            texture: texture.create_view(&Default::default()),
         })
     }
 
@@ -143,8 +156,8 @@ impl BitmapFont {
 pub struct Glyph {
     offset: Vec2,
     h_advance: f32,
-    texture_region: Option<TextureRegion>,
     v_advance: f32,
+    texture_region: Option<TextureRegion>,
 }
 
 #[derive(Debug)]
@@ -285,17 +298,11 @@ pub struct FontVertex {
 pub struct FontUniforms {
     position: Vec2,
     extents: Vec2,
-    // Padding to 16 bytes as wasm requires 16 byte alignment
-    _padding: [u32; 8],
 }
 
 impl FontUniforms {
     pub fn new(position: Vec2, extents: Vec2) -> FontUniforms {
-        Self {
-            position,
-            extents,
-            _padding: Default::default(),
-        }
+        Self { position, extents }
     }
 }
 
@@ -482,12 +489,19 @@ fn layout_glyphs(
         }
     }
 
+    let mut previous_c = None;
+
     for c in text.chars() {
         let glyph = font.glyph(c).unwrap();
 
         if c == '\n' {
+            previous_c = None;
             current_position.x = 0.0;
             current_position.y -= font.line_height;
+            continue;
+        }
+
+        if c.is_control() {
             continue;
         }
 
@@ -495,8 +509,15 @@ fn layout_glyphs(
             let start_vertex = vertices.len() as u32;
 
             let size = region.max - region.min;
-            let min = current_position + glyph.offset;
-            let max = min + size;
+            let mut min = current_position + glyph.offset;
+            let mut max = min + size;
+
+            if let Some(pc) = previous_c
+                && let Some(&kern) = font.kerning.get(&(pc, c))
+            {
+                min.x += kern;
+                max.x += kern;
+            }
 
             // Update the bounds with the next character
             extents = max;
@@ -530,6 +551,8 @@ fn layout_glyphs(
             indices.push(start_vertex + 3);
         }
 
+        previous_c = Some(c);
+
         current_position.x += glyph.h_advance;
 
         // Only used for vertical fonts
@@ -540,7 +563,7 @@ fn layout_glyphs(
     let mut bytes: Vec<u8> =
         Vec::with_capacity(std::mem::size_of::<FontUniforms>() + vertex_bytes.len());
 
-    let uniforms = FontUniforms::new ( position, extents );
+    let uniforms = FontUniforms::new(position, extents);
     let uniform_bytes = bytes_of(&uniforms);
 
     // Put the uniform data at the start of the buffer
