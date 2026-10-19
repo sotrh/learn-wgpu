@@ -1,69 +1,17 @@
-mod font;
-
 use std::{
     collections::{HashMap, HashSet},
-    path::{Path, PathBuf},
+    path::Path,
     sync::Arc,
 };
 
 use framework::{
-    Camera, CameraBinder, Display, Projection, resources::load_string, winit::keyboard::KeyCode,
+    CameraBinder, Display, resources::load_string, winit::keyboard::KeyCode,
 };
-use glam::{Vec2, Vec4};
+use glam::Vec2;
 
-use crate::font::{BitmapFont, FontBinder, TextAlignment, TextBuffer, TextPipeline};
-
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
-pub struct TextJson {
-    fonts: HashMap<String, PathBuf>,
-    text_groups: HashMap<String, HashMap<String, TextBox>>,
-}
-
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
-pub struct TextBox {
-    font: String,
-    text: String,
-    #[serde(default = "default_text_color")]
-    color: Vec4,
-    #[serde(default)]
-    position: Vec2,
-    #[serde(default)]
-    horizontal: TextAlignment,
-    #[serde(default)]
-    vertical: TextAlignment,
-}
-
-fn default_text_color() -> Vec4 {
-    Vec4::new(0.9, 0.9, 0.9, 1.0)
-}
-
-pub struct TextCamera {
-    width: f32,
-    height: f32,
-}
-
-impl TextCamera {
-    pub fn new(width: f32, height: f32) -> Self {
-        Self { width, height }
-    }
-
-    pub fn resize(&mut self, width: f32, height: f32) {
-        self.width = width;
-        self.height = height;
-    }
-}
-
-impl Camera for TextCamera {
-    fn view(&self) -> glam::Mat4 {
-        glam::Mat4::IDENTITY
-    }
-}
-
-impl Projection for TextCamera {
-    fn proj(&self) -> glam::Mat4 {
-        glam::Mat4::orthographic_rh(0.0, self.width, 0.0, self.height, 0.0, 1.0)
-    }
-}
+use text::{
+    TextBox, TextCamera, TextJson, default_text_color, font::{BitmapFont, FontBinder, FontBinding, TextAlignment, TextBuffer, TextPipeline},
+};
 
 struct TextDemo {
     text_pipeline: TextPipeline,
@@ -76,11 +24,11 @@ struct TextDemo {
     debug_mode: bool,
     text: TextJson,
     text_buffers: HashMap<String, TextBuffer>,
-    fonts: HashMap<String, (Arc<BitmapFont>, font::FontBinding)>,
+    fonts: HashMap<String, (Arc<BitmapFont>, FontBinding)>,
 }
 
 impl TextDemo {
-    fn current_font(&self) -> &font::FontBinding {
+    fn current_font(&self) -> &FontBinding {
         match self.font_index {
             0 => &self.fonts["sans"].1,
             _ => &self.fonts["medieval"].1,

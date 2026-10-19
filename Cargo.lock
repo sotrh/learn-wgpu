@@ -343,6 +343,12 @@ dependencies = [
 
 [[package]]
 name = "base64"
+version = "0.13.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9e1b586273c5702936fe7b7d6896644d8be71e6314cfe09d3167c95f712589e8"
+
+[[package]]
+name = "base64"
 version = "0.21.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9d297deb1925b89f2ccc13d7635fa0714f12c87adce1c75356b39ca9b7178567"
@@ -457,6 +463,12 @@ name = "byteorder"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1fd0f2584146f6f2ef48085050886acf353beff7305ebd1ae69500e27c67f64b"
+
+[[package]]
+name = "byteorder-lite"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8f1fe948ff07f4bd06c30984e69f5b4899c516a3ef74f34df92a2df2ab535495"
 
 [[package]]
 name = "bytes"
@@ -617,7 +629,7 @@ dependencies = [
  "env_logger 0.10.2",
  "fs_extra",
  "glob",
- "image",
+ "image 0.24.9",
  "instant",
  "log 0.4.33",
  "naga 29.0.4",
@@ -813,6 +825,21 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "10d60334b3b2e7c9d91ef8150abfb6fa4c1c39ebbcf4a81c2e346aad939fee3e"
 dependencies = [
  "thiserror 2.0.18",
+]
+
+[[package]]
+name = "demo-template"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bytemuck",
+ "framework",
+ "glam",
+ "serde",
+ "serde_json",
+ "text",
+ "web-time",
+ "wgpu",
 ]
 
 [[package]]
@@ -1152,7 +1179,7 @@ dependencies = [
  "getrandom 0.2.17",
  "glam",
  "glob",
- "image",
+ "image 0.24.9",
  "instant",
  "log 0.4.33",
  "naga 29.0.4",
@@ -1313,7 +1340,7 @@ dependencies = [
  "flume",
  "framework",
  "gif 0.11.4",
- "image",
+ "image 0.24.9",
  "log 0.4.33",
  "pollster 0.3.0",
  "tobj 3.2.5",
@@ -1381,6 +1408,61 @@ dependencies = [
  "slotmap",
  "wasm-bindgen",
  "web-sys",
+]
+
+[[package]]
+name = "gltf"
+version = "1.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e3ce1918195723ce6ac74e80542c5a96a40c2b26162c1957a5cd70799b8cacf7"
+dependencies = [
+ "base64 0.13.1",
+ "byteorder",
+ "gltf-json",
+ "image 0.25.10",
+ "lazy_static",
+ "serde_json",
+ "urlencoding",
+]
+
+[[package]]
+name = "gltf-derive"
+version = "1.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "14070e711538afba5d6c807edb74bcb84e5dbb9211a3bf5dea0dfab5b24f4c51"
+dependencies = [
+ "inflections",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "gltf-json"
+version = "1.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e6176f9d60a7eab0a877e8e96548605dedbde9190a7ae1e80bbcc1c9af03ab14"
+dependencies = [
+ "gltf-derive",
+ "serde",
+ "serde_derive",
+ "serde_json",
+]
+
+[[package]]
+name = "gltf-loader-buffers"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bytemuck",
+ "framework",
+ "glam",
+ "gltf",
+ "serde",
+ "serde_json",
+ "text",
+ "web-time",
+ "wgpu",
 ]
 
 [[package]]
@@ -1808,9 +1890,24 @@ dependencies = [
  "gif 0.13.3",
  "jpeg-decoder",
  "num-traits",
- "png",
+ "png 0.17.16",
  "qoi",
  "tiff",
+]
+
+[[package]]
+name = "image"
+version = "0.25.10"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "85ab80394333c02fe689eaf900ab500fbd0c2213da414687ebf995a65d5a6104"
+dependencies = [
+ "bytemuck",
+ "byteorder-lite",
+ "moxcms",
+ "num-traits",
+ "png 0.18.1",
+ "zune-core",
+ "zune-jpeg",
 ]
 
 [[package]]
@@ -1824,6 +1921,12 @@ dependencies = [
  "serde",
  "serde_core",
 ]
+
+[[package]]
+name = "inflections"
+version = "1.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a257582fdcde896fd96463bf2d40eefea0580021c0712a0e2b028b60b47a837a"
 
 [[package]]
 name = "instant"
@@ -2021,6 +2124,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "lazy_static"
+version = "1.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "20870f649af7073d53e38067b2a84312175d56ea15217e1b15bc83506ec50afb"
+
+[[package]]
 name = "leb128"
 version = "0.2.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2179,10 +2288,20 @@ dependencies = [
  "bytemuck",
  "framework",
  "glam",
- "image",
+ "image 0.24.9",
  "log 0.4.33",
  "wgpu",
  "winit",
+]
+
+[[package]]
+name = "moxcms"
+version = "0.8.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bb85c154ba489f01b25c0d36ae69a87e4a1c73a72631fc6c0eb6dde34a73e44b"
+dependencies = [
+ "num-traits",
+ "pxfm",
 ]
 
 [[package]]
@@ -2855,6 +2974,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "png"
+version = "0.18.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "60769b8b31b2a9f263dae2776c37b1b28ae246943cf719eb6946a1db05128a61"
+dependencies = [
+ "bitflags 2.13.0",
+ "crc32fast",
+ "fdeflate",
+ "flate2",
+ "miniz_oxide",
+]
+
+[[package]]
 name = "polling"
 version = "3.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2951,6 +3083,12 @@ name = "profiling"
 version = "1.0.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3d595e54a326bc53c1c197b32d295e14b169e3cfeaa8dc82b529f947fba6bcf5"
+
+[[package]]
+name = "pxfm"
+version = "0.1.30"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d55d956fa96f5ec02be2e13af0e20391a5aa83d6a074e3ad368959d0fab299ea"
 
 [[package]]
 name = "qoi"
@@ -3952,7 +4090,7 @@ dependencies = [
  "env_logger 0.10.2",
  "fs_extra",
  "glob",
- "image",
+ "image 0.24.9",
  "instant",
  "log 0.4.33",
  "pollster 0.3.0",
@@ -4238,7 +4376,7 @@ dependencies = [
  "env_logger 0.10.2",
  "fs_extra",
  "glob",
- "image",
+ "image 0.24.9",
  "log 0.4.33",
  "pollster 0.3.0",
  "reqwest 0.11.27",
@@ -4262,7 +4400,7 @@ dependencies = [
  "env_logger 0.10.2",
  "fs_extra",
  "glob",
- "image",
+ "image 0.24.9",
  "log 0.4.33",
  "pollster 0.3.0",
  "reqwest 0.11.27",
@@ -4286,7 +4424,7 @@ dependencies = [
  "env_logger 0.10.2",
  "fs_extra",
  "glob",
- "image",
+ "image 0.24.9",
  "instant",
  "log 0.4.33",
  "pollster 0.3.0",
@@ -4311,7 +4449,7 @@ dependencies = [
  "env_logger 0.10.2",
  "fs_extra",
  "glob",
- "image",
+ "image 0.24.9",
  "instant",
  "log 0.4.33",
  "pollster 0.3.0",
@@ -4389,7 +4527,7 @@ dependencies = [
  "env_logger 0.10.2",
  "fs_extra",
  "glob",
- "image",
+ "image 0.24.9",
  "log 0.4.33",
  "pollster 0.3.0",
  "wasm-bindgen",
@@ -4411,7 +4549,7 @@ dependencies = [
  "env_logger 0.10.2",
  "fs_extra",
  "glob",
- "image",
+ "image 0.24.9",
  "log 0.4.33",
  "pollster 0.3.0",
  "wasm-bindgen",
@@ -4433,7 +4571,7 @@ dependencies = [
  "env_logger 0.10.2",
  "fs_extra",
  "glob",
- "image",
+ "image 0.24.9",
  "log 0.4.33",
  "pollster 0.3.0",
  "wasm-bindgen",
@@ -4455,7 +4593,7 @@ dependencies = [
  "env_logger 0.10.2",
  "fs_extra",
  "glob",
- "image",
+ "image 0.24.9",
  "log 0.4.33",
  "pollster 0.3.0",
  "wasm-bindgen",
@@ -4477,7 +4615,7 @@ dependencies = [
  "env_logger 0.10.2",
  "fs_extra",
  "glob",
- "image",
+ "image 0.24.9",
  "log 0.4.33",
  "pollster 0.3.0",
  "reqwest 0.11.27",
@@ -4530,6 +4668,12 @@ dependencies = [
  "percent-encoding",
  "serde",
 ]
+
+[[package]]
+name = "urlencoding"
+version = "2.1.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "daf8dba3b7eb870caf1ddeed7bc9d2a049f3cfdfae7cb521b087cc33ae4c49da"
 
 [[package]]
 name = "utf8_iter"
@@ -5102,7 +5246,7 @@ name = "windowless"
 version = "0.1.0"
 dependencies = [
  "flume",
- "image",
+ "image 0.24.9",
  "pollster 0.3.0",
  "wgpu",
 ]
@@ -5542,7 +5686,7 @@ dependencies = [
  "env_logger 0.10.2",
  "fs_extra",
  "glob",
- "image",
+ "image 0.24.9",
  "instant",
  "log 0.4.33",
  "pollster 0.3.0",
@@ -5740,10 +5884,25 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b8848ee67ecc8aedbaf3e4122217aff892639231befc6a1b58d29fff4c2cabaa"
 
 [[package]]
+name = "zune-core"
+version = "0.5.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d56377fd46368984a170bc5aac5567e52ca5da874caa60bea39fcbca78fb658b"
+
+[[package]]
 name = "zune-inflate"
 version = "0.2.54"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "73ab332fe2f6680068f3582b16a24f90ad7096d5d39b974d1c0aff0125116f02"
 dependencies = [
  "simd-adler32",
+]
+
+[[package]]
+name = "zune-jpeg"
+version = "0.5.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "27bc9d5b815bc103f142aa054f561d9187d191692ec7c2d1e2b4737f8dbd7296"
+dependencies = [
+ "zune-core",
 ]

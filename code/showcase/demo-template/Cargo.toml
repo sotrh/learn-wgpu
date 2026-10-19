@@ -1,0 +1,17 @@
+[package]
+name = "demo-template"
+version = "0.1.0"
+edition = "2024"
+
+
+[dependencies]
+anyhow.workspace = true
+wgpu.workspace = true
+glam.workspace = true
+bytemuck.workspace = true
+web-time.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+
+framework = { version = "0.1.0", path = "../framework" }
+text = { version = "0.1.0", path = "../text" }

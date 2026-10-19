@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 framework = { version = "0.1.0", path = "../framework" }
+
 anyhow.workspace = true
 wgpu.workspace = true
 glam.workspace = true

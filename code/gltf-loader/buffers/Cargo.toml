@@ -1,0 +1,18 @@
+[package]
+name = "gltf-loader-buffers"
+version = "0.1.0"
+edition = "2024"
+
+
+[dependencies]
+anyhow.workspace = true
+wgpu.workspace = true
+glam.workspace = true
+bytemuck.workspace = true
+web-time.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+gltf.workspace = true
+
+framework = { version = "0.1.0", path = "../../showcase/framework" }
+text = { version = "0.1.0", path = "../../showcase/text" }
