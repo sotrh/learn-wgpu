@@ -107,7 +107,7 @@ fn odd_even_sort(
 This works much the same as with the introduction code. We setup our bindgroup
 with one `array<u32>` that is `read_write` as this sort works without needing
 an additional array to output into. We also only need the `global_invocation_id`
-builtin to properly index our `data`. No we'll start looking at the code inside
+builtin to properly index our `data`. Now we'll start looking at the code inside
 of `odd_even_sort`.
 
 ```wgsl
