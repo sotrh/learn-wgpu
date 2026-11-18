@@ -109,7 +109,7 @@ select a function with a `@compute` tag if there is only one in the file.
 The shader code for this example is simple too:
 
 ```wgsl
-// A read-only storage buffer that stores and array of unsigned 32bit integers
+// A read-only storage buffer that stores an array of unsigned 32bit integers
 @group(0) @binding(0) var<storage, read> input: array<u32>;
 // This storage buffer can be read from and written to
 @group(0) @binding(1) var<storage, read_write> output: array<u32>;
@@ -187,8 +187,8 @@ so each thread handles the geometry for one voxel in the voxel grid.
 
 ## The global invocation id
 
-Each thread in a workgroup has an id associated with it that tells what thread what workgroup
-the thread belongs to. If we access this using the `workgroup_id` built in.
+Each thread in a workgroup has an id associated with it that tells that thread what workgroup
+it belongs to. We can access this using the `workgroup_id` built-in.
 
 ```wgsl
 @compute
@@ -201,7 +201,7 @@ fn main(
 ```
 
 Knowing where we are in the workgroup is helpful too and we do that using the
-`local_invocation_id` built in.
+`local_invocation_id` built-in.
 
 ```wgsl
 @compute
@@ -220,7 +220,7 @@ We can then compute our global position in the workgroup invocation grid using
 let id = workgroup_id * workgroup_size + local_invocation_id;
 ```
 
-We can also just us the `global_invocation_id` builtin like we did in the shader
+We can also just use the `global_invocation_id` built-in like we did in the shader
 code listed above.
 
 ### Where does workgroup_id come from?
@@ -246,8 +246,8 @@ In the `pass.dispatch_workgroups()` call we use a grid with dimensions `(num_dis
 which means we'll launch `num_dispatches * 1 * 1` workgroups. The GPU then assigns each workgroup
 an id with the x coordinate being between 0 and `num_dispatches - 1`.
 
-This is important to know because if you change workgroup size, the `global_invocation_id` can change
-meaning you are potentially use more threads than you need or not enough.
+This is important to know because if you change workgroup size, the `global_invocation_id` can change,
+meaning you are potentially using more threads than you need or not enough.
 
 ## Buffers
 
@@ -276,7 +276,7 @@ Here's an example of setting up an input and output buffer.
 
 We specifically need the `STORAGE` usage our buffer is this shader. We can
 use `UNIFORM` for some things, but uniform buffers are more limited in what
-size they can be and they can't be modified in the shader.
+size they can be, and they can't be modified in the shader.
 
 ## Bindgroup setup
 
@@ -284,7 +284,7 @@ Again I won't go into detail about how to define bind groups here, as I've
 already done that in [the rendering guide](../../beginner/tutorial5-textures/),
 but I cover the theory. In WebGPU a bind group describes resources that can
 be used by the shader. These can be textures, buffers, samplers, etc. A
-`BindGroupLayout` defines how these resources are grouped what shaders stages
+`BindGroupLayout` defines how these resources are grouped, what shaders stages
 have access to them, and how the shader will interpret the resources.
 
 You can manually specify the `BindGroupLayout`, but WGPU can infer the layout
@@ -319,7 +319,7 @@ satisfies this with the following code:
 
 ## Getting data out of the GPU
 
-Depending on your applications needs, the data you process in a compute shader
+Depending on your application's needs, the data you process in a compute shader
 may stay on the the GPU as it is only used for rendering or other compute pipelines.
 If you do need to get that data from the GPU to the CPU, or if you just want to
 take a look at it, there is fortunately a way to do that.
