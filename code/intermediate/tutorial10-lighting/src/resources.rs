@@ -111,19 +111,17 @@ pub async fn load_model(
     let meshes = models
         .into_iter()
         .map(|m| {
-            let vertices = (0..m.mesh.positions.len() / 3)
-                .map(|i| model::ModelVertex {
-                    position: [
-                        m.mesh.positions[i * 3],
-                        m.mesh.positions[i * 3 + 1],
-                        m.mesh.positions[i * 3 + 2],
-                    ],
-                    tex_coords: [m.mesh.texcoords[i * 2], 1.0 - m.mesh.texcoords[i * 2 + 1]],
-                    normal: [
-                        m.mesh.normals[i * 3],
-                        m.mesh.normals[i * 3 + 1],
-                        m.mesh.normals[i * 3 + 2],
-                    ],
+            let coords = m
+                .mesh
+                .positions
+                .chunks_exact(3)
+                .zip(m.mesh.normals.chunks_exact(3))
+                .zip(m.mesh.texcoords.chunks_exact(2));
+            let vertices = coords
+                .map(|((position, normals), texcoords)| model::ModelVertex {
+                    position: [position[0], position[1], position[2]],
+                    tex_coords: [texcoords[0], 1.0 - texcoords[1]],
+                    normal: [normals[0], normals[1], normals[2]],
                 })
                 .collect::<Vec<_>>();
 
